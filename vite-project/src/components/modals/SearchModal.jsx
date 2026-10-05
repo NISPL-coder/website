@@ -1,138 +1,384 @@
-import React, { useState } from 'react';
-import { Search, X, FileText, Boxes, Users, FileSpreadsheet, ArrowRight } from 'lucide-react';
-import { formatINR } from '../../utils/formatters';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Search, 
+  X, 
+  ArrowRight, 
+  FileText, 
+  Cloud, 
+  Server, 
+  ShieldCheck, 
+  Wrench, 
+  Laptop, 
+  Globe, 
+  ShoppingCart, 
+  Code, 
+  Sparkles, 
+  Building2, 
+  PhoneCall, 
+  Award,
+  Layers
+} from 'lucide-react';
+import './SearchModal.css';
 
 export default function SearchModal({ 
   isOpen, 
   onClose, 
   transactions = [], 
-  products = [], 
-  onSelectAction 
+  products = [] 
 }) {
+  const [query, setQuery] = useState('');
+  const inputRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Auto-focus input on open and handle ESC key
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, 50);
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const [query, setQuery] = useState('');
+  // Search catalog covering all corporate services, solutions, and pages
+  const catalog = [
+    {
+      id: 'tally-prime',
+      title: 'Tally Prime Solutions',
+      desc: 'Licensing, GST setup, inventory management, billing & business reporting',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/tally-prime',
+      keywords: 'tally prime gst inventory accounting billing invoicing licensing tallyprime'
+    },
+    {
+      id: 'tally-cloud',
+      title: 'Tally on Cloud',
+      desc: 'Secure remote cloud hosting, anywhere 24/7 access, automated daily backups',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/tally-on-cloud',
+      keywords: 'tally on cloud remote access hosting cloud server tallycloud backup'
+    },
+    {
+      id: 'cloud-hosting',
+      title: 'Data Center, Cloud Server & Hosting',
+      desc: 'Windows/Linux server deployment, Microsoft Azure & AWS hybrid cloud infrastructure',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/data-center-cloud',
+      keywords: 'data center cloud server hosting azure aws windows linux tier 4 datacenter'
+    },
+    {
+      id: 'it-infra',
+      title: 'IT Infrastructure & Security',
+      desc: 'Server/network management, firewalls, CCTV, Wi-Fi, Microsoft 365 & IT AMC',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/it-infra-security',
+      keywords: 'it infrastructure security firewall network cctv wifi amc m365 microsoft'
+    },
+    {
+      id: 'it-repair',
+      title: 'IT Product Repair & Maintenance',
+      desc: 'Desktop, laptop, printer, server & hardware troubleshooting and repair',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/it-repair-maintenance',
+      keywords: 'repair maintenance hardware laptop desktop printer server motherboard fixing'
+    },
+    {
+      id: 'it-rental',
+      title: 'IT Product Sales & Rental',
+      desc: 'Laptops, desktops, workstations & networking equipment procurement and rental',
+      badge: 'Service',
+      badgeClass: 'badge-service',
+      path: '/services/it-sales-rental',
+      keywords: 'sales rental lease rent laptop desktop workstation hardware procurement'
+    },
+    {
+      id: 'business-websites',
+      title: 'Business Websites & Web Apps',
+      desc: 'Modern, high-converting responsive corporate portals and web platforms',
+      badge: 'Solution',
+      badgeClass: 'badge-solution',
+      path: '/solutions',
+      keywords: 'business websites website web design development portal corporate web'
+    },
+    {
+      id: 'ecommerce',
+      title: 'E-Commerce Solutions',
+      desc: 'Online shopping platforms, payment gateway integration & Tally inventory sync',
+      badge: 'Solution',
+      badgeClass: 'badge-solution',
+      path: '/solutions',
+      keywords: 'ecommerce e-commerce online store shop cart payments gateway tally sync'
+    },
+    {
+      id: 'custom-software',
+      title: 'Custom Software & ERP',
+      desc: 'Tailor-made web/desktop ERP, CRM & custom enterprise business workflows',
+      badge: 'Solution',
+      badgeClass: 'badge-solution',
+      path: '/solutions',
+      keywords: 'custom software erp crm automation workflow web application desktop'
+    },
+    {
+      id: 'portfolio',
+      title: 'Client Portfolio & Case Studies',
+      desc: 'Proven digital transformation for 1,000+ corporate clients across India',
+      badge: 'Case Study',
+      badgeClass: 'badge-case',
+      path: '/portfolio',
+      keywords: 'portfolio case studies clients success stories projects retail manufacturing'
+    },
+    {
+      id: 'contact',
+      title: 'Contact & Registered Office',
+      desc: 'Webel Tower 1, Salt Lake Sector V, Kolkata • Hotline: 033-4001 3000 / +91 9330113000',
+      badge: 'Contact',
+      badgeClass: 'badge-company',
+      path: '/contact',
+      keywords: 'contact phone call email address location webel tower sector v salt lake kolkata support'
+    }
+  ];
 
-  const filteredTx = transactions.filter(t => 
-    t.party.toLowerCase().includes(query.toLowerCase()) ||
-    t.invoiceNo.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 3);
+  // Filter catalog items
+  const cleanQ = query.trim().toLowerCase();
+  const matchedCatalog = cleanQ
+    ? catalog.filter(item => 
+        item.title.toLowerCase().includes(cleanQ) ||
+        item.desc.toLowerCase().includes(cleanQ) ||
+        item.keywords.toLowerCase().includes(cleanQ)
+      )
+    : [];
 
-  const filteredProd = products.filter(p => 
-    p.name.toLowerCase().includes(query.toLowerCase()) ||
-    p.sku.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 3);
+  // Filter mock invoices if matching query
+  const matchedInvoices = cleanQ
+    ? transactions.filter(t =>
+        t.party.toLowerCase().includes(cleanQ) ||
+        t.invoiceNo.toLowerCase().includes(cleanQ)
+      ).slice(0, 3)
+    : [];
+
+  const handleNavigate = (path) => {
+    onClose();
+    if (path.includes('#')) {
+      const [route, hash] = path.split('#');
+      navigate(route);
+      setTimeout(() => {
+        const el = document.getElementById(hash);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
-    <div className="nis-modal-backdrop" onClick={onClose}>
+    <div 
+      className="nis-search-backdrop" 
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Global Search"
+    >
       <div 
-        className="nis-invoice-modal animate-fade-in" 
-        style={{ maxWidth: '640px' }}
+        className="nis-search-dialog" 
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-          <Search size={20} color="var(--primary-light)" style={{ marginRight: '12px' }} />
+        
+        {/* Search Input Bar */}
+        <div className="nis-search-input-bar">
+          <Search size={20} className="nis-search-icon" />
           <input
+            ref={inputRef}
             type="text"
-            autoFocus
-            placeholder="Search invoices, products, reports, ledgers (e.g. INV-1024, Cloud, P&L)..."
+            className="nis-search-input"
+            placeholder="Search Tally, Cloud, IT Services, Solutions, Invoices..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            style={{ width: '100%', border: 'none', fontSize: '1.05rem', color: 'var(--text-main)', background: 'transparent' }}
           />
-          <button type="button" onClick={onClose} style={{ color: 'var(--text-muted)', padding: '4px' }}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '16px 20px' }}>
-          {/* Quick Actions Shortcuts */}
-          <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Quick Navigation
-            </span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
+          <div className="nis-search-actions-bar">
+            {query && (
               <button 
                 type="button" 
-                onClick={() => { onSelectAction('accounting', 'sales'); onClose(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', textAlign: 'left', fontSize: '0.85rem' }}
+                className="nis-search-close-btn"
+                onClick={() => setQuery('')}
+                title="Clear input"
               >
-                <FileText size={16} color="var(--primary-light)" />
-                <span>Sales Invoices</span>
+                <X size={16} />
               </button>
-              <button 
-                type="button" 
-                onClick={() => { onSelectAction('inventory', 'products'); onClose(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', textAlign: 'left', fontSize: '0.85rem' }}
-              >
-                <Boxes size={16} color="#7C3AED" />
-                <span>Inventory & SKUs</span>
-              </button>
-              <button 
-                type="button" 
-                onClick={() => { onSelectAction('reports', 'pl'); onClose(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', textAlign: 'left', fontSize: '0.85rem' }}
-              >
-                <FileSpreadsheet size={16} color="#10B981" />
-                <span>Profit & Loss Statement</span>
-              </button>
-              <button 
-                type="button" 
-                onClick={() => { onSelectAction('parties', 'customers'); onClose(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', textAlign: 'left', fontSize: '0.85rem' }}
-              >
-                <Users size={16} color="#C026D3" />
-                <span>Customer Ledger</span>
-              </button>
-            </div>
+            )}
+            <span className="nis-search-badge-esc">ESC</span>
+            <button 
+              type="button" 
+              className="nis-search-close-btn"
+              onClick={onClose}
+              title="Close search"
+              aria-label="Close search"
+            >
+              <X size={20} />
+            </button>
           </div>
-
-          {/* Results: Invoices */}
-          {filteredTx.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Matching Invoices & Vouchers
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
-                {filteredTx.map(t => (
-                  <div 
-                    key={t.id} 
-                    onClick={() => { onSelectAction('accounting', 'sales'); onClose(); }}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 'var(--radius-sm)', background: '#F8FAFC', cursor: 'pointer' }}
-                  >
-                    <div>
-                      <b style={{ color: 'var(--primary-light)', fontFamily: 'monospace' }}>{t.invoiceNo}</b> — <span>{t.party}</span>
-                    </div>
-                    <span style={{ fontWeight: 700 }}>{formatINR(t.amount)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Results: Products */}
-          {filteredProd.length > 0 && (
-            <div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Matching Products in Inventory
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
-                {filteredProd.map(p => (
-                  <div 
-                    key={p.sku} 
-                    onClick={() => { onSelectAction('inventory', 'products'); onClose(); }}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 'var(--radius-sm)', background: '#F8FAFC', cursor: 'pointer' }}
-                  >
-                    <div>
-                      <b style={{ color: '#7C3AED', fontFamily: 'monospace' }}>{p.sku}</b> — <span>{p.name}</span>
-                    </div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{p.stock} in stock</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Results Body */}
+        <div className="nis-search-results-body">
+          
+          {/* 1. Quick Navigation when search query is empty */}
+          {!cleanQ && (
+            <div>
+              <span className="nis-search-section-label">Quick Navigation</span>
+              <div className="nis-search-quick-grid">
+                <button
+                  type="button"
+                  className="nis-search-quick-pill"
+                  onClick={() => handleNavigate('/services/tally-prime')}
+                >
+                  <div className="quick-icon-wrap quick-icon-blue">
+                    <FileText size={16} />
+                  </div>
+                  <div>
+                    <span className="quick-text-title">Tally Prime</span>
+                    <span className="quick-text-sub">Licensing & Support</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className="nis-search-quick-pill"
+                  onClick={() => handleNavigate('/services/tally-on-cloud')}
+                >
+                  <div className="quick-icon-wrap quick-icon-indigo">
+                    <Cloud size={16} />
+                  </div>
+                  <div>
+                    <span className="quick-text-title">Tally on Cloud</span>
+                    <span className="quick-text-sub">Anywhere Access</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className="nis-search-quick-pill"
+                  onClick={() => handleNavigate('/services/data-center-cloud')}
+                >
+                  <div className="quick-icon-wrap quick-icon-purple">
+                    <Server size={16} />
+                  </div>
+                  <div>
+                    <span className="quick-text-title">Cloud Servers</span>
+                    <span className="quick-text-sub">Azure & AWS Hosting</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className="nis-search-quick-pill"
+                  onClick={() => handleNavigate('/contact')}
+                >
+                  <div className="quick-icon-wrap quick-icon-emerald">
+                    <PhoneCall size={16} />
+                  </div>
+                  <div>
+                    <span className="quick-text-title">Contact NISPL</span>
+                    <span className="quick-text-sub">Kolkata Webel Tower 1</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Matched Catalog Results */}
+          {cleanQ && matchedCatalog.length > 0 && (
+            <div>
+              <span className="nis-search-section-label">
+                Matching Services & Pages ({matchedCatalog.length})
+              </span>
+              <div className="nis-search-items-list">
+                {matchedCatalog.map((item) => (
+                  <div
+                    key={item.id}
+                    className="nis-search-item"
+                    onClick={() => handleNavigate(item.path)}
+                  >
+                    <div className="search-item-left">
+                      <span className={`search-item-badge ${item.badgeClass}`}>
+                        {item.badge}
+                      </span>
+                      <div className="search-item-info">
+                        <span className="search-item-title">{item.title}</span>
+                        <span className="search-item-desc">{item.desc}</span>
+                      </div>
+                    </div>
+                    <ArrowRight size={16} className="search-item-arrow" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3. Matched Invoices */}
+          {cleanQ && matchedInvoices.length > 0 && (
+            <div>
+              <span className="nis-search-section-label">Matching Invoices & Vouchers</span>
+              <div className="nis-search-items-list">
+                {matchedInvoices.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="nis-search-item"
+                    onClick={() => handleNavigate('/contact')}
+                  >
+                    <div className="search-item-left">
+                      <span className="search-item-badge badge-invoice">
+                        INV
+                      </span>
+                      <div className="search-item-info">
+                        <span className="search-item-title">
+                          <b>{inv.invoiceNo}</b> — {inv.party}
+                        </span>
+                        <span className="search-item-desc">
+                          Amount: ₹{inv.amount.toLocaleString('en-IN')} • Status: {inv.status}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowRight size={16} className="search-item-arrow" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 4. Empty state */}
+          {cleanQ && matchedCatalog.length === 0 && matchedInvoices.length === 0 && (
+            <div className="nis-search-empty">
+              <Search size={36} color="#94A3B8" />
+              <p>No results found for "<b>{query}</b>"</p>
+              <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
+                Try searching for "Tally", "Cloud", "Server", "Security", or "Contact"
+              </span>
+            </div>
+          )}
+
+        </div>
+
+        {/* Dialog Footer Helper */}
+        <div className="nis-search-dialog-footer">
+          <span>Navigate with mouse or tap</span>
+          <span>Press <kbd>ESC</kbd> to exit search</span>
+        </div>
+
       </div>
     </div>
   );

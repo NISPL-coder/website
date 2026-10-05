@@ -12,11 +12,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding-top: var(--header-height);
 }
 
 /* Subtle anchor targets for smooth scrolling */
 .section-anchor {
-  scroll-margin-top: 80px;
+  scroll-margin-top: calc(var(--header-height) + 20px);
 }
 
 /* Print styles */

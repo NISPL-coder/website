@@ -1,0 +1,311 @@
+/* ===================================================
+   SHARED STYLES FOR DEDICATED PAGES (ABOUT, SERVICES, SOLUTIONS, ETC.)
+   NET INFOTECH SYSTEM PVT. LTD. (NISPL)
+   =================================================== */
+
+/* Page Header Hero Banner */
+.page-header-banner {
+  position: relative;
+  background: linear-gradient(135deg, #09173D 0%, #0E2A6F 50%, #17388A 100%);
+  padding: 65px 0 55px;
+  color: #FFFFFF;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.page-header-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 35px 35px;
+}
+
+.page-header-content {
+  position: relative;
+  z-index: 2;
+  max-width: 850px;
+}
+
+.page-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 14px;
+}
+
+.page-breadcrumbs a {
+  color: #93C5FD;
+  transition: color var(--transition-fast);
+}
+
+.page-breadcrumbs a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.page-header-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.page-header-desc {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Page Section Wrappers */
+.page-body-section {
+  padding: 75px 0;
+  background: #FFFFFF;
+}
+
+.page-body-section.alt-bg {
+  background: #F8FAFC;
+}
+
+/* Timeline in About Page */
+.nis-timeline-wrap {
+  position: relative;
+  margin-top: 40px;
+  padding-left: 28px;
+  border-left: 2px solid #E2E8F0;
+}
+
+.nis-timeline-item {
+  position: relative;
+  margin-bottom: 36px;
+}
+
+.nis-timeline-dot {
+  position: absolute;
+  left: -35px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0284C7;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 0 0 2px #0284C7;
+}
+
+.nis-timeline-year {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #0284C7;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.nis-timeline-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.nis-timeline-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #64748B;
+}
+
+/* Service Detail Block */
+.service-detail-block {
+  padding: 40px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-xl);
+  margin-bottom: 40px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: all var(--transition-normal);
+}
+
+.service-detail-block:hover {
+  box-shadow: 0 16px 36px rgba(2, 132, 199, 0.08);
+  border-color: #BAE6FD;
+}
+
+.service-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.service-detail-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.service-detail-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.service-detail-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+
+.service-detail-tagline {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0284C7;
+}
+
+.service-detail-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 36px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.service-feature-box-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.service-feature-box-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.service-feature-box-item svg {
+  color: #0284C7;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.service-detail-cta-card {
+  background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+  border: 1px solid #BFDBFE;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.service-cta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369A1;
+  background: #E0F2FE;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  align-self: flex-start;
+}
+
+/* Contact Page Map Card */
+.contact-map-placeholder {
+  height: 280px;
+  background: #E2E8F0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #CBD5E1;
+  margin-top: 24px;
+}
+
+.map-inner-content {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  max-width: 320px;
+}
+
+.map-inner-content h5 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.map-inner-content p {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin-bottom: 10px;
+}
+
+.map-dir-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0284C7;
+  text-decoration: none;
+}
+
+.map-dir-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .service-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .service-feature-box-list {
+    grid-template-columns: 1fr;
+  }
+  .page-header-title {
+    font-size: 2.1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-header-banner {
+    padding: 38px 0 32px;
+  }
+  .page-header-title {
+    font-size: 1.75rem;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .page-header-desc {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+}
+

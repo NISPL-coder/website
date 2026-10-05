@@ -60,14 +60,32 @@
   flex-direction: column;
   transition: all var(--transition-normal);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
   overflow: hidden;
+}
+
+.nis-overview-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563EB, #7C3AED);
+  opacity: 0.7;
+  transition: height 0.25s ease, opacity 0.25s ease;
 }
 
 .nis-overview-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 16px 30px rgba(18, 57, 166, 0.1);
+  box-shadow: 0 16px 32px rgba(18, 57, 166, 0.12);
   border-color: rgba(37, 99, 235, 0.35);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+.nis-overview-card:hover::before {
+  height: 4px;
+  opacity: 1;
 }
 
 .card-top-row {

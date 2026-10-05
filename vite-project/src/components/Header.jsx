@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
-  Building2, 
+  Mail, 
+  Phone, 
+  ChevronDown, 
+  ChevronRight, 
   Search, 
-  PhoneCall, 
-  LogIn, 
   Sparkles, 
   Menu, 
-  X, 
-  ChevronRight,
-  ShieldCheck
+  X,
+  ArrowRight
 } from 'lucide-react';
+import logoImg from '../assets/net-infotech-final-logo-2-1-e1782735646883.png.webp';
 import './Header.css';
 
 export default function Header({ 
-  activeNav, 
-  setActiveNav, 
   onOpenDemo, 
-  onOpenLogin, 
   onOpenSearch 
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [mobileExpandedSection, setMobileExpandedSection] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 30) {
+      if (window.scrollY > 20) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -34,170 +36,394 @@ export default function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { id: 'home', label: 'Home', target: '#hero-section' },
-    { id: 'solutions', label: 'Solutions', target: '#overview-section' },
-    { id: 'accounting', label: 'Accounting', target: '#accounting-module' },
-    { id: 'inventory', label: 'Inventory', target: '#inventory-anchor' },
-    { id: 'reports', label: 'Reports', target: '#reports-anchor' },
-    { id: 'features', label: 'Features', target: '#features-section' },
-    { id: 'about', label: 'About Us', target: '#why-us-section' },
-    { id: 'contact', label: 'Contact', target: '#footer-section' },
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setOpenDropdown(null);
+  }, [location.pathname]);
+
+  const navMenuData = [
+    {
+      id: 'home',
+      label: 'Home',
+      path: '/',
+      isPill: true,
+    },
+    {
+      id: 'services',
+      label: 'Services',
+      path: '/services',
+      hasDropdown: true,
+      items: [
+        { 
+          label: '1. Tally Prime', 
+          desc: 'Licensing, GST, inventory management, billing & accounting setup', 
+          path: '/services/tally-prime' 
+        },
+        { 
+          label: '2. Tally on Cloud', 
+          desc: 'Anywhere secure remote access, high-speed cloud hosting & backups', 
+          path: '/services/tally-on-cloud' 
+        },
+        { 
+          label: '3. Data Center, Cloud Server & Hosting', 
+          desc: 'Windows/Linux hosting, Azure & AWS solutions, cloud migration', 
+          path: '/services/data-center-cloud' 
+        },
+        { 
+          label: '4. IT Infrastructure & Security', 
+          desc: 'Server/network management, firewalls, CCTV, Wi-Fi & IT AMC', 
+          path: '/services/it-infra-security' 
+        },
+        { 
+          label: '5. IT Product Repair & Maintenance', 
+          desc: 'Desktop, laptop, printer, server & hardware troubleshooting', 
+          path: '/services/it-repair-maintenance' 
+        },
+        { 
+          label: '6. IT Product Sales & Rental', 
+          desc: 'Laptop, desktop, server & networking equipment rental & procurement', 
+          path: '/services/it-sales-rental' 
+        },
+      ],
+    },
+    {
+      id: 'solutions',
+      label: 'Solutions',
+      path: '/solutions',
+      hasDropdown: true,
+      items: [
+        { 
+          label: 'Business Websites', 
+          desc: 'Modern, high-converting responsive corporate web platforms', 
+          path: '/solutions' 
+        },
+        { 
+          label: 'E-Commerce Solutions', 
+          desc: 'Online stores, payment gateway integration & Tally inventory sync', 
+          path: '/solutions' 
+        },
+        { 
+          label: 'Custom Software', 
+          desc: 'Tailor-made web/desktop ERP, CRM & workflow automation', 
+          path: '/solutions' 
+        },
+        { 
+          label: 'Digital Solutions', 
+          desc: 'Microsoft 365, Google Workspace & digital transformation', 
+          path: '/solutions' 
+        },
+      ],
+    },
+    {
+      id: 'portfolio',
+      label: 'Portfolio',
+      path: '/portfolio',
+      isPill: false,
+    },
+    {
+      id: 'contact',
+      label: 'Contact',
+      path: '/contact',
+      isPill: false,
+    },
   ];
 
-  const handleNavClick = (nav) => {
-    setActiveNav(nav.id);
-    setMobileMenuOpen(false);
-
-    if (nav.id === 'accounting' || nav.id === 'inventory' || nav.id === 'reports') {
-      const el = document.getElementById('accounting-module');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      const el = document.querySelector(nav.target);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
   return (
-    <header className={`nis-header ${isScrolled ? 'nis-header-scrolled' : ''}`}>
-      <div className="container nis-header-container">
+    <header className={`nis-official-header ${isScrolled ? 'nis-official-scrolled' : ''}`}>
+      <div className="nis-official-container">
         
-        {/* LEFT: Logo Brand */}
-        <div className="nis-logo-wrapper" onClick={() => handleNavClick({ id: 'home', target: '#hero-section' })}>
-          <div className="nis-logo-icon">
-            <span className="nis-logo-monogram">NIS</span>
-            <div className="nis-logo-glow" />
-          </div>
-          <div className="nis-brand-text">
-            <div className="nis-brand-title">
-              <span className="nis-brand-net">NET INFOTECH</span>
-              <span className="nis-brand-system">SYSTEM</span>
+        {/* LEFT: Official Logo (Never cut off, natural aspect ratio) */}
+        <Link 
+          to="/" 
+          className="nis-official-logo-wrapper"
+          title="Net Infotech System Pvt. Ltd. - NISPL Concept to Reality"
+        >
+          <img 
+            src={logoImg} 
+            alt="Net Infotech System Pvt. Ltd. - NISPL Concept to Reality" 
+            className="nis-official-logo-img"
+          />
+        </Link>
+
+        {/* RIGHT: Top Info Row + Bottom Navigation Row */}
+        <div className="nis-official-right-col">
+          
+          {/* 1. TOP ROW: 25 Years Badge + Email + Phone */}
+          <div className="nis-official-top-row">
+            
+            {/* 25 Years of Excellence Badge */}
+            <div className="nis-badge-25" title="Celebrating 25+ Years of Technology Excellence">
+              <span className="num-25">25</span>
+              <div className="text-25">
+                <span className="line-1">YEARS OF</span>
+                <span className="line-2">EXCELLENCE</span>
+              </div>
             </div>
-            <span className="nis-brand-sub">Enterprise Accounting & ERP</span>
+
+            {/* Email Pill */}
+            <a 
+              href="mailto:info@netinfotechsystem.com" 
+              className="nis-header-contact-link nis-email-link"
+              title="Email: info@netinfotechsystem.com"
+            >
+              <div className="nis-contact-circle nis-circle-blue">
+                <Mail size={15} />
+              </div>
+              <span className="nis-contact-label">info@netinfotechsystem.com</span>
+            </a>
+
+            {/* Phone Pill */}
+            <a 
+              href="tel:+919330113000" 
+              className="nis-header-contact-link nis-phone-link"
+              title="Call Hotline: 033 - 4001 3000 / +91 9330113000"
+            >
+              <div className="nis-contact-circle nis-circle-orange">
+                <Phone size={15} />
+              </div>
+              <span className="nis-contact-label nis-phone-val">+91 9330113000</span>
+            </a>
+
+            {/* Mobile Hamburger Toggle */}
+            <button 
+              type="button" 
+              className="nis-official-hamburger-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
-        </div>
 
-        {/* CENTER: Desktop Navigation */}
-        <nav className="nis-desktop-nav" aria-label="Main Navigation">
-          <ul className="nis-nav-list">
-            {navLinks.map((item) => {
-              const isActive = activeNav === item.id;
-              return (
-                <li key={item.id} className="nis-nav-item">
-                  <button
-                    type="button"
-                    className={`nis-nav-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => handleNavClick(item)}
+          {/* 2. BOTTOM ROW: Navigation Menu Items */}
+          <nav className="nis-official-nav-bar" aria-label="Main Navigation">
+            <ul className="nis-official-nav-list">
+              {navMenuData.map((menu) => {
+                const isActive = location.pathname === menu.path;
+
+                if (menu.isPill) {
+                  return (
+                    <li key={menu.id} className="nis-official-nav-item">
+                      <Link
+                        to={menu.path}
+                        className={`nis-nav-pill-btn ${isActive ? 'active' : ''}`}
+                      >
+                        {menu.label}
+                      </Link>
+                    </li>
+                  );
+                }
+
+                if (!menu.hasDropdown) {
+                  return (
+                    <li key={menu.id} className="nis-official-nav-item">
+                      <Link
+                        to={menu.path}
+                        className={`nis-official-nav-link ${isActive ? 'active' : ''}`}
+                      >
+                        <span>{menu.label}</span>
+                      </Link>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li 
+                    key={menu.id} 
+                    className="nis-official-nav-item has-dropdown"
+                    onMouseEnter={() => setOpenDropdown(menu.id)}
+                    onMouseLeave={() => setOpenDropdown(null)}
                   >
-                    {item.label}
-                    {isActive && <span className="nis-nav-indicator" />}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+                    <Link
+                      to={menu.path}
+                      className={`nis-official-nav-link ${isActive ? 'active' : ''}`}
+                      onClick={() => setOpenDropdown(null)}
+                    >
+                      <span>{menu.label}</span>
+                      <ChevronDown size={14} className="nav-chevron" />
+                    </Link>
 
-        {/* RIGHT: Quick Action Buttons */}
-        <div className="nis-header-actions">
-          {/* Quick Search */}
-          <button 
-            type="button" 
-            className="nis-icon-btn" 
-            title="Search Invoices, Products, Ledgers (Ctrl + K)" 
-            onClick={onOpenSearch}
-          >
-            <Search size={18} />
-          </button>
+                    {/* DROPDOWN MENU */}
+                    <div className={`nis-nav-dropdown ${openDropdown === menu.id ? 'show' : ''}`}>
+                      <div className="nis-dropdown-inner">
+                        {menu.items.map((subItem, sIdx) => (
+                          <Link 
+                            key={sIdx} 
+                            to={subItem.path}
+                            className="nis-dropdown-item"
+                            onClick={() => setOpenDropdown(null)}
+                          >
+                            <div className="nis-dropdown-item-header">
+                              <span className="nis-dropdown-item-title">{subItem.label}</span>
+                              <ArrowRight size={13} className="item-arrow" />
+                            </div>
+                            {subItem.desc && (
+                              <p className="nis-dropdown-item-desc">{subItem.desc}</p>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
 
-          {/* Direct Phone / Contact */}
-          <a 
-            href="tel:+919876543210" 
-            className="nis-phone-btn" 
-            title="Call Support: +91 98765 43210"
-          >
-            <PhoneCall size={16} />
-            <span className="nis-phone-text">+91 98765 43210</span>
-          </a>
+            {/* Quick Action Helpers on Far Right of Nav */}
+            <div className="nis-official-nav-actions">
+              <button 
+                type="button" 
+                className="nis-nav-icon-action" 
+                title="Quick Search (Ctrl + K)"
+                onClick={onOpenSearch}
+              >
+                <Search size={16} />
+              </button>
+              <button 
+                type="button" 
+                className="nis-nav-demo-cta"
+                onClick={onOpenDemo}
+                title="Request an Instant Customized Quote"
+              >
+                <Sparkles size={13} />
+                <span>Get a Quote</span>
+              </button>
+            </div>
+          </nav>
 
-          {/* Login Button */}
-          <button 
-            type="button" 
-            className="nis-login-btn" 
-            onClick={onOpenLogin}
-          >
-            <LogIn size={16} />
-            <span>Login</span>
-          </button>
-
-          {/* Primary CTA: Free Demo */}
-          <button 
-            type="button" 
-            className="nis-cta-btn" 
-            onClick={onOpenDemo}
-          >
-            <Sparkles size={16} className="nis-cta-sparkle" />
-            <span>Book Free Demo</span>
-          </button>
-
-          {/* Mobile Hamburger Toggle */}
-          <button 
-            type="button" 
-            className="nis-hamburger-btn" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
 
       </div>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE DRAWER OVERLAY */}
       {mobileMenuOpen && (
-        <div className="nis-mobile-drawer animate-fade-in">
-          <div className="nis-mobile-nav-list">
-            {navLinks.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`nis-mobile-nav-link ${activeNav === item.id ? 'active' : ''}`}
-                onClick={() => handleNavClick(item)}
-              >
-                <span>{item.label}</span>
-                <ChevronRight size={16} />
-              </button>
-            ))}
-          </div>
-
-          <div className="nis-mobile-actions">
-            <a href="tel:+919876543210" className="nis-mobile-phone">
-              <PhoneCall size={16} />
-              <span>Call +91 98765 43210</span>
-            </a>
-
-            <div className="nis-mobile-btn-grid">
+        <div className="nis-official-drawer-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="nis-official-drawer" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Drawer Header */}
+            <div className="nis-drawer-top">
+              <img 
+                src={logoImg} 
+                alt="NISPL Logo" 
+                className="nis-drawer-logo" 
+              />
               <button 
                 type="button" 
-                className="nis-login-btn" 
-                onClick={() => { setMobileMenuOpen(false); onOpenLogin(); }}
+                className="nis-drawer-close"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close Navigation"
               >
-                <LogIn size={16} />
-                <span>Client Login</span>
-              </button>
-              <button 
-                type="button" 
-                className="nis-cta-btn" 
-                onClick={() => { setMobileMenuOpen(false); onOpenDemo(); }}
-              >
-                <Sparkles size={16} />
-                <span>Free Demo</span>
+                <X size={20} />
               </button>
             </div>
+
+            {/* 25 Years Banner in Drawer */}
+            <div className="nis-drawer-badge-box">
+              <div className="nis-badge-25">
+                <span className="num-25">25</span>
+                <div className="text-25">
+                  <span className="line-1">YEARS OF</span>
+                  <span className="line-2">EXCELLENCE</span>
+                </div>
+              </div>
+              <span className="nis-drawer-tag">Tally 3-Star Certified Partner</span>
+            </div>
+
+            {/* Search Bar in Drawer */}
+            <div 
+              className="nis-drawer-search-bar"
+              onClick={() => { setMobileMenuOpen(false); onOpenSearch(); }}
+            >
+              <Search size={15} />
+              <span>Search products, services, accounting...</span>
+            </div>
+
+            {/* Nav links accordion */}
+            <div className="nis-drawer-links-list">
+              {navMenuData.map((menu) => {
+                if (menu.isPill || !menu.hasDropdown) {
+                  return (
+                    <Link
+                      key={menu.id}
+                      to={menu.path}
+                      className="nis-drawer-pill-link"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span>{menu.label}</span>
+                      <ChevronRight size={16} />
+                    </Link>
+                  );
+                }
+
+                const isExpanded = mobileExpandedSection === menu.id;
+
+                return (
+                  <div key={menu.id} className="nis-drawer-accordion-group">
+                    <button
+                      type="button"
+                      className="nis-drawer-accordion-trigger"
+                      onClick={() => setMobileExpandedSection(isExpanded ? null : menu.id)}
+                    >
+                      <span>{menu.label}</span>
+                      <ChevronDown 
+                        size={16} 
+                        className={`drawer-chevron ${isExpanded ? 'rotated' : ''}`} 
+                      />
+                    </button>
+
+                    {isExpanded && menu.items && (
+                      <div className="nis-drawer-sub-list animate-fade-in">
+                        {menu.items.map((sub, sIdx) => (
+                          <Link
+                            key={sIdx}
+                            to={sub.path}
+                            className="nis-drawer-sub-link"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <span>{sub.label}</span>
+                            <ArrowRight size={13} />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Drawer Bottom Contacts */}
+            <div className="nis-drawer-contacts">
+              <a href="tel:+919330113000" className="nis-drawer-contact-item">
+                <div className="nis-contact-circle nis-circle-orange">
+                  <Phone size={15} />
+                </div>
+                <div>
+                  <span className="sub-lbl">Call Hotline</span>
+                  <strong>+91 9330113000</strong>
+                </div>
+              </a>
+
+              <a href="mailto:info@netinfotechsystem.com" className="nis-drawer-contact-item">
+                <div className="nis-contact-circle nis-circle-blue">
+                  <Mail size={15} />
+                </div>
+                <div>
+                  <span className="sub-lbl">Email Support</span>
+                  <strong>info@netinfotechsystem.com</strong>
+                </div>
+              </a>
+
+              <button 
+                type="button" 
+                className="nis-drawer-cta-btn"
+                onClick={() => { setMobileMenuOpen(false); onOpenDemo(); }}
+              >
+                <Sparkles size={15} />
+                <span>Get a Free Quote</span>
+              </button>
+            </div>
+
           </div>
         </div>
       )}

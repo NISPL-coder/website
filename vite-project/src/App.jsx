@@ -1,49 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 import Header from './components/Header';
-import HeroCarousel from './components/HeroCarousel';
-import DashboardOverview from './components/DashboardOverview';
-import AccountingModule from './components/AccountingModule';
-import MarketingSections from './components/MarketingSections';
 import Footer from './components/Footer';
-import InvoiceModal from './components/InvoiceModal';
+import HomePage from './pages/HomePage';
+import ServicesPage from './pages/ServicesPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
+import SolutionsPage from './pages/SolutionsPage';
+import PortfolioPage from './pages/PortfolioPage';
+import ContactPage from './pages/ContactPage';
+
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
-import ProductModal from './components/modals/ProductModal';
-import PartyModal from './components/modals/PartyModal';
-import InvoiceViewModal from './components/modals/InvoiceViewModal';
 import Toast from './components/Toast';
+import WhatsAppButton from './components/WhatsAppButton';
+
 import { 
   INITIAL_METRICS, 
   INITIAL_TRANSACTIONS, 
-  INITIAL_PRODUCTS, 
-  INITIAL_CUSTOMERS, 
-  INITIAL_SUPPLIERS 
+  INITIAL_PRODUCTS 
 } from './data/mockData';
-import { formatINR } from './utils/formatters';
+import './components/InvoiceModal.css';
 import './App.css';
 
 export default function App() {
-  // Navigation & View state
-  const [activeNav, setActiveNav] = useState('home');
-  const [activeErpTab, setActiveErpTab] = useState('dashboard');
-  const [activeErpSubTab, setActiveErpSubTab] = useState('sales');
-
-  // Business state
-  const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
-  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
-  const [suppliers, setSuppliers] = useState(INITIAL_SUPPLIERS);
 
   // Modals state
-  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [partyModalConfig, setPartyModalConfig] = useState({ isOpen: false, type: 'customers' });
-  const [selectedInvoiceForView, setSelectedInvoiceForView] = useState(null);
 
   // Toast feedback state
   const [toastMessage, setToastMessage] = useState(null);
@@ -64,213 +52,121 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Handlers for Carousel CTAs
-  const handleExploreNIS = () => {
-    setActiveNav('solutions');
-    const el = document.getElementById('overview-section');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleExploreAccounting = () => {
-    setActiveNav('accounting');
-    setActiveErpTab('accounting');
-    setActiveErpSubTab('sales');
-    const el = document.getElementById('accounting-module');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleManageInventory = () => {
-    setActiveNav('inventory');
-    setActiveErpTab('inventory');
-    setActiveErpSubTab('products');
-    const el = document.getElementById('accounting-module');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleViewReports = () => {
-    setActiveNav('reports');
-    setActiveErpTab('reports');
-    setActiveErpSubTab('pl');
-    const el = document.getElementById('accounting-module');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Handler for clicking one of the 8 Overview Cards
-  const handleOverviewCardClick = (tabKey, subKey) => {
-    setActiveErpTab(tabKey);
-    setActiveErpSubTab(subKey);
-    setActiveNav(tabKey);
-    const el = document.getElementById('accounting-module');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // ERP Tab change handler
-  const handleErpTabChange = (tabId, subId) => {
-    setActiveErpTab(tabId);
-    setActiveErpSubTab(subId);
-  };
-
-  // Save new invoice handler
-  const handleSaveInvoice = (newTx) => {
-    setTransactions((prev) => [newTx, ...prev]);
-    setMetrics((prev) => ({
-      ...prev,
-      totalSales: prev.totalSales + newTx.amount,
-      receivables: prev.receivables + newTx.amount,
-    }));
-    showToast(`Invoice ${newTx.invoiceNo} for ${formatINR(newTx.amount)} created successfully!`);
-  };
-
-  // Add new product handler
-  const handleAddProduct = (newProduct) => {
-    setProducts((prev) => [newProduct, ...prev]);
-    showToast(`Product "${newProduct.name}" added to inventory.`);
-  };
-
-  // Add new customer/supplier handler
-  const handleAddParty = (type, newParty) => {
-    if (type === 'customers') {
-      setCustomers((prev) => [newParty, ...prev]);
-      showToast(`Customer "${newParty.name}" created.`);
-    } else {
-      setSuppliers((prev) => [newParty, ...prev]);
-      showToast(`Supplier "${newParty.name}" created.`);
-    }
-  };
-
-  // Toggle transaction status
-  const handleToggleTxStatus = (id) => {
-    setTransactions((prev) =>
-      prev.map((t) => {
-        if (t.id === id) {
-          const nextStatus = t.status === 'Paid' ? 'Pending' : (t.status === 'Pending' ? 'Overdue' : 'Paid');
-          showToast(`Transaction ${t.invoiceNo} marked as ${nextStatus}.`);
-          return { ...t, status: nextStatus };
-        }
-        return t;
-      })
-    );
-  };
-
   return (
-    <div className="app-wrapper">
-      {/* 1. FIXED TOP HEADER */}
-      <Header
-        activeNav={activeNav}
-        setActiveNav={setActiveNav}
-        onOpenDemo={() => setIsDemoModalOpen(true)}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
-      />
-
-      <main className="main-content">
-        {/* 2. HERO CAROUSEL (Critical 5000ms Auto-timer) */}
-        <HeroCarousel
-          onExploreNIS={handleExploreNIS}
-          onExploreAccounting={handleExploreAccounting}
-          onManageInventory={handleManageInventory}
-          onViewReports={handleViewReports}
-          onBookDemo={() => setIsDemoModalOpen(true)}
+    <BrowserRouter>
+      <ScrollToTop />
+      
+      <div className="app-wrapper">
+        {/* GLOBAL FIXED HEADER */}
+        <Header
+          onOpenDemo={() => setIsDemoModalOpen(true)}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          onOpenSearch={() => setIsSearchModalOpen(true)}
         />
 
-        {/* 3. "EVERYTHING YOUR BUSINESS NEEDS" - 8 CARDS */}
-        <DashboardOverview
-          onCardClick={handleOverviewCardClick}
+        {/* MULTI-PAGE ROUTED CONTENT */}
+        <main className="main-content">
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <HomePage 
+                  onOpenDemo={() => setIsDemoModalOpen(true)} 
+                />
+              } 
+            />
+            {/* Redirect /about to home */}
+            <Route path="/about" element={<Navigate to="/" replace />} />
+            <Route 
+              path="/services" 
+              element={
+                <ServicesPage 
+                  onOpenDemo={() => setIsDemoModalOpen(true)} 
+                  onShowToast={showToast}
+                />
+              } 
+            />
+            <Route 
+              path="/services/:serviceId" 
+              element={
+                <ServiceDetailPage 
+                  onOpenDemo={() => setIsDemoModalOpen(true)} 
+                />
+              } 
+            />
+            {/* Direct service aliases */}
+            <Route path="/tally-prime" element={<Navigate to="/services/tally-prime" replace />} />
+            <Route path="/tally-cloud" element={<Navigate to="/services/tally-on-cloud" replace />} />
+            <Route path="/tally-on-cloud" element={<Navigate to="/services/tally-on-cloud" replace />} />
+            <Route path="/cloud-hosting" element={<Navigate to="/services/data-center-cloud" replace />} />
+            <Route path="/it-infrastructure" element={<Navigate to="/services/it-infra-security" replace />} />
+            <Route path="/it-repair" element={<Navigate to="/services/it-repair-maintenance" replace />} />
+            <Route path="/it-rental" element={<Navigate to="/services/it-sales-rental" replace />} />
+            <Route 
+              path="/solutions" 
+              element={
+                <SolutionsPage 
+                  onOpenDemo={() => setIsDemoModalOpen(true)} 
+                />
+              } 
+            />
+            <Route 
+              path="/portfolio" 
+              element={
+                <PortfolioPage 
+                  onOpenDemo={() => setIsDemoModalOpen(true)} 
+                />
+              } 
+            />
+            <Route 
+              path="/contact" 
+              element={
+                <ContactPage 
+                  onShowToast={showToast} 
+                />
+              } 
+            />
+            {/* Catch-all redirect to Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+
+        {/* GLOBAL OFFICIAL FOOTER */}
+        <Footer />
+
+        {/* FLOATING WHATSAPP CHAT BUTTON */}
+        <WhatsAppButton />
+
+        {/* GLOBAL MODALS */}
+        {/* Get a Quote / Demo Modal */}
+        <DemoModal
+          isOpen={isDemoModalOpen}
+          onClose={() => setIsDemoModalOpen(false)}
+          onSubmitSuccess={(msg) => showToast(msg)}
         />
 
-        {/* 4. TALLY-STYLE ACCOUNTING & ERP WORKSPACE */}
-        <div id="inventory-anchor" className="section-anchor" />
-        <div id="reports-anchor" className="section-anchor" />
-        <AccountingModule
-          activeTab={activeErpTab}
-          activeSubTab={activeErpSubTab}
-          onTabChange={handleErpTabChange}
-          metrics={metrics}
+        {/* Client Login Modal */}
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={(msg) => showToast(msg)}
+        />
+
+        {/* Global Search Modal (Ctrl + K) */}
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
           transactions={transactions}
           products={products}
-          customers={customers}
-          suppliers={suppliers}
-          onOpenCreateInvoice={() => setIsInvoiceModalOpen(true)}
-          onOpenAddProduct={() => setIsProductModalOpen(true)}
-          onOpenAddParty={(type) => setPartyModalConfig({ isOpen: true, type })}
-          onToggleTxStatus={handleToggleTxStatus}
-          onViewInvoice={(tx) => setSelectedInvoiceForView(tx)}
-          onShowToast={showToast}
+          onSelectAction={() => {}}
         />
 
-        {/* 5. MARKETING & COMPANY WEBSITE SECTIONS */}
-        <MarketingSections
-          onOpenDemo={() => setIsDemoModalOpen(true)}
-          onOpenContact={() => {
-            const el = document.getElementById('footer-section');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
+        {/* Toast Notification */}
+        <Toast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
         />
-      </main>
-
-      {/* 6. PROFESSIONAL CORPORATE FOOTER */}
-      <Footer
-        onNavClick={setActiveNav}
-      />
-
-      {/* MODALS */}
-      {/* Invoice Creation Modal */}
-      <InvoiceModal
-        isOpen={isInvoiceModalOpen}
-        onClose={() => setIsInvoiceModalOpen(false)}
-        onSaveInvoice={handleSaveInvoice}
-      />
-
-      {/* Book a Demo Modal */}
-      <DemoModal
-        isOpen={isDemoModalOpen}
-        onClose={() => setIsDemoModalOpen(false)}
-        onSubmitSuccess={(msg) => showToast(msg)}
-      />
-
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={(msg) => showToast(msg)}
-      />
-
-      {/* Search Modal */}
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        transactions={transactions}
-        products={products}
-        onSelectAction={handleOverviewCardClick}
-      />
-
-      {/* Add Product Modal */}
-      <ProductModal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        onAddProduct={handleAddProduct}
-      />
-
-      {/* Add Party Modal */}
-      <PartyModal
-        isOpen={partyModalConfig.isOpen}
-        defaultType={partyModalConfig.type}
-        onClose={() => setPartyModalConfig({ isOpen: false, type: 'customers' })}
-        onAddParty={handleAddParty}
-      />
-
-      {/* View Printable Invoice Modal */}
-      <InvoiceViewModal
-        isOpen={!!selectedInvoiceForView}
-        invoice={selectedInvoiceForView}
-        onClose={() => setSelectedInvoiceForView(null)}
-      />
-
-      {/* Toast Notification */}
-      <Toast
-        message={toastMessage}
-        onClose={() => setToastMessage(null)}
-      />
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }

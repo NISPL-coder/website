@@ -30,26 +30,38 @@ import TransactionsTable from './accounting/TransactionsTable';
 import InventoryTab from './accounting/InventoryTab';
 import PartiesTab from './accounting/PartiesTab';
 import ReportsTab from './accounting/ReportsTab';
+import { 
+  INITIAL_METRICS, 
+  INITIAL_TRANSACTIONS, 
+  INITIAL_PRODUCTS, 
+  INITIAL_CUSTOMERS, 
+  INITIAL_SUPPLIERS 
+} from '../data/mockData';
 import './AccountingModule.css';
 
 export default function AccountingModule({
-  activeTab = 'dashboard',
-  activeSubTab = 'all',
+  activeTab: propActiveTab = 'dashboard',
+  activeSubTab: propActiveSubTab = 'all',
   onTabChange,
-  metrics,
-  transactions,
-  products,
-  customers,
-  suppliers,
-  onOpenCreateInvoice,
-  onOpenAddProduct,
-  onOpenAddParty,
-  onToggleTxStatus,
-  onViewInvoice,
-  onShowToast,
+  metrics = INITIAL_METRICS,
+  transactions = INITIAL_TRANSACTIONS,
+  products = INITIAL_PRODUCTS,
+  customers = INITIAL_CUSTOMERS,
+  suppliers = INITIAL_SUPPLIERS,
+  onOpenCreateInvoice = () => {},
+  onOpenAddProduct = () => {},
+  onOpenAddParty = () => {},
+  onToggleTxStatus = () => {},
+  onViewInvoice = () => {},
+  onShowToast = () => {},
 }) {
+  const [localActiveTab, setLocalActiveTab] = useState(propActiveTab);
+  const [localActiveSubTab, setLocalActiveSubTab] = useState(propActiveSubTab);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const activeTab = onTabChange ? propActiveTab : localActiveTab;
+  const activeSubTab = onTabChange ? propActiveSubTab : localActiveSubTab;
 
   // Navigation sidebar configuration
   const sidebarNav = [
@@ -122,7 +134,12 @@ export default function AccountingModule({
   ];
 
   const handleNavSelect = (tabId, subId = 'all') => {
-    onTabChange(tabId, subId);
+    if (typeof onTabChange === 'function') {
+      onTabChange(tabId, subId);
+    } else {
+      setLocalActiveTab(tabId);
+      setLocalActiveSubTab(subId);
+    }
     setMobileSidebarOpen(false);
   };
 
@@ -240,9 +257,9 @@ export default function AccountingModule({
                     <span className="fin-label">Total Sales</span>
                     <ReceiptIndianRupee size={16} className="text-primary" />
                   </div>
-                  <span className="fin-value">{formatINR(metrics.totalSales)}</span>
+                  <span className="fin-value">{formatINR(metrics?.totalSales ?? 0)}</span>
                   <span className="fin-growth text-success">
-                    <TrendingUp size={12} /> {metrics.salesGrowth} vs last month
+                    <TrendingUp size={12} /> {metrics?.salesGrowth || '+14.8%'} vs last month
                   </span>
                 </div>
 
@@ -252,9 +269,9 @@ export default function AccountingModule({
                     <span className="fin-label">Total Purchases</span>
                     <ShoppingBag size={16} className="text-secondary" />
                   </div>
-                  <span className="fin-value">{formatINR(metrics.totalPurchases)}</span>
+                  <span className="fin-value">{formatINR(metrics?.totalPurchases ?? 0)}</span>
                   <span className="fin-growth text-primary">
-                    {metrics.purchasesControl} optimized
+                    {metrics?.purchasesControl || '-3.2%'} optimized
                   </span>
                 </div>
 
@@ -264,7 +281,7 @@ export default function AccountingModule({
                     <span className="fin-label">Receivables</span>
                     <ArrowDownLeft size={16} className="text-success" />
                   </div>
-                  <span className="fin-value text-success">{formatINR(metrics.receivables)}</span>
+                  <span className="fin-value text-success">{formatINR(metrics?.receivables ?? 0)}</span>
                   <span className="fin-growth text-muted">18 Pending Invoices</span>
                 </div>
 
@@ -274,7 +291,7 @@ export default function AccountingModule({
                     <span className="fin-label">Payables</span>
                     <ArrowUpRight size={16} className="text-warning" />
                   </div>
-                  <span className="fin-value text-warning">{formatINR(metrics.payables)}</span>
+                  <span className="fin-value text-warning">{formatINR(metrics?.payables ?? 0)}</span>
                   <span className="fin-growth text-muted">Next due in 7 days</span>
                 </div>
 
@@ -284,7 +301,7 @@ export default function AccountingModule({
                     <span className="fin-label">Cash Balance</span>
                     <Wallet size={16} color="#059669" />
                   </div>
-                  <span className="fin-value">{formatINR(metrics.cashBalance)}</span>
+                  <span className="fin-value">{formatINR(metrics?.cashBalance ?? 0)}</span>
                   <span className="fin-growth text-muted">Office Vault & Drawer</span>
                 </div>
 
@@ -294,7 +311,7 @@ export default function AccountingModule({
                     <span className="fin-label">Bank Balance</span>
                     <Building2 size={16} color="#0284C7" />
                   </div>
-                  <span className="fin-value">{formatINR(metrics.bankBalance)}</span>
+                  <span className="fin-value">{formatINR(metrics?.bankBalance ?? 0)}</span>
                   <span className="fin-growth text-primary">HDFC & SBI Connected</span>
                 </div>
 

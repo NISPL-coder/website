@@ -84,7 +84,7 @@
 
 /* Slide theme nuances */
 .hero-slide-theme-blue {
-  background: radial-gradient(circle at 75% 40%, rgba(37, 99, 235, 0.18), transparent 60%);
+  background: radial-gradient(circle at 75% 40%, rgba(37, 99, 235, 0.22), transparent 60%);
 }
 
 .hero-slide-theme-indigo {
@@ -95,9 +95,18 @@
   background: radial-gradient(circle at 75% 40%, rgba(124, 58, 237, 0.22), transparent 60%);
 }
 
-.hero-slide-theme-magenta {
-  background: radial-gradient(circle at 75% 40%, rgba(192, 38, 211, 0.22), transparent 60%);
+.hero-slide-theme-cyan {
+  background: radial-gradient(circle at 75% 40%, rgba(6, 182, 212, 0.22), transparent 60%);
 }
+
+.hero-slide-theme-emerald {
+  background: radial-gradient(circle at 75% 40%, rgba(16, 185, 129, 0.22), transparent 60%);
+}
+
+.hero-slide-theme-amber {
+  background: radial-gradient(circle at 75% 40%, rgba(245, 158, 11, 0.22), transparent 60%);
+}
+
 
 .nis-hero-content-container {
   display: grid;
@@ -280,6 +289,111 @@
   justify-content: center;
   height: 100%;
 }
+
+/* Hero Banner Image Showcase */
+.hero-banner-image-showcase {
+  position: relative;
+  width: 100%;
+  max-width: 530px;
+  z-index: 5;
+}
+
+.banner-image-frame {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.65), 0 0 30px rgba(37, 99, 235, 0.25);
+  background: #0B132B;
+}
+
+.banner-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-banner-image-showcase:hover .banner-hero-img {
+  transform: scale(1.035);
+}
+
+.banner-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(9, 19, 46, 0.05) 0%, rgba(9, 19, 46, 0.45) 100%);
+  pointer-events: none;
+}
+
+.banner-floating-tag {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(11, 19, 43, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  z-index: 4;
+}
+
+.floating-tag-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 8px #34D399;
+  flex-shrink: 0;
+}
+
+/* Ambient glow halos behind the image */
+.banner-ambient-glow {
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0.45;
+  z-index: 1;
+  pointer-events: none;
+  transition: all 0.6s ease;
+}
+
+.glow-hero-slide-theme-blue {
+  background: radial-gradient(circle, #2563EB, #06B6D4);
+}
+
+.glow-hero-slide-theme-indigo {
+  background: radial-gradient(circle, #4F46E5, #0284C7);
+}
+
+.glow-hero-slide-theme-purple {
+  background: radial-gradient(circle, #7C3AED, #2563EB);
+}
+
+.glow-hero-slide-theme-cyan {
+  background: radial-gradient(circle, #06B6D4, #3B82F6);
+}
+
+.glow-hero-slide-theme-emerald {
+  background: radial-gradient(circle, #059669, #0284C7);
+}
+
+.glow-hero-slide-theme-amber {
+  background: radial-gradient(circle, #D97706, #EA580C);
+}
+
 
 .visual-composition {
   position: relative;
@@ -835,6 +949,25 @@
 }
 
 /* RESPONSIVE DESIGN FOR HERO CAROUSEL */
+@media (max-width: 1280px) {
+  .nis-carousel-arrow {
+    width: 44px;
+    height: 44px;
+  }
+  .nis-arrow-prev {
+    left: 12px;
+  }
+  .nis-arrow-next {
+    right: 12px;
+  }
+  .floating-bank {
+    left: -12px;
+  }
+  .floating-gst {
+    right: -12px;
+  }
+}
+
 @media (max-width: 1100px) {
   .nis-hero-carousel-wrapper {
     height: 640px;
@@ -851,12 +984,17 @@
 @media (max-width: 900px) {
   .nis-hero-carousel-wrapper {
     height: auto;
-    min-height: 600px;
+    min-height: 720px;
+  }
+  .nis-hero-slide {
+    align-items: flex-start;
   }
   .nis-hero-content-container {
+    height: auto;
     grid-template-columns: 1fr;
-    gap: 32px;
-    padding-top: 40px;
+    gap: 20px;
+    align-items: start;
+    padding-top: 32px;
     padding-bottom: 80px;
   }
   .nis-hero-visual-col {
@@ -865,9 +1003,17 @@
   .nis-hero-text-col {
     text-align: center;
     align-items: center;
+    justify-content: flex-start;
   }
   .nis-hero-badge {
     align-self: center;
+    margin-bottom: 14px;
+    max-width: 96%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
+    padding: 6px 14px;
+    font-size: 0.70rem;
   }
   .nis-hero-subheading, .nis-hero-supporting {
     text-align: center;
@@ -885,24 +1031,59 @@
 
 @media (max-width: 640px) {
   .nis-hero-carousel-wrapper {
-    min-height: 550px;
+    min-height: 700px;
+  }
+  .nis-hero-slide {
+    align-items: flex-start;
+  }
+  .nis-hero-content-container {
+    height: auto;
+    align-items: start;
+    padding-top: 26px;
+    padding-bottom: 75px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .nis-hero-badge {
+    font-size: 0.68rem;
+    padding: 6px 14px;
+    margin-bottom: 14px;
+    max-width: 95%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
   }
   .nis-hero-headline {
-    font-size: 2.1rem;
+    font-size: 1.85rem;
+    line-height: 1.22;
+    margin-bottom: 12px;
   }
   .nis-hero-subheading {
-    font-size: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .nis-hero-supporting {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    margin-bottom: 18px;
   }
   .nis-hero-feature-list {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
   .nis-hero-actions {
     flex-direction: column;
     width: 100%;
+    max-width: 300px;
+    margin: 0 auto 16px;
+    gap: 10px;
   }
   .nis-hero-primary-btn, .nis-hero-secondary-btn {
     width: 100%;
     justify-content: center;
+    padding: 12px 20px;
+    font-size: 0.92rem;
   }
   .nis-carousel-arrow {
     display: none;
@@ -910,4 +1091,25 @@
   .nis-carousel-status {
     display: none;
   }
+  .nis-carousel-dots {
+    bottom: 16px;
+    padding: 6px 14px;
+  }
 }
+
+@media (max-width: 420px) {
+  .nis-hero-carousel-wrapper {
+    min-height: 720px;
+  }
+  .nis-hero-content-container {
+    padding-top: 22px;
+    padding-bottom: 75px;
+  }
+  .nis-hero-headline {
+    font-size: 1.68rem;
+  }
+  .nis-hero-badge {
+    font-size: 0.65rem;
+  }
+}
+
