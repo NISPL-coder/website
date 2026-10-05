@@ -1,0 +1,360 @@
+/* Header Styles for Net Infotech System */
+
+.nis-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: linear-gradient(90deg, #0A1B44 0%, #0E2769 50%, #123485 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 20px rgba(7, 18, 48, 0.4);
+}
+
+.nis-header-scrolled {
+  background: rgba(10, 27, 68, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px rgba(4, 12, 33, 0.55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nis-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  transition: height var(--transition-normal);
+}
+
+.nis-header-scrolled .nis-header-container {
+  height: 64px;
+}
+
+/* Brand / Logo */
+.nis-logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+
+.nis-logo-icon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #2563EB, #7C3AED, #C026D3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  transition: transform var(--transition-fast);
+}
+
+.nis-logo-wrapper:hover .nis-logo-icon {
+  transform: scale(1.05);
+}
+
+.nis-logo-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #60A5FA, #C084FC);
+  opacity: 0;
+  filter: blur(8px);
+  z-index: -1;
+  transition: opacity var(--transition-normal);
+}
+
+.nis-logo-wrapper:hover .nis-logo-glow {
+  opacity: 0.6;
+}
+
+.nis-logo-monogram {
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.nis-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.nis-brand-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.nis-brand-net {
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.nis-brand-system {
+  color: #60A5FA;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.nis-brand-sub {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Desktop Nav */
+.nis-desktop-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nis-nav-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+}
+
+.nis-nav-btn {
+  position: relative;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.nis-nav-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nis-nav-btn.active {
+  color: #FFFFFF;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nis-nav-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 14px;
+  right: 14px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #60A5FA, #C084FC);
+}
+
+/* Header Action Buttons */
+.nis-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nis-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all var(--transition-fast);
+}
+
+.nis-icon-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.nis-phone-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.nis-phone-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.nis-login-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  color: #FFFFFF;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.nis-login-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.nis-cta-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #C026D3 100%);
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.nis-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(192, 38, 211, 0.45);
+  filter: brightness(1.08);
+}
+
+.nis-cta-sparkle {
+  color: #FDE047;
+}
+
+.nis-hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  padding: 6px;
+}
+
+/* Mobile Drawer */
+.nis-mobile-drawer {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #0A1B44;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid var(--primary-light);
+  padding: 20px;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nis-mobile-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nis-mobile-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.nis-mobile-nav-link:hover,
+.nis-mobile-nav-link.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.nis-mobile-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nis-mobile-phone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #93C5FD;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nis-mobile-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.nis-mobile-btn-grid .nis-login-btn,
+.nis-mobile-btn-grid .nis-cta-btn {
+  justify-content: center;
+  width: 100%;
+}
+
+/* Breakpoint adjustments */
+@media (max-width: 1100px) {
+  .nis-desktop-nav {
+    display: none;
+  }
+  .nis-phone-btn {
+    display: none;
+  }
+  .nis-hamburger-btn {
+    display: flex;
+  }
+  .nis-mobile-drawer {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .nis-brand-sub {
+    display: none;
+  }
+  .nis-login-btn {
+    display: none;
+  }
+  .nis-cta-btn span {
+    display: inline-block;
+  }
+}

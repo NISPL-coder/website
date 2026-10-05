@@ -1,0 +1,45 @@
+/* App container styles */
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Subtle anchor targets for smooth scrolling */
+.section-anchor {
+  scroll-margin-top: 80px;
+}
+
+/* Print styles */
+@media print {
+  .nis-header,
+  .nis-hero-carousel-wrapper,
+  .nis-overview-section,
+  .erp-sidebar,
+  .erp-quick-actions-bar,
+  .nis-marketing-wrapper,
+  .nis-footer,
+  .modal-footer-bar,
+  .modal-close-btn {
+    display: none !important;
+  }
+
+  body, html {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  .erp-app-frame, .nis-invoice-modal {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,436 @@
+/* ===================================================
+   ACCOUNTING & ERP MODULE STYLES
+   =================================================== */
+
+.nis-erp-workspace-section {
+  padding: 60px 0 80px;
+  background-color: var(--bg-page);
+}
+
+.erp-app-frame {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 40px rgba(18, 57, 166, 0.08);
+  overflow: hidden;
+}
+
+/* Shell Top Header */
+.erp-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: linear-gradient(90deg, #09132E 0%, #0E2356 100%);
+  color: #FFFFFF;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.shell-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mobile-erp-sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  padding: 4px;
+}
+
+.shell-company-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shell-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 10px #10B981;
+}
+
+.shell-company-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.shell-fy {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #93C5FD;
+}
+
+.shell-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.shell-gstin-tag {
+  font-family: monospace;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.shell-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34D399;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ERP Body Layout (Sidebar + Main) */
+.erp-body-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 800px;
+}
+
+/* Sidebar */
+.erp-sidebar {
+  background: #0B1638;
+  color: #FFFFFF;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.erp-sidebar-content {
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.erp-sidebar-group-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0 10px 12px;
+}
+
+.erp-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.erp-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.erp-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.erp-nav-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #FFFFFF;
+}
+
+.erp-nav-item.active {
+  background: linear-gradient(90deg, #1239A6, #2563EB);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(18, 57, 166, 0.35);
+}
+
+.nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.nav-badge-pill {
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.nav-arrow {
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform var(--transition-fast);
+}
+
+.nav-arrow.rotated {
+  transform: rotate(90deg);
+}
+
+/* Sub-items */
+.erp-sub-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0 6px 28px;
+}
+
+.erp-sub-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.erp-sub-item:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.erp-sub-item.active {
+  color: #60A5FA;
+  font-weight: 700;
+  background: rgba(37, 99, 235, 0.15);
+}
+
+/* Tally Quick Keys hint card */
+.erp-sidebar-tally-tip {
+  margin-top: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.tip-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #93C5FD;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.tip-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tip-keys span {
+  color: #FBBF24;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+/* Main Viewport */
+.erp-main-viewport {
+  background: #F8FAFC;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-x: hidden;
+}
+
+/* Financial Metrics Bar */
+.erp-financial-metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+
+.fin-metric-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+
+.fin-metric-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.fin-tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.fin-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.fin-value {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.fin-growth {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* QUICK ACTIONS BAR */
+.erp-quick-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+.quick-actions-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.quick-actions-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.quick-action-btn:hover {
+  background: #FFFFFF;
+  border-color: var(--primary-light);
+  color: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.quick-action-btn.primary-qa {
+  background: linear-gradient(135deg, #1239A6, #2563EB);
+  border-color: #1239A6;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(18, 57, 166, 0.25);
+}
+
+.quick-action-btn.primary-qa:hover {
+  filter: brightness(1.1);
+  color: #FFFFFF;
+}
+
+/* Active View Container */
+.erp-active-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Responsive ERP Workspace */
+@media (max-width: 1280px) {
+  .erp-financial-metrics-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .erp-body-layout {
+    grid-template-columns: 1fr;
+  }
+  .mobile-erp-sidebar-toggle {
+    display: flex;
+  }
+  .erp-sidebar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1100;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+  .erp-sidebar.mobile-open {
+    display: flex;
+  }
+  .erp-financial-metrics-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .erp-financial-metrics-bar {
+    grid-template-columns: 1fr;
+  }
+  .erp-shell-header {
+    padding: 12px 16px;
+  }
+  .erp-main-viewport {
+    padding: 14px;
+  }
+}

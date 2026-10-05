@@ -1,0 +1,204 @@
+/* ===================================================
+   DASHBOARD OVERVIEW SECTION STYLES
+   =================================================== */
+
+.nis-overview-section {
+  padding: 90px 0 70px;
+  background-color: var(--bg-page);
+  position: relative;
+}
+
+.nis-section-header {
+  max-width: 760px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+
+.nis-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--primary-light);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+
+.nis-section-title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
+.nis-section-subtitle {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* 8-Card Grid Layout */
+.nis-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.nis-overview-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.nis-overview-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(18, 57, 166, 0.1);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.card-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: transform var(--transition-fast);
+}
+
+.nis-overview-card:hover .card-icon-box {
+  transform: scale(1.08);
+}
+
+.card-change-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.card-change-pill.positive {
+  background: var(--success-bg);
+  color: #047857;
+}
+
+.card-change-pill.neutral {
+  background: rgba(100, 116, 139, 0.1);
+  color: var(--text-muted);
+}
+
+.card-metric-block {
+  margin-bottom: 12px;
+}
+
+.card-metric-value {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.card-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary-light);
+}
+
+.card-description {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.card-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-light);
+}
+
+.card-action-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-light);
+}
+
+.card-action-arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.nis-overview-card:hover .card-action-arrow {
+  background: var(--primary-light);
+  color: #FFFFFF;
+  transform: translateX(4px);
+}
+
+/* Responsive Grid */
+@media (max-width: 1200px) {
+  .nis-overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .nis-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .nis-section-title {
+    font-size: 2.1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .nis-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}

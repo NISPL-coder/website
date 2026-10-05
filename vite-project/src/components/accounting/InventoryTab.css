@@ -1,0 +1,233 @@
+/* Inventory Tab Styles */
+
+.nis-inventory-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.inventory-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.inventory-kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.bg-blue { background: linear-gradient(135deg, #1239A6, #2563EB); }
+.bg-yellow { background: linear-gradient(135deg, #D97706, #F59E0B); }
+.bg-red { background: linear-gradient(135deg, #B91C1C, #EF4444); }
+.bg-green { background: linear-gradient(135deg, #047857, #10B981); }
+
+.kpi-label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.kpi-val {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.kpi-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+/* Inventory Card */
+.nis-inventory-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.inv-header-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.inv-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.inv-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.btn-add-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #7C3AED, #C026D3);
+  color: #FFFFFF;
+  font-size: 0.86rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-add-product:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(192, 38, 211, 0.35);
+  filter: brightness(1.1);
+}
+
+.inv-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.sku-code {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--primary-light);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+.product-title-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.p-name {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.p-unit {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.cat-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.hsn-tag {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Stock visual indicators */
+.stock-visual-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 110px;
+  margin: 0 auto;
+}
+
+.stock-numbers-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.stock-qty-val {
+  color: var(--text-main);
+}
+
+.stock-unit-sub {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.stock-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stock-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.bar-healthy { background: #10B981; }
+.bar-warning { background: #F59E0B; }
+.bar-danger { background: #EF4444; }
+
+/* Status pill */
+.inv-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-in-stock { background: #ECFDF5; color: #047857; }
+.status-low-stock { background: #FFFBEB; color: #B45309; }
+.status-out-of-stock { background: #FEF2F2; color: #B91C1C; }
+
+@media (max-width: 1100px) {
+  .inventory-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .inventory-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
