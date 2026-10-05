@@ -1,1049 +1,366 @@
 /* ===================================================
-   HERO CAROUSEL STYLES - NET INFOTECH SYSTEM
+   HERO CAROUSEL - NET INFOTECH SYSTEM
+   Full-bleed photo background + Orbital foreground
    =================================================== */
 
+/* ── Wrapper ─────────────────────────────────────── */
 .nis-hero-carousel-wrapper {
   position: relative;
   width: 100%;
   height: 640px;
-  background: #0B192C;
-  background: linear-gradient(150deg, #071126 0%, #0B192C 60%, #0E2445 100%);
   overflow: hidden;
   user-select: none;
+  background: #07101F;
 }
 
-/* Ambient Background Layer - Subtle Corporate Vignette */
-.nis-hero-ambient-layer {
+/* ── Full-bleed slide layers ─────────────────────── */
+.nis-slide-full {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: radial-gradient(circle at 75% 45%, rgba(2, 132, 199, 0.08) 0%, transparent 65%);
-}
-
-.ambient-orb,
-.ambient-grid-overlay {
-  display: none !important;
-}
-
-/* Slides container */
-.nis-hero-slides {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-}
-
-.nis-hero-slide {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   opacity: 0;
-  visibility: hidden;
-  transform: scale(0.98) translateY(10px);
-  transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1),
-              transform 600ms cubic-bezier(0.4, 0, 0.2, 1),
-              visibility 600ms;
-  display: flex;
-  align-items: center;
+  transition: opacity 900ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
 }
-
-.nis-hero-slide.active {
+.nis-slide-full.nis-slide-active {
   opacity: 1;
-  visibility: visible;
-  transform: scale(1) translateY(0);
 }
 
-/* Slide theme nuances - Refined Enterprise Subtlety */
-.hero-slide-theme-blue,
-.hero-slide-theme-indigo,
-.hero-slide-theme-purple,
-.hero-slide-theme-cyan,
-.hero-slide-theme-emerald,
-.hero-slide-theme-amber {
-  background: radial-gradient(circle at 75% 40%, rgba(2, 132, 199, 0.07), transparent 60%);
-}
-
-
-.nis-hero-content-container {
-  display: grid;
-  grid-template-columns: 1.15fr 0.95fr;
-  align-items: center;
-  gap: 48px;
-  height: 100%;
-  padding-top: 20px;
-  padding-bottom: 50px;
-}
-
-/* LEFT COLUMN */
-.nis-hero-text-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: #FFFFFF;
-}
-
-.nis-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-start;
-  padding: 5px 12px;
-  border-radius: 4px;
-  background: rgba(2, 132, 199, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  color: #7DD3FC;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-bottom: 20px;
-}
-
-.badge-shield {
-  color: #38BDF8;
-}
-
-.nis-hero-headline {
-  font-family: var(--font-heading);
-  font-size: 3.2rem;
-  font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: #FFFFFF;
-  margin-bottom: 18px;
-}
-
-.nis-hero-highlight {
-  color: #38BDF8;
-  background: none;
-  -webkit-text-fill-color: initial;
-}
-
-.nis-hero-subheading {
-  font-size: 1.18rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.88);
-  max-width: 580px;
-  margin-bottom: 14px;
-  font-weight: 400;
-}
-
-.nis-hero-supporting {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.65);
-  max-width: 540px;
-  margin-bottom: 26px;
-}
-
-/* Feature checklist */
-.nis-hero-feature-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px 20px;
-  list-style: none;
-  margin-bottom: 28px;
-  max-width: 560px;
-}
-
-.nis-hero-feature-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 0.92rem;
-  font-weight: 500;
-}
-
-.feat-check-icon {
-  color: #34D399;
-  flex-shrink: 0;
-}
-
-/* Action Buttons */
-.nis-hero-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-
-.nis-hero-primary-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 6px;
-  background: #0284C7;
-  border: 1px solid #0284C7;
-  color: #FFFFFF;
-  font-size: 0.94rem;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(2, 132, 199, 0.2);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.nis-hero-primary-btn:hover {
-  background: #0369A1;
-  border-color: #0369A1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-}
-
-.nis-hero-secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #FFFFFF;
-  font-size: 0.94rem;
-  font-weight: 600;
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.nis-hero-secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: translateY(-1px);
-}
-
-/* Trust Bar */
-.nis-hero-trust-bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.trust-icon {
-  color: #60A5FA;
-}
-
-.trust-divider {
-  width: 1px;
-  height: 14px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* RIGHT COLUMN - VISUAL COMPOSITION */
-.nis-hero-visual-col {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-/* Hero Banner Image Showcase */
-.hero-banner-image-showcase {
-  position: relative;
-  width: 100%;
-  max-width: 530px;
-  z-index: 5;
-}
-
-.banner-image-frame {
-  position: relative;
-  width: 100%;
-  height: 380px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.45);
-  background: #0F172A;
-}
-
-.banner-hero-img {
+.nis-slide-bg-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
-  opacity: 1 !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  transition: transform 0.4s ease;
+  filter: brightness(0.48) saturate(0.8);
 }
 
-.banner-image-overlay {
-  display: none !important;
-}
-
-.banner-floating-tag {
+/* Left-heavy gradient so text is very readable */
+.nis-slide-overlay {
   position: absolute;
-  bottom: 14px;
-  left: 14px;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(2, 6, 18, 0.94) 0%,
+    rgba(2, 6, 18, 0.82) 38%,
+    rgba(2, 6, 18, 0.45) 65%,
+    rgba(2, 6, 18, 0.15) 100%
+  );
+}
+
+/* ── Content layer ───────────────────────────────── */
+.nis-slide-content-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.nis-slide-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 72px;
+}
+
+/* ── LEFT COLUMN ─────────────────────────────────── */
+.nis-slide-left {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+.nis-slide-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(8px);
-  padding: 5px 12px;
+  gap: 7px;
+  align-self: flex-start;
+  padding: 4px 12px;
   border-radius: 4px;
-  color: #F8FAFC;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  z-index: 4;
-}
-
-.floating-tag-pulse {
-  display: none !important;
-}
-
-.banner-ambient-glow {
-  display: none !important;
-}
-
-.glow-hero-slide-theme-purple {
-  background: radial-gradient(circle, #7C3AED, #2563EB);
-}
-
-.glow-hero-slide-theme-cyan {
-  background: radial-gradient(circle, #06B6D4, #3B82F6);
-}
-
-.glow-hero-slide-theme-emerald {
-  background: radial-gradient(circle, #059669, #0284C7);
-}
-
-.glow-hero-slide-theme-amber {
-  background: radial-gradient(circle, #D97706, #EA580C);
-}
-
-
-.visual-composition {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-}
-
-/* Main Hero Card */
-.hero-card {
-  position: relative;
-  background: rgba(15, 25, 56, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(37, 99, 235, 0.2);
-  backdrop-filter: blur(18px);
-  z-index: 3;
-}
-
-.hero-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.card-header-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #93C5FD;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #34D399;
-  box-shadow: 0 0 8px #34D399;
-}
-
-.card-date {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.hero-stat-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.hero-stat-box {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-md);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.stat-val {
-  font-size: 1.4rem;
-  font-weight: 800;
-  font-family: var(--font-heading);
-}
-
-.stat-val.text-primary {
-  color: #60A5FA;
-}
-
-.stat-val.text-accent {
-  color: #F472B6;
-}
-
-.stat-growth {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.text-success {
-  color: #34D399;
-}
-
-.stat-sub {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.72rem;
-  margin-top: 4px;
-}
-
-/* Mini Chart */
-.hero-mini-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 90px;
-  padding: 12px 14px 4px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.chart-bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  width: 14%;
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.bar-fill {
-  width: 100%;
-  background: linear-gradient(180deg, #3B82F6, #1D4ED8);
-  border-radius: 4px 4px 0 0;
-  transition: height 0.5s ease;
-}
-
-.chart-bar-group.highlight .bar-fill {
-  background: linear-gradient(180deg, #F43F5E, #C026D3);
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
-}
-
-.chart-bar-group span {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.65rem;
-}
-
-/* Floating widgets */
-.hero-floating-card {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  border-radius: var(--radius-lg);
-  z-index: 4;
-}
-
-.floating-bank {
-  bottom: -24px;
-  left: -28px;
-  animation: float 4.5s ease-in-out infinite 0.5s;
-}
-
-.floating-gst {
-  top: -24px;
-  right: -24px;
-  animation: float 4s ease-in-out infinite;
-}
-
-.floating-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FFFFFF;
-}
-
-.bg-blue {
-  background: linear-gradient(135deg, #2563EB, #1D4ED8);
-}
-
-.bg-magenta {
-  background: linear-gradient(135deg, #C026D3, #7C3AED);
-}
-
-.bg-green {
-  background: linear-gradient(135deg, #059669, #10B981);
-}
-
-.bg-purple {
-  background: linear-gradient(135deg, #7C3AED, #9333EA);
-}
-
-.floating-title {
-  display: block;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.72rem;
-  font-weight: 500;
-}
-
-.floating-value {
-  display: block;
-  color: #FFFFFF;
-  font-size: 0.98rem;
-  font-weight: 700;
-  font-family: var(--font-heading);
-}
-
-.floating-sub {
-  display: block;
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Ledger Preview Table (Slide 2) */
-.ledger-preview-table {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: var(--radius-md);
-  padding: 10px;
-  margin-bottom: 16px;
-  font-size: 0.8rem;
-}
-
-.ledger-header-row, .ledger-row {
-  display: grid;
-  grid-template-columns: 70px 1.2fr 80px 80px;
-  padding: 6px 8px;
-  align-items: center;
-}
-
-.ledger-header-row {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.7rem;
-  font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.ledger-row {
-  color: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.ledger-row.highlight {
-  background: rgba(37, 99, 235, 0.15);
-  border-radius: var(--radius-sm);
-  color: #FFFFFF;
-  font-weight: 700;
-}
-
-.ledger-row .code {
-  color: #93C5FD;
-  font-family: monospace;
-}
-
-.ledger-row .dr {
-  color: #34D399;
-  font-weight: 600;
-}
-
-.ledger-row .cr {
-  color: #F87171;
-  font-weight: 600;
-}
-
-.hero-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Inventory preview (Slide 3) */
-.inventory-visual-meter {
-  background: rgba(255, 255, 255, 0.04);
-  padding: 14px;
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
-}
-
-.meter-label-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 8px;
-}
-
-.meter-track {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.meter-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #10B981, #34D399);
-  border-radius: 4px;
-}
-
-.stock-alert-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stock-item-pill {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.stock-item-pill.alert {
-  border-left: 3px solid #F59E0B;
-}
-
-.stock-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.stock-badge.in-stock {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34D399;
-}
-
-.stock-badge.low-stock {
-  background: rgba(245, 158, 11, 0.25);
-  color: #FBBF24;
-}
-
-/* Reports preview (Slide 4) */
-.reports-split-view {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  border: 1px solid;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   margin-bottom: 18px;
 }
 
-.report-metric-col {
-  background: rgba(255, 255, 255, 0.04);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  display: flex;
-  flex-direction: column;
+.nis-slide-title {
+  font-family: var(--font-heading, 'Inter', sans-serif) !important;
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+  line-height: 1.07 !important;
+  letter-spacing: -0.025em;
+  color: #FFFFFF !important;
+  margin-bottom: 10px !important;
 }
 
-.rep-label {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.6);
+.nis-slide-subtitle {
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 18px !important;
 }
 
-.rep-val {
-  font-size: 1.35rem;
-  font-weight: 800;
-  font-family: var(--font-heading);
+.nis-slide-desc {
+  font-size: 1rem !important;
+  line-height: 1.68 !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  max-width: 460px;
+  margin-bottom: 30px !important;
 }
 
-.rep-sub {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin-top: 2px;
-}
-
-.hero-report-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.rep-bar-row {
+/* ── CTA Buttons ─────────────────────────────────── */
+.nis-slide-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  gap: 14px;
+  margin-bottom: 30px;
 }
 
-.rep-cat {
-  width: 90px;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.6);
+.nis-slide-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 24px;
+  border-radius: 5px;
+  border: none;
+  color: #FFFFFF !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+.nis-slide-primary-btn:hover {
+  filter: brightness(1.18);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
 }
 
-.rep-bar-track {
-  flex: 1;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
+.nis-slide-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 5px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: #FFFFFF !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.nis-slide-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: translateY(-2px);
 }
 
-.rep-bar-fill {
+/* Slide counter */
+.nis-slide-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-family: var(--font-heading, 'Inter', sans-serif);
+}
+.counter-current {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.counter-sep {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.28);
+  font-weight: 300;
+  margin: 0 3px;
+}
+.counter-total {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+}
+
+/* ── RIGHT COLUMN: orbit diagram ─────────────────── */
+.nis-slide-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Orbit wrapper: square, relative-positioned */
+.nis-orbit-wrapper {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  flex-shrink: 0;
+}
+
+.nis-orbit-svg {
+  width: 100%;
   height: 100%;
-  border-radius: 3px;
+  display: block;
 }
 
-.fill-blue {
-  background: #3B82F6;
+/* Center element overlay */
+.nis-orbit-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  pointer-events: none;
 }
 
-.fill-purple {
-  background: #8B5CF6;
+.nis-orbit-center-icon {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.fill-magenta {
-  background: #EC4899;
+.nis-orbit-center-label {
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.01em;
+  text-align: center;
 }
 
-.rep-amt {
-  width: 55px;
-  text-align: right;
-  font-weight: 700;
-  font-family: var(--font-heading);
-  color: #FFFFFF;
+/* Individual orbit nodes */
+.nis-orbit-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
 }
 
-/* CAROUSEL ARROWS */
+.nis-orbit-node-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+.nis-orbit-node-label {
+  font-size: 0.67rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  white-space: nowrap;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  line-height: 1 !important;
+}
+
+/* ── Carousel arrows ─────────────────────────────── */
 .nis-carousel-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-full);
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(4, 10, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
-  transition: all var(--transition-fast);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  z-index: 20;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-
 .nis-carousel-arrow:hover {
-  background: rgba(37, 99, 235, 0.85);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: translateY(-50%) scale(1.08);
+  background: rgba(37, 99, 235, 0.8);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-50%) scale(1.1);
 }
+.nis-arrow-prev { left: 18px; }
+.nis-arrow-next { right: 18px; }
 
-.nis-arrow-prev {
-  left: 24px;
-}
-
-.nis-arrow-next {
-  right: 24px;
-}
-
-/* CAROUSEL PAGINATION DOTS WITH 5s PROGRESS FILL */
+/* ── Dot indicators ──────────────────────────────── */
 .nis-carousel-dots {
   position: absolute;
-  bottom: 24px;
+  bottom: 22px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 14px;
-  z-index: 10;
-  padding: 8px 18px;
-  background: rgba(10, 20, 48, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-full);
+  gap: 7px;
+  z-index: 20;
 }
-
 .nis-dot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255, 255, 255, 0.5);
-  padding: 4px 6px;
-  transition: all var(--transition-fast);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.25s, width 0.25s, border-radius 0.25s;
+}
+.nis-dot-active {
+  width: 26px;
+  border-radius: 4px;
 }
 
-.nis-dot:hover {
-  color: #FFFFFF;
-}
-
-.nis-dot.active {
-  color: #FFFFFF;
-}
-
-.dot-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: var(--font-heading);
-}
-
-.dot-bar {
-  position: relative;
-  width: 28px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.nis-dot.active .dot-bar {
-  width: 48px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.dot-bar-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #60A5FA, #C084FC);
-  animation: progressFill 5s linear forwards;
-}
-
-@keyframes progressFill {
-  from { width: 0%; }
-  to { width: 100%; }
-}
-
-/* Status indicator badge */
-.nis-carousel-status {
-  position: absolute;
-  top: 20px;
-  right: 28px;
-  z-index: 10;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-/* RESPONSIVE DESIGN FOR HERO CAROUSEL */
-@media (max-width: 1280px) {
-  .nis-carousel-arrow {
-    width: 44px;
-    height: 44px;
-  }
-  .nis-arrow-prev {
-    left: 12px;
-  }
-  .nis-arrow-next {
-    right: 12px;
-  }
-  .floating-bank {
-    left: -12px;
-  }
-  .floating-gst {
-    right: -12px;
-  }
-}
-
+/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 1100px) {
-  .nis-hero-carousel-wrapper {
-    height: 640px;
-  }
-  .nis-hero-headline {
-    font-size: 2.7rem;
-  }
-  .nis-hero-content-container {
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-  }
+  .nis-orbit-wrapper { width: 360px; height: 360px; }
 }
 
 @media (max-width: 900px) {
-  .nis-hero-carousel-wrapper {
-    height: auto;
-    min-height: 720px;
-  }
-  .nis-hero-slide {
-    align-items: flex-start;
-  }
-  .nis-hero-content-container {
-    height: auto;
+  .nis-hero-carousel-wrapper { height: auto; min-height: 600px; }
+  .nis-slide-inner {
     grid-template-columns: 1fr;
     gap: 20px;
-    align-items: start;
-    padding-top: 32px;
-    padding-bottom: 80px;
+    padding-top: 90px;
+    padding-bottom: 64px;
   }
-  .nis-hero-visual-col {
-    display: none;
-  }
-  .nis-hero-text-col {
-    text-align: center;
-    align-items: center;
-    justify-content: flex-start;
-  }
-  .nis-hero-badge {
-    align-self: center;
-    margin-bottom: 14px;
-    max-width: 96%;
-    white-space: normal;
-    text-align: center;
-    line-height: 1.4;
-    padding: 6px 14px;
-    font-size: 0.70rem;
-  }
-  .nis-hero-subheading, .nis-hero-supporting {
-    text-align: center;
-  }
-  .nis-hero-feature-list {
-    text-align: left;
-  }
-  .nis-hero-actions {
-    justify-content: center;
-  }
-  .nis-hero-trust-bar {
-    justify-content: center;
-  }
+  .nis-slide-right { justify-content: center; }
+  .nis-orbit-wrapper { width: 320px; height: 320px; }
+  .nis-slide-title { font-size: 2.3rem !important; }
 }
 
 @media (max-width: 640px) {
-  .nis-hero-carousel-wrapper {
-    min-height: 700px;
-  }
-  .nis-hero-slide {
-    align-items: flex-start;
-  }
-  .nis-hero-content-container {
-    height: auto;
-    align-items: start;
-    padding-top: 26px;
-    padding-bottom: 75px;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .nis-hero-badge {
-    font-size: 0.68rem;
-    padding: 6px 14px;
-    margin-bottom: 14px;
-    max-width: 95%;
-    white-space: normal;
-    text-align: center;
-    line-height: 1.35;
-  }
-  .nis-hero-headline {
-    font-size: 1.85rem;
-    line-height: 1.22;
-    margin-bottom: 12px;
-  }
-  .nis-hero-subheading {
-    font-size: 0.88rem;
-    line-height: 1.5;
-    margin-bottom: 12px;
-  }
-  .nis-hero-supporting {
-    font-size: 0.78rem;
-    line-height: 1.45;
-    margin-bottom: 18px;
-  }
-  .nis-hero-feature-list {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .nis-hero-actions {
-    flex-direction: column;
-    width: 100%;
-    max-width: 300px;
-    margin: 0 auto 16px;
-    gap: 10px;
-  }
-  .nis-hero-primary-btn, .nis-hero-secondary-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 12px 20px;
-    font-size: 0.92rem;
-  }
-  .nis-carousel-arrow {
-    display: none;
-  }
-  .nis-carousel-status {
-    display: none;
-  }
-  .nis-carousel-dots {
-    bottom: 16px;
-    padding: 6px 14px;
-  }
+  .nis-hero-carousel-wrapper { min-height: 520px; }
+  .nis-slide-title { font-size: 1.9rem !important; }
+  .nis-orbit-wrapper { width: 270px; height: 270px; }
+  .nis-orbit-node-icon { width: 32px; height: 32px; }
+  .nis-orbit-node-label { font-size: 0.6rem !important; }
+  .nis-slide-actions { flex-wrap: wrap; gap: 10px; }
 }
 
-@media (max-width: 420px) {
-  .nis-hero-carousel-wrapper {
-    min-height: 720px;
-  }
-  .nis-hero-content-container {
-    padding-top: 22px;
-    padding-bottom: 75px;
-  }
-  .nis-hero-headline {
-    font-size: 1.68rem;
-  }
-  .nis-hero-badge {
-    font-size: 0.65rem;
-  }
+@media (max-width: 480px) {
+  .nis-orbit-wrapper { display: none; }
+  .nis-slide-inner { padding-top: 80px; }
+  .nis-slide-title { font-size: 1.65rem !important; }
 }
-

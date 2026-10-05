@@ -1,23 +1,266 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowRight, 
-  CheckCircle2, 
-  Sparkles, 
-  ShieldCheck, 
-  IndianRupee 
+import {
+  ChevronLeft, ChevronRight, ArrowRight,
+  Shield, Cloud, Server, Globe, Wrench, Lock, Monitor, Cpu,
+  Database, Wifi, HardDrive, ShieldCheck, BarChart3, Package,
+  FileText, Zap, CheckCircle,
 } from 'lucide-react';
 
-import bannerTallyPrime from '../assets/banner-tally-prime.jpg';
-import bannerTallyCloud from '../assets/banner-tally-cloud.jpg';
-import bannerCloudHosting from '../assets/banner-cloud-hosting.jpg';
-import bannerItInfrastructure from '../assets/banner-it-infrastructure.jpg';
-import bannerItRepair from '../assets/banner-it-repair.jpg';
-import bannerItRental from '../assets/banner-it-rental.jpg';
+import bgTallyPrime from '../assets/bg-tally-prime.jpg';
+import bgTallyCloud from '../assets/bg-tally-cloud.jpg';
+import bgItInfrastructure from '../assets/bg-it-infrastructure.jpg';
+import bgCloudHosting from '../assets/bg-cloud-hosting.jpg';
+import bgManagedIt from '../assets/bg-managed-it.jpg';
+import bgCyberSecurity from '../assets/bg-cyber-security.jpg';
+import bgMicrosoftLicensing from '../assets/bg-microsoft-licensing.jpg';
 
 import './HeroCarousel.css';
+
+const slides = [
+  {
+    id: 1,
+    title: 'TallyPrime',
+    subtitle: 'Accounting & Business Management',
+    description: 'Complete business accounting with GST compliance, inventory management, and advanced MIS reporting — trusted by 26+ years.',
+    background: bgTallyPrime,
+    accentColor: '#0EA5E9',
+    ctaText: 'Explore Tally Solutions',
+    ctaPath: '/services/tally-prime',
+    badge: 'Tally 3-Star Certified Partner',
+    centerLabel: 'Tally\nPrime',
+    centerIcon: BarChart3,
+    orbitItems: [
+      { icon: BarChart3, label: 'Accounting', angle: 0 },
+      { icon: FileText, label: 'GST Filing', angle: 51.4 },
+      { icon: Package, label: 'Inventory', angle: 102.8 },
+      { icon: Zap, label: 'Payroll', angle: 154.2 },
+      { icon: Database, label: 'MIS Reports', angle: 205.7 },
+      { icon: ShieldCheck, label: 'e-Way Bill', angle: 257.1 },
+      { icon: Globe, label: 'Multi-Branch', angle: 308.5 },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Tally Cloud',
+    subtitle: 'Anywhere, Anytime Secure Access',
+    description: 'Access your Tally data from any device with bank-grade encrypted cloud hosting. Zero setup, instant connectivity.',
+    background: bgTallyCloud,
+    accentColor: '#818CF8',
+    ctaText: 'Explore Cloud Tally',
+    ctaPath: '/services/tally-on-cloud',
+    badge: '256-Bit Encrypted Access',
+    centerLabel: 'Tally\nCloud',
+    centerIcon: Cloud,
+    orbitItems: [
+      { icon: Cloud, label: 'Cloud Hosting', angle: 0 },
+      { icon: ShieldCheck, label: 'Data Security', angle: 51.4 },
+      { icon: Monitor, label: 'Remote Desktop', angle: 102.8 },
+      { icon: Database, label: 'Auto Backup', angle: 154.2 },
+      { icon: Wifi, label: 'Multi-Device', angle: 205.7 },
+      { icon: Wrench, label: '24/7 Support', angle: 257.1 },
+      { icon: Zap, label: '99.9% Uptime', angle: 308.5 },
+    ],
+  },
+  {
+    id: 3,
+    title: 'IT Infrastructure',
+    subtitle: 'End-to-End IT Setup & Operations',
+    description: 'Complete IT infrastructure planning, deployment, and proactive management for enterprise performance and reliability.',
+    background: bgItInfrastructure,
+    accentColor: '#2DD4BF',
+    ctaText: 'Explore IT Infrastructure',
+    ctaPath: '/services/it-infra-security',
+    badge: 'Enterprise NOC Operations',
+    centerLabel: 'IT\nInfra',
+    centerIcon: Server,
+    orbitItems: [
+      { icon: Server, label: 'Server Mgmt', angle: 0 },
+      { icon: Wifi, label: 'Network LAN', angle: 51.4 },
+      { icon: HardDrive, label: 'Storage NAS', angle: 102.8 },
+      { icon: Monitor, label: 'CCTV Setup', angle: 154.2 },
+      { icon: Cpu, label: 'Virtualization', angle: 205.7 },
+      { icon: Globe, label: 'Structured Cabling', angle: 257.1 },
+      { icon: ShieldCheck, label: 'AMC Contracts', angle: 308.5 },
+    ],
+  },
+  {
+    id: 4,
+    title: 'Cloud Server & Hosting',
+    subtitle: 'Scalable Cloud Infrastructure',
+    description: 'Enterprise-grade cloud servers, website hosting, and hybrid cloud solutions on Microsoft Azure & AWS.',
+    background: bgCloudHosting,
+    accentColor: '#38BDF8',
+    ctaText: 'Explore Cloud Hosting',
+    ctaPath: '/services/data-center-cloud',
+    badge: 'Tier-4 Multi-Cloud Infrastructure',
+    centerLabel: 'Cloud\nHosting',
+    centerIcon: Cloud,
+    orbitItems: [
+      { icon: Cloud, label: 'Cloud Servers', angle: 0 },
+      { icon: Globe, label: 'Web Hosting', angle: 51.4 },
+      { icon: Database, label: 'Azure & AWS', angle: 102.8 },
+      { icon: Zap, label: 'Load Balancing', angle: 154.2 },
+      { icon: ShieldCheck, label: 'DDoS Shield', angle: 205.7 },
+      { icon: HardDrive, label: 'SSD Storage', angle: 257.1 },
+      { icon: Monitor, label: '99.99% SLA', angle: 308.5 },
+    ],
+  },
+  {
+    id: 5,
+    title: 'Managed IT Services',
+    subtitle: 'Proactive IT Support & AMC',
+    description: 'Comprehensive managed IT with proactive monitoring, expert helpdesk, and annual maintenance contracts.',
+    background: bgManagedIt,
+    accentColor: '#34D399',
+    ctaText: 'Explore Managed IT',
+    ctaPath: '/services/it-infra-security',
+    badge: 'Proactive 24/7 Monitoring',
+    centerLabel: 'Managed\nIT',
+    centerIcon: Monitor,
+    orbitItems: [
+      { icon: Monitor, label: 'Remote NOC', angle: 0 },
+      { icon: Wrench, label: 'IT Helpdesk', angle: 51.4 },
+      { icon: FileText, label: 'AMC Contract', angle: 102.8 },
+      { icon: Cpu, label: 'Patch Mgmt', angle: 154.2 },
+      { icon: Server, label: 'Server Support', angle: 205.7 },
+      { icon: Wifi, label: 'Network Support', angle: 257.1 },
+      { icon: ShieldCheck, label: 'Health Checks', angle: 308.5 },
+    ],
+  },
+  {
+    id: 6,
+    title: 'Cyber Security',
+    subtitle: 'Protect. Detect. Respond.',
+    description: 'End-to-end cybersecurity with next-gen firewall, endpoint protection, and real-time threat intelligence.',
+    background: bgCyberSecurity,
+    accentColor: '#FBBF24',
+    ctaText: 'Explore Cyber Security',
+    ctaPath: '/services/it-infra-security',
+    badge: 'Enterprise Threat Defense',
+    centerLabel: 'Cyber\nSecurity',
+    centerIcon: Shield,
+    orbitItems: [
+      { icon: Shield, label: 'Endpoint EDR', angle: 0 },
+      { icon: Lock, label: 'UTM Firewall', angle: 51.4 },
+      { icon: ShieldCheck, label: 'ISO 27001', angle: 102.8 },
+      { icon: Zap, label: 'SOC Services', angle: 154.2 },
+      { icon: Globe, label: 'VPN & SSL', angle: 205.7 },
+      { icon: Monitor, label: 'Threat Watch', angle: 257.1 },
+      { icon: FileText, label: 'Pen Testing', angle: 308.5 },
+    ],
+  },
+  {
+    id: 7,
+    title: 'Microsoft Licensing',
+    subtitle: 'Authorized Microsoft Partner',
+    description: 'Genuine Microsoft 365, Windows Server, Azure and enterprise software licensing at best-in-class pricing.',
+    background: bgMicrosoftLicensing,
+    accentColor: '#60A5FA',
+    ctaText: 'Explore Microsoft Solutions',
+    ctaPath: '/services/it-infra-security',
+    badge: 'Authorized Microsoft Reseller',
+    centerLabel: 'Microsoft\nLicensing',
+    centerIcon: Monitor,
+    orbitItems: [
+      { icon: Monitor, label: 'Microsoft 365', angle: 0 },
+      { icon: Server, label: 'Windows Server', angle: 51.4 },
+      { icon: Cloud, label: 'Azure Cloud', angle: 102.8 },
+      { icon: ShieldCheck, label: 'MS Defender', angle: 154.2 },
+      { icon: Cpu, label: 'Intune MDM', angle: 205.7 },
+      { icon: Database, label: 'SQL Server', angle: 257.1 },
+      { icon: Globe, label: 'Entra ID', angle: 308.5 },
+    ],
+  },
+];
+
+/* ── Orbit diagram component ── */
+function OrbitDiagram({ slide }) {
+  const CenterIcon = slide.centerIcon;
+  const radius1 = 108; // inner ring
+  const radius2 = 172; // outer ring
+  const cx = 210;
+  const cy = 210;
+  const size = 420;
+
+  return (
+    <div className="nis-orbit-wrapper">
+      <svg
+        className="nis-orbit-svg"
+        viewBox={`0 0 ${size} ${size}`}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Outer ring */}
+        <circle cx={cx} cy={cy} r={radius2} fill="none" stroke={`${slide.accentColor}28`} strokeWidth="1.5" strokeDasharray="6 4" />
+        {/* Inner ring */}
+        <circle cx={cx} cy={cy} r={radius1} fill="none" stroke={`${slide.accentColor}38`} strokeWidth="1" strokeDasharray="4 4" />
+        {/* Innermost glow ring */}
+        <circle cx={cx} cy={cy} r={58} fill={`${slide.accentColor}10`} stroke={`${slide.accentColor}45`} strokeWidth="1.2" />
+
+        {/* Spoke lines to outer orbit items */}
+        {slide.orbitItems.map((item, idx) => {
+          const isOuter = idx % 2 === 0;
+          const r = isOuter ? radius2 : radius1;
+          const angleRad = ((item.angle - 90) * Math.PI) / 180;
+          const x = cx + r * Math.cos(angleRad);
+          const y = cy + r * Math.sin(angleRad);
+          return (
+            <line
+              key={idx}
+              x1={cx} y1={cy}
+              x2={x} y2={y}
+              stroke={`${slide.accentColor}18`}
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* Center circle */}
+        <circle cx={cx} cy={cy} r={50} fill={`${slide.accentColor}20`} stroke={slide.accentColor} strokeWidth="1.5" />
+      </svg>
+
+      {/* Center label (HTML overlay, centered) */}
+      <div className="nis-orbit-center">
+        <div className="nis-orbit-center-icon" style={{ color: slide.accentColor }}>
+          <CenterIcon size={26} />
+        </div>
+        <span className="nis-orbit-center-label" style={{ color: '#fff' }}>
+          {slide.centerLabel.split('\n').map((l, i) => (
+            <span key={i}>{l}<br /></span>
+          ))}
+        </span>
+      </div>
+
+      {/* Orbit icon nodes (HTML overlay) */}
+      {slide.orbitItems.map((item, idx) => {
+        const isOuter = idx % 2 === 0;
+        const r = isOuter ? 172 : 108;
+        const angleRad = ((item.angle - 90) * Math.PI) / 180;
+        // percentage offset from center of wrapper
+        const px = 50 + (r / 210) * 50 * Math.cos(angleRad);
+        const py = 50 + (r / 210) * 50 * Math.sin(angleRad);
+        const IconComp = item.icon;
+        return (
+          <div
+            key={idx}
+            className="nis-orbit-node"
+            style={{ left: `${px}%`, top: `${py}%` }}
+          >
+            <div
+              className="nis-orbit-node-icon"
+              style={{ background: `${slide.accentColor}22`, borderColor: `${slide.accentColor}55`, color: slide.accentColor }}
+            >
+              <IconComp size={16} />
+            </div>
+            <span className="nis-orbit-node-label" style={{ color: 'rgba(255,255,255,0.88)' }}>
+              {item.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function HeroCarousel({ onBookDemo }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -39,166 +282,26 @@ export default function HeroCarousel({ onBookDemo }) {
     }
   };
 
-  const slides = [
-    {
-      id: 1,
-      badge: "TALLY 3-STAR CERTIFIED PARTNER • 26+ YEARS OF EXCELLENCE",
-      headline: "TallyPrime Licensing &\nBusiness Solutions.",
-      subheading: "Accounting, GST, inventory management, billing, business reporting - comprehensive TallyPrime solutions.",
-      features: [
-        "Official TallyPrime licensing & version upgrades",
-        "GST & e-Way bill automated setup & filing",
-        "Multi-warehouse inventory & barcode billing",
-        "Business MIS reporting, training & support",
-      ],
-      ctaText: "Explore Tally Solutions",
-      ctaPath: "/services/tally-prime",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-blue",
-      image: bannerTallyPrime,
-      imageAlt: "TallyPrime Accounting, GST & Business Software",
-      floatingTag: "Official Tally 3-Star Partner",
-    },
-    {
-      id: 2,
-      badge: "ANYWHERE SECURE ACCESS • HIGH-SPEED CLOUD HOSTING",
-      headline: "Tally on Cloud -\nAnywhere, Anytime Access.",
-      subheading: "Anywhere access - cloud-based Tally hosting solutions with high-speed remote desktop.",
-      features: [
-        "Seamless multi-device Tally on Cloud setup",
-        "Bank-grade 256-bit encrypted remote access",
-        "High-speed dedicated cloud server management",
-        "Automated daily backups & 24/7 technical support",
-      ],
-      ctaText: "Explore Cloud Tally",
-      ctaPath: "/services/tally-on-cloud",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-indigo",
-      image: bannerTallyCloud,
-      imageAlt: "Tally on Cloud Remote Hosting Solutions",
-      floatingTag: "256-Bit Encrypted Cloud Access",
-    },
-    {
-      id: 3,
-      badge: "DATA CENTER, CLOUD SERVER & HOSTING",
-      headline: "Cloud Infrastructure &\nEnterprise Hosting.",
-      subheading: "Business applications, websites workloads - cloud infrastructure & hosting solutions.",
-      features: [
-        "High-performance dedicated cloud server deployment",
-        "Enterprise Windows and Linux server hosting",
-        "Microsoft Azure & AWS hybrid cloud architecture",
-        "Zero-downtime cloud migration & pro-active 24/7 monitoring",
-      ],
-      ctaText: "Explore Cloud Hosting",
-      ctaPath: "/services/data-center-cloud",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-purple",
-      image: bannerCloudHosting,
-      imageAlt: "Tier-4 Enterprise Data Center & Cloud Hosting",
-      floatingTag: "Tier-4 Multi-Cloud Infrastructure",
-    },
-    {
-      id: 4,
-      badge: "END-TO-END IT NETWORKING & CYBERSECURITY",
-      headline: "Business IT Infrastructure\n& Security Solutions.",
-      subheading: "Business IT infrastructure - setup, management, monitoring & protection for complete business continuity.",
-      features: [
-        "Enterprise server and network management",
-        "Next-Gen UTM firewall and endpoint security",
-        "High-definition CCTV and structured Wi-Fi solutions",
-        "Microsoft 365 licensing & comprehensive IT AMC",
-      ],
-      ctaText: "Explore IT Infrastructure",
-      ctaPath: "/services/it-infra-security",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-cyan",
-      image: bannerItInfrastructure,
-      imageAlt: "Corporate NOC & Cybersecurity Infrastructure",
-      floatingTag: "Enterprise NOC & Threat Defense",
-    },
-    {
-      id: 5,
-      badge: "CHIP-LEVEL DIAGNOSTICS & MULTI-BRAND REPAIR",
-      headline: "IT Product Repair &\nPreventive Maintenance.",
-      subheading: "Desktop, laptop, printer, server & hardware troubleshooting and precision repair.",
-      features: [
-        "Chip-level motherboard repair & diagnostics",
-        "Enterprise server, laser printer & scanner servicing",
-        "Data recovery & emergency hardware restoration",
-        "Comprehensive IT AMC contracts & certified lab engineers",
-      ],
-      ctaText: "Explore Repair Services",
-      ctaPath: "/services/it-repair-maintenance",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-emerald",
-      image: bannerItRepair,
-      imageAlt: "Professional IT Hardware Repair & Maintenance Lab",
-      floatingTag: "Certified Chip-Level Engineers",
-    },
-    {
-      id: 6,
-      badge: "FLEXIBLE PROCUREMENT & HARDWARE RENTAL FLEETS",
-      headline: "IT Product Sales &\nCorporate Rental Solutions.",
-      subheading: "Laptop, desktop, server & networking equipment rental & procurement with flexible terms.",
-      features: [
-        "Short & long-term commercial laptop & desktop rentals",
-        "High-performance workstation & rack server leasing",
-        "Cisco, HP, Dell & Lenovo hardware procurement",
-        "Pre-configured deployment with full warranty & onsite support",
-      ],
-      ctaText: "Explore Sales & Rentals",
-      ctaPath: "/services/it-sales-rental",
-      secondaryCtaText: "Get a Quote",
-      themeClass: "hero-slide-theme-amber",
-      image: bannerItRental,
-      imageAlt: "Enterprise IT Hardware Showroom & Rental Depots",
-      floatingTag: "Flexible IT Hardware Rental Fleets",
-    },
-  ];
+  const nextSlide = useCallback(() => setCurrentSlide((p) => (p + 1) % slides.length), []);
+  const prevSlide = useCallback(() => setCurrentSlide((p) => (p - 1 + slides.length) % slides.length), []);
 
-  const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  }, [slides.length]);
-
-  const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  }, [slides.length]);
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
-  // Automatic timer advances every 5000ms, pauses on hover
   useEffect(() => {
     if (isPaused) return;
+    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % slides.length), 6000);
+    return () => clearInterval(t);
+  }, [isPaused, currentSlide]);
 
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [isPaused, currentSlide, slides.length]);
-
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchMove = (e) => { touchEndX.current = e.touches[0].clientX; };
   const handleTouchEnd = () => {
-    if (touchStartX.current - touchEndX.current > 60) {
-      nextSlide();
-    }
-    if (touchStartX.current - touchEndX.current < -60) {
-      prevSlide();
-    }
+    if (touchStartX.current - touchEndX.current > 60) nextSlide();
+    if (touchStartX.current - touchEndX.current < -60) prevSlide();
   };
+
+  const slide = slides[currentSlide];
 
   return (
-    <section 
+    <section
       className="nis-hero-carousel-wrapper"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -207,146 +310,99 @@ export default function HeroCarousel({ onBookDemo }) {
       onTouchEnd={handleTouchEnd}
       aria-label="Net Infotech System Solutions Showcase"
     >
-      {/* Ambient Atmospheric Glow Layer */}
-      <div className="nis-hero-ambient-layer">
-        <div className="ambient-orb ambient-orb-1" />
-        <div className="ambient-orb ambient-orb-2" />
-        <div className="ambient-grid-overlay" />
-      </div>
+      {/* ── Background image layers ── */}
+      {slides.map((s, idx) => (
+        <div
+          key={s.id}
+          className={`nis-slide-full ${idx === currentSlide ? 'nis-slide-active' : ''}`}
+          aria-hidden={idx !== currentSlide}
+        >
+          <img
+            src={s.background}
+            alt=""
+            className="nis-slide-bg-img"
+            loading={idx === 0 ? 'eager' : 'lazy'}
+          />
+          <div className="nis-slide-overlay" />
+        </div>
+      ))}
 
-      {/* Slide Deck */}
-      <div className="nis-hero-slides">
-        {slides.map((slide, idx) => {
-          const isActive = idx === currentSlide;
-          return (
-            <div 
-              key={slide.id} 
-              className={`nis-hero-slide ${isActive ? 'active' : ''} ${slide.themeClass}`}
-              aria-hidden={!isActive}
+      {/* ── Content layer ── */}
+      <div className="nis-slide-content-layer">
+        <div className="container nis-slide-inner">
+
+          {/* LEFT: Text */}
+          <div className="nis-slide-left">
+            <div
+              className="nis-slide-badge"
+              style={{ borderColor: `${slide.accentColor}60`, color: slide.accentColor }}
             >
-              <div className="container nis-hero-content-container">
-                
-                {/* LEFT CONTENT COLUMN */}
-                <div className="nis-hero-text-col">
-                  {/* Badge */}
-                  <div className="nis-hero-badge animate-fade-in">
-                    <ShieldCheck size={14} className="badge-shield" />
-                    <span>{slide.badge}</span>
-                  </div>
-
-                  {/* Headline */}
-                  <h1 className="nis-hero-headline">
-                    {slide.headline.split('\n').map((line, i) => (
-                      <React.Fragment key={i}>
-                        {i === 1 ? (
-                          <span className="nis-hero-highlight">{line}</span>
-                        ) : (
-                          <span>{line}</span>
-                        )}
-                        <br />
-                      </React.Fragment>
-                    ))}
-                  </h1>
-
-                  {/* Subheading */}
-                  <p className="nis-hero-subheading">{slide.subheading}</p>
-
-                  {/* Feature checklist */}
-                  {slide.features && (
-                    <ul className="nis-hero-feature-list">
-                      {slide.features.map((feat, fIdx) => (
-                        <li key={fIdx} className="nis-hero-feature-item">
-                          <CheckCircle2 size={18} className="feat-check-icon" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {/* CTA Buttons */}
-                  <div className="nis-hero-actions">
-                    <button 
-                      type="button" 
-                      className="nis-hero-primary-btn"
-                      onClick={() => handleNavigate(slide.ctaPath)}
-                    >
-                      <span>{slide.ctaText}</span>
-                      <ArrowRight size={18} />
-                    </button>
-
-                    {slide.secondaryCtaText && (
-                      <button 
-                        type="button" 
-                        className="nis-hero-secondary-btn"
-                        onClick={onBookDemo}
-                      >
-                        <span>{slide.secondaryCtaText}</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Quick Trust Bar */}
-                  <div className="nis-hero-trust-bar">
-                    <div className="trust-item">
-                      <ShieldCheck size={16} className="trust-icon" />
-                      <span>100% GST & e-Way Compliant</span>
-                    </div>
-                    <div className="trust-divider" />
-                    <div className="trust-item">
-                      <IndianRupee size={16} className="trust-icon" />
-                      <span>Indian Rupee & Multi-Currency</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* RIGHT VISUAL COMPOSITION COLUMN */}
-                <div className="nis-hero-visual-col">
-                  <div className="hero-banner-image-showcase">
-                    <div className="banner-image-frame">
-                      <img 
-                        src={slide.image} 
-                        alt={slide.imageAlt || slide.headline} 
-                        className="banner-hero-img" 
-                        loading={idx === 0 ? "eager" : "lazy"}
-                      />
-                      
-                      {/* Contextual caption badge on image */}
-                      {slide.floatingTag && (
-                        <div className="banner-floating-tag">
-                          <span>{slide.floatingTag}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-              </div>
+              <ShieldCheck size={13} />
+              <span>{slide.badge}</span>
             </div>
-          );
-        })}
+
+            <h1 className="nis-slide-title">{slide.title}</h1>
+            <p className="nis-slide-subtitle">{slide.subtitle}</p>
+            <p className="nis-slide-desc">{slide.description}</p>
+
+            <div className="nis-slide-actions">
+              <button
+                type="button"
+                className="nis-slide-primary-btn"
+                style={{ background: slide.accentColor }}
+                onClick={() => handleNavigate(slide.ctaPath)}
+              >
+                <span>{slide.ctaText}</span>
+                <ArrowRight size={17} />
+              </button>
+              <button
+                type="button"
+                className="nis-slide-secondary-btn"
+                onClick={onBookDemo}
+              >
+                Get a Quote
+              </button>
+            </div>
+
+            {/* Slide counter */}
+            <div className="nis-slide-counter">
+              <span className="counter-current" style={{ color: slide.accentColor }}>
+                {String(currentSlide + 1).padStart(2, '0')}
+              </span>
+              <span className="counter-sep">/</span>
+              <span className="counter-total">{String(slides.length).padStart(2, '0')}</span>
+            </div>
+          </div>
+
+          {/* RIGHT: Orbit diagram */}
+          <div className="nis-slide-right">
+            <OrbitDiagram slide={slide} />
+          </div>
+
+        </div>
       </div>
 
-      {/* ARROWS (Previous / Next) */}
-      <button 
-        type="button" 
-        className="nis-carousel-arrow nis-arrow-prev" 
-        onClick={prevSlide}
-        aria-label="Previous slide"
-      >
-        <ChevronLeft size={28} />
+      {/* ── Arrows ── */}
+      <button type="button" className="nis-carousel-arrow nis-arrow-prev" onClick={prevSlide} aria-label="Previous slide">
+        <ChevronLeft size={24} />
+      </button>
+      <button type="button" className="nis-carousel-arrow nis-arrow-next" onClick={nextSlide} aria-label="Next slide">
+        <ChevronRight size={24} />
       </button>
 
-      <button 
-        type="button" 
-        className="nis-carousel-arrow nis-arrow-next" 
-        onClick={nextSlide}
-        aria-label="Next slide"
-      >
-        <ChevronRight size={28} />
-      </button>
-
-     
-
+      {/* ── Dots ── */}
+      <div className="nis-carousel-dots">
+        {slides.map((s, idx) => (
+          <button
+            key={s.id}
+            type="button"
+            className={`nis-dot ${idx === currentSlide ? 'nis-dot-active' : ''}`}
+            style={idx === currentSlide ? { background: slide.accentColor } : {}}
+            onClick={() => setCurrentSlide(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
+      </div>
     </section>
   );
 }
