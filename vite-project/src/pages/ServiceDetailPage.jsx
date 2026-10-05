@@ -366,7 +366,7 @@ export default function ServiceDetailPage({ onOpenDemo }) {
               </div>
 
               <div className="service-badge-pill">
-                <Sparkles size={14} />
+                <ShieldCheck size={14} />
                 <span>{service.badge}</span>
               </div>
 
@@ -391,14 +391,13 @@ export default function ServiceDetailPage({ onOpenDemo }) {
 
             {/* Right Visual Image */}
             <div className="service-hero-right">
-              <div className="service-banner-frame animate-float">
+              <div className="service-banner-frame">
                 <img 
                   src={service.image} 
                   alt={service.title} 
                   className="service-banner-img" 
                 />
                 <div className="service-banner-tag">
-                  <span className="tag-dot-live" />
                   <span>{service.floatingTag}</span>
                 </div>
               </div>
@@ -413,7 +412,6 @@ export default function ServiceDetailPage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <CheckCircle2 size={14} className="badge-sparkle" />
               <span>CAPABILITIES & SPECIFICATIONS</span>
             </div>
             <h2 className="nis-section-h2">
@@ -454,8 +452,7 @@ export default function ServiceDetailPage({ onOpenDemo }) {
           <div className="container">
             <div className="section-title-center">
               <div className="nis-section-badge">
-                <Award size={14} className="badge-sparkle" />
-                <span>INTERACTIVE LIVE PREVIEW</span>
+                <span>INTERACTIVE DEMO</span>
               </div>
               <h2 className="nis-section-h2">
                 Experience Tally-Grade <span className="gradient-text">Accounting & GST Ledger</span>
@@ -491,7 +488,6 @@ export default function ServiceDetailPage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Settings size={14} className="badge-sparkle" />
               <span>STRUCTURED DELIVERY</span>
             </div>
             <h2 className="nis-section-h2">

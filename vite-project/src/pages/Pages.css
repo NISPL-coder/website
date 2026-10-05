@@ -6,8 +6,9 @@
 /* Page Header Hero Banner */
 .page-header-banner {
   position: relative;
-  background: linear-gradient(135deg, #09173D 0%, #0E2A6F 50%, #17388A 100%);
-  padding: 65px 0 55px;
+  background: #0B192C;
+  background: linear-gradient(150deg, #071126 0%, #0B192C 60%, #0E2445 100%);
+  padding: 60px 0 50px;
   color: #FFFFFF;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -17,10 +18,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 35px 35px;
+  background: radial-gradient(circle at 80% 40%, rgba(2, 132, 199, 0.08) 0%, transparent 65%);
 }
 
 .page-header-content {
@@ -49,12 +47,12 @@
 }
 
 .page-header-title {
-  font-size: 2.75rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #FFFFFF;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .page-header-desc {
@@ -122,25 +120,25 @@
 
 /* Service Detail Block */
 .service-detail-block {
-  padding: 40px;
+  padding: 32px 28px;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: var(--radius-xl);
-  margin-bottom: 40px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-  transition: all var(--transition-normal);
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .service-detail-block:hover {
-  box-shadow: 0 16px 36px rgba(2, 132, 199, 0.08);
-  border-color: #BAE6FD;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  border-color: #0284C7;
 }
 
 .service-detail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -148,23 +146,24 @@
 .service-detail-header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .service-detail-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  background: #F0F9FF !important;
+  border: 1px solid #BAE6FD;
+  color: #0284C7 !important;
 }
 
 .service-detail-title {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.35rem;
+  font-weight: 700;
   color: #0F172A;
   margin-bottom: 2px;
 }
@@ -209,9 +208,9 @@
 }
 
 .service-detail-cta-card {
-  background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
-  border: 1px solid #BFDBFE;
-  border-radius: var(--radius-lg);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -222,12 +221,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: #0369A1;
   background: #E0F2FE;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #BAE6FD;
   align-self: flex-start;
 }
 

@@ -11,7 +11,8 @@
 /* Service Detail Hero Banner */
 .service-hero-banner {
   position: relative;
-  background: linear-gradient(135deg, #09132E 0%, #0E245E 50%, #153282 100%);
+  background: #0B192C;
+  background: linear-gradient(150deg, #071126 0%, #0B192C 60%, #0E2445 100%);
   padding: 60px 0 50px;
   color: #FFFFFF;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -22,10 +23,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 35px 35px;
+  background: radial-gradient(circle at 80% 40%, rgba(2, 132, 199, 0.08) 0%, transparent 65%);
 }
 
 .service-hero-grid {
@@ -66,22 +64,22 @@
   align-items: center;
   gap: 8px;
   align-self: flex-start;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  color: #93C5FD;
-  font-size: 0.76rem;
+  padding: 5px 12px;
+  border-radius: 4px;
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #7DD3FC;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   margin-bottom: 16px;
 }
 
 .service-hero-title {
-  font-size: 2.75rem;
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.18;
   color: #FFFFFF;
   margin-bottom: 14px;
   letter-spacing: -0.02em;
@@ -111,11 +109,11 @@
   position: relative;
   width: 100%;
   max-width: 480px;
-  border-radius: var(--radius-xl);
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.65), 0 0 30px rgba(37, 99, 235, 0.3);
-  background: #0B132B;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.45);
+  background: #0F172A;
 }
 
 .service-banner-img {
@@ -123,6 +121,9 @@
   height: 320px;
   object-fit: cover;
   display: block;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
 }
 
 .service-banner-tag {
@@ -131,23 +132,19 @@
   left: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(11, 19, 43, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  color: #FFFFFF;
-  font-size: 0.75rem;
-  font-weight: 700;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  padding: 5px 12px;
+  border-radius: 4px;
+  color: #F8FAFC;
+  font-size: 0.74rem;
+  font-weight: 600;
 }
 
 .tag-dot-live {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22C55E;
-  box-shadow: 0 0 8px #22C55E;
+  display: none !important;
 }
 
 /* Main Content Sections */
@@ -171,18 +168,17 @@
 .service-feature-card {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .service-feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-  border-color: #BAE6FD;
+  border-color: #0284C7;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
 }
 
 .feature-card-header {
@@ -193,18 +189,20 @@
 }
 
 .feature-card-icon-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  background: #F0F9FF !important;
+  border: 1px solid #BAE6FD;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
+  color: #0284C7 !important;
   flex-shrink: 0;
 }
 
 .feature-card-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0F172A;
 }

@@ -54,7 +54,6 @@ export default function HomePage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Sparkles size={14} className="badge-sparkle" />
               <span>CORE PRODUCTS & SERVICES</span>
             </div>
             <h2 className="nis-section-h2">
@@ -71,8 +70,8 @@ export default function HomePage({ onOpenDemo }) {
               return (
                 <div key={srv.id} className="nis-service-card">
                   <div className="nis-service-card-top">
-                    <div className="nis-service-icon-box" style={{ background: srv.gradient }}>
-                      <IconComp size={24} color="#FFFFFF" />
+                    <div className="nis-service-icon-box">
+                      <IconComp size={22} color="#0284C7" />
                     </div>
                     <div className="nis-service-num-badge">
                       <span className="nis-service-badge-pill">{srv.badge}</span>
@@ -93,7 +92,6 @@ export default function HomePage({ onOpenDemo }) {
                       Enquire ↗
                     </Link>
                   </div>
-                  <div className="nis-card-border-glow" style={{ borderColor: srv.color }} />
                 </div>
               );
             })}
@@ -119,7 +117,6 @@ export default function HomePage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Award size={14} className="badge-sparkle" />
               <span>THE NISPL ADVANTAGE</span>
             </div>
             <h2 className="nis-section-h2">
@@ -152,8 +149,7 @@ export default function HomePage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Globe size={14} className="badge-sparkle" />
-              <span>CUSTOM BUSINESS SOLUTIONS</span>
+              <span>ENTERPRISE SOLUTIONS</span>
             </div>
             <h2 className="nis-section-h2">
               Our <span className="gradient-text">Solutions</span>
@@ -186,7 +182,7 @@ export default function HomePage({ onOpenDemo }) {
         <div className="container">
           <div className="nis-cta-banner-card">
             <div className="cta-left">
-              <span className="cta-badge">⚡ INSTANT CONSULTATION AVAILABLE</span>
+              <span className="cta-badge">ENTERPRISE CONSULTATION & ADVISORY</span>
               <h2 className="cta-title">Ready to Elevate Your IT & Cloud Systems?</h2>
               <p className="cta-desc">
                 Partner with Net Infotech System Pvt. Ltd. Get certified TallyPrime deployment, enterprise cloud servers, and comprehensive IT support backed by 25+ years of excellence.

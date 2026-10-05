@@ -72,8 +72,7 @@ export default function ServicesPage({ onOpenDemo, onShowToast }) {
           
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Sparkles size={14} className="badge-sparkle" />
-              <span>THE 6 PILLARS OF OUR EXPERTISE</span>
+              <span>CORE PRODUCTS & SERVICES</span>
             </div>
             <h2 className="nis-section-h2">
               End-to-End Enterprise <span className="gradient-text">IT & Software</span>
@@ -179,8 +178,7 @@ export default function ServicesPage({ onOpenDemo, onShowToast }) {
           <div className="container">
             <div className="section-title-center">
               <div className="nis-section-badge">
-                <Calculator size={14} className="badge-sparkle" />
-                <span>LIVE TALLYPRIME ERP TEST DRIVE</span>
+                <span>INTERACTIVE ERP DEMO</span>
               </div>
               <h2 className="nis-section-h2">
                 Interactive <span className="gradient-text">Accounting & Invoicing Demo</span>

@@ -65,7 +65,6 @@ export default function PortfolioPage({ onOpenDemo }) {
           
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <TrendingUp size={14} className="badge-sparkle" />
               <span>MEASURABLE BUSINESS IMPACT</span>
             </div>
             <h2 className="nis-section-h2">

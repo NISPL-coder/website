@@ -230,7 +230,7 @@ export default function HeroCarousel({ onBookDemo }) {
                 <div className="nis-hero-text-col">
                   {/* Badge */}
                   <div className="nis-hero-badge animate-fade-in">
-                    <Sparkles size={14} className="badge-sparkle" />
+                    <ShieldCheck size={14} className="badge-shield" />
                     <span>{slide.badge}</span>
                   </div>
 
@@ -280,7 +280,6 @@ export default function HeroCarousel({ onBookDemo }) {
                         className="nis-hero-secondary-btn"
                         onClick={onBookDemo}
                       >
-                        <Sparkles size={16} />
                         <span>{slide.secondaryCtaText}</span>
                       </button>
                     )}
@@ -302,7 +301,7 @@ export default function HeroCarousel({ onBookDemo }) {
 
                 {/* RIGHT VISUAL COMPOSITION COLUMN */}
                 <div className="nis-hero-visual-col">
-                  <div className="hero-banner-image-showcase animate-float">
+                  <div className="hero-banner-image-showcase">
                     <div className="banner-image-frame">
                       <img 
                         src={slide.image} 
@@ -310,19 +309,14 @@ export default function HeroCarousel({ onBookDemo }) {
                         className="banner-hero-img" 
                         loading={idx === 0 ? "eager" : "lazy"}
                       />
-                      <div className="banner-image-overlay" />
                       
-                      {/* Floating contextual badge on image */}
+                      {/* Contextual caption badge on image */}
                       {slide.floatingTag && (
                         <div className="banner-floating-tag">
-                          <span className="floating-tag-pulse" />
                           <span>{slide.floatingTag}</span>
                         </div>
                       )}
                     </div>
-
-                    {/* Ambient Glow halo */}
-                    <div className={`banner-ambient-glow glow-${slide.themeClass}`} />
                   </div>
                 </div>
 

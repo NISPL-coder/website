@@ -72,8 +72,7 @@ export default function SolutionsPage({ onOpenDemo }) {
           
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Globe size={14} className="badge-sparkle" />
-              <span>TRANSFORMING DIGITAL OPERATIONS</span>
+              <span>DIGITAL PLATFORMS & SOFTWARE</span>
             </div>
             <h2 className="nis-section-h2">
               Bespoke Digital <span className="gradient-text">Platforms & Software</span>
@@ -119,7 +118,6 @@ export default function SolutionsPage({ onOpenDemo }) {
         <div className="container">
           <div className="section-title-center">
             <div className="nis-section-badge">
-              <Layers size={14} className="badge-sparkle" />
               <span>STRUCTURED DELIVERY</span>
             </div>
             <h2 className="nis-section-h2">

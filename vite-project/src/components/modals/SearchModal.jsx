@@ -31,26 +31,8 @@ export default function SearchModal({
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Auto-focus input on open and handle ESC key
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => {
-        if (inputRef.current) inputRef.current.focus();
-      }, 50);
-
-      const handleKeyDown = (e) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
-  // Search catalog covering all corporate services, solutions, and pages
   const catalog = [
     {
       id: 'tally-prime',
@@ -220,7 +202,6 @@ export default function SearchModal({
                 <X size={16} />
               </button>
             )}
-            <span className="nis-search-badge-esc">ESC</span>
             <button 
               type="button" 
               className="nis-search-close-btn"
@@ -371,14 +352,7 @@ export default function SearchModal({
             </div>
           )}
 
-        </div>
-
-        {/* Dialog Footer Helper */}
-        <div className="nis-search-dialog-footer">
-          <span>Navigate with mouse or tap</span>
-          <span>Press <kbd>ESC</kbd> to exit search</span>
-        </div>
-
+        </div>    
       </div>
     </div>
   );
