@@ -20,6 +20,7 @@ import {
 import HeroCarousel from '../components/HeroCarousel';
 import GoogleReviewsSection from '../components/GoogleReviewsSection';
 import OurClientsSection from '../components/OurClientsSection';
+import { useScrollReveal } from '../utils/useScrollReveal';
 import { 
   COMPANY_INFO, 
   CORE_SERVICES, 
@@ -39,8 +40,10 @@ const ICON_MAP = {
 };
 
 export default function HomePage({ onOpenDemo }) {
+  useScrollReveal();
+
   return (
-    <div className="home-page-view">
+    <div className="home-page-view page-enter-active">
       
       {/* 1. HERO SECTION */}
       <HeroCarousel 
@@ -52,9 +55,9 @@ export default function HomePage({ onOpenDemo }) {
       />
 
       {/* 2. 6 CORE PRODUCTS & SERVICES */}
-      <section className="nis-section nis-services-section">
+      <section className="nis-section nis-services-section reveal-fade-up">
         <div className="container">
-          <div className="section-title-center">
+          <div className="section-title-center reveal-fade-up">
             <div className="nis-section-badge">
               <span>CORE PRODUCTS & SERVICES</span>
             </div>
@@ -121,9 +124,9 @@ export default function HomePage({ onOpenDemo }) {
       <OurClientsSection onOpenDemo={onOpenDemo} />
 
       {/* 5. WHY CHOOSE US */}
-      <section className="nis-section nis-why-section">
+      <section className="nis-section nis-why-section reveal-fade-up">
         <div className="container">
-          <div className="section-title-center">
+          <div className="section-title-center reveal-fade-up">
             <div className="nis-section-badge">
               <span>THE NISPL ADVANTAGE</span>
             </div>
@@ -135,9 +138,13 @@ export default function HomePage({ onOpenDemo }) {
             </p>
           </div>
 
-          <div className="nis-why-grid">
-            {WHY_CHOOSE_US.map((why) => (
-              <div key={why.id} className="nis-why-card">
+          <div className="nis-why-grid reveal-fade-up">
+            {WHY_CHOOSE_US.map((why, idx) => (
+              <div 
+                key={why.id} 
+                className="nis-why-card reveal-scale"
+                style={{ transitionDelay: `${idx * 0.12}s` }}
+              >
                 <div className="why-card-header">
                   <div className="why-icon-box">
                     <Users size={24} />
@@ -153,9 +160,9 @@ export default function HomePage({ onOpenDemo }) {
       </section>
 
       {/* 6. SOLUTIONS OVERVIEW */}
-      <section className="nis-section nis-solutions-section">
+      <section className="nis-section nis-solutions-section reveal-fade-up">
         <div className="container">
-          <div className="section-title-center">
+          <div className="section-title-center reveal-fade-up">
             <div className="nis-section-badge">
               <span>ENTERPRISE SOLUTIONS</span>
             </div>
@@ -167,9 +174,13 @@ export default function HomePage({ onOpenDemo }) {
             </p>
           </div>
 
-          <div className="nis-solutions-grid">
-            {OUR_SOLUTIONS.map((sol) => (
-              <div key={sol.id} className="nis-solution-card">
+          <div className="nis-solutions-grid reveal-fade-up">
+            {OUR_SOLUTIONS.map((sol, idx) => (
+              <div 
+                key={sol.id} 
+                className="nis-solution-card reveal-scale"
+                style={{ transitionDelay: `${idx * 0.12}s` }}
+              >
                 <div className="solution-icon-wrap">
                   <Globe size={28} />
                 </div>
@@ -186,9 +197,9 @@ export default function HomePage({ onOpenDemo }) {
       </section>
 
       {/* 7. CALL TO ACTION BANNER */}
-      <section className="nis-cta-banner-section">
+      <section className="nis-cta-banner-section reveal-fade-up">
         <div className="container">
-          <div className="nis-cta-banner-card">
+          <div className="nis-cta-banner-card reveal-scale">
             <div className="cta-left">
               <span className="cta-badge">ENTERPRISE CONSULTATION & ADVISORY</span>
               <h2 className="cta-title">Ready to Elevate Your IT & Cloud Systems?</h2>

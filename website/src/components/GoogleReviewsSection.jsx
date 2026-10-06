@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquarePlus, ExternalLink, Quote } from 'lucide-react';
 import { GOOGLE_REVIEWS } from '../data/mockData';
+import { useScrollReveal } from '../utils/useScrollReveal';
 import './GoogleReviewsSection.css';
 
 export default function GoogleReviewsSection() {
+  useScrollReveal();
   const scrollRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -42,11 +44,11 @@ export default function GoogleReviewsSection() {
   };
 
   return (
-    <section className="nis-google-reviews-section">
+    <section className="nis-google-reviews-section reveal-fade-up">
       <div className="container">
 
         {/* SECTION HEADER WITH GOOGLE BRANDING */}
-        <div className="gr-header">
+        <div className="gr-header reveal-fade-up">
           <div className="gr-header-left">
             <div className="gr-google-badge">
               <svg className="gr-google-icon" viewBox="0 0 24 24" width="28" height="28">

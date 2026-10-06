@@ -267,3 +267,62 @@ img { display: block; max-width: 100%; }
   .nis-official-header, .nis-hero-carousel-wrapper, .nis-marketing-wrapper, footer { display: none !important; }
   body, html { background: #FFFFFF !important; color: #000000 !important; }
 }
+
+/* ===================================================
+   SMOOTH SCROLL & INITIAL PAGE LOAD TRANSITIONS
+   =================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.page-enter-active {
+  animation: pageEntranceFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageEntranceFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-on-scroll,
+.reveal-fade-up {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.94) translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-slide-left {
+  opacity: 0;
+  transform: translateX(-36px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-slide-right {
+  opacity: 0;
+  transform: translateX(36px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-on-scroll.is-visible,
+.reveal-fade-up.is-visible,
+.reveal-scale.is-visible,
+.reveal-slide-left.is-visible,
+.reveal-slide-right.is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}

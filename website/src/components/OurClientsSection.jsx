@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Building2, ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Sparkles, MapPin, Calendar, Layers } from 'lucide-react';
 import { OUR_CLIENTS_DATA } from '../data/mockData';
+import { useScrollReveal } from '../utils/useScrollReveal';
 import './OurClientsSection.css';
 
 export default function OurClientsSection({ onOpenDemo }) {
+  useScrollReveal();
   const [activeTab, setActiveTab] = useState('All');
 
   const categories = [
@@ -24,11 +26,11 @@ export default function OurClientsSection({ onOpenDemo }) {
   const logoTickerList = [...OUR_CLIENTS_DATA, ...OUR_CLIENTS_DATA];
 
   return (
-    <section className="nis-clients-section">
+    <section className="nis-clients-section reveal-fade-up">
       <div className="container">
         
         {/* SECTION HEADER */}
-        <div className="section-title-center">
+        <div className="section-title-center reveal-fade-up">
           <div className="nis-section-badge">
             <Building2 size={14} />
             <span>TRUSTED BY 1,500+ ENTERPRISES</span>
@@ -42,7 +44,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         </div>
 
         {/* TRUST STATS COUNTER BAR */}
-        <div className="clients-stats-bar">
+        <div className="clients-stats-bar reveal-scale">
           <div className="client-stat-item">
             <div className="stat-icon-wrapper">
               <Building2 size={22} color="#0284C7" />
@@ -91,7 +93,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         </div>
 
         {/* AUTO HORIZONTAL LOGO TICKER MARQUEE */}
-        <div className="client-logo-marquee-wrapper">
+        <div className="client-logo-marquee-wrapper reveal-fade-up">
           <div className="client-logo-marquee-label">Featured Corporate Partners:</div>
           <div className="client-logo-marquee-track-container">
             <div className="client-logo-marquee-track">
@@ -112,7 +114,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         </div>
 
         {/* CATEGORY FILTER TABS */}
-        <div className="clients-filter-bar">
+        <div className="clients-filter-bar reveal-fade-up">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -126,9 +128,13 @@ export default function OurClientsSection({ onOpenDemo }) {
         </div>
 
         {/* CLIENT CARDS GRID */}
-        <div className="clients-cards-grid">
-          {filteredClients.map((client) => (
-            <div key={client.id} className="client-card">
+        <div className="clients-cards-grid reveal-fade-up">
+          {filteredClients.map((client, index) => (
+            <div 
+              key={client.id} 
+              className="client-card reveal-scale"
+              style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
+            >
               
               {/* CARD TOP HEADER */}
               <div className="client-card-header">
@@ -197,7 +203,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         </div>
 
         {/* CALL TO ACTION AT FOOTER OF CLIENTS SECTION */}
-        <div className="clients-footer-banner">
+        <div className="clients-footer-banner reveal-scale">
           <div className="clients-fb-content">
             <h3>Join 1,500+ Businesses Thriving with Net Infotech System</h3>
             <p>Get a customized IT Infrastructure assessment or Tally on Cloud trial for your enterprise today.</p>
