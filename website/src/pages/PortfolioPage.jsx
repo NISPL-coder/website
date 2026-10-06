@@ -10,6 +10,8 @@ import {
   Sparkles,
   ExternalLink
 } from 'lucide-react';
+import OurClientsSection from '../components/OurClientsSection';
+import GoogleReviewsSection from '../components/GoogleReviewsSection';
 import { PORTFOLIO_CASES } from '../data/mockData';
 import './Pages.css';
 
@@ -119,7 +121,13 @@ export default function PortfolioPage({ onOpenDemo }) {
         </div>
       </section>
 
-      {/* 3. CALL TO ACTION BANNER */}
+      {/* 3. OUR CLIENTS SECTION */}
+      <OurClientsSection onOpenDemo={onOpenDemo} />
+
+      {/* 4. GOOGLE REVIEWS SECTION */}
+      <GoogleReviewsSection />
+
+      {/* 5. CALL TO ACTION BANNER */}
       <section className="nis-cta-banner-section">
         <div className="container">
           <div className="nis-cta-banner-card">

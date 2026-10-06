@@ -18,6 +18,8 @@ import {
   Users
 } from 'lucide-react';
 import HeroCarousel from '../components/HeroCarousel';
+import GoogleReviewsSection from '../components/GoogleReviewsSection';
+import OurClientsSection from '../components/OurClientsSection';
 import { 
   COMPANY_INFO, 
   CORE_SERVICES, 
@@ -49,7 +51,7 @@ export default function HomePage({ onOpenDemo }) {
         onBookDemo={onOpenDemo}
       />
 
-      {/* 2. 6 CORE PRODUCTS & SERVICES (Streamlined Gateway linking to dedicated pages) */}
+      {/* 2. 6 CORE PRODUCTS & SERVICES */}
       <section className="nis-section nis-services-section">
         <div className="container">
           <div className="section-title-center">
@@ -112,7 +114,13 @@ export default function HomePage({ onOpenDemo }) {
         </div>
       </section>
 
-      {/* 4. WHY CHOOSE US */}
+      {/* 3. GOOGLE REVIEWS SECTION (AUTO HORIZONTAL SCROLL) */}
+      <GoogleReviewsSection />
+
+      {/* 4. OUR CLIENTS SECTION */}
+      <OurClientsSection onOpenDemo={onOpenDemo} />
+
+      {/* 5. WHY CHOOSE US */}
       <section className="nis-section nis-why-section">
         <div className="container">
           <div className="section-title-center">
@@ -144,7 +152,7 @@ export default function HomePage({ onOpenDemo }) {
         </div>
       </section>
 
-      {/* 5. SOLUTIONS OVERVIEW */}
+      {/* 6. SOLUTIONS OVERVIEW */}
       <section className="nis-section nis-solutions-section">
         <div className="container">
           <div className="section-title-center">
@@ -177,7 +185,7 @@ export default function HomePage({ onOpenDemo }) {
         </div>
       </section>
 
-      {/* 6. CALL TO ACTION BANNER */}
+      {/* 7. CALL TO ACTION BANNER */}
       <section className="nis-cta-banner-section">
         <div className="container">
           <div className="nis-cta-banner-card">
@@ -209,3 +217,4 @@ export default function HomePage({ onOpenDemo }) {
     </div>
   );
 }
+

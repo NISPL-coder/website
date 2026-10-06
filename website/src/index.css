@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    NET INFOTECH SYSTEM (NIS) - PREMIUM DESIGN SYSTEM
    Production-Ready Global Styles
    =================================================== */
@@ -90,14 +90,14 @@
   --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-spring: 500ms cubic-bezier(0.23, 1, 0.32, 1);
 
-  --header-height: 96px;
+  --header-height: 125px;
   --container-max: 1360px;
   --section-pad: 96px;
 }
 
-@media (max-width: 1040px) { :root { --header-height: 68px; } }
-@media (max-width: 640px)  { :root { --header-height: 62px; --section-pad: 64px; } }
-@media (max-width: 480px)  { :root { --header-height: 58px; --section-pad: 52px; } }
+@media (max-width: 1040px) { :root { --header-height: 110px; } }
+@media (max-width: 640px)  { :root { --header-height: 90px; --section-pad: 64px; } }
+@media (max-width: 480px)  { :root { --header-height: 80px; --section-pad: 52px; } }
 
 *, *::before, *::after {
   box-sizing: border-box;

@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    PREMIUM HEADER - NET INFOTECH SYSTEM
    Production-Ready, Glassmorphism on Scroll
    =================================================== */
@@ -35,24 +35,57 @@
   gap: 20px;
 }
 
-/* ── Logo ── */
+/* ── Logo & Certification Group ── */
+.nis-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .nis-official-logo-wrapper {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   cursor: pointer;
   text-decoration: none;
-  padding-right: 8px;
+  padding-right: 4px;
   transition: transform var(--transition-fast);
 }
 .nis-official-logo-wrapper:hover { transform: scale(1.01); }
 
 .nis-official-logo-img {
-  height: 60px;
+  height: 56px;
   width: auto;
-  max-width: 300px;
+  max-width: 280px;
   object-fit: contain;
   display: block;
+}
+
+.nis-tally-certified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1px solid #F59E0B;
+  color: #92400E;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.tally-pill-star {
+  color: #D97706;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1024px) {
+  .nis-tally-certified-pill {
+    display: none;
+  }
 }
 
 /* ── Right Column ── */
@@ -424,11 +457,16 @@
    =================================================== */
 .nis-official-drawer-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(7, 16, 31, 0.65);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 1200;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999999;
   display: flex;
   justify-content: flex-end;
   animation: fadeIn 0.25s ease;
@@ -440,16 +478,18 @@
 }
 
 .nis-official-drawer {
-  width: 100%;
+  width: 85%;
   max-width: 380px;
-  height: 100%;
-  background: #FFFFFF;
-  border-left: 1px solid #E2E8F0;
+  height: 100vh;
+  background: #FFFFFF !important;
+  border-left: 1px solid #CBD5E1;
   padding: 0;
   display: flex;
   flex-direction: column;
-  box-shadow: -12px 0 48px rgba(0, 0, 0, 0.18);
+  box-shadow: -12px 0 48px rgba(0, 0, 0, 0.3);
   overflow-y: auto;
+  position: relative;
+  z-index: 1000000;
   animation: drawerSlide 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 

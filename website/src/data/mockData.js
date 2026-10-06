@@ -14,7 +14,7 @@ export const COMPANY_INFO = {
   pinCode: "700091",
   businessHours: "Monday – Saturday: 10:00 AM – 7:00 PM",
   experienceYears: "25+",
-  tallyPartnerStatus: "Tally 3-Star Certified Partner",
+  tallyPartnerStatus: "3 Years Certified Tally Partner",
 };
 
 export const INITIAL_METRICS = {
@@ -683,4 +683,209 @@ export const PORTFOLIO_CASES = [
     industry: "Logistics"
   }
 ];
+
+// ===================================================
+// GOOGLE REVIEWS DATA (Auto Infinite Scroll Marquee)
+// ===================================================
+export const GOOGLE_REVIEWS = [
+  {
+    id: 1,
+    author: "Reshmi",
+    role: "Local Guide · 1 review",
+    rating: 5,
+    date: "3 months ago",
+    avatarBg: "#E65100",
+    initials: "R",
+    review: "After long time of searching, we found some one who really cares of your needs and understand your problem and solve the issue with timely manner with patience. I really loved your services and expect the future association will continue with the same sprit and dedication.",
+    service: "tech support",
+    verified: true
+  },
+  {
+    id: 2,
+    author: "Rajesh Sharma",
+    role: "Managing Director, Apex Logistics",
+    rating: 5,
+    date: "1 month ago",
+    avatarBg: "#4285F4",
+    initials: "RS",
+    review: "Net Infotech System deployed Tally on Cloud for our 8 branch offices across Kolkata and Mumbai. Supportive engineers and very quick response time! Zero lag and instant remote access.",
+    service: "quick response",
+    verified: true
+  },
+  {
+    id: 3,
+    author: "Debjani Mukherjee",
+    role: "Financial Controller",
+    rating: 4,
+    date: "2 months ago",
+    avatarBg: "#EA4335",
+    initials: "DM",
+    review: "Great GST compliance setup and Tally Prime multi-user licensing support. Their tech support team resolved our server query with utmost patience.",
+    service: "gst compliance",
+    verified: true
+  },
+  {
+    id: 4,
+    author: "Anirban Roy",
+    role: "IT Administrator",
+    rating: 5,
+    date: "3 months ago",
+    avatarBg: "#34A853",
+    initials: "AR",
+    review: "Supportive engineer team at Sector V office. They helped us configure Firewall and server management seamlessly with quick response time.",
+    service: "supportive engineer",
+    verified: true
+  },
+  {
+    id: 5,
+    author: "Pritam Sen",
+    role: "Business Owner",
+    rating: 5,
+    date: "4 months ago",
+    avatarBg: "#FBBC05",
+    initials: "PS",
+    review: "Best Tally partner in Salt Lake Sector V! They guided us through GST e-Invoicing setup and customized our invoices perfectly. Excellent tech support.",
+    service: "gst compliance",
+    verified: true
+  },
+  {
+    id: 6,
+    author: "Subhashis Dutta",
+    role: "Logistics Manager",
+    rating: 5,
+    date: "5 months ago",
+    avatarBg: "#9333EA",
+    initials: "SD",
+    review: "Quick response for our hardware rental requirement. Supplied 25 workstation laptops with supportive engineer assistance throughout the setup.",
+    service: "quick response",
+    verified: true
+  },
+  {
+    id: 7,
+    author: "Swati Banerjee",
+    role: "Finance Lead",
+    rating: 4,
+    date: "6 months ago",
+    avatarBg: "#0284C7",
+    initials: "SB",
+    review: "Tally on Cloud hosting provided by NISPL has been rock solid. Tech support is always accessible whenever we need assistance.",
+    service: "tech support",
+    verified: true
+  },
+  {
+    id: 8,
+    author: "Amitabh Sengupta",
+    role: "Operations Head",
+    rating: 5,
+    date: "7 months ago",
+    avatarBg: "#D97706",
+    initials: "AS",
+    review: "Chip-level repair for our server motherboard was completed in under 24 hours at Webel Tower 1. Very supportive engineer and prompt service.",
+    service: "supportive engineer",
+    verified: true
+  }
+];
+
+// ===================================================
+// OUR CLIENTS DATA
+// ===================================================
+export const OUR_CLIENTS_DATA = [
+  {
+    id: 1,
+    name: "Eastern Steel & Alloys Ltd.",
+    category: "Manufacturing & Steel",
+    logoText: "EASTERN STEEL",
+    logoColor: "#2563EB",
+    location: "Kolkata, WB",
+    serviceUsed: "Tally on Cloud & Server AMC",
+    partnership: "Client since 2017",
+    quote: "Centralized our 6 plant accounting hubs into a unified high-availability cloud system.",
+    badge: "100+ Cloud Users"
+  },
+  {
+    id: 2,
+    name: "Kolkata Mega Retailers Network",
+    category: "Retail & Commerce",
+    logoText: "MEGA RETAIL",
+    logoColor: "#7C3AED",
+    location: "Kolkata & Howrah",
+    serviceUsed: "POS Hardware Rental & Tally Prime",
+    partnership: "Client since 2019",
+    quote: "12 retail outlet POS terminals & daily billing hardware maintained seamlessly.",
+    badge: "12 Locations"
+  },
+  {
+    id: 3,
+    name: "CarePlus Diagnostic Centers",
+    category: "Healthcare & Pharma",
+    logoText: "CAREPLUS",
+    logoColor: "#059669",
+    location: "Salt Lake & Durgapur",
+    serviceUsed: "Tier-4 Cloud Hosting & IT Security",
+    partnership: "Client since 2020",
+    quote: "100% HIPAA compliant patient data backup and Next-Gen Firewall protection.",
+    badge: "24/7 Security"
+  },
+  {
+    id: 4,
+    name: "Bengal Logistic Freight Corp",
+    category: "Logistics & Transport",
+    logoText: "BENGAL LOGISTICS",
+    logoColor: "#D97706",
+    location: "Siliguri & Haldia",
+    serviceUsed: "Custom Software & Tally Cloud",
+    partnership: "Client since 2016",
+    quote: "Automated e-Way bill and consignment tracking system handling 3,000+ daily bills.",
+    badge: "3k+ Daily Bills"
+  },
+  {
+    id: 5,
+    name: "Howrah Heavy Engineering",
+    category: "Engineering & Construction",
+    logoText: "HOWRAH ENG",
+    logoColor: "#EA580C",
+    location: "Howrah Industrial Belt",
+    serviceUsed: "Workstation Rental & IT AMC",
+    partnership: "Client since 2018",
+    quote: "Deployed 45 high-end workstation laptops and dedicated on-site support.",
+    badge: "Zero Downtime"
+  },
+  {
+    id: 6,
+    name: "East India Pharma Distributors",
+    category: "Healthcare & Pharma",
+    logoText: "EAST PHARMA",
+    logoColor: "#0284C7",
+    location: "Barasat & Asansol",
+    serviceUsed: "Tally Prime Batch & WhatsApp Sync",
+    partnership: "Client since 2021",
+    quote: "Automated medicine batch tracking and instant WhatsApp GST invoice delivery.",
+    badge: "99.4% Accuracy"
+  },
+  {
+    id: 7,
+    name: "Sengupta Textile Mills",
+    category: "Manufacturing & Steel",
+    logoText: "SENGUPTA MILLS",
+    logoColor: "#4F46E5",
+    location: "Hooghly, WB",
+    serviceUsed: "Structured Network & CCTV Security",
+    partnership: "Client since 2015",
+    quote: "Complete optical fiber network and biometric access control for 500+ workforce.",
+    badge: "Turnkey Infra"
+  },
+  {
+    id: 8,
+    name: "Apex Global FinServ",
+    category: "Finance & IT",
+    logoText: "APEX FINSERV",
+    logoColor: "#0891B2",
+    location: "Sector V, Salt Lake",
+    serviceUsed: "Microsoft 365 & AWS Cloud Hosting",
+    partnership: "Client since 2022",
+    quote: "Secure remote work setup for 150+ financial auditors across India.",
+    badge: "Multi-Cloud"
+  }
+];
+
 
