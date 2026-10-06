@@ -185,17 +185,51 @@ function OrbitDiagram({ slide }) {
 
   return (
     <div className="nis-orbit-wrapper">
+      <div 
+        className="nis-orbit-glow-aura" 
+        style={{ background: `radial-gradient(circle, ${slide.accentColor}40 0%, ${slide.accentColor}12 45%, transparent 70%)` }}
+      />
       <svg
         className="nis-orbit-svg"
         viewBox={`0 0 ${size} ${size}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Outer ring */}
-        <circle cx={cx} cy={cy} r={radius2} fill="none" stroke={`${slide.accentColor}28`} strokeWidth="1.5" strokeDasharray="6 4" />
-        {/* Inner ring */}
-        <circle cx={cx} cy={cy} r={radius1} fill="none" stroke={`${slide.accentColor}38`} strokeWidth="1" strokeDasharray="4 4" />
+        <defs>
+          <radialGradient id={`centerGradient-${slide.id}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={slide.accentColor} stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#0B132B" stopOpacity="0.95" />
+          </radialGradient>
+          <filter id={`glow-${slide.id}`} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {/* Outer ring - rotating */}
+        <circle 
+          className="nis-orbit-spin-outer"
+          cx={cx} cy={cy} r={radius2} 
+          fill="none" 
+          stroke={`${slide.accentColor}50`} 
+          strokeWidth="1.8" 
+          strokeDasharray="8 6" 
+        />
+        {/* Inner ring - reverse rotating */}
+        <circle 
+          className="nis-orbit-spin-inner"
+          cx={cx} cy={cy} r={radius1} 
+          fill="none" 
+          stroke={`${slide.accentColor}60`} 
+          strokeWidth="1.5" 
+          strokeDasharray="6 4" 
+        />
         {/* Innermost glow ring */}
-        <circle cx={cx} cy={cy} r={58} fill={`${slide.accentColor}10`} stroke={`${slide.accentColor}45`} strokeWidth="1.2" />
+        <circle 
+          cx={cx} cy={cy} r={58} 
+          fill={`${slide.accentColor}18`} 
+          stroke={`${slide.accentColor}80`} 
+          strokeWidth="1.5" 
+        />
 
         {/* Spoke lines to outer orbit items */}
         {slide.orbitItems.map((item, idx) => {
@@ -209,20 +243,26 @@ function OrbitDiagram({ slide }) {
               key={idx}
               x1={cx} y1={cy}
               x2={x} y2={y}
-              stroke={`${slide.accentColor}18`}
-              strokeWidth="1"
+              stroke={`${slide.accentColor}30`}
+              strokeWidth="1.2"
             />
           );
         })}
 
         {/* Center circle */}
-        <circle cx={cx} cy={cy} r={50} fill={`${slide.accentColor}20`} stroke={slide.accentColor} strokeWidth="1.5" />
+        <circle 
+          cx={cx} cy={cy} r={52} 
+          fill={`url(#centerGradient-${slide.id})`} 
+          stroke={slide.accentColor} 
+          strokeWidth="2" 
+          style={{ filter: `drop-shadow(0 0 12px ${slide.accentColor}60)` }}
+        />
       </svg>
 
       {/* Center label (HTML overlay, centered) */}
       <div className="nis-orbit-center">
-        <div className="nis-orbit-center-icon" style={{ color: slide.accentColor }}>
-          <CenterIcon size={26} />
+        <div className="nis-orbit-center-icon" style={{ color: slide.accentColor, filter: `drop-shadow(0 0 8px ${slide.accentColor})` }}>
+          <CenterIcon size={28} />
         </div>
         <span className="nis-orbit-center-label" style={{ color: '#fff' }}>
           {slide.centerLabel.split('\n').map((l, i) => (
@@ -236,7 +276,6 @@ function OrbitDiagram({ slide }) {
         const isOuter = idx % 2 === 0;
         const r = isOuter ? 172 : 108;
         const angleRad = ((item.angle - 90) * Math.PI) / 180;
-        // percentage offset from center of wrapper
         const px = 50 + (r / 210) * 50 * Math.cos(angleRad);
         const py = 50 + (r / 210) * 50 * Math.sin(angleRad);
         const IconComp = item.icon;
@@ -248,11 +287,16 @@ function OrbitDiagram({ slide }) {
           >
             <div
               className="nis-orbit-node-icon"
-              style={{ background: `${slide.accentColor}22`, borderColor: `${slide.accentColor}55`, color: slide.accentColor }}
+              style={{
+                background: 'rgba(9, 18, 38, 0.88)',
+                borderColor: `${slide.accentColor}85`,
+                color: slide.accentColor,
+                boxShadow: `0 0 16px ${slide.accentColor}40, 0 4px 16px rgba(0,0,0,0.6)`,
+              }}
             >
-              <IconComp size={16} />
+              <IconComp size={17} />
             </div>
-            <span className="nis-orbit-node-label" style={{ color: 'rgba(255,255,255,0.88)' }}>
+            <span className="nis-orbit-node-label" style={{ color: '#FFFFFF' }}>
               {item.label}
             </span>
           </div>
@@ -310,6 +354,16 @@ export default function HeroCarousel({ onBookDemo }) {
       onTouchEnd={handleTouchEnd}
       aria-label="Net Infotech System Solutions Showcase"
     >
+      {/* Dynamic Ambient Background Glows */}
+      <div 
+        className="nis-slide-ambient-glow nis-glow-left"
+        style={{ background: `radial-gradient(circle, ${slide.accentColor}35 0%, transparent 70%)` }}
+      />
+      <div 
+        className="nis-slide-ambient-glow nis-glow-right"
+        style={{ background: `radial-gradient(circle, ${slide.accentColor}30 0%, transparent 70%)` }}
+      />
+
       {/* ── Background image layers ── */}
       {slides.map((s, idx) => (
         <div
@@ -335,21 +389,28 @@ export default function HeroCarousel({ onBookDemo }) {
           <div className="nis-slide-left">
             <div
               className="nis-slide-badge"
-              style={{ borderColor: `${slide.accentColor}60`, color: slide.accentColor }}
+              style={{ 
+                borderColor: `${slide.accentColor}90`, 
+                color: slide.accentColor,
+                boxShadow: `0 0 15px ${slide.accentColor}30`
+              }}
             >
-              <ShieldCheck size={13} />
+              <ShieldCheck size={14} />
               <span>{slide.badge}</span>
             </div>
 
             <h1 className="nis-slide-title">{slide.title}</h1>
-            <p className="nis-slide-subtitle">{slide.subtitle}</p>
+            <p className="nis-slide-subtitle" style={{ color: slide.accentColor }}>{slide.subtitle}</p>
             <p className="nis-slide-desc">{slide.description}</p>
 
             <div className="nis-slide-actions">
               <button
                 type="button"
                 className="nis-slide-primary-btn"
-                style={{ background: slide.accentColor }}
+                style={{ 
+                  background: `linear-gradient(135deg, ${slide.accentColor} 0%, #1E40AF 100%)`,
+                  boxShadow: `0 8px 25px -4px ${slide.accentColor}70` 
+                }}
                 onClick={() => handleNavigate(slide.ctaPath)}
               >
                 <span>{slide.ctaText}</span>
@@ -366,7 +427,7 @@ export default function HeroCarousel({ onBookDemo }) {
 
             {/* Slide counter */}
             <div className="nis-slide-counter">
-              <span className="counter-current" style={{ color: slide.accentColor }}>
+              <span className="counter-current" style={{ color: slide.accentColor, textShadow: `0 0 12px ${slide.accentColor}60` }}>
                 {String(currentSlide + 1).padStart(2, '0')}
               </span>
               <span className="counter-sep">/</span>

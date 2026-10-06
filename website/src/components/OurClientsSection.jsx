@@ -33,7 +33,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         <div className="section-title-center reveal-fade-up">
           <div className="nis-section-badge">
             <Building2 size={14} />
-            <span>TRUSTED BY 1,500+ ENTERPRISES</span>
+            <span>TRUSTED BY 1,5000+ ENTERPRISES</span>
           </div>
           <h2 className="nis-section-h2">
             Our <span className="gradient-text">Valued Clients</span> & Partners
@@ -50,7 +50,7 @@ export default function OurClientsSection({ onOpenDemo }) {
               <Building2 size={22} color="#0284C7" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">1,500+</span>
+              <span className="stat-number">1,5000+</span>
               <span className="stat-label">Enterprise Clients</span>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function OurClientsSection({ onOpenDemo }) {
         {/* CALL TO ACTION AT FOOTER OF CLIENTS SECTION */}
         <div className="clients-footer-banner reveal-scale">
           <div className="clients-fb-content">
-            <h3>Join 1,500+ Businesses Thriving with Net Infotech System</h3>
+            <h3>Join 1,5000+ Businesses Thriving with Net Infotech System</h3>
             <p>Get a customized IT Infrastructure assessment or Tally on Cloud trial for your enterprise today.</p>
           </div>
           {onOpenDemo && (
