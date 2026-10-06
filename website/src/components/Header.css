@@ -55,7 +55,7 @@
 .nis-official-logo-wrapper:hover { transform: scale(1.01); }
 
 .nis-official-logo-img {
-  height: 56px;
+  height: 80px;
   width: auto;
   max-width: 280px;
   object-fit: contain;
@@ -503,7 +503,7 @@
 }
 
 .nis-drawer-logo {
-  height: 46px;
+  height: 60px;
   width: auto;
   max-width: 220px;
   object-fit: contain;
@@ -733,7 +733,7 @@
 @media (max-width: 520px) {
   .nis-official-container { padding: 8px 12px; gap: 6px; }
   .nis-official-logo-wrapper { max-width: 200px; }
-  .nis-official-logo-img { height: 42px; }
+  .nis-official-logo-img { height: 60px; }
   .nis-phone-val { display: none; }
   .nis-phone-link { padding: 0; background: transparent; border: none; }
   .nis-contact-circle { width: 36px; height: 36px; }
