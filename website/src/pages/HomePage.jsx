@@ -132,7 +132,31 @@ const LogoItRepair = () => (
   </svg>
 );
 
-// 8 Core Services matching reference screenshot
+// 9. Data Center & Server Solutions Server Blade Logo
+const LogoDataCenterServer = () => (
+  <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+    <rect x="3" y="4" width="26" height="7" rx="2" fill="#0284C7" />
+    <circle cx="7" cy="7.5" r="1.2" fill="#10B981" />
+    <circle cx="11" cy="7.5" r="1.2" fill="#38BDF8" />
+    <rect x="3" y="12.5" width="26" height="7" rx="2" fill="#2563EB" />
+    <circle cx="7" cy="16" r="1.2" fill="#10B981" />
+    <circle cx="11" cy="16" r="1.2" fill="#38BDF8" />
+    <rect x="3" y="21" width="26" height="7" rx="2" fill="#1E3A8A" />
+    <circle cx="7" cy="24.5" r="1.2" fill="#10B981" />
+    <circle cx="11" cy="24.5" r="1.2" fill="#38BDF8" />
+  </svg>
+);
+
+// Official style CtrlS Partner Logo SVG
+const LogoCtrlS = () => (
+  <svg width="110" height="32" viewBox="0 0 130 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="0" y="27" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="900" fontSize="28" fill="#0284C7" letterSpacing="-0.5px">Ctrl</text>
+    <text x="62" y="27" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="900" fontSize="30" fill="#16A34A">S</text>
+    <circle cx="100" cy="10" r="4" fill="#DC2626" />
+  </svg>
+);
+
+// Core Services matching reference design
 const HOMEPAGE_CORE_SERVICES = [
   {
     id: "tally-prime",
@@ -154,6 +178,14 @@ const HOMEPAGE_CORE_SERVICES = [
     desc: "Server, Network, Storage, Wi-Fi.",
     logo: LogoItInfra,
     path: "/services/it-infra-security",
+  },
+  {
+    id: "datacenter-server-solutions",
+    title: "Data Center & Server Solutions",
+    desc: "Data Center Colocation, Server Setup & Maintenance.",
+    logo: LogoDataCenterServer,
+    path: "/services/data-center-cloud",
+    badge: "NEW",
   },
   {
     id: "data-center-cloud",
@@ -190,6 +222,16 @@ const HOMEPAGE_CORE_SERVICES = [
     logo: LogoItRepair,
     path: "/services/it-repair-maintenance",
   },
+];
+
+// Data Center Sub-Services / Pillars
+const DATACENTER_PILLARS = [
+  { id: 'colocation', title: 'Colocation', icon: Server },
+  { id: 'server-installation', title: 'Server Installation', icon: HardDrive },
+  { id: 'configuration', title: 'Configuration', icon: Cpu },
+  { id: 'monitoring', title: 'Monitoring', icon: Clock },
+  { id: 'maintenance', title: 'Maintenance', icon: Wrench },
+  { id: 'disaster-recovery', title: 'Disaster Recovery', icon: ShieldCheck },
 ];
 
 // Why Choose Us Pillars matching reference layout
@@ -318,6 +360,9 @@ export default function HomePage({ onOpenDemo }) {
               const LogoComponent = srv.logo;
               return (
                 <div key={srv.id} className="nis-core-service-card">
+                  {srv.badge && (
+                    <span className="nis-card-new-badge">{srv.badge}</span>
+                  )}
                   <div className="nis-card-top-row">
                     <div className="nis-card-icon-box">
                       <LogoComponent />
@@ -332,6 +377,86 @@ export default function HomePage({ onOpenDemo }) {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3.5. DEDICATED DATA CENTER & SERVER SOLUTIONS SECTION */}
+      <section className="nis-section nis-datacenter-section reveal-fade-up">
+        <div className="container">
+          <div className="nis-datacenter-banner-wrapper">
+            <div className="nis-datacenter-bg-overlay" />
+
+            <div className="nis-datacenter-split-grid">
+              {/* Left Content */}
+              <div className="nis-datacenter-left">
+                <div className="nis-datacenter-badge">
+                  <span>DATA CENTER & SERVER SOLUTIONS</span>
+                </div>
+                <h2 className="nis-datacenter-h2">
+                  Enterprise Infrastructure. <br />
+                  <span className="gradient-text-sky">Professionally Managed.</span>
+                </h2>
+                <p className="nis-datacenter-sub">
+                  From server procurement and installation to data center colocation, configuration, monitoring and ongoing maintenance, we provide complete server and infrastructure management for your business.
+                </p>
+                <div className="nis-datacenter-btn-wrapper">
+                  <Link to="/services/data-center-cloud" className="nis-datacenter-primary-btn">
+                    <span>Explore Data Center Solutions</span>
+                    <ArrowRight size={18} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Side: Strategic Partnership CtrlS Card */}
+              <div className="nis-datacenter-partner-card">
+                <div className="nis-ctrls-header">
+                  <span className="nis-ctrls-tag">Strategic Partnership with</span>
+                  <div className="nis-ctrls-brand-row">
+                    <LogoCtrlS />
+                    <span className="nis-ctrls-tagline">Asia's Largest Rated 4 Datacenter</span>
+                  </div>
+                </div>
+
+                <div className="nis-ctrls-features-list">
+                  <div className="nis-ctrls-feature-item">
+                    <CheckCircle2 size={18} className="nis-ctrls-check" />
+                    <span>Rescue Solar-Cooling Environment</span>
+                  </div>
+                  <div className="nis-ctrls-feature-item">
+                    <CheckCircle2 size={18} className="nis-ctrls-check" />
+                    <span>Reliable Power & Cooling</span>
+                  </div>
+                  <div className="nis-ctrls-feature-item">
+                    <CheckCircle2 size={18} className="nis-ctrls-check" />
+                    <span>High-Speed Connectivity</span>
+                  </div>
+                  <div className="nis-ctrls-feature-item">
+                    <CheckCircle2 size={18} className="nis-ctrls-check" />
+                    <span>Remote Hands Support</span>
+                  </div>
+                  <div className="nis-ctrls-feature-item">
+                    <CheckCircle2 size={18} className="nis-ctrls-check" />
+                    <span>24/7 Monitoring & Security</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom 6-Pillar Sub-Services Strip */}
+            <div className="nis-datacenter-pillars-bar">
+              {DATACENTER_PILLARS.map((pillar) => {
+                const IconComponent = pillar.icon;
+                return (
+                  <div key={pillar.id} className="nis-dc-pillar-item">
+                    <div className="nis-dc-pillar-icon">
+                      <IconComponent size={20} />
+                    </div>
+                    <span className="nis-dc-pillar-title">{pillar.title}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>

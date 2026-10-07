@@ -77,6 +77,15 @@ export default function App() {
             />
             {/* Redirect /about to home */}
             <Route path="/about" element={<Navigate to="/" replace />} />
+            {/* /demo route: same homepage design as the image */}
+            <Route
+              path="/demo"
+              element={
+                <HomePage
+                  onOpenDemo={() => setIsDemoModalOpen(true)}
+                />
+              }
+            />
             <Route 
               path="/services" 
               element={
