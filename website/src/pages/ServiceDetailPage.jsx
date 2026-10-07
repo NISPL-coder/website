@@ -23,8 +23,8 @@ import {
   Check
 } from 'lucide-react';
 
-import bannerTallyPrime from '../assets/banner-tally-prime.jpg';
-import bannerTallyCloud from '../assets/banner-tally-cloud.jpg';
+import bannerTallyPrime from '../assets/tally prime.png';
+import bannerTallyCloud from '../assets/Tally on cloud.png';
 import bannerCloudHosting from '../assets/banner-cloud-hosting.jpg';
 import bannerItInfrastructure from '../assets/banner-it-infrastructure.jpg';
 import bannerItRepair from '../assets/banner-it-repair.jpg';

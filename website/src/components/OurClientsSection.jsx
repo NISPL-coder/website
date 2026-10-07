@@ -10,12 +10,7 @@ export default function OurClientsSection({ onOpenDemo }) {
 
   const categories = [
     'All',
-    'Manufacturing & Steel',
-    'Retail & Commerce',
-    'Healthcare & Pharma',
-    'Logistics & Transport',
-    'Engineering & Construction',
-    'Finance & IT'
+    ...Array.from(new Set(OUR_CLIENTS_DATA.map(c => c.category)))
   ];
 
   const filteredClients = activeTab === 'All'
@@ -33,13 +28,13 @@ export default function OurClientsSection({ onOpenDemo }) {
         <div className="section-title-center reveal-fade-up">
           <div className="nis-section-badge">
             <Building2 size={14} />
-            <span>TRUSTED BY 1,5000+ ENTERPRISES</span>
+            <span>TRUSTED BY LEADING ENTERPRISES</span>
           </div>
           <h2 className="nis-section-h2">
             Our <span className="gradient-text">Valued Clients</span> & Partners
           </h2>
           <p className="nis-section-sub">
-            For over 25 years, top industrial houses, retail chains, healthcare networks, and logistics leaders across West Bengal and India rely on Net Infotech System Pvt. Ltd.
+            Trusted by India’s leading corporate houses, government organizations, healthcare institutions, and enterprise leaders.
           </p>
         </div>
 
@@ -50,7 +45,7 @@ export default function OurClientsSection({ onOpenDemo }) {
               <Building2 size={22} color="#0284C7" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">1,5000+</span>
+              <span className="stat-number">1,500+</span>
               <span className="stat-label">Enterprise Clients</span>
             </div>
           </div>
@@ -103,7 +98,7 @@ export default function OurClientsSection({ onOpenDemo }) {
                     className="client-logo-icon-emblem" 
                     style={{ background: client.logoColor }}
                   >
-                    {client.logoText.slice(0, 2)}
+                    {client.shortCode || client.logoText.slice(0, 3)}
                   </div>
                   <span className="client-logo-name">{client.name}</span>
                   <span className="client-logo-badge">{client.badge}</span>
@@ -142,7 +137,7 @@ export default function OurClientsSection({ onOpenDemo }) {
                   className="client-brand-logo-box" 
                   style={{ background: `linear-gradient(135deg, ${client.logoColor}, #0F172A)` }}
                 >
-                  <span className="client-logo-code">{client.logoText.slice(0, 3)}</span>
+                  <span className="client-logo-code">{client.shortCode || client.logoText.slice(0, 3)}</span>
                 </div>
 
                 <div className="client-header-title">

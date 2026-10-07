@@ -262,7 +262,6 @@ export default function MarketingSections({ onOpenDemo, onShowToast }) {
                     </div>
                     <div className="nis-service-num-badge">
                       <span className="nis-service-badge-pill">{srv.badge}</span>
-                      <span className="nis-service-num">{srv.number}</span>
                     </div>
                   </div>
 

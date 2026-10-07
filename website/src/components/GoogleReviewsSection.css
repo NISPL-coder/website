@@ -2,11 +2,11 @@
 
 .nis-google-reviews-section {
   padding: 80px 0;
-  background: linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 50%, #F8FAFC 100%);
+  background: linear-gradient(135deg, #EFF6FF 0%, #EDE9FE 50%, #E0F2FE 100%) !important;
   position: relative;
   overflow: hidden;
-  border-top: 1px solid #E2E8F0;
-  border-bottom: 1px solid #E2E8F0;
+  border-top: 1px solid #CBD5E1;
+  border-bottom: 1px solid #CBD5E1;
 }
 
 /* SECTION HEADER */
@@ -27,11 +27,11 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
   padding: 6px 14px 6px 10px;
   border-radius: 30px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid #BAE6FD;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
   margin-bottom: 16px;
 }
 
@@ -80,7 +80,7 @@
 
 .gr-subtitle {
   font-size: 1.05rem;
-  color: #64748B;
+  color: #475569;
   line-height: 1.5;
 }
 
@@ -95,11 +95,11 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #FFFFFF;
+  background: linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 100%);
   padding: 12px 20px;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.08);
+  border: 1.5px solid #93C5FD;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15);
 }
 
 .gr-rating-big {
@@ -135,7 +135,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
   color: #FFFFFF;
   padding: 10px 18px;
   border-radius: 10px;
@@ -144,12 +144,12 @@
   border: none;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
 }
 
 .gr-btn-write:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
 }
 
 .gr-btn-google-link {
@@ -162,7 +162,7 @@
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.88rem;
-  border: 1px solid #CBD5E1;
+  border: 1.5px solid #CBD5E1;
   text-decoration: none;
   transition: all 0.25s ease;
 }
@@ -194,7 +194,7 @@
 .gr-filter-btn {
   background: #FFFFFF;
   color: #64748B;
-  border: 1px solid #E2E8F0;
+  border: 1.5px solid #CBD5E1;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.82rem;
@@ -210,10 +210,10 @@
 }
 
 .gr-filter-btn.active {
-  background: #0284C7;
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
   color: #FFFFFF;
-  border-color: #0284C7;
-  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3);
 }
 
 .gr-nav-controls {
@@ -229,7 +229,7 @@
   background: #FFFFFF;
   padding: 4px 12px;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1.5px solid #E2E8F0;
 }
 
 .gr-arrows {
@@ -242,7 +242,7 @@
   height: 36px;
   border-radius: 50%;
   background: #FFFFFF;
-  border: 1px solid #CBD5E1;
+  border: 1.5px solid #CBD5E1;
   color: #334155;
   display: flex;
   align-items: center;
@@ -294,15 +294,15 @@
   }
 }
 
-/* REVIEW CARD DESIGN */
+/* REVIEW CARD DESIGN (Gradient Card & Sky Border) */
 .gr-review-card {
   width: 380px;
   flex-shrink: 0;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 55%, #EEF2FF 100%);
+  border: 1.5px solid #BAE6FD;
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.07);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -312,7 +312,7 @@
 
 .gr-review-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 16px 32px -8px rgba(14, 165, 233, 0.15);
+  box-shadow: 0 16px 36px -8px rgba(2, 132, 199, 0.2);
   border-color: #38BDF8;
 }
 
@@ -377,7 +377,7 @@
 }
 
 .gr-quote-icon {
-  color: #E2E8F0;
+  color: #CBD5E1;
   flex-shrink: 0;
 }
 
@@ -419,7 +419,7 @@
 }
 
 .gr-card-footer {
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid #E2E8F0;
   padding-top: 12px;
 }
 
