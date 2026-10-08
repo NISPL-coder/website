@@ -17,6 +17,16 @@ import {
 import logoImg from '../assets/net-infotech-final-logo-2-1-e1782735646883.png.webp';
 import './Header.css';
 
+// Inline Indian flag (Windows does not render the 🇮🇳 emoji)
+const IndiaFlag = ({ size = 16 }) => (
+  <svg width={size * 1.25} height={size} viewBox="0 0 24 16" style={{ borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }}>
+    <rect width="24" height="5.33" y="0" fill="#FF9933" />
+    <rect width="24" height="5.34" y="5.33" fill="#FFFFFF" />
+    <rect width="24" height="5.33" y="10.67" fill="#138808" />
+    <circle cx="12" cy="8" r="2" fill="none" stroke="#000080" strokeWidth="0.8" />
+  </svg>
+);
+
 export default function Header({ 
   onOpenDemo, 
   onOpenSearch 
@@ -25,7 +35,7 @@ export default function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('IN'); // 'IN' or 'GLOBAL'
+  const [selectedCountry, setSelectedCountry] = useState('IN'); // 'IN' or 'GLOBAL' — India by default
   const [mobileExpandedSection, setMobileExpandedSection] = useState(null);
 
   const countryRef = useRef(null);
@@ -77,148 +87,50 @@ export default function Header({
       path: '/about',
       items: [
         {
-          label: 'Company Overview',
-          desc: '25+ years delivering enterprise IT, cloud & Tally solutions',
-          path: '/'
-        },
-        {
-          label: 'Why Choose NISPL',
-          desc: 'Certified technical team, 99.9% uptime SLA & dedicated account manager',
-          path: '/'
-        },
-        {
-          label: 'Leadership & Team',
-          desc: 'Experienced IT architects, security engineers & Tally specialists',
-          path: '/'
-        },
-        {
-          label: 'Certifications & Compliance',
-          desc: 'ISO 27001, 3 Years Certified Tally Partner & tier-3 datacenter audits',
-          path: '/'
-        }
-      ]
-    },
-    {
-      id: 'partners',
-      label: 'Partners',
-      path: '/partners',
-      items: [
-        {
-          label: 'Tally Certified Partner',
-          desc: 'Official 3 Years Certified Partner for sales, licensing & customizations',
-          path: '/services/tally-prime'
-        },
-        {
-          label: 'Cloud & Hosting Alliances',
-          desc: 'Enterprise hosting partnerships with AWS, Microsoft Azure & Indian DCs',
-          path: '/services/data-center-cloud'
-        },
-        {
-          label: 'Cybersecurity OEM Partners',
-          desc: 'Authorized security partners for Sophos, Fortinet, SonicWall & Quick Heal',
-          path: '/services/it-infra-security'
-        },
-        {
-          label: 'Hardware & Infrastructure OEMs',
-          desc: 'Procurement & hardware rental alliances with Dell, HP, Lenovo & Cisco',
-          path: '/services/it-sales-rental'
+          label: 'Partners',
+          path: '/partners'
         }
       ]
     },
     {
       id: 'products',
       label: 'Products',
-      path: '/products',
-      items: [
-        {
-          label: 'Tally Prime & TDL Modules',
-          desc: 'GST accounting, multi-branch data synchronization & invoice customization',
-          path: '/services/tally-prime'
-        },
-        {
-          label: 'Enterprise Servers & Storage',
-          desc: 'High-availability rack/tower servers, NAS/SAN storage & backup vaults',
-          path: '/services/it-sales-rental'
-        },
-        {
-          label: 'UTM Firewalls & Security',
-          desc: 'Next-gen network firewalls, site-to-site VPNs & endpoint EDR suites',
-          path: '/services/it-infra-security'
-        },
-        {
-          label: 'Cloud Licensing & Office 365',
-          desc: 'Microsoft 365, Google Workspace, Azure virtual desktops & cloud backup',
-          path: '/services/data-center-cloud'
-        }
-      ]
+      path: '/products'
     },
     {
       id: 'industries',
       label: 'Industries',
-      path: '/industries',
-      items: [
-        {
-          label: 'Manufacturing & Engineering',
-          desc: 'Bill of Materials, shop-floor inventory, batch tracking & ERP integration',
-          path: '/solutions'
-        },
-        {
-          label: 'Banking, Finance & Insurance',
-          desc: 'High-security banking infrastructure, audit logs & secure hosting',
-          path: '/solutions'
-        },
-        {
-          label: 'Healthcare & Pharmaceuticals',
-          desc: 'HIPAA compliant hosting, batch expiry alerts & hospital billing',
-          path: '/solutions'
-        },
-        {
-          label: 'Retail, Wholesale & E-Commerce',
-          desc: 'Multi-store POS, real-time stock sync & automated invoicing gateways',
-          path: '/solutions'
-        },
-        {
-          label: 'Education & Government Sector',
-          desc: 'Campus Wi-Fi, computer labs, GEM procurement & institutional AMCs',
-          path: '/solutions'
-        }
-      ]
+      path: '/industries'
     },
     {
       id: 'services',
-      label: 'Services / Solutions',
+      label: 'Services',
       path: '/services',
       items: [
-        { 
-          label: '1. Tally Prime Solutions', 
-          desc: 'Licensing, GST setup, migration, customization & data troubleshooting', 
-          path: '/services/tally-prime' 
-        },
-        { 
-          label: '2. Tally on Cloud', 
-          desc: 'Anytime-anywhere high speed remote Tally access with auto daily backups', 
-          path: '/services/tally-on-cloud' 
-        },
-        { 
-          label: '3. Data Center, Cloud Server & Hosting', 
-          desc: 'Managed dedicated cloud servers, AWS/Azure migration & Linux/Windows hosting', 
-          path: '/services/data-center-cloud' 
-        },
-        { 
-          label: '4. IT Infrastructure & Security', 
-          desc: 'Server installation, firewall config, corporate Wi-Fi, CCTV & IT AMC', 
-          path: '/services/it-infra-security' 
-        },
-        { 
-          label: '5. IT Product Repair & Maintenance', 
-          desc: 'Desktop, laptop, motherboard chip-level repair & printer maintenance', 
-          path: '/services/it-repair-maintenance' 
-        },
-        { 
-          label: '6. IT Product Sales & Rental', 
-          desc: 'Corporate laptop, desktop, server & networking hardware rental/procurement', 
-          path: '/services/it-sales-rental' 
-        },
+        { label: 'Managed IT Services', path: '/services' },
+        { label: 'IT AMC & Support', path: '/services' },
+        { label: 'Server & Network Management', path: '/services' },
+        { label: 'Cloud Migration & Management', path: '/services' },
+        { label: 'Tally Implementation & Support', path: '/services' },
+        { label: 'Microsoft 365 Support', path: '/services' },
+        { label: 'Cyber Security Management', path: '/services' },
+        { label: 'CCTV & Wi-Fi Support', path: '/services' },
+        { label: 'On-site / Remote IT Support', path: '/services' }
+      ]
+    },
+    {
+      id: 'solutions',
+      label: 'Solutions',
+      path: '/solutions',
+      items: [
+        { label: 'TallyPrime & ERP Solutions', path: '/solutions' },
+        { label: 'Tally on Cloud', path: '/solutions' },
+        { label: 'Cloud & Hosting Solutions', path: '/solutions' },
+        { label: 'Cyber Security Solutions', path: '/solutions' },
+        { label: 'Microsoft 365 & Licensing Solutions', path: '/solutions' },
+        { label: 'Business Management Portal Solutions', path: '/solutions' },
+        { label: 'IT Infrastructure Solutions', path: '/solutions' },
+        { label: 'Backup & Disaster Recovery Solutions', path: '/solutions' }
       ]
     }
   ];
@@ -305,7 +217,7 @@ export default function Header({
                   aria-label="Select Country or Global Region"
                   aria-expanded={isCountryOpen}
                 >
-                  <span className="nis-country-flag">{selectedCountry === 'IN' ? '🇮🇳' : '🌐'}</span>
+                  <span className="nis-country-flag">{selectedCountry === 'IN' ? <IndiaFlag size={16} /> : '🌐'}</span>
                   <span className="nis-country-name">{selectedCountry === 'IN' ? 'India' : 'Global'}</span>
                   <ChevronDown size={13} className={`nis-country-chevron ${isCountryOpen ? 'rotated' : ''}`} />
                 </button>
@@ -329,7 +241,7 @@ export default function Header({
                     className={`nis-country-menu-item ${selectedCountry === 'IN' ? 'selected' : ''}`}
                     onClick={() => { setSelectedCountry('IN'); setIsCountryOpen(false); }}
                   >
-                    <span className="country-item-flag">🇮🇳</span>
+                    <span className="country-item-flag"><IndiaFlag size={15} /></span>
                     <span className="country-item-name">India</span>
                     {selectedCountry === 'IN' && <span className="country-active-dot" />}
                   </button>
@@ -364,7 +276,7 @@ export default function Header({
                 <li className="nis-nav-item">
                   <Link
                     to="/"
-                    className={`nis-nav-home-pill ${location.pathname === '/' ? 'active' : ''}`}
+                    className={`nis-nav-home-pill ${location.pathname === '/' || location.pathname === '/demo' ? 'active' : ''}`}
                   >
                     Home
                   </Link>
@@ -373,6 +285,20 @@ export default function Header({
                 {/* 2 to 6: About Us, Partners, Products, Industries, Services / Solutions */}
                 {navMenuItems.map((menu) => {
                   const isCurrentActive = location.pathname.startsWith(menu.path);
+
+                  // Plain link (no dropdown)
+                  if (!menu.items || menu.items.length === 0) {
+                    return (
+                      <li key={menu.id} className="nis-nav-item">
+                        <Link
+                          to={menu.path}
+                          className={`nis-nav-link ${isCurrentActive ? 'active' : ''}`}
+                        >
+                          <span>{menu.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  }
 
                   return (
                     <li 
@@ -394,7 +320,27 @@ export default function Header({
                       </Link>
 
                       {/* Dropdown Menu */}
-                      <div className={`nis-nav-dropdown ${openDropdown === menu.id ? 'show' : ''}`}>
+                      <div className={`nis-nav-dropdown ${menu.id === 'about' ? 'nis-contact-dropdown' : ''} ${openDropdown === menu.id ? 'show' : ''}`}>
+                        {menu.id === 'about' ? (
+                          <div className="nis-contact-dropdown-card">
+                            {menu.items.map((subItem, sIdx) => (
+                              <Link
+                                key={sIdx}
+                                to={subItem.path}
+                                className="nis-contact-sub-item"
+                                onClick={() => setOpenDropdown(null)}
+                              >
+                                <div className="nis-contact-sub-icon">
+                                  <Users size={16} />
+                                </div>
+                                <div className="nis-contact-sub-info">
+                                  <span className="nis-contact-sub-title">{subItem.label}</span>
+                                  <span className="nis-contact-sub-subtitle">Our technology alliances</span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
                         <div className="nis-dropdown-inner">
                           {menu.items.map((subItem, sIdx) => (
                             <Link 
@@ -413,6 +359,7 @@ export default function Header({
                             </Link>
                           ))}
                         </div>
+                        )}
                       </div>
                     </li>
                   );
@@ -426,7 +373,7 @@ export default function Header({
                 >
                   <Link
                     to="/contact"
-                    className={`nis-nav-link ${location.pathname === '/contact' ? 'active' : ''}`}
+                    className={`nis-nav-link ${location.pathname.startsWith('/contact') ? 'active' : ''}`}
                     onClick={() => setOpenDropdown(null)}
                   >
                     <span>Contact</span>
@@ -442,7 +389,7 @@ export default function Header({
                       
                       {/* Business Item */}
                       <Link 
-                        to="/contact?type=business" 
+                        to="/contact/business"
                         className="nis-contact-sub-item"
                         onClick={() => setOpenDropdown(null)}
                       >
@@ -457,7 +404,7 @@ export default function Header({
 
                       {/* Careers Item */}
                       <Link 
-                        to="/contact?type=careers" 
+                        to="/contact/careers" 
                         className="nis-contact-sub-item"
                         onClick={() => setOpenDropdown(null)}
                       >
@@ -558,7 +505,7 @@ export default function Header({
                   className={`drawer-country-btn ${selectedCountry === 'IN' ? 'active' : ''}`}
                   onClick={() => setSelectedCountry('IN')}
                 >
-                  🇮🇳 India {selectedCountry === 'IN' && <Check size={13} />}
+                  <IndiaFlag size={15} /> India {selectedCountry === 'IN' && <Check size={13} />}
                 </button>
                 <button
                   type="button"
@@ -596,6 +543,21 @@ export default function Header({
               {navMenuItems.map((menu) => {
                 const isExpanded = mobileExpandedSection === menu.id;
 
+                // Plain link (no submenu)
+                if (!menu.items || menu.items.length === 0) {
+                  return (
+                    <Link
+                      key={menu.id}
+                      to={menu.path}
+                      className="nis-drawer-home-link"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span>{menu.label}</span>
+                      <ChevronRight size={16} />
+                    </Link>
+                  );
+                }
+
                 return (
                   <div key={menu.id} className="nis-drawer-accordion-group">
                     <button
@@ -619,7 +581,14 @@ export default function Header({
                             className="nis-drawer-sub-item"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <span>{sub.label}</span>
+                            {menu.id === 'about' ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Users size={14} color="#0284C7" />
+                                <span>{sub.label}</span>
+                              </div>
+                            ) : (
+                              <span>{sub.label}</span>
+                            )}
                             <ArrowRight size={13} />
                           </Link>
                         ))}
@@ -646,7 +615,7 @@ export default function Header({
                 {mobileExpandedSection === 'contact' && (
                   <div className="nis-drawer-sub-menu animate-fade-in">
                     <Link
-                      to="/contact?type=business"
+                      to="/contact/business"
                       className="nis-drawer-sub-item"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -657,7 +626,7 @@ export default function Header({
                       <ArrowRight size={13} />
                     </Link>
                     <Link
-                      to="/contact?type=careers"
+                      to="/contact/careers"
                       className="nis-drawer-sub-item"
                       onClick={() => setMobileMenuOpen(false)}
                     >

@@ -82,7 +82,7 @@
 }
 
 .nis-brand-logo-img {
-  height: 62px;
+  height: 64px;
   width: auto;
   max-width: none;
   object-fit: contain;
@@ -423,30 +423,37 @@
   align-items: center;
 }
 
-/* 1. Home Pill Button */
+/* 1. Home Pill Button (neutral by default; blue pill only when active) */
 .nis-nav-home-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 18px;
-  border-radius: 9999px;
+  padding: 7px 11px;
+  border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
-  color: #FFFFFF !important;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  background: transparent;
+  color: #0F172A !important;
+  box-shadow: none;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-right: 4px;
 }
 
-.nis-nav-home-pill:hover,
+.nis-nav-home-pill:hover {
+  color: #0284C7 !important;
+  background: #F0F9FF;
+}
+
 .nis-nav-home-pill.active {
   background: linear-gradient(135deg, #0284C7 0%, #1D4ED8 100%);
+  color: #FFFFFF !important;
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
   transform: translateY(-1px);
+  border-radius: 9999px;
+  padding: 6px 18px;
 }
 
 /* Standard Nav Links */

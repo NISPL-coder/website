@@ -3,6 +3,7 @@ import { Building2, ShieldCheck, Award, Users } from 'lucide-react';
 import sfdcLogo from '../assets/SFDC_logo.png';
 import teaBoardLogo from '../assets/tea_board_logo.png';
 import { useScrollReveal } from '../utils/useScrollReveal';
+import AnimatedCounter from './AnimatedCounter';
 import './OurClientsSection.css';
 
 /* Original Company Logo Image Links */
@@ -124,7 +125,9 @@ export default function OurClientsSection() {
               <Building2 size={22} color="#0284C7" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">2,500+</span>
+              <span className="stat-number">
+                <AnimatedCounter value="2,500+" duration={2200} />
+              </span>
               <span className="stat-label">Enterprise Clients</span>
             </div>
           </div>
@@ -136,7 +139,9 @@ export default function OurClientsSection() {
               <Award size={22} color="#7C3AED" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">26+ Yrs</span>
+              <span className="stat-number">
+                <AnimatedCounter value="26+ Yrs" duration={1800} />
+              </span>
               <span className="stat-label">Industry Leadership</span>
             </div>
           </div>
@@ -148,7 +153,9 @@ export default function OurClientsSection() {
               <ShieldCheck size={22} color="#059669" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">99.8%</span>
+              <span className="stat-number">
+                <AnimatedCounter value="99.8%" duration={2000} decimals={1} />
+              </span>
               <span className="stat-label">SLA & Retention</span>
             </div>
           </div>
@@ -160,7 +167,9 @@ export default function OurClientsSection() {
               <Users size={22} color="#D97706" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">50+</span>
+              <span className="stat-number">
+                <AnimatedCounter value="50+" duration={1800} />
+              </span>
               <span className="stat-label">Certified IT Engineers</span>
             </div>
           </div>

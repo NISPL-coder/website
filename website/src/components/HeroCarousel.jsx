@@ -16,6 +16,15 @@ import bgManagedIt from '../assets/Managed IT Services Hub.png';
 import bgCyberSecurity from '../assets/Cybersecurity Solutions.png';
 import bgMicrosoftLicensing from '../assets/Microsoft Licensing Solutions.png';
 
+/* ── Custom Looping Video Banners ── */
+import videoTallyPrime from '../assets/tallyprime_animated_5sec.mp4';
+import videoTallyCloud from '../assets/tally_cloud_animated_5sec.mp4';
+import videoCloudHosting from '../assets/cloud_hosting_professional_5sec.mp4';
+import videoManagedIt from '../assets/managed_it_services_animated_5sec.mp4';
+import videoCyberSecurity from '../assets/security_solutions_animated_5sec.mp4';
+import videoMicrosoftLicensing from '../assets/microsoft_licensing_solutions_animated_5sec.mp4';
+import AnimatedCounter from './AnimatedCounter';
+
 import './HeroCarousel.css';
 
 const slides = [
@@ -26,6 +35,7 @@ const slides = [
     description: 'Complete business accounting with GST compliance, inventory management, and advanced MIS reporting — trusted for over 26+ years.',
     perks: ['GST Ready & e-Invoicing', 'Inventory & Multi-Godown', 'Advanced MIS Financial Reports'],
     background: bgTallyPrime,
+    video: videoTallyPrime,
     accentColor: '#0284C7',
     ctaText: 'Explore Tally Solutions',
     ctaPath: '/services/tally-prime',
@@ -39,6 +49,7 @@ const slides = [
     description: 'Access your Tally data from any device with bank-grade encrypted cloud hosting. Zero setup time, instant connectivity.',
     perks: ['Any Device Remote Access', '256-Bit SSL Data Encryption', '99.9% Guaranteed Uptime'],
     background: bgTallyCloud,
+    video: videoTallyCloud,
     accentColor: '#4F46E5',
     ctaText: 'Explore Cloud Tally',
     ctaPath: '/services/tally-on-cloud',
@@ -65,6 +76,7 @@ const slides = [
     description: 'Enterprise-grade cloud servers, website hosting, and hybrid cloud solutions engineered on Microsoft Azure & AWS.',
     perks: ['Multi-Cloud Azure & AWS', 'High-Speed SSD Storage', 'DDoS Shield Included'],
     background: bgCloudHosting,
+    video: videoCloudHosting,
     accentColor: '#0284C7',
     ctaText: 'Explore Cloud Hosting',
     ctaPath: '/services/data-center-cloud',
@@ -78,6 +90,7 @@ const slides = [
     description: 'Comprehensive managed IT with 24/7 proactive monitoring, expert helpdesk, and rapid annual maintenance support.',
     perks: ['Dedicated IT Helpdesk', 'Proactive Health Checks', 'Rapid On-Site Support'],
     background: bgManagedIt,
+    video: videoManagedIt,
     accentColor: '#059669',
     ctaText: 'Explore Managed IT',
     ctaPath: '/services/it-infra-security',
@@ -91,6 +104,7 @@ const slides = [
     description: 'End-to-end cybersecurity with next-gen firewall, endpoint protection, and real-time SOC threat intelligence.',
     perks: ['Next-Gen UTM Firewall', 'Endpoint EDR Shield', 'ISO 27001 Certified SOC'],
     background: bgCyberSecurity,
+    video: videoCyberSecurity,
     accentColor: '#D97706',
     ctaText: 'Explore Cyber Security',
     ctaPath: '/services/it-infra-security',
@@ -104,6 +118,7 @@ const slides = [
     description: 'Genuine Microsoft 365, Windows Server, Azure and enterprise software licensing at best-in-class pricing.',
     perks: ['Microsoft 365 Enterprise', 'Windows Server & SQL', 'License Management & Deployment'],
     background: bgMicrosoftLicensing,
+    video: videoMicrosoftLicensing,
     accentColor: '#2563EB',
     ctaText: 'Explore Microsoft Solutions',
     ctaPath: '/services/it-infra-security',
@@ -118,6 +133,7 @@ export default function HeroCarousel({ onBookDemo }) {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const navigate = useNavigate();
+  const videoRefs = useRef({});
 
   const handleNavigate = (path) => {
     if (path.includes('#')) {
@@ -135,9 +151,28 @@ export default function HeroCarousel({ onBookDemo }) {
   const nextSlide = useCallback(() => setCurrentSlide((p) => (p + 1) % slides.length), []);
   const prevSlide = useCallback(() => setCurrentSlide((p) => (p - 1 + slides.length) % slides.length), []);
 
+  // Manage video playback cleanly across slides
+  useEffect(() => {
+    slides.forEach((s, idx) => {
+      const vid = videoRefs.current[idx];
+      if (vid) {
+        if (idx === currentSlide) {
+          vid.muted = true;
+          vid.currentTime = 0;
+          const p = vid.play();
+          if (p !== undefined) p.catch(() => {});
+        } else {
+          vid.pause();
+        }
+      }
+    });
+  }, [currentSlide]);
+
   useEffect(() => {
     if (isPaused) return;
-    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % slides.length), 3000);
+    // Allow 5-second videos to complete full cycle before auto-advancing
+    const duration = slides[currentSlide]?.video ? 6000 : 4000;
+    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % slides.length), duration);
     return () => clearInterval(t);
   }, [isPaused, currentSlide]);
 
@@ -171,19 +206,35 @@ export default function HeroCarousel({ onBookDemo }) {
           style={{ background: `radial-gradient(circle, ${slide.accentColor}30 0%, transparent 70%)` }}
         />
 
-        {/* ── Background image layers ── */}
+        {/* ── Background media layers (Images & Seamless Looping Videos) ── */}
         {slides.map((s, idx) => (
           <div
             key={s.id}
-            className={`nis-slide-full ${idx === currentSlide ? 'nis-slide-active' : ''}`}
+            className={`nis-slide-full ${idx === currentSlide ? 'nis-slide-active' : ''} ${s.video ? 'nis-slide-has-video' : ''}`}
             aria-hidden={idx !== currentSlide}
           >
-            <img
-              src={s.background}
-              alt=""
-              className="nis-slide-bg-img"
-              loading={idx === 0 ? 'eager' : 'lazy'}
-            />
+            {s.video ? (
+              <video
+                ref={(el) => {
+                  if (el) videoRefs.current[idx] = el;
+                }}
+                src={s.video}
+                poster={s.background}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                className="nis-slide-bg-video"
+              />
+            ) : (
+              <img
+                src={s.background}
+                alt=""
+                className="nis-slide-bg-img"
+                loading={idx === 0 ? 'eager' : 'lazy'}
+              />
+            )}
             <div className="nis-slide-overlay" />
           </div>
         ))}
@@ -298,7 +349,7 @@ export default function HeroCarousel({ onBookDemo }) {
             <div className="nis-hero-stat-item">
               <div className="nis-hero-stat-icon"><Award size={18} /></div>
               <div className="nis-hero-stat-text">
-                <strong>25+ Years</strong>
+                <strong><AnimatedCounter value="25+" duration={1800} /> Years</strong>
                 <span>of Excellence</span>
               </div>
             </div>
@@ -306,7 +357,7 @@ export default function HeroCarousel({ onBookDemo }) {
             <div className="nis-hero-stat-item">
               <div className="nis-hero-stat-icon"><Users size={18} /></div>
               <div className="nis-hero-stat-text">
-                <strong>500+</strong>
+                <strong><AnimatedCounter value="500+" duration={2000} /></strong>
                 <span>Happy Clients</span>
               </div>
             </div>
@@ -314,7 +365,7 @@ export default function HeroCarousel({ onBookDemo }) {
             <div className="nis-hero-stat-item">
               <div className="nis-hero-stat-icon"><CheckCircle2 size={18} /></div>
               <div className="nis-hero-stat-text">
-                <strong>1000+</strong>
+                <strong><AnimatedCounter value="1000+" duration={2200} /></strong>
                 <span>Projects Delivered</span>
               </div>
             </div>
@@ -322,7 +373,7 @@ export default function HeroCarousel({ onBookDemo }) {
             <div className="nis-hero-stat-item">
               <div className="nis-hero-stat-icon"><ShieldCheck size={18} /></div>
               <div className="nis-hero-stat-text">
-                <strong>99%</strong>
+                <strong><AnimatedCounter value="99%" duration={1800} /></strong>
                 <span>Client Satisfaction</span>
               </div>
             </div>

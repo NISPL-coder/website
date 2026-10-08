@@ -4,12 +4,13 @@
 
 .nis-whatsapp-widget {
   position: fixed;
-  right: 28px;
+  left: 28px;
+  right: auto;
   bottom: 28px;
   z-index: 995;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 12px;
   user-select: none;
 }
@@ -33,7 +34,8 @@
   content: '';
   position: absolute;
   bottom: -6px;
-  right: 22px;
+  left: 22px;
+  right: auto;
   width: 12px;
   height: 12px;
   background: #FFFFFF;
@@ -191,8 +193,10 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .nis-whatsapp-widget {
-    right: 18px;
+    left: 18px;
+    right: auto;
     bottom: 22px;
+    align-items: flex-start;
     gap: 8px;
   }
 

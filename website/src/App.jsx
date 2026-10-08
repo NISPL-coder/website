@@ -10,6 +10,8 @@ import ServiceDetailPage from './pages/ServiceDetailPage';
 import SolutionsPage from './pages/SolutionsPage';
 import PortfolioPage from './pages/PortfolioPage';
 import ContactPage from './pages/ContactPage';
+import ContactBusinessPage from './pages/ContactBusinessPage';
+import CareersPage from './pages/CareersPage';
 
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
@@ -169,6 +171,17 @@ function AppLayout() {
               />
             } 
           />
+          <Route
+            path="/contact/business"
+            element={
+              <ContactBusinessPage
+                onShowToast={showToast}
+              />
+            }
+          />
+          <Route path="/business" element={<Navigate to="/contact/business" replace />} />
+          <Route path="/contact/careers" element={<CareersPage onShowToast={showToast} />} />
+          <Route path="/careers" element={<Navigate to="/contact/careers" replace />} />
           {/* Catch-all redirect to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

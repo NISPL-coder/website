@@ -34,6 +34,8 @@ import HeroCarousel from '../components/HeroCarousel';
 import TrustedPartnersSection from '../components/TrustedPartnersSection';
 import OurClientsSection from '../components/OurClientsSection';
 import { useScrollReveal } from '../utils/useScrollReveal';
+import videoCloudHosting from '../assets/cloud_hosting_professional_5sec.mp4';
+import AnimatedCounter from '../components/AnimatedCounter';
 import '../components/MarketingSections.css';
 
 /* ── ORIGINAL PREMIUM PRODUCT & SERVICE LOGOS ── */
@@ -385,6 +387,15 @@ export default function HomePage({ onOpenDemo }) {
       <section className="nis-section nis-datacenter-section reveal-fade-up">
         <div className="container">
           <div className="nis-datacenter-banner-wrapper">
+            <video
+              className="nis-datacenter-bg-video"
+              src={videoCloudHosting}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+            />
             <div className="nis-datacenter-bg-overlay" />
 
             <div className="nis-datacenter-split-grid">
@@ -474,15 +485,15 @@ export default function HomePage({ onOpenDemo }) {
               />
               <div className="nis-about-image-badge-overlay">
                 <div className="nis-about-overlay-stat">
-                  <strong>25+</strong>
+                  <strong><AnimatedCounter value="25+" duration={1800} /></strong>
                   <span>Years of Excellence</span>
                 </div>
                 <div className="nis-about-overlay-stat">
-                  <strong>500+</strong>
+                  <strong><AnimatedCounter value="500+" duration={2000} /></strong>
                   <span>Happy Clients</span>
                 </div>
                 <div className="nis-about-overlay-stat">
-                  <strong>1000+</strong>
+                  <strong><AnimatedCounter value="1000+" duration={2200} /></strong>
                   <span>Projects Delivered</span>
                 </div>
               </div>
@@ -685,35 +696,6 @@ export default function HomePage({ onOpenDemo }) {
 
       {/* 8. OUR CLIENTS LOGO SHOWCASE */}
       <OurClientsSection onOpenDemo={onOpenDemo} />
-
-      {/* 9. CALL TO ACTION BANNER (Ready to Build Your IT Future?) */}
-      <section className="nis-cta-banner-section reveal-fade-up">
-        <div className="container">
-          <div className="nis-cta-banner-card reveal-scale">
-            <div className="cta-left">
-              <span className="cta-badge">LET'S WORK TOGETHER</span>
-              <h2 className="cta-title">Ready to Build Your IT Future?</h2>
-              <p className="cta-desc">
-                Get in touch with our experts for the right IT solution tailored to your business.
-              </p>
-            </div>
-            <div className="cta-right">
-              <button 
-                type="button" 
-                className="cta-btn-primary"
-                onClick={onOpenDemo}
-              >
-                <span>Get a Quote</span>
-                <ArrowRight size={16} />
-              </button>
-              <Link to="/contact" className="cta-btn-secondary">
-                <span>Contact Us</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 }

@@ -87,6 +87,18 @@
   transform: scale(1.0);
 }
 
+.nis-slide-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  filter: brightness(0.98) saturate(1.06);
+  z-index: 1;
+}
+
 /* Subtle Left Gradient Overlay for text readability */
 .nis-slide-overlay {
   position: absolute;
@@ -97,6 +109,22 @@
     rgba(248, 250, 252, 0.35) 45%,
     transparent 80%
   );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Enhanced Gradient Wash for Video Slides:
+   Ensures text on the left stays 100% crisp, sharp and readable directly ABOVE the looping video */
+.nis-slide-has-video .nis-slide-overlay {
+  background: linear-gradient(
+    95deg,
+    rgba(248, 250, 252, 0.94) 0%,
+    rgba(248, 250, 252, 0.88) 38%,
+    rgba(248, 250, 252, 0.60) 55%,
+    rgba(248, 250, 252, 0.15) 75%,
+    transparent 100%
+  );
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -476,8 +504,9 @@
     height: auto;
   }
 
-  /* Right-align slide PNG image so right-side graphics remain fully visible on the right */
-  .nis-slide-bg-img {
+  /* Right-align slide PNG image & video so right-side graphics remain fully visible on the right */
+  .nis-slide-bg-img,
+  .nis-slide-bg-video {
     object-position: right center !important;
     object-fit: cover !important;
   }
@@ -489,6 +518,16 @@
       rgba(248, 250, 252, 0.95) 0%,
       rgba(248, 250, 252, 0.85) 55%,
       rgba(248, 250, 252, 0.25) 85%,
+      transparent 100%
+    ) !important;
+  }
+
+  .nis-slide-has-video .nis-slide-overlay {
+    background: linear-gradient(
+      95deg,
+      rgba(248, 250, 252, 0.96) 0%,
+      rgba(248, 250, 252, 0.88) 60%,
+      rgba(248, 250, 252, 0.35) 90%,
       transparent 100%
     ) !important;
   }

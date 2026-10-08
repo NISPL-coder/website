@@ -25,10 +25,10 @@ import {
 
 import bannerTallyPrime from '../assets/tally prime.png';
 import bannerTallyCloud from '../assets/Tally on cloud.png';
-import bannerCloudHosting from '../assets/banner-cloud-hosting.jpg';
-import bannerItInfrastructure from '../assets/banner-it-infrastructure.jpg';
-import bannerItRepair from '../assets/banner-it-repair.jpg';
-import bannerItRental from '../assets/banner-it-rental.jpg';
+import bannerCloudHosting from '../assets/Cloud Server Hosting.png';
+import bannerItInfrastructure from '../assets/IT Infrastructure Management.png';
+import bannerItRepair from '../assets/Managed IT Services Hub.png';
+import bannerItRental from '../assets/IT Infrastructure Management.png';
 
 import AccountingModule from '../components/AccountingModule';
 import { 

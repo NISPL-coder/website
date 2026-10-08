@@ -1,0 +1,755 @@
+/* ===================================================
+   NET INFOTECH SYSTEM (NISPL) - BUSINESS CONTACT PAGE
+   Corporate IT & Cloud Solutions Enquiry Portal
+   =================================================== */
+
+.cbp-enhanced-page {
+  background-color: #F8FAFC;
+  min-height: 100vh;
+  color: #0F172A;
+}
+
+/* ── Breadcrumb Bar ── */
+.cbp-breadcrumb-bar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 12px 0;
+}
+
+.cbp-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #64748B;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cbp-breadcrumbs a {
+  color: #0284C7;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cbp-breadcrumbs a:hover {
+  color: #0369A1;
+  text-decoration: underline;
+}
+
+.cbp-breadcrumb-sep {
+  color: #CBD5E1;
+  font-size: 0.75rem;
+}
+
+.cbp-crumb-current {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* ── Hero Banner (Matching Careers Page Hero Banner) ── */
+.cbp-hero-banner {
+  position: relative;
+  background: linear-gradient(135deg, #07101F 0%, #0D1A30 45%, #0B2545 100%);
+  color: #FFFFFF;
+  padding: 72px 0 80px;
+  overflow: hidden;
+}
+
+.cbp-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse at 85% 20%, rgba(2, 132, 199, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse at 15% 80%, rgba(37, 99, 235, 0.18) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.cbp-hero-container {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  align-items: center;
+  gap: 48px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cbp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(2, 132, 199, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38BDF8;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.cbp-hero-badge-sparkle {
+  color: #F59E0B;
+}
+
+.cbp-hero-title {
+  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+  font-size: 3.2rem;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin-bottom: 18px;
+}
+
+.cbp-title-gradient {
+  background: linear-gradient(135deg, #38BDF8 0%, #60A5FA 50%, #93C5FD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cbp-hero-subtext {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #CBD5E1;
+  max-width: 620px;
+  margin-bottom: 32px;
+}
+
+.cbp-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cbp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  color: #FFFFFF;
+  font-size: 0.94rem;
+  font-weight: 700;
+  padding: 13px 26px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.cbp-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+  filter: brightness(1.06);
+}
+
+.cbp-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  font-size: 0.94rem;
+  font-weight: 700;
+  padding: 13px 24px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  text-decoration: none;
+}
+
+.cbp-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Hero Stats Card */
+.cbp-hero-stats-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cbp-hero-stat-badge {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cbp-hero-stat-badge:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.cbp-stat-val {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 2.1rem;
+  font-weight: 850;
+  line-height: 1;
+  color: #38BDF8;
+  margin-bottom: 6px;
+}
+
+.cbp-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94A3B8;
+  line-height: 1.3;
+}
+
+/* ── Pillars Bar ── */
+.cbp-pillars-bar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 22px 0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.cbp-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cbp-pillar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cbp-pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cbp-pillar-item strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: #0F172A;
+}
+
+.cbp-pillar-item p {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Main Enquiry & Contacts Section ── */
+.cbp-main-section {
+  padding: 56px 0 72px;
+}
+
+.cbp-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 36px;
+  align-items: start;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Left Form Card */
+.cbp-form-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.06);
+}
+
+.cbp-card-header {
+  margin-bottom: 24px;
+}
+
+.cbp-card-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0284C7;
+  background: #EFF6FF;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 10px;
+}
+
+.cbp-form-title {
+  font-size: 1.7rem;
+  font-weight: 850;
+  color: #0F172A;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.cbp-form-sub {
+  font-size: 0.92rem;
+  color: #64748B;
+  line-height: 1.55;
+}
+
+.cbp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cbp-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cbp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cbp-field label {
+  font-size: 0.8rem;
+  font-weight: 750;
+  color: #334155;
+}
+
+.cbp-field input,
+.cbp-field select,
+.cbp-field textarea {
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 0.9rem;
+  color: #0F172A;
+  background: #F8FAFC;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cbp-field input:focus,
+.cbp-field select:focus,
+.cbp-field textarea:focus {
+  border-color: #0284C7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16);
+  background: #FFFFFF;
+}
+
+.cbp-agree-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #475569;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.cbp-agree-checkbox input {
+  margin-top: 3px;
+  accent-color: #0284C7;
+}
+
+.cbp-agree-checkbox a {
+  color: #0284C7;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.cbp-submit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.cbp-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 13px 30px;
+  font-size: 0.95rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+.cbp-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+  filter: brightness(1.06);
+}
+
+.cbp-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cbp-privacy-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.cbp-privacy-text svg {
+  color: #059669;
+}
+
+/* Success View */
+.cbp-success-view {
+  text-align: center;
+  padding: 40px 20px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 16px;
+}
+
+.cbp-success-icon-box {
+  color: #16A34A;
+  margin-bottom: 12px;
+}
+
+.cbp-success-view h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.cbp-success-view p {
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto 20px;
+}
+
+.cbp-reset-btn {
+  padding: 11px 24px;
+  border-radius: 9999px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cbp-reset-btn:hover {
+  background: #F8FAFC;
+  border-color: #0284C7;
+  color: #0284C7;
+}
+
+/* ── Right Contacts Column ── */
+.cbp-contacts-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cbp-contacts-header {
+  margin-bottom: 4px;
+}
+
+.cbp-contacts-title {
+  font-size: 1.6rem;
+  font-weight: 850;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.cbp-contacts-sub {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.cbp-contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cbp-contact-card-rich {
+  display: flex;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 14px -4px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cbp-contact-card-rich:hover {
+  border-color: #BAE6FD;
+  box-shadow: 0 10px 24px -6px rgba(2, 132, 199, 0.16);
+  transform: translateY(-2px);
+}
+
+.cbp-contact-img {
+  width: 100px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.cbp-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding-right: 80px;
+}
+
+.cbp-contact-badge {
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: #0284C7;
+  background: #EFF6FF;
+  padding: 2px 7px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-bottom: 2px;
+}
+
+.cbp-contact-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.cbp-contact-role {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 6px;
+}
+
+.cbp-contact-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.cbp-contact-line svg {
+  color: #0284C7;
+  flex-shrink: 0;
+}
+
+.cbp-contact-line a {
+  color: #1E293B;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.cbp-contact-line a:hover {
+  color: #0284C7;
+}
+
+/* FAQ Box */
+.cbp-faq-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.cbp-faq-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cbp-faq-title-row h3 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.cbp-faq-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cbp-faq-item strong {
+  display: block;
+  font-size: 0.86rem;
+  color: #1E293B;
+  margin-bottom: 2px;
+}
+
+.cbp-faq-item p {
+  font-size: 0.8rem;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ── 5. Alliances Strip ── */
+.cbp-alliances-strip {
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  padding: 36px 0;
+}
+
+.cbp-alliances-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cbp-alliances-text {
+  max-width: 480px;
+}
+
+.cbp-alliances-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0284C7;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.cbp-alliances-text h3 {
+  font-size: 1.25rem;
+  font-weight: 850;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.cbp-alliances-text p {
+  font-size: 0.86rem;
+  color: #64748B;
+  margin: 0;
+}
+
+.cbp-alliances-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.alliance-pill {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.18s ease;
+}
+
+.alliance-pill:hover {
+  background: #E0F2FE;
+  color: #0284C7;
+  border-color: #BAE6FD;
+}
+
+/* ── Responsive Breakpoints ── */
+@media (max-width: 1100px) {
+  .cbp-hero-container {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .cbp-grid {
+    grid-template-columns: 1fr;
+  }
+  .cbp-pillars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .cbp-hero-title {
+    font-size: 2.2rem;
+  }
+  .cbp-hero-stats-card {
+    grid-template-columns: 1fr;
+  }
+  .cbp-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+  .cbp-form-row {
+    grid-template-columns: 1fr;
+  }
+  .cbp-form-card {
+    padding: 24px 18px;
+  }
+  .cbp-contact-card-rich {
+    flex-direction: column;
+  }
+  .cbp-contact-img {
+    width: 100%;
+    height: 160px;
+  }
+}

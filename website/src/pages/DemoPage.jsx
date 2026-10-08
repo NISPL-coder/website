@@ -36,6 +36,7 @@ import {
 import logoImg from '../assets/net-infotech-final-logo-2-1-e1782735646883.png.webp';
 import sfdcLogo from '../assets/SFDC_logo.png';
 import teaBoardLogo from '../assets/tea_board_logo.png';
+import AnimatedCounter from '../components/AnimatedCounter';
 import './DemoPage.css';
 
 /* SVG Social Icons */
@@ -541,21 +542,21 @@ export default function DemoPage({ onOpenDemo }) {
             <div className="demo-stat-item">
               <div className="demo-stat-icon"><Award /></div>
               <div>
-                <div className="demo-stat-num">26+</div>
+                <div className="demo-stat-num"><AnimatedCounter value="26+" duration={1800} /></div>
                 <div className="demo-stat-label">Years of IT Excellence</div>
               </div>
             </div>
             <div className="demo-stat-item">
               <div className="demo-stat-icon"><Users /></div>
               <div>
-                <div className="demo-stat-num">2,500+</div>
+                <div className="demo-stat-num"><AnimatedCounter value="2,500+" duration={2200} /></div>
                 <div className="demo-stat-label">Corporate Clients</div>
               </div>
             </div>
             <div className="demo-stat-item">
               <div className="demo-stat-icon"><Clock /></div>
               <div>
-                <div className="demo-stat-num">99.99%</div>
+                <div className="demo-stat-num"><AnimatedCounter value="99.99%" duration={2000} decimals={2} /></div>
                 <div className="demo-stat-label">Guaranteed Uptime</div>
               </div>
             </div>
