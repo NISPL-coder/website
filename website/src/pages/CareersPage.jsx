@@ -39,6 +39,7 @@ import {
   Compass,
   Check
 } from 'lucide-react';
+import bannerCareers from '../assets/career page.png';
 import './CareersPage.css';
 
 // ─── TABS ───────────────────────────────────────────────────────────
@@ -610,6 +611,11 @@ export default function CareersPage({ onShowToast }) {
 
       {/* ── HERO BANNER ───────────────────────────────────────────── */}
       <section className="car-hero-banner">
+        <img 
+          src={bannerCareers} 
+          alt="Careers at Net Infotech System" 
+          className="car-hero-bg-img" 
+        />
         <div className="car-hero-backdrop" />
         <div className="container car-hero-container">
           

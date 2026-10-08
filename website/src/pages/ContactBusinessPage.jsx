@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import AnimatedCounter from '../components/AnimatedCounter';
 import LinkedInQRCode from '../components/LinkedInQRCode';
+import bannerBusiness from '../assets/Connected Cloud Corporate Campus.png';
 import './ContactBusinessPage.css';
 
 const INDUSTRIES = [
@@ -154,6 +155,11 @@ export default function ContactBusinessPage({ onShowToast }) {
 
       {/* ── 2. HERO BANNER (MATCHING CAREERS PAGE BANNER STRUCTURE) ── */}
       <section className="cbp-hero-banner">
+        <img 
+          src={bannerBusiness} 
+          alt="Connected Cloud Corporate Campus" 
+          className="cbp-hero-bg-img" 
+        />
         <div className="cbp-hero-backdrop" />
         <div className="container cbp-hero-container">
           
