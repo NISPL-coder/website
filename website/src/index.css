@@ -95,9 +95,9 @@
   --section-pad: 96px;
 }
 
-@media (max-width: 1040px) { :root { --header-height: 110px; } }
-@media (max-width: 640px)  { :root { --header-height: 90px; --section-pad: 64px; } }
-@media (max-width: 480px)  { :root { --header-height: 80px; --section-pad: 52px; } }
+@media (max-width: 1040px) { :root { --header-height: 76px; } }
+@media (max-width: 640px)  { :root { --header-height: 72px; --section-pad: 64px; } }
+@media (max-width: 480px)  { :root { --header-height: 68px; --section-pad: 52px; } }
 
 *, *::before, *::after {
   box-sizing: border-box;

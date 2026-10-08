@@ -167,7 +167,7 @@ const HOMEPAGE_CORE_SERVICES = [
   },
   {
     id: "tally-on-cloud",
-    title: "Tally Cloud",
+    title: "Tally On Cloud",
     desc: "Access your data anytime, anywhere, securely.",
     logo: LogoTallyCloud,
     path: "/services/tally-on-cloud",

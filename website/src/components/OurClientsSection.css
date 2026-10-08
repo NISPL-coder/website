@@ -7,6 +7,61 @@
   border-top: 1px solid #CBD5E1;
 }
 
+/* MINIMAL CLIENT LOGO SHOWCASE GRID */
+.minimal-client-logos-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+.minimal-client-logo-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
+  min-height: 96px;
+}
+
+.minimal-client-logo-card:hover {
+  transform: translateY(-4px);
+  border-color: #0284C7;
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.15);
+}
+
+.original-client-logo-img {
+  max-height: 48px;
+  max-width: 150px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: grayscale(20%);
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.minimal-client-logo-card:hover .original-client-logo-img {
+  filter: grayscale(0%);
+  transform: scale(1.04);
+}
+
+@media (max-width: 992px) {
+  .minimal-client-logos-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .minimal-client-logos-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
 /* TRUST STATS COUNTER BAR */
 .clients-stats-bar {
   display: flex;

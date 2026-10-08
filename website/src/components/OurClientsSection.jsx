@@ -1,24 +1,103 @@
-import React, { useState } from 'react';
-import { Building2, ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Sparkles, MapPin, Calendar, Layers } from 'lucide-react';
-import { OUR_CLIENTS_DATA } from '../data/mockData';
+import { useState } from 'react';
+import { Building2, ShieldCheck, Award, Users } from 'lucide-react';
+import sfdcLogo from '../assets/SFDC_logo.png';
+import teaBoardLogo from '../assets/tea_board_logo.png';
 import { useScrollReveal } from '../utils/useScrollReveal';
 import './OurClientsSection.css';
 
-export default function OurClientsSection({ onOpenDemo }) {
+/* Original Company Logo Image Links */
+const CLIENT_LOGOS = [
+  {
+    id: 1,
+    name: "Tata Steel",
+    logoUrl: "https://cdn.brandfetch.io/tatasteel.com/w/400/h/400",
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Tata_logo.svg",
+    color: "#0052CC"
+  },
+  {
+    id: 2,
+    name: "Larsen & Toubro",
+    logoUrl: "https://cdn.brandfetch.io/larsentoubro.com/w/400/h/400",
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e5/L%26T.png",
+    color: "#005691"
+  },
+  {
+    id: 3,
+    name: "ITC Limited",
+    logoUrl: "https://cdn.brandfetch.io/itcportal.com/w/400/h/400",
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/commons/f/ff/ITC_Limited_Logo.svg",
+    color: "#B91C1C"
+  },
+  {
+    id: 4,
+    name: "Govt. of West Bengal (SFDC)",
+    logoUrl: sfdcLogo,
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Emblem_of_West_Bengal.svg",
+    color: "#0284C7"
+  },
+  {
+    id: 5,
+    name: "Tea Board of India",
+    logoUrl: teaBoardLogo,
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Emblem_of_India.svg",
+    color: "#15803D"
+  },
+  {
+    id: 6,
+    name: "Reliance Industries",
+    logoUrl: "https://cdn.brandfetch.io/ril.com/w/400/h/400",
+    fallbackUrl: "https://upload.wikimedia.org/wikipedia/en/9/99/Reliance_Industries_Logo.svg",
+    color: "#C026D3"
+  },
+  {
+    id: 7,
+    name: "Emami Group",
+    logoUrl: "https://cdn.brandfetch.io/emamigroup.com/w/400/h/400",
+    color: "#E11D48"
+  },
+  {
+    id: 8,
+    name: "Exide Industries",
+    logoUrl: "https://cdn.brandfetch.io/exideindustries.com/w/400/h/400",
+    color: "#EA580C"
+  }
+];
+
+function ClientLogoCard({ client }) {
+  const [imgSrc, setImgSrc] = useState(client.logoUrl);
+  const [hasError, setHasError] = useState(false);
+
+  const handleError = () => {
+    if (client.fallbackUrl && imgSrc !== client.fallbackUrl) {
+      setImgSrc(client.fallbackUrl);
+    } else {
+      setHasError(true);
+    }
+  };
+
+  return (
+    <div className="minimal-client-logo-card">
+      {!hasError ? (
+        <img 
+          src={imgSrc} 
+          alt={`${client.name} Original Logo`} 
+          className="original-client-logo-img"
+          onError={handleError}
+        />
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ background: client.color, color: '#FFF', padding: '4px 10px', borderRadius: '4px', fontWeight: 800, fontSize: '0.8rem' }}>
+            {client.name.slice(0, 4)}
+          </div>
+          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#062B4F' }}>{client.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function OurClientsSection() {
   useScrollReveal();
-  const [activeTab, setActiveTab] = useState('All');
-
-  const categories = [
-    'All',
-    ...Array.from(new Set(OUR_CLIENTS_DATA.map(c => c.category)))
-  ];
-
-  const filteredClients = activeTab === 'All'
-    ? OUR_CLIENTS_DATA
-    : OUR_CLIENTS_DATA.filter(c => c.category === activeTab);
-
-  // Duplicate client items for the top ticker marquee
-  const logoTickerList = [...OUR_CLIENTS_DATA, ...OUR_CLIENTS_DATA];
 
   return (
     <section className="nis-clients-section reveal-fade-up">
@@ -34,7 +113,7 @@ export default function OurClientsSection({ onOpenDemo }) {
             Our <span className="gradient-text">Valued Clients</span> & Partners
           </h2>
           <p className="nis-section-sub">
-            Trusted by India’s leading corporate houses, government organizations, healthcare institutions, and enterprise leaders.
+            India's leading corporate houses, government entities, healthcare institutions, and enterprise leaders rely on Net Infotech System.
           </p>
         </div>
 
@@ -45,7 +124,7 @@ export default function OurClientsSection({ onOpenDemo }) {
               <Building2 size={22} color="#0284C7" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">1,500+</span>
+              <span className="stat-number">2,500+</span>
               <span className="stat-label">Enterprise Clients</span>
             </div>
           </div>
@@ -57,7 +136,7 @@ export default function OurClientsSection({ onOpenDemo }) {
               <Award size={22} color="#7C3AED" />
             </div>
             <div className="stat-text">
-              <span className="stat-number">25+ Yrs</span>
+              <span className="stat-number">26+ Yrs</span>
               <span className="stat-label">Industry Leadership</span>
             </div>
           </div>
@@ -87,134 +166,12 @@ export default function OurClientsSection({ onOpenDemo }) {
           </div>
         </div>
 
-        {/* AUTO HORIZONTAL LOGO TICKER MARQUEE */}
-        <div className="client-logo-marquee-wrapper reveal-fade-up">
-          <div className="client-logo-marquee-label">Featured Corporate Partners:</div>
-          <div className="client-logo-marquee-track-container">
-            <div className="client-logo-marquee-track">
-              {logoTickerList.map((client, idx) => (
-                <div key={`logo-${client.id}-${idx}`} className="client-logo-pill">
-                  <div 
-                    className="client-logo-icon-emblem" 
-                    style={{ background: client.logoColor }}
-                  >
-                    {client.shortCode || client.logoText.slice(0, 3)}
-                  </div>
-                  <span className="client-logo-name">{client.name}</span>
-                  <span className="client-logo-badge">{client.badge}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* CATEGORY FILTER TABS */}
-        <div className="clients-filter-bar reveal-fade-up">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={`clients-tab-btn ${activeTab === cat ? 'active' : ''}`}
-              onClick={() => setActiveTab(cat)}
-            >
-              {cat === 'All' ? 'All Industries' : cat}
-            </button>
+        {/* MINIMAL CLIENT LOGO SHOWCASE GRID WITH ORIGINAL LOGO IMAGES */}
+        <div className="minimal-client-logos-grid reveal-fade-up">
+          {CLIENT_LOGOS.map((client) => (
+            <ClientLogoCard key={client.id} client={client} />
           ))}
         </div>
-
-        {/* CLIENT CARDS GRID */}
-        <div className="clients-cards-grid reveal-fade-up">
-          {filteredClients.map((client, index) => (
-            <div 
-              key={client.id} 
-              className="client-card reveal-scale"
-              style={{ transitionDelay: `${(index % 3) * 0.12}s` }}
-            >
-              
-              {/* CARD TOP HEADER */}
-              <div className="client-card-header">
-                <div 
-                  className="client-brand-logo-box" 
-                  style={{ background: `linear-gradient(135deg, ${client.logoColor}, #0F172A)` }}
-                >
-                  <span className="client-logo-code">{client.shortCode || client.logoText.slice(0, 3)}</span>
-                </div>
-
-                <div className="client-header-title">
-                  <h3 className="client-name">{client.name}</h3>
-                  <div className="client-meta-row">
-                    <span className="client-category-tag">{client.category}</span>
-                    <span className="client-location-tag">
-                      <MapPin size={12} /> {client.location}
-                    </span>
-                  </div>
-                </div>
-
-                <span className="client-metric-pill">{client.badge}</span>
-              </div>
-
-              {/* CARD BODY CONTENT */}
-              <div className="client-card-body">
-                <div className="client-detail-row">
-                  <div className="client-detail-label">
-                    <Layers size={14} color="#0284C7" />
-                    <span>Deployed Solution:</span>
-                  </div>
-                  <div className="client-detail-val">{client.serviceUsed}</div>
-                </div>
-
-                <div className="client-detail-row">
-                  <div className="client-detail-label">
-                    <Calendar size={14} color="#059669" />
-                    <span>Relationship:</span>
-                  </div>
-                  <div className="client-detail-val">{client.partnership}</div>
-                </div>
-
-                <div className="client-quote-box">
-                  <p className="client-quote-text">"{client.quote}"</p>
-                </div>
-              </div>
-
-              {/* CARD FOOTER */}
-              <div className="client-card-footer">
-                <span className="client-verified-badge">
-                  <CheckCircle2 size={13} color="#059669" /> Active Enterprise SLA
-                </span>
-                {onOpenDemo && (
-                  <button 
-                    type="button" 
-                    className="client-card-action"
-                    onClick={onOpenDemo}
-                  >
-                    <span>Request Quote</span>
-                    <ArrowRight size={13} />
-                  </button>
-                )}
-              </div>
-
-            </div>
-          ))}
-        </div>
-
-        {/* CALL TO ACTION AT FOOTER OF CLIENTS SECTION */}
-        <div className="clients-footer-banner reveal-scale">
-          <div className="clients-fb-content">
-            <h3>Join 1,5000+ Businesses Thriving with Net Infotech System</h3>
-            <p>Get a customized IT Infrastructure assessment or Tally on Cloud trial for your enterprise today.</p>
-          </div>
-          {onOpenDemo && (
-            <button 
-              type="button" 
-              className="clients-fb-btn"
-              onClick={onOpenDemo}
-            >
-              <Sparkles size={16} />
-              <span>Partner With Us</span>
-            </button>
-          )}
-        </div>
-
       </div>
     </section>
   );
