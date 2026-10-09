@@ -98,9 +98,9 @@
 }
 
 .nis-brand-title {
-  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-family: var(--font-heading, 'Lato', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
   color: #0F172A;
   letter-spacing: -0.01em;
   line-height: 1.25;
@@ -108,9 +108,9 @@
 }
 
 .nis-brand-tagline {
-  font-size: 0.74rem;
+  font-size: 0.84rem;
   font-weight: 500;
-  color: #64748B;
+  color: #475569;
   letter-spacing: 0.02em;
   line-height: 1.25;
   white-space: nowrap;
@@ -120,19 +120,25 @@
 .nis-tally-certified-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-  border: 1px solid #F59E0B;
-  color: #92400E;
-  padding: 2px 9px;
+  gap: 5px;
+  background: #FEF9C3;
+  border: 1px solid #FCD34D;
+  color: #854D0E;
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 0.71rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.08);
   margin-top: 3px;
   width: fit-content;
   user-select: none;
+  transition: all 0.2s ease;
+}
+.nis-tally-certified-badge:hover {
+  background: #FEF08A;
+  border-color: #FBBF24;
+  transform: translateY(-1px);
 }
 
 .nis-tally-star {
@@ -177,8 +183,8 @@
 
 .text-25 .line-1,
 .text-25 .line-2 {
-  font-size: 0.61rem;
-  font-weight: 800;
+  font-size: 0.74rem;
+  font-weight: 700;
   color: #0284C7;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -225,9 +231,9 @@
 }
 
 .nis-contact-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1E293B;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #475569;
   transition: color 0.15s ease;
 }
 
@@ -235,8 +241,8 @@
 .nis-phone-pill:hover .nis-contact-label { color: #EA580C; }
 
 .nis-phone-val {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.94rem;
+  font-weight: 600;
   color: #0F172A;
 }
 
@@ -249,14 +255,14 @@
 .nis-country-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 7px;
+  padding: 6px 14px;
   border-radius: 9999px;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  color: #1E293B;
-  font-size: 0.82rem;
-  font-weight: 600;
+  color: #334155;
+  font-size: 0.88rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -423,51 +429,48 @@
   align-items: center;
 }
 
-/* 1. Home Pill Button (neutral by default; blue pill only when active) */
+/* 1. Home Pill Button */
 .nis-nav-home-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 11px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
   background: transparent;
-  color: #0F172A !important;
-  box-shadow: none;
+  color: #334155 !important;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   margin-right: 4px;
 }
-
 .nis-nav-home-pill:hover {
   color: #0284C7 !important;
-  background: #F0F9FF;
-}
-
-.nis-nav-home-pill.active {
-  background: linear-gradient(135deg, #0284C7 0%, #1D4ED8 100%);
-  color: #FFFFFF !important;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
+  background: rgba(2, 132, 199, 0.08);
   transform: translateY(-1px);
-  border-radius: 9999px;
-  padding: 6px 18px;
+}
+.nis-nav-home-pill.active {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 12px rgba(2, 132, 199, 0.32);
+  transform: translateY(-1px);
+  padding: 8px 20px;
 }
 
-/* Standard Nav Links */
+/* Standard Nav Links - Refined 600 weight, not harsh 700 */
 .nis-nav-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 7px 11px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #0F172A;
+  gap: 5px;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.18s ease;
+  border-radius: 9999px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   white-space: nowrap;
   position: relative;
@@ -476,7 +479,8 @@
 .nis-nav-link:hover,
 .nis-nav-link.active {
   color: #0284C7;
-  background: #F0F9FF;
+  background: rgba(2, 132, 199, 0.08);
+  transform: translateY(-1px);
 }
 
 .nav-chevron {
@@ -493,18 +497,22 @@
 /* ── Generic Submenu Dropdowns ── */
 .nis-nav-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   min-width: 320px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-  padding: 7px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px -10px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 8px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(8px);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.22s;
   z-index: 1100;
 }
 
@@ -512,7 +520,7 @@
 .nis-nav-dropdown.show {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 /* Subtle top arrow notch */
@@ -546,6 +554,7 @@
 
 .nis-dropdown-item:hover {
   background: #F0F9FF;
+  transform: translateX(3px);
 }
 
 .nis-dropdown-item-header {
@@ -556,8 +565,8 @@
 }
 
 .nis-dropdown-item-title {
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 600;
   color: #0F172A;
   transition: color 0.15s ease;
 }
@@ -580,7 +589,7 @@
 }
 
 .nis-dropdown-item-desc {
-  font-size: 0.73rem;
+  font-size: 0.82rem;
   color: #64748B;
   margin-top: 2px;
   line-height: 1.35;
@@ -637,7 +646,7 @@
 }
 
 .nis-contact-sub-title {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #0F172A;
   transition: color 0.15s ease;
@@ -687,25 +696,54 @@
 .nis-nav-quote-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 18px;
+  gap: 8px;
+  padding: 9px 22px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
   color: #FFFFFF;
-  font-size: 0.81rem;
-  font-weight: 700;
+  font-size: 0.90rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
   border: none;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(2, 132, 199, 0.35);
-  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(2, 132, 199, 0.28);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
 }
-
+.nis-nav-quote-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
 .nis-nav-quote-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
-  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.42);
+}
+.nis-nav-quote-btn:hover::after {
+  left: 180%;
+  transition: left 0.75s ease-in-out;
+}
+.nis-nav-quote-btn svg {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nis-nav-quote-btn:hover svg {
+  transform: rotate(15deg) scale(1.15);
+}
+.nis-nav-quote-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* ===================================================

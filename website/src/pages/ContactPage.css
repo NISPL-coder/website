@@ -102,7 +102,7 @@
 }
 
 .cp-hero-title {
-  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--font-heading, 'Lato', sans-serif);
   font-size: 3.2rem;
   font-weight: 850;
   line-height: 1.15;

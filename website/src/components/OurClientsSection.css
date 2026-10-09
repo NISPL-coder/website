@@ -197,7 +197,7 @@
   color: #FFFFFF;
   font-weight: 850;
   font-size: 0.78rem;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +209,7 @@
   font-weight: 800;
   color: #0F172A;
   white-space: nowrap;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 
 .client-logo-badge {
@@ -241,7 +241,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s ease;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 
 .clients-tab-btn:hover {
@@ -309,7 +309,7 @@
   font-weight: 900;
   font-size: 0.88rem;
   letter-spacing: 0.05em;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 
 .client-header-title {
@@ -322,7 +322,7 @@
   color: #0F172A;
   margin-bottom: 4px;
   line-height: 1.25;
-  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 
 .client-meta-row {
@@ -459,7 +459,7 @@
   font-weight: 800;
   margin-bottom: 8px;
   color: #FFFFFF !important;
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Lato', sans-serif;
   line-height: 1.3;
 }
 

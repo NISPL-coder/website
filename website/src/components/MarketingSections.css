@@ -56,7 +56,7 @@
 }
 
 .nis-section-h2 {
-  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-size: 2.6rem;
   font-weight: 850;
   color: #0F172A;
@@ -96,134 +96,310 @@
 }
 
 /* ===================================================
-   1. CORE SERVICES SECTION (Gradient Cards & Borders)
+   1. CORE SERVICES SECTION (Ultra-Premium Enterprise Cards)
    =================================================== */
 .nis-services-section {
-  background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 40%, #EEF2FF 75%, #E0F2FE 100%) !important;
+  background: linear-gradient(135deg, #F0F9FF 0%, #F8FAFC 45%, #EEF2FF 100%) !important;
   border-bottom: 1px solid #CBD5E1;
+  position: relative;
+  overflow: hidden;
+}
+
+.nis-services-section::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .nis-services-header-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 40px;
-  gap: 20px;
+  margin-bottom: 44px;
+  gap: 24px;
 }
 
-.nis-view-all-link {
+.nis-section-badge-left {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 750;
+  padding: 6px 16px;
+  border-radius: var(--radius-full, 9999px);
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.10) 0%, rgba(37, 99, 235, 0.12) 100%);
+  border: 1px solid rgba(147, 197, 253, 0.7);
   color: #0284C7;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.nis-view-all-link:hover {
-  color: #1D4ED8;
-  gap: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
 }
 
+.nis-section-badge-left .badge-sparkle-icon {
+  color: #0284C7;
+}
+
+.nis-services-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0F172A;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  white-space: nowrap;
+}
+.nis-services-header-cta:hover {
+  background: #0284C7;
+  color: #FFFFFF;
+  border-color: #0284C7;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.25);
+  gap: 12px;
+}
+.nis-services-header-cta svg {
+  transition: transform 0.2s ease;
+}
+.nis-services-header-cta:hover svg {
+  transform: translateX(2px);
+}
+
+/* 4-Column Grid */
 .nis-services-grid-8 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 22px;
 }
 
-/* Gradient Card & Glowing Border */
+/* ── Ultra-Premium Digital Transformation Service Card ── */
 .nis-core-service-card {
-  background: linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 55%, #E0F2FE 100%);
-  border: 1.5px solid #BAE6FD;
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 18px;
-  padding: 26px 22px;
+  padding: 22px 20px 18px;
   display: flex;
   flex-direction: column;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.07);
-  position: relative;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
   overflow: hidden;
+  cursor: pointer;
 }
 
-.nis-core-service-card::before {
-  content: '';
+/* Top Accent Illumination Bar */
+.nis-card-top-accent {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #0284C7, #38BDF8, #818CF8);
-  opacity: 0.85;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--card-accent, #0284C7) 50%, transparent 100%);
+  opacity: 0.7;
+  transition: all 0.35s ease;
 }
 
 .nis-core-service-card:hover {
   transform: translateY(-6px);
-  background: linear-gradient(145deg, #FFFFFF 0%, #E0F2FE 60%, #BAE6FD 100%);
-  border-color: #38BDF8;
-  box-shadow: 0 20px 40px -10px rgba(2, 132, 199, 0.22), 0 0 20px rgba(56, 189, 248, 0.15);
+  border-color: rgba(186, 230, 253, 0.95);
+  background: linear-gradient(165deg, #FFFFFF 0%, #FAFCFF 60%, #F0F9FF 100%);
+  box-shadow: 0 20px 42px -10px rgba(2, 132, 199, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 }
 
+.nis-core-service-card:hover .nis-card-top-accent {
+  height: 4px;
+  opacity: 1;
+  background: linear-gradient(90deg, #38BDF8 0%, var(--card-accent, #0284C7) 50%, #818CF8 100%);
+}
+
+/* Card Top Row */
 .nis-card-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
+/* Icon Box with Soft Ambient Tint */
 .nis-card-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
-  border: 1.5px solid #BAE6FD;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nis-core-service-card:hover .nis-card-icon-box {
+  transform: scale(1.06);
+  border-color: #BAE6FD;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.16);
+  background: #FFFFFF;
+}
+
+/* Top Right Concise Metric Data Badge */
+.nis-card-top-data {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nis-card-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  font-size: 0.70rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
   transition: all 0.25s ease;
 }
-.nis-core-service-card:hover .nis-card-icon-box {
-  border-color: #38BDF8;
-  transform: scale(1.06);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.22);
-}
 
-.nis-card-arrow-btn {
-  width: 38px;
-  height: 38px;
+.nis-card-metric-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #FFFFFF;
-  border: 1.5px solid #BAE6FD;
-  color: #0284C7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.22s ease;
-  text-decoration: none;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
-}
-.nis-core-service-card:hover .nis-card-arrow-btn {
-  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
-  color: #FFFFFF;
-  border-color: #0284C7;
-  transform: translateX(3px) scale(1.05);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  animation: badgePulse 2s infinite;
 }
 
+.nis-core-service-card:hover .nis-card-metric-pill {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(186, 230, 253, 0.9);
+  color: #0284C7;
+}
+
+/* NEW Badge */
+.nis-card-new-badge {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #93C5FD;
+  color: #0284C7;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Category Kicker */
+.nis-card-category-kicker {
+  margin-bottom: 4px;
+}
+.nis-card-category-kicker span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0284C7;
+}
+
+/* Title & Description */
 .nis-core-card-title {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-size: 1.18rem !important;
-  font-weight: 850 !important;
+  font-family: 'Lato', sans-serif !important;
+  font-size: 1.10rem !important;
+  font-weight: 700 !important;
   color: #0F172A !important;
-  line-height: 1.25 !important;
-  margin-bottom: 8px !important;
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+  transition: color 0.2s ease;
+}
+
+.nis-core-service-card:hover .nis-core-card-title {
+  color: #0284C7 !important;
 }
 
 .nis-core-card-desc {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-size: 0.90rem !important;
-  line-height: 1.55 !important;
-  color: #475569 !important;
+  font-family: 'Lato', sans-serif !important;
+  font-size: 0.86rem !important;
+  line-height: 1.5 !important;
+  color: #64748B !important;
+  margin-bottom: 14px !important;
+  flex-grow: 1;
+}
+
+/* Concise Technical Data Specs Row */
+.nis-card-specs-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  margin-top: auto;
+}
+
+.nis-card-spec-tag {
+  font-size: 0.69rem;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #F8FAFC;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  transition: all 0.2s ease;
+}
+
+.nis-core-service-card:hover .nis-card-spec-tag {
+  background: rgba(2, 132, 199, 0.06);
+  color: #0284C7;
+  border-color: rgba(186, 230, 253, 0.85);
+}
+
+/* Dedicated Action Button on Card Bottom ("on the button") */
+.nis-card-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nis-card-btn-arrow {
+  color: #64748B;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
+}
+
+.nis-core-service-card:hover .nis-card-action-btn {
+  background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%);
+  color: #FFFFFF;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.nis-core-service-card:hover .nis-card-btn-arrow {
+  color: #FFFFFF;
+  transform: translateX(4px);
 }
 
 /* ===================================================
@@ -536,7 +712,7 @@
 }
 
 .nis-dark-h2 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-size: 2.6rem;
   font-weight: 850;
   color: #FFFFFF;
@@ -772,7 +948,7 @@
 }
 
 .cta-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-size: 2.2rem;
   font-weight: 850;
   color: #FFFFFF;
@@ -990,7 +1166,7 @@
 }
 
 .nis-datacenter-h2 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-size: 2.6rem;
   font-weight: 850;
   color: #FFFFFF;

@@ -4,26 +4,10 @@ import {
   Mail,
   Phone,
   MapPin,
-  Send,
   CheckCircle2,
-  ShieldCheck,
-  Sparkles,
-  Briefcase,
-  Building2,
-  Clock,
-  Server,
-  Shield,
-  Cloud,
-  Award,
-  ArrowRight,
-  Star,
-  Headphones,
-  Check,
-  HelpCircle
+  ShieldCheck
 } from 'lucide-react';
-import AnimatedCounter from '../components/AnimatedCounter';
 import LinkedInQRCode from '../components/LinkedInQRCode';
-import bannerBusiness from '../assets/Connected Cloud Corporate Campus.png';
 import './ContactBusinessPage.css';
 
 const INDUSTRIES = [
@@ -80,21 +64,6 @@ const CONTACTS = [
   }
 ];
 
-const FAQS = [
-  {
-    q: 'How fast will an IT Consultant respond to our enquiry?',
-    a: 'Our dedicated enterprise account managers respond within 2 to 4 business hours with an initial assessment or consultation schedule.'
-  },
-  {
-    q: 'Can NISPL provide on-site technical deployment outside Kolkata?',
-    a: 'Yes. We support Pan-India deployments for multi-branch corporate networks, remote Tally cloud hosting, and centralized datacenter infrastructure.'
-  },
-  {
-    q: 'Do you offer custom Proof-of-Concept (PoC) or trial demos?',
-    a: 'Yes, we provide live PoC demonstrations for Tally on Cloud, next-generation firewall testing, and cloud server workload migration.'
-  }
-];
-
 export default function ContactBusinessPage({ onShowToast }) {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -134,153 +103,20 @@ export default function ContactBusinessPage({ onShowToast }) {
     }, 700);
   };
 
-  const scrollToForm = () => {
-    const el = document.getElementById('business-enquiry-form');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <div className="cbp-enhanced-page">
-      
-      {/* ── 1. BREADCRUMB ─────────────────────────────────────────── */}
-      <nav className="cbp-breadcrumb-bar" aria-label="Breadcrumb">
-        <div className="container cbp-breadcrumbs">
-          <Link to="/">Home</Link>
-          <span className="cbp-breadcrumb-sep">&gt;</span>
-          <Link to="/contact">Contact</Link>
-          <span className="cbp-breadcrumb-sep">&gt;</span>
-          <span className="cbp-crumb-current">Business Solutions</span>
-        </div>
-      </nav>
 
-      {/* ── 2. HERO BANNER (MATCHING CAREERS PAGE BANNER STRUCTURE) ── */}
-      <section className="cbp-hero-banner">
-        <img 
-          src={bannerBusiness} 
-          alt="Connected Cloud Corporate Campus" 
-          className="cbp-hero-bg-img" 
-        />
-        <div className="cbp-hero-backdrop" />
-        <div className="container cbp-hero-container">
-          
-          <div className="cbp-hero-content">
-            <div className="cbp-hero-badge">
-              <Sparkles size={14} className="cbp-hero-badge-sparkle" />
-              <span>ENTERPRISE IT SOLUTIONS • 25+ YEARS OF EXCELLENCE</span>
-            </div>
-
-            <h1 className="cbp-hero-title">
-              Power Your Enterprise.<br />
-              <span className="cbp-title-gradient">Partner With Net Infotech System.</span>
-            </h1>
-
-            <p className="cbp-hero-subtext">
-              Accelerate your digital transformation with Tier-III Datacenter Cloud Hosting,
-              Certified Tally Prime ERP Deployments, Next-Gen Cybersecurity SOC, and End-to-End Corporate IT AMC.
-            </p>
-
-            <div className="cbp-hero-actions">
-              <button 
-                type="button" 
-                className="cbp-btn-primary"
-                onClick={scrollToForm}
-              >
-                <Send size={16} />
-                <span>Request Custom Business Proposal</span>
-              </button>
-
-              <a 
-                href="tel:+919330113000" 
-                className="cbp-btn-secondary"
-              >
-                <Phone size={16} />
-                <span>Call Hotline: +91 9330113000</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Right Hero Stats Floating Card */}
-          <div className="cbp-hero-stats-card">
-            <div className="cbp-hero-stat-badge">
-              <span className="cbp-stat-val"><AnimatedCounter value="500+" duration={2000} /></span>
-              <span className="cbp-stat-label">Enterprise Clients Served</span>
-            </div>
-            <div className="cbp-hero-stat-badge">
-              <span className="cbp-stat-val"><AnimatedCounter value="99.9%" duration={2000} decimals={1} /></span>
-              <span className="cbp-stat-label">Cloud & Uptime SLA Guarantee</span>
-            </div>
-            <div className="cbp-hero-stat-badge">
-              <span className="cbp-stat-val"><AnimatedCounter value="25+" duration={1800} /></span>
-              <span className="cbp-stat-label">Years of Technology Leadership</span>
-            </div>
-            <div className="cbp-hero-stat-badge">
-              <span className="cbp-stat-val"><AnimatedCounter value="4.8★" duration={1800} decimals={1} /></span>
-              <span className="cbp-stat-label">Client Satisfaction Rating</span>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── 3. HIGHLIGHT PILLARS BAR ──────────────────────────────── */}
-      <section className="cbp-pillars-bar">
-        <div className="container cbp-pillars-grid">
-          <div className="cbp-pillar-item">
-            <div className="cbp-pillar-icon" style={{ background: '#E0F2FE', color: '#0284C7' }}>
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <strong>ISO & SOC Certified</strong>
-              <p>Enterprise data security with 24/7 dedicated monitoring.</p>
-            </div>
-          </div>
-
-          <div className="cbp-pillar-item">
-            <div className="cbp-pillar-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>
-              <Award size={20} />
-            </div>
-            <div>
-              <strong>3-Star Certified Tally Partner</strong>
-              <p>Official sales, customization plugins & multi-branch sync.</p>
-            </div>
-          </div>
-
-          <div className="cbp-pillar-item">
-            <div className="cbp-pillar-icon" style={{ background: '#EDE9FE', color: '#7C3AED' }}>
-              <Server size={20} />
-            </div>
-            <div>
-              <strong>Tier-III Cloud Datacenter</strong>
-              <p>High-speed AWS, Azure & domestic Indian cloud hosting.</p>
-            </div>
-          </div>
-
-          <div className="cbp-pillar-item">
-            <div className="cbp-pillar-icon" style={{ background: '#D1FAE5', color: '#059669' }}>
-              <Headphones size={20} />
-            </div>
-            <div>
-              <strong>Dedicated Account Manager</strong>
-              <p>Fast SLA response with single-point escalation desk.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4. MAIN ENQUIRY & CONTACT SECTION ─────────────────────── */}
+      {/* ── 2. TWO-COLUMN MAIN SECTION: FORM ON LEFT, ADVISORY ON RIGHT ── */}
       <section className="cbp-main-section" id="business-enquiry-form">
         <div className="container cbp-grid">
-
-          {/* LEFT — ENQUIRY FORM */}
+          
+          {/* LEFT SIDE: BLUE & WHITE GRADIENT FORM (MATCHED TO REFERENCE) */}
           <div className="cbp-form-col">
             <div className="cbp-form-card">
-              
               <div className="cbp-card-header">
-                <span className="cbp-card-badge">ENTERPRISE CONSULTING</span>
-                <h2 className="cbp-form-title">Let’s Discuss Your Business Requirements</h2>
+                <h1 className="cbp-form-title">Get In Touch With Us</h1>
                 <p className="cbp-form-sub">
-                  Fill in your details below and our senior solution architect will prepare a tailored proposal
-                  and consultation schedule for your organization.
+                  Fill in your details below and our team will prepare a tailored proposal for your organization.
                 </p>
               </div>
 
@@ -291,7 +127,7 @@ export default function ContactBusinessPage({ onShowToast }) {
                   </div>
                   <h3>Thank You for Your Enquiry!</h3>
                   <p>
-                    Your business requirements have been recorded under reference. Our technical consulting
+                    Your business requirements have been recorded. Our technical consulting
                     team will reach out to <strong>{formData.email}</strong> / <strong>{formData.phone}</strong> within 2-4 business hours.
                   </p>
                   <button 
@@ -319,25 +155,25 @@ export default function ContactBusinessPage({ onShowToast }) {
                   
                   <div className="cbp-form-row">
                     <div className="cbp-field">
-                      <label htmlFor="bus-name">Full Name *</label>
+                      <label htmlFor="bus-name">Name:</label>
                       <input 
                         id="bus-name"
                         name="fullName" 
                         value={formData.fullName} 
                         onChange={handleChange} 
-                        placeholder="e.g. Anirban Ghosh" 
+                        placeholder="Enter your name" 
                         required 
                       />
                     </div>
                     <div className="cbp-field">
-                      <label htmlFor="bus-email">Official Business Email *</label>
+                      <label htmlFor="bus-email">Email:</label>
                       <input 
                         id="bus-email"
                         type="email" 
                         name="email" 
                         value={formData.email} 
                         onChange={handleChange} 
-                        placeholder="anirban@company.com" 
+                        placeholder="Enter your business email" 
                         required 
                       />
                     </div>
@@ -345,25 +181,25 @@ export default function ContactBusinessPage({ onShowToast }) {
 
                   <div className="cbp-form-row">
                     <div className="cbp-field">
-                      <label htmlFor="bus-phone">Phone / WhatsApp Number *</label>
+                      <label htmlFor="bus-phone">Phone:</label>
                       <input 
                         id="bus-phone"
                         type="tel"
                         name="phone" 
                         value={formData.phone} 
                         onChange={handleChange} 
-                        placeholder="+91 98300 12345" 
+                        placeholder="Enter your phone or WhatsApp" 
                         required 
                       />
                     </div>
                     <div className="cbp-field">
-                      <label htmlFor="bus-comp">Company / Organization *</label>
+                      <label htmlFor="bus-comp">Company:</label>
                       <input 
                         id="bus-comp"
                         name="company" 
                         value={formData.company} 
                         onChange={handleChange} 
-                        placeholder="e.g. Apex Industrial Pvt. Ltd." 
+                        placeholder="Enter company name" 
                         required 
                       />
                     </div>
@@ -371,13 +207,13 @@ export default function ContactBusinessPage({ onShowToast }) {
 
                   <div className="cbp-form-row">
                     <div className="cbp-field">
-                      <label htmlFor="bus-ind">Industry Sector *</label>
+                      <label htmlFor="bus-ind">Industry Sector:</label>
                       <select id="bus-ind" name="industry" value={formData.industry} onChange={handleChange}>
                         {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
                       </select>
                     </div>
                     <div className="cbp-field">
-                      <label htmlFor="bus-req">Primary Solution Needed *</label>
+                      <label htmlFor="bus-req">Primary Solution Needed:</label>
                       <select id="bus-req" name="requirement" value={formData.requirement} onChange={handleChange}>
                         {SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
@@ -385,14 +221,14 @@ export default function ContactBusinessPage({ onShowToast }) {
                   </div>
 
                   <div className="cbp-field">
-                    <label htmlFor="bus-details">Detailed Business Scope &amp; Specifications *</label>
+                    <label htmlFor="bus-details">Message:</label>
                     <textarea 
                       id="bus-details"
                       rows={4} 
                       name="details" 
                       value={formData.details} 
                       onChange={handleChange} 
-                      placeholder="Please specify expected user count, current setup, timeline, branch locations, or specific customization challenges..." 
+                      placeholder="Describe your requirements, current setup, user count, or timeline..." 
                       required 
                     />
                   </div>
@@ -409,23 +245,16 @@ export default function ContactBusinessPage({ onShowToast }) {
                     </span>
                   </label>
 
-                  <div className="cbp-submit-row">
-                    <button type="submit" className="cbp-submit-btn" disabled={isSubmitting}>
-                      <Send size={16} />
-                      <span>{isSubmitting ? 'Submitting Requirement...' : 'Submit Business Enquiry'}</span>
-                    </button>
-                    <p className="cbp-privacy-text">
-                      <ShieldCheck size={16} />
-                      <span>Enterprise NDA-grade data confidentiality. Zero spam.</span>
-                    </p>
-                  </div>
+                  <button type="submit" className="cbp-submit-btn" disabled={isSubmitting}>
+                    <span>{isSubmitting ? 'Sending Message...' : 'Send Message'}</span>
+                  </button>
 
                 </form>
               )}
             </div>
           </div>
 
-          {/* RIGHT — CONTACT CARDS & ADVISORY DESK */}
+          {/* RIGHT SIDE: BUSINESS ADVISORY TEAM (JUST LIKE PREVIOUSLY) */}
           <div className="cbp-contacts-col">
             <div className="cbp-contacts-header">
               <span className="cbp-card-badge">DIRECT ASSISTANCE</span>
@@ -466,6 +295,7 @@ export default function ContactBusinessPage({ onShowToast }) {
               ))}
             </div>
           </div>
+
         </div>
       </section>
     </div>

@@ -4,7 +4,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
-import DemoPage from './pages/DemoPage';
+
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import SolutionsPage from './pages/SolutionsPage';
@@ -18,6 +18,7 @@ import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
 import Toast from './components/Toast';
 import WhatsAppButton from './components/WhatsAppButton';
+import DemoHomepage from './pages/Demo Page/Homepage';
 
 import { 
   INITIAL_TRANSACTIONS, 
@@ -28,7 +29,7 @@ import './App.css';
 
 function AppLayout() {
   const location = useLocation();
-  const isDemoRoute = location.pathname === '/demo';
+  const isDemoRoute = location.pathname === '/demo' || location.pathname === '/demo/';
 
   const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [products] = useState(INITIAL_PRODUCTS);
@@ -61,16 +62,10 @@ function AppLayout() {
     return (
       <div className="demo-app-root">
         <ScrollToTop />
-        <Routes>
-          <Route 
-            path="/demo" 
-            element={
-              <DemoPage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
-              />
-            } 
-          />
-        </Routes>
+        <DemoHomepage 
+          onOpenContact={() => setIsDemoModalOpen(true)}
+          onOpenConsultation={() => setIsDemoModalOpen(true)}
+        />
 
         {/* GLOBAL MODALS & TOAST */}
         <DemoModal

@@ -10,7 +10,6 @@ import {
   Building2, 
   FileText, 
   IndianRupee,
-  Sparkles,
   Percent
 } from 'lucide-react';
 import { GST_SLABS, INITIAL_CUSTOMERS, INITIAL_PRODUCTS } from '../data/mockData';
@@ -438,10 +437,6 @@ export default function InvoiceModal({ isOpen, onClose, onSaveInvoice }) {
                 2. Interest @ 18% p.a. will be charged if payment is not made within due date.<br />
                 3. Bank: HDFC Bank | A/c: 50200012345678 | IFSC: HDFC0000123
               </p>
-              <div className="gst-auth-seal">
-                <Sparkles size={14} color="#10B981" />
-                <span>NIC e-Way Bill & IRN 64-Digit Hash Will Be Attached</span>
-              </div>
             </div>
 
             {/* Calculations Card */}

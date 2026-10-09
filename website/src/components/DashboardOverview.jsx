@@ -10,7 +10,6 @@ import {
   FileSpreadsheet, 
   ArrowRight,
   TrendingUp,
-  Sparkles
 } from 'lucide-react';
 import { OVERVIEW_CARDS } from '../data/mockData';
 import './DashboardOverview.css';
@@ -34,9 +33,7 @@ export default function DashboardOverview({ onCardClick }) {
         {/* Section Header */}
         <div className="nis-section-header text-center">
           <div className="nis-section-badge">
-            <Sparkles size={14} className="badge-sparkle" />
-            <span>INTEGRATED BUSINESS ECOSYSTEM</span>
-          </div>
+           
           <h2 className="nis-section-title">
             Everything Your <span className="gradient-text">Business Needs</span>
           </h2>

@@ -8,12 +8,11 @@ import {
   Clock, 
   ShieldCheck, 
   ArrowRight, 
-  Sparkles, 
   Award,
   ExternalLink
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/net-infotech-final-logo-2-1-e1782735646883.png.webp';
+import logoImg from '../assets/Transparent Tech Logo with Cloud Mark.png';
 import './Footer.css';
 
 export default function Footer() {

@@ -23,20 +23,24 @@
 }
 
 .footer-logo-block {
-  margin-bottom: 18px;
-  background: #FFFFFF;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  background: transparent;
+  padding: 0;
   display: inline-block;
   align-self: flex-start;
 }
 
 .footer-official-logo {
-  height: 48px;
+  height: 68px;
   width: auto;
-  max-width: 250px;
+  max-width: 320px;
   object-fit: contain;
   display: block;
+  transition: transform 0.25s ease;
+}
+
+.footer-official-logo:hover {
+  transform: translateY(-2px);
 }
 
 .footer-desc {

@@ -14,7 +14,7 @@ import {
   Users, 
   Check
 } from 'lucide-react';
-import logoImg from '../assets/net-infotech-final-logo-2-1-e1782735646883.png.webp';
+import logoImg from '../assets/Transparent Tech Logo with Cloud Mark.png';
 import './Header.css';
 
 // Inline Indian flag (Windows does not render the 🇮🇳 emoji)

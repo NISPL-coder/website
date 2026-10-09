@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquarePlus, ExternalLink, Quote } from 'lucide-react';
 import { GOOGLE_REVIEWS } from '../data/mockData';
 import { useScrollReveal } from '../utils/useScrollReveal';
+import clientTeamImg from '../assets/client_team_celebration.jpg';
 import './GoogleReviewsSection.css';
 
 export default function GoogleReviewsSection() {
@@ -45,7 +46,17 @@ export default function GoogleReviewsSection() {
 
   return (
     <section className="nis-google-reviews-section reveal-fade-up">
-      <div className="container">
+      {/* Executive Photographic Background with Dark Luxury Overlay */}
+      <div className="gr-bg-wrapper" aria-hidden="true">
+        <img 
+          src={clientTeamImg} 
+          alt="Net Infotech System celebrating clients and team success" 
+          className="gr-bg-photo" 
+        />
+        <div className="gr-bg-overlay" />
+      </div>
+
+      <div className="container gr-relative-container">
 
         {/* SECTION HEADER WITH GOOGLE BRANDING */}
         <div className="gr-header reveal-fade-up">

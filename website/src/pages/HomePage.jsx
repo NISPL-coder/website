@@ -158,71 +158,96 @@ const LogoCtrlS = () => (
   </svg>
 );
 
-// Core Services matching reference design
+// Core Services matching reference design - Digital Transformation & Enterprise IT Portfolio
 const HOMEPAGE_CORE_SERVICES = [
   {
-    id: "tally-prime",
-    title: "Tally Prime",
-    desc: "Accounting software for your business growth.",
-    logo: LogoTallyPrime,
-    path: "/services/tally-prime",
-  },
-  {
-    id: "tally-on-cloud",
-    title: "Tally On Cloud",
-    desc: "Access your data anytime, anywhere, securely.",
-    logo: LogoTallyCloud,
-    path: "/services/tally-on-cloud",
-  },
-  {
-    id: "it-infra-security",
-    title: "IT Infrastructure Management",
-    desc: "Server, Network, Storage, Wi-Fi.",
-    logo: LogoItInfra,
-    path: "/services/it-infra-security",
-  },
-  {
-    id: "datacenter-server-solutions",
-    title: "Data Center & Server Solutions",
-    desc: "Data Center Colocation, Server Setup & Maintenance.",
-    logo: LogoDataCenterServer,
-    path: "/services/data-center-cloud",
-    badge: "NEW",
-  },
-  {
     id: "data-center-cloud",
-    title: "Cloud Server & Hosting",
-    desc: "IaaS, Microsoft Azure, AWS.",
+    title: "Cloud Infrastructure & Hosting",
+    category: "Cloud Modernization",
+    metric: "99.99% Uptime",
+    desc: "Scalable hybrid compute, managed data hosting, and automated multi-cloud workloads.",
+    specs: ["AWS & Azure", "Auto-Scaling", "DDoS Shield"],
     logo: LogoCloudHosting,
     path: "/services/data-center-cloud",
-  },
-  {
-    id: "managed-it",
-    title: "Managed IT Services",
-    desc: "Proactive support for uninterrupted business operations.",
-    logo: LogoManagedIt,
-    path: "/services/it-infra-security",
+    accentColor: "#0284C7",
   },
   {
     id: "cyber-security",
-    title: "Cyber Security Solutions",
-    desc: "Endpoint, Network, Security.",
+    title: "Cyber Security & Threat Defense",
+    category: "Cyber Resilience",
+    metric: "Zero-Trust",
+    desc: "Next-gen UTM firewall defense, endpoint EDR shielding, and real-time SOC threat hunting.",
+    specs: ["UTM Firewall", "Endpoint EDR", "ISO 27001 SOC"],
     logo: LogoCyberSecurity,
     path: "/services/it-infra-security",
+    accentColor: "#D97706",
+  },
+  {
+    id: "datacenter-server-solutions",
+    title: "Data Center & Colocation",
+    category: "Tier-4 Infrastructure",
+    metric: "CtrlS Tier-4",
+    badge: "NEW",
+    desc: "High-density server colocation, disaster recovery pipelines, and 24/7 mission-critical uptime.",
+    specs: ["Colocation Racks", "N+N Power", "DR Site"],
+    logo: LogoDataCenterServer,
+    path: "/services/data-center-cloud",
+    accentColor: "#2563EB",
+  },
+  {
+    id: "managed-it",
+    title: "Managed IT & Operations",
+    category: "Digital Operations",
+    metric: "< 15m Response",
+    desc: "End-to-end outsourced IT operations, proactive telemetry, and guaranteed SLA helpdesk support.",
+    specs: ["Guaranteed SLA", "24/7/365 NOC", "Preventive AMC"],
+    logo: LogoManagedIt,
+    path: "/services/it-infra-security",
+    accentColor: "#059669",
+  },
+  {
+    id: "it-infra-security",
+    title: "IT Infrastructure & Networking",
+    category: "Network Modernization",
+    metric: "10 Gbps Ready",
+    desc: "Turnkey enterprise switching, SD-WAN architecture, campus Wi-Fi 6, and rack optimization.",
+    specs: ["Enterprise Wi-Fi 6", "SD-WAN Routing", "Server Blades"],
+    logo: LogoItInfra,
+    path: "/services/it-infra-security",
+    accentColor: "#0D9488",
   },
   {
     id: "microsoft-licensing",
-    title: "Microsoft Licensing Solutions",
-    desc: "Microsoft 365, Windows, Server, Entra ID, Intune.",
+    title: "Microsoft 365 & Digital Workplace",
+    category: "Modern Workplace",
+    metric: "Authorized CSP",
+    desc: "Enterprise licensing, zero-loss tenant migration, Entra ID identity governance, and Intune MDM.",
+    specs: ["Microsoft 365", "Entra ID", "Intune MDM"],
     logo: LogoMicrosoftLicensing,
     path: "/services/it-infra-security",
+    accentColor: "#00A4EF",
   },
   {
-    id: "it-repair-maintenance",
-    title: "IT Product Repair & Maintenance",
-    desc: "Desktop, laptop, printer, server & IT equipment repair & maintenance services.",
-    logo: LogoItRepair,
-    path: "/services/it-repair-maintenance",
+    id: "tally-on-cloud",
+    title: "Tally on Cloud Hosting",
+    category: "Cloud ERP Modernization",
+    metric: "256-Bit SSL",
+    desc: "Run Tally ERP securely from any browser or device with real-time sync and automated daily backups.",
+    specs: ["Any Device Access", "Hourly Backups", "Multi-User"],
+    logo: LogoTallyCloud,
+    path: "/services/tally-on-cloud",
+    accentColor: "#4F46E5",
+  },
+  {
+    id: "tally-prime",
+    title: "TallyPrime ERP Solutions",
+    category: "Enterprise Business ERP",
+    metric: "3-Star Partner",
+    desc: "Certified implementation for GST e-invoicing, multi-branch MIS reporting, and customized workflows.",
+    specs: ["GST e-Invoicing", "Multi-Godown", "TSS Renewal"],
+    logo: LogoTallyPrime,
+    path: "/services/tally-prime",
+    accentColor: "#0284C7",
   },
 ];
 
@@ -336,47 +361,68 @@ export default function HomePage({ onOpenDemo }) {
       {/* 2. OUR TRUSTED TECHNOLOGY PARTNERS BAR */}
       <TrustedPartnersSection />
 
-      {/* 3. OUR CORE SERVICES (8 Grid Cards with Original Product Logos) */}
+      {/* 3. OUR CORE SERVICES (Digital Transformation & Enterprise IT Cards) */}
       <section className="nis-section nis-services-section reveal-fade-up">
         <div className="container">
           <div className="nis-services-header-row">
             <div>
-              <div className="nis-section-badge-left">
-                <span>OUR SERVICES</span>
-              </div>
+              
               <h2 className="nis-section-h2">
-                Our <span className="gradient-text">Core Services</span>
+                Our Core<span className="gradient-text"> Services</span>
               </h2>
               <p className="nis-section-sub-left">
-                Comprehensive IT solutions to help your business operate smarter, safer and faster.
+                Future-ready cloud infrastructure, cyber resilience, and scalable ERP solutions engineered for modern enterprises.
               </p>
             </div>
-            <Link to="/services/tally-prime" className="nis-view-all-link">
+            <Link to="/services/tally-prime" className="nis-services-header-cta">
               <span>View All Services</span>
               <ArrowRight size={16} />
             </Link>
           </div>
 
           <div className="nis-services-grid-8">
-            {HOMEPAGE_CORE_SERVICES.map((srv) => {
+            {HOMEPAGE_CORE_SERVICES.slice(0, 8).map((srv) => {
               const LogoComponent = srv.logo;
               return (
-                <div key={srv.id} className="nis-core-service-card">
-                  {srv.badge && (
-                    <span className="nis-card-new-badge">{srv.badge}</span>
-                  )}
+                <Link
+                  key={srv.id}
+                  to={srv.path}
+                  className="nis-core-service-card"
+                  style={{ '--card-accent': srv.accentColor }}
+                >
+                  {/* Top Accent Illumination Line */}
+                  <div className="nis-card-top-accent" />
+
+                  {/* Top Row: Icon + Concise Metric Badge & NEW tag */}
                   <div className="nis-card-top-row">
                     <div className="nis-card-icon-box">
                       <LogoComponent />
                     </div>
-                    <Link to={srv.path} className="nis-card-arrow-btn" aria-label={`Explore ${srv.title}`}>
-                      <ArrowRight size={16} />
-                    </Link>
+
+                    <div className="nis-card-top-data">
+                      {srv.badge && (
+                        <span className="nis-card-new-badge">
+                          {srv.badge}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Category Kicker */}
+                  <div className="nis-card-category-kicker">
+                    <span>{srv.category}</span>
+                  </div>
+
+                  {/* Title & Concise Value Prop */}
                   <h3 className="nis-core-card-title">{srv.title}</h3>
                   <p className="nis-core-card-desc">{srv.desc}</p>
-                </div>
+
+                  {/* Dedicated Action Button on Card Bottom */}
+                  <div className="nis-card-action-btn">
+                    <span>Explore Solution</span>
+                    <ArrowRight size={14} className="nis-card-btn-arrow" />
+                  </div>
+                </Link>
               );
             })}
           </div>
