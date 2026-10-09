@@ -29,7 +29,8 @@ import './App.css';
 
 function AppLayout() {
   const location = useLocation();
-  const isDemoRoute = location.pathname === '/demo' || location.pathname === '/demo/';
+  const normalizedPath = location.pathname.toLowerCase().replace(/\/+$/, '');
+  const isDemoRoute = normalizedPath === '/demo';
 
   const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [products] = useState(INITIAL_PRODUCTS);
