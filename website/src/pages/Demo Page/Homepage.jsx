@@ -40,6 +40,7 @@ import cloudHostingImg from '../../assets/Cloud Server Hosting.png';
 import managedItImg from '../../assets/Managed IT Services Hub.png';
 import microsoftImg from '../../assets/Microsoft Licensing Solutions.png';
 import tallyPrimeImg from '../../assets/tally prime.png';
+import cybersecurityImg from '../../assets/Cybersecurity Solutions.png';
 import sfdcLogo from '../../assets/SFDC_logo.png';
 import teaBoardLogo from '../../assets/tea_board_logo.png';
 
@@ -157,101 +158,82 @@ const NAV_ITEMS = [
 ];
 
 // 5 Core Strategic Services (Bespoke Enterprise Slit Accordion)
+// Based exactly on user requirements:
+// 1 | IT & Security Services | CCTV, LAN, UPS, Antivirus, AMC, Attendance
+// 2 | IT Infrastructure | Servers, Network, Storage, Wi-Fi
+// 3 | Office IT & Security | Integrated IT & security solutions
+// 4 | Microsoft Solutions | Microsoft 365, Windows, Server, Entra ID, Intune
+// 5 | TallyPrime Solutions | Banking, GST, e-Invoice, e-Way Bill, WhatsApp
 const SERVICES_ACCORDION = [
   {
-    id: 'infra-security',
-    tabTitle: 'IT Infrastructure & Security',
-    icon: Network,
-    tag: 'Enterprise IT Infrastructure',
-    mainHeading: 'IT Infrastructure & Security Solutions',
-    headline: 'Secure. Connected. Resilient.',
-    supportingLine: 'End-to-end structured networking, intelligent CCTV surveillance, biometric access, and uninterrupted power continuity for seamless enterprise operations.',
-    image: itInfraImg,
-    bgImage: photoInfraEngineer,
-    badge: 'Enterprise LAN to Secure Data Center Connectivity',
-    ctaText: 'Consult Infrastructure Specialist',
-    callouts: [
-      { label: 'Enterprise LAN Setup', desc: 'Structured gigabit cabling & fiber backbones', icon: Network },
-      { label: 'Smart CCTV Surveillance', desc: 'Centralized 24/7 video monitoring & NVR systems', icon: ShieldCheck },
-      { label: 'Biometric Access Control', desc: 'Touchless employee attendance & zone defense', icon: Lock },
-      { label: 'Online UPS Power Backup', desc: 'Surge-protected uninterrupted power line stability', icon: Zap }
-    ]
-  },
-  {
-    id: 'datacenter-cloud',
-    tabTitle: 'Enterprise Data Center & Cloud',
-    icon: Server,
-    tag: 'Tier-4 Colocation & Cloud',
-    mainHeading: 'Enterprise Data Center & Cloud Infrastructure',
-    headline: 'Powering Mission-Critical Enterprise Workloads.',
-    supportingLine: 'Certified Tier-4 rack colocation, dual redundant fiber interconnects, precision N+N cooling systems, and automated cloud disaster recovery.',
-    image: cloudHostingImg,
-    bgImage: photoDatacenterArchitect,
-    badge: 'High-Density Racks • Dual Redundant Fiber • Pan-India Nodes',
-    ctaText: 'Explore Data Center Solutions',
-    callouts: [
-      { label: 'Tier-4 Rack Colocation', desc: 'Secure rack spaces & private caged server suites', icon: Server },
-      { label: 'Enterprise Compute', desc: 'High-performance bare-metal servers & virtualization', icon: Cpu },
-      { label: 'Redundant Core Fiber', desc: 'Ultra-low latency carrier-neutral network connectivity', icon: Network },
-      { label: 'Automated DR & Cloud Backup', desc: 'Continuous encrypted replication & zero-loss failover', icon: Cloud }
-    ]
-  },
-  {
-    id: 'integrated-office',
-    tabTitle: 'Office IT & Security Infrastructure',
+    id: 'it-security-services',
+    tabTitle: 'IT & Security Services',
     icon: Shield,
-    tag: 'Unified Workplace Ecosystem',
-    mainHeading: 'Office IT & Security Infrastructure',
-    headline: 'Seamless Workplace to Cloud Connectivity.',
-    supportingLine: 'Integrate multi-floor office workstations with remote enterprise data centers through encrypted site-to-site tunnels and proactive 24/7 managed IT care.',
+    tag: 'IT & Security Services',
+    mainHeading: 'IT & Security Services',
+    headline: 'Continuous Workplace Protection & Power Reliability',
+    description: 'We deliver comprehensive workplace IT and physical security solutions designed to ensure uninterrupted business continuity. Our unified service integrates structured high-speed LAN connectivity, centralized 24/7 CCTV surveillance monitoring, biometric attendance and access control, reliable online UPS power continuity, proactive IT AMC maintenance contracts, and multi-layered endpoint antivirus defense.',
+    focus: 'CCTV, LAN, UPS, Antivirus, AMC, Attendance',
+    badge: 'Proactive 24/7 Monitoring • Zero-Downtime Power • Multi-Layered Threat Defense',
     image: managedItImg,
-    bgImage: photoOfficeNetworkEng,
-    badge: 'Encrypted Interconnect: Office LAN ⟷ Remote Enterprise Data Center',
-    ctaText: 'Schedule Office IT Assessment',
-    callouts: [
-      { label: 'Multi-Floor Office LAN', desc: 'Structured high-density gigabit networking fabric', icon: Network },
-      { label: 'Integrated Surveillance & Access', desc: 'Unified IP cameras and biometric gate governance', icon: ShieldCheck },
-      { label: 'Zero-Trust Cyber Defense', desc: 'Unified threat management & endpoint firewalls', icon: Lock },
-      { label: '24/7 Managed IT & AMC', desc: 'Proactive system monitoring & rapid on-site resolution', icon: Activity }
-    ]
+    bgImage: photoInfraEngineer,
+    ctaText: 'Consult Security Specialist'
   },
   {
-    id: 'microsoft-licensing',
-    tabTitle: 'Microsoft Licensing & Cloud',
+    id: 'it-infrastructure',
+    tabTitle: 'IT Infrastructure',
+    icon: Network,
+    tag: 'IT Infrastructure',
+    mainHeading: 'IT Infrastructure',
+    headline: 'High-Performance Enterprise Servers, Storage & Networks',
+    description: 'Empowering mission-critical enterprise workloads with scalable, robust IT infrastructure built for maximum performance. We architect, deploy, and manage high-availability rack and blade servers, carrier-neutral low-latency network switching fabrics, secure high-density storage arrays, and enterprise-grade business Wi-Fi to support high-throughput operations across all your offices.',
+    focus: 'Servers, Network, Storage, Wi-Fi',
+    badge: 'Redundant Core Architecture • Low-Latency Switching • High Data Availability',
+    image: itInfraImg,
+    bgImage: photoDatacenterArchitect,
+    ctaText: 'Explore Infrastructure Solutions'
+  },
+  {
+    id: 'office-it-security',
+    tabTitle: 'Office IT & Security',
     icon: Laptop,
-    tag: 'Certified Microsoft Partner',
-    mainHeading: 'Microsoft Licensing & Cloud Solutions',
-    headline: 'Connect. Collaborate. Secure. Scale.',
-    supportingLine: 'Authorized genuine Microsoft 365 licensing, automated Windows OS fleet deployment, Microsoft Entra ID zero-trust identities, and Intune compliance governance.',
+    tag: 'Office IT & Security',
+    mainHeading: 'Office IT & Security',
+    headline: 'Seamlessly Integrated Office Computing & Security Ecosystems',
+    description: 'A complete, single-window technology integration designed for modern offices and enterprise workplaces. We bridge office workstation networks, zero-trust network firewalls, perimeter cybersecurity, surveillance monitoring, smart biometric gate systems, and rapid SLA-backed IT maintenance into an intelligent, cohesive environment that accelerates team productivity while defending company assets.',
+    focus: 'Integrated IT & security solutions',
+    badge: 'End-to-End Enterprise Workspace Architecture & Proactive SLA Support',
+    image: cybersecurityImg,
+    bgImage: photoOfficeNetworkEng,
+    ctaText: 'Schedule Office IT Assessment'
+  },
+  {
+    id: 'microsoft-solutions',
+    tabTitle: 'Microsoft Solutions',
+    icon: Layers,
+    tag: 'Microsoft Solutions',
+    mainHeading: 'Microsoft Solutions',
+    headline: 'Cloud Productivity, Identity Protection & Modern Endpoint Management',
+    description: 'Maximize corporate collaboration and ensure enterprise compliance with genuine Microsoft cloud and licensing solutions. As an authorized partner, we provide turnkey deployment and migration for Microsoft 365 productivity suites, genuine Windows OS and Windows Server environments, cloud-native identity governance with Microsoft Entra ID, and centralized device fleet management through Microsoft Intune.',
+    focus: 'Microsoft 365, Windows, Server, Entra ID, Intune',
+    badge: 'Official Microsoft Cloud Sync • Zero-Trust Identity • Automated Endpoint Compliance',
     image: microsoftImg,
     bgImage: photoMicrosoftCloudEng,
-    badge: 'Enterprise Hybrid Sync: Windows Server ⟷ Microsoft Entra ID',
-    ctaText: 'Consult Licensing Advisor',
-    callouts: [
-      { label: 'Microsoft 365 Enterprise', desc: 'Teams, Exchange, Office apps & cloud collaboration', icon: Layers },
-      { label: 'Genuine Windows OS Fleet', desc: 'Licensed enterprise operating systems & deployment', icon: Laptop },
-      { label: 'Microsoft Entra ID Identity', desc: 'Cloud single sign-on, MFA & conditional access policies', icon: Lock },
-      { label: 'Microsoft Intune MDM', desc: 'Centralized mobile device & compliance governance', icon: ShieldCheck }
-    ]
+    ctaText: 'Consult Microsoft Licensing Advisor'
   },
   {
-    id: 'tally-prime',
-    tabTitle: 'TallyPrime Business Solutions',
+    id: 'tallyprime-solutions',
+    tabTitle: 'TallyPrime Solutions',
     icon: FileCheck2,
-    tag: 'Certified 3-Star Tally Partner',
-    mainHeading: 'TallyPrime Business Solutions',
-    headline: 'Simplify Accounting. Automate Compliance.',
-    supportingLine: 'Official TallyPrime deployment with automated bank reconciliation, instant WhatsApp billing & alerts, real-time GST e-invoicing, and encrypted multi-user cloud hosting.',
+    tag: 'TallyPrime Solutions',
+    mainHeading: 'TallyPrime Solutions',
+    headline: 'Automated Accounting, Real-Time Compliance & Connected Commerce',
+    description: 'Accelerate your financial administration with certified TallyPrime business automation. Our comprehensive solution empowers enterprises with direct connected banking reconciliations, real-time GST tax compliance and filing, instant electronic invoice (e-Invoice) generation, seamless e-Way bill creation, automated WhatsApp invoice dispatch, and secure 256-bit encrypted multi-user cloud access from anywhere.',
+    focus: 'Banking, GST, e-Invoice, e-Way Bill, WhatsApp',
+    badge: 'Certified 3-Star Tally Partner • 256-Bit SSL Encrypted Anywhere Access',
     image: tallyPrimeImg,
     bgImage: photoFinancialSpecialist,
-    badge: 'Anywhere Access: Encrypted Cloud Server Hosting & Automated Backups',
-    ctaText: 'Request Tally Demo & Trial',
-    callouts: [
-      { label: 'Connected Banking Engine', desc: 'Automated bank reconciliation & direct e-payments', icon: HardDrive },
-      { label: 'WhatsApp for Business Alerts', desc: 'Instant PDF invoices, ledger statements & payment alerts', icon: MessageSquareShare },
-      { label: 'e-Invoicing & e-Way Bill', desc: 'Real-time seamless GST compliance and portal sync', icon: FileCheck2 },
-      { label: 'Secure Tally on Cloud', desc: 'Encrypted multi-user remote access from any device', icon: Globe }
-    ]
+    ctaText: 'Request Tally Consultation'
   }
 ];
 
@@ -1042,25 +1024,17 @@ export default function Homepage({
                       <div className="demo-card-heading-group">
                         <h3 className="demo-card-main-heading">{service.mainHeading}</h3>
                         <h4 className="demo-card-headline">{service.headline}</h4>
-                        <p className="demo-card-support-line">{service.supportingLine}</p>
                       </div>
 
-                      {/* 4 Crisp Key Capabilities */}
-                      <div className="demo-card-callouts-list">
-                        {service.callouts.map((callout, cIdx) => {
-                          const IconComponent = callout.icon || CheckCircle2;
-                          return (
-                            <div key={cIdx} className="demo-card-callout-bullet-item">
-                              <div className="demo-callout-bullet-icon">
-                                <IconComponent size={14} />
-                              </div>
-                              <div className="demo-callout-bullet-text">
-                                <span className="demo-callout-bullet-label">{callout.label}</span>
-                                <span className="demo-callout-bullet-desc">— {callout.desc}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                      {/* Professional Brief Narrative (Without bullet points) */}
+                      <div className="demo-card-brief-overview">
+                        <p className="demo-card-overview-text">
+                          {service.description}
+                        </p>
+                        <div className="demo-card-focus-capsule">
+                          <span className="demo-focus-label">Main Focus:</span>
+                          <span className="demo-focus-value">{service.focus}</span>
+                        </div>
                       </div>
 
                       {/* Architecture Interconnect Badge */}
@@ -1091,10 +1065,6 @@ export default function Homepage({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="demo-showcase-frame">
-                        <div className="demo-showcase-badge">
-                          <span className="demo-showcase-dot" />
-                          <span>Service Architecture</span>
-                        </div>
                         <img 
                           src={service.image} 
                           alt={service.mainHeading} 
