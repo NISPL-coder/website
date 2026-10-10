@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import ScrollToTop from './components/ScrollToTop';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
 
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
@@ -30,7 +29,7 @@ import './App.css';
 function AppLayout() {
   const location = useLocation();
   const normalizedPath = location.pathname.toLowerCase().replace(/\/+$/, '');
-  const isDemoRoute = normalizedPath === '/demo';
+  const isHomeRoute = normalizedPath === '';
 
   const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [products] = useState(INITIAL_PRODUCTS);
@@ -59,7 +58,7 @@ function AppLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  if (isDemoRoute) {
+  if (isHomeRoute) {
     return (
       <div className="demo-app-root">
         <ScrollToTop />
@@ -67,6 +66,9 @@ function AppLayout() {
           onOpenContact={() => setIsDemoModalOpen(true)}
           onOpenConsultation={() => setIsDemoModalOpen(true)}
         />
+
+        {/* FLOATING WHATSAPP CHAT BUTTON */}
+        <WhatsAppButton />
 
         {/* GLOBAL MODALS & TOAST */}
         <DemoModal
@@ -111,8 +113,9 @@ function AppLayout() {
           <Route 
             path="/" 
             element={
-              <HomePage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
+              <DemoHomepage 
+                onOpenContact={() => setIsDemoModalOpen(true)}
+                onOpenConsultation={() => setIsDemoModalOpen(true)}
               />
             } 
           />

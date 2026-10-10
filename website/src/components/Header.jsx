@@ -276,7 +276,7 @@ export default function Header({
                 <li className="nis-nav-item">
                   <Link
                     to="/"
-                    className={`nis-nav-home-pill ${location.pathname === '/' || location.pathname === '/demo' ? 'active' : ''}`}
+                    className={`nis-nav-home-pill ${location.pathname === '/' ? 'active' : ''}`}
                   >
                     Home
                   </Link>
