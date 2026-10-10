@@ -1590,24 +1590,6 @@
   margin-bottom: 12px;
 }
 
-.demo-card-tag-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.demo-card-tag {
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--demo-cyan-primary);
-  background: rgba(0, 210, 211, 0.1);
-  padding: 4px 12px;
-  border-radius: 9999px;
-  border: 1px solid rgba(0, 210, 211, 0.25);
-}
-
 .demo-card-number {
   font-family: monospace;
   font-size: 0.8rem;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import heroVideo from '../../../../assets/gemini_generated_video_61d17737.mp4';
 import { SLIDES } from './carouselData';
 
@@ -7,6 +8,7 @@ export default function HeroCarousel({ onOpenContact, onOpenConsultation }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const videoRef = useRef(null);
+  const navigate = useNavigate();
 
   // Auto-slide effect (cycles every 6.5s unless hovered)
   useEffect(() => {
@@ -37,13 +39,7 @@ export default function HeroCarousel({ onOpenContact, onOpenConsultation }) {
   };
 
   const handleCtaClick = () => {
-    if (onOpenConsultation) {
-      onOpenConsultation();
-    } else if (onOpenContact) {
-      onOpenContact();
-    } else {
-      window.location.href = '/contact';
-    }
+    navigate('/contact');
   };
 
   const slide = SLIDES[currentSlide];

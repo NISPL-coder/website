@@ -65,10 +65,6 @@ export default function StrategicServicesAccordion({ onOpenConsultation }) {
                   >
                     {/* Top Meta Bar with Category Tag & Close Button */}
                     <div className="demo-card-top-meta">
-                      <div className="demo-card-tag-group">
-                        <span className="demo-card-tag">{service.tag}</span>
-                        <span className="demo-card-number">0{index + 1} / 0{SERVICES_ACCORDION.length}</span>
-                      </div>
                       <button 
                         type="button" 
                         className="demo-card-close-btn"
