@@ -780,7 +780,7 @@ const SERVICES_ACCORDION = [
     focus: 'Servers, Network, Storage, Enterprise Wi-Fi',
     badge: 'Redundant Core Architecture • Low-Latency Switching • High Data Availability',
     image: imageCopy3,
-    bgImage: imageCopy,
+    bgImage: imageCopy3,
     showcaseBg: '#050a14',
     imgFit: 'cover',
     ctaText: 'Explore Infrastructure Solutions'
@@ -796,7 +796,7 @@ const SERVICES_ACCORDION = [
     focus: 'Cloud VPS, Dedicated Compute, Encrypted Data Storage',
     badge: 'Tier-4 Datacenter • 99.95% SLA Uptime • Automated Daily Snapshots',
     image: imageCopy2,
-    bgImage: photoDatacenterArchitect,
+    bgImage: imageCopy2,
     showcaseBg: '#050a14',
     imgFit: 'cover',
     ctaText: 'Deploy Cloud Server'
@@ -812,7 +812,7 @@ const SERVICES_ACCORDION = [
     focus: '24/7 Monitoring, IT AMC, Remote Helpdesk, Preventive Audits',
     badge: 'Central NOC in Kolkata • < 15 Min Triage • SLA Hardware Replacement',
     image: imageCopy4,
-    bgImage: photoInfraEngineer,
+    bgImage: imageCopy4,
     showcaseBg: '#050a14',
     imgFit: 'cover',
     ctaText: 'Consult Managed IT Specialist'
@@ -828,7 +828,7 @@ const SERVICES_ACCORDION = [
     focus: 'UTM Firewalls, Endpoint Antivirus, Phishing Defense, Encryption',
     badge: 'Zero-Trust Architecture • Bank-Grade 256-Bit SSL • Real-Time Threat Isolation',
     image: imageCopy5,
-    bgImage: photoOfficeNetworkEng,
+    bgImage: imageCopy5,
     showcaseBg: '#050a14',
     imgFit: 'cover',
     ctaText: 'Schedule Security Assessment'
@@ -844,7 +844,7 @@ const SERVICES_ACCORDION = [
     focus: 'Microsoft 365, Teams, OneDrive, Exchange, Entra ID, Intune',
     badge: 'Official Microsoft Solutions Partner • Volume Licensing Discounts • Turnkey Migration',
     image: imageCopy6,
-    bgImage: photoMicrosoftCloudEng,
+    bgImage: imageCopy6,
     showcaseBg: '#0f172a',
     imgFit: 'cover',
     ctaText: 'Consult Microsoft Licensing Advisor'
@@ -860,7 +860,7 @@ const SERVICES_ACCORDION = [
     focus: 'Tally on Cloud, Anywhere Access, Auto Backups, GST Invoicing',
     badge: 'Certified 3-Star Tally Partner • 256-Bit SSL Encryption • 99.9% Cloud Uptime',
     image: imageCopy7,
-    bgImage: photoFinancialSpecialist,
+    bgImage: imageCopy7,
     showcaseBg: '#ffffff',
     imgFit: 'contain',
     ctaText: 'Request Tally Consultation'
