@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import WhatsAppButton from './components/WhatsAppButton';
+// import WhatsAppButton from './components/WhatsAppButton';
 import DemoHomepage from './pages/Demo Page/Homepage';
+import ContactPage from './pages/ContactPage/ContactPage';
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
@@ -63,12 +64,13 @@ function MainApp() {
             />
           } 
         />
+        <Route path="/contact" element={<ContactPage />} />
         {/* All routes fallback directly to the official Homepage */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Floating WhatsApp Contact Widget */}
-      <WhatsAppButton />
+      {/* <WhatsAppButton /> */}
 
       {/* Global Interactive Modals */}
       <DemoModal

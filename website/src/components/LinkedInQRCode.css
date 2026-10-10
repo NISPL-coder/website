@@ -1,0 +1,137 @@
+/* ===================================================
+   LINKEDIN QR CODE CARD STYLES - BUSINESS CONTACT SECTION
+   =================================================== */
+
+.nis-linkedin-qr-card {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  z-index: 5;
+}
+
+.nis-linkedin-qr-card:hover {
+  border-color: #0A66C2;
+  box-shadow: 0 6px 18px rgba(10, 102, 194, 0.22);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.nis-linkedin-qr-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.nis-linkedin-qr-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.nis-linkedin-qr-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.nis-linkedin-qr-center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #FFFFFF;
+  border-radius: 4px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.nis-linkedin-qr-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 750;
+  color: #0A66C2;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #F0F7FF;
+}
+
+/* Tooltip on hover */
+.nis-linkedin-qr-tooltip {
+  position: absolute;
+  bottom: -32px;
+  right: 0;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.18s ease;
+  z-index: 20;
+}
+
+.nis-linkedin-qr-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: 24px;
+  width: 8px;
+  height: 8px;
+  background: #0F172A;
+  transform: rotate(45deg);
+}
+
+.nis-linkedin-qr-card:hover .nis-linkedin-qr-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .nis-linkedin-qr-card {
+    top: 10px;
+    right: 10px;
+    padding: 4px;
+  }
+  
+  .nis-linkedin-qr-frame {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .nis-linkedin-qr-label {
+    font-size: 0.58rem;
+  }
+  
+  .nis-linkedin-qr-tooltip {
+    display: none;
+  }
+}

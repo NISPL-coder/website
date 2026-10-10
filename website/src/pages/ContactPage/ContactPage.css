@@ -1,0 +1,723 @@
+/* ==========================================================================
+   NET INFOTECH SYSTEM (NISPL) - CONTACT US PAGE
+   Clean White Theme with Signature "Contact Us" Cyan Buttons
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --iz-font-display: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --iz-font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --iz-bg-page: #FFFFFF;
+  --iz-bg-subtle: #F8FAFC;
+  --iz-card-bg: #FFFFFF;
+  --iz-card-border: #E2E8F0;
+
+  --iz-text-title: #0F172A;
+  --iz-text-body: #475569;
+  --iz-text-muted: #64748B;
+  --iz-blue-primary: #0284c7;
+
+  /* Signature "Contact Us" Cyan Color Scheme */
+  --iz-cyan-primary: #00d2d3;
+  --iz-cyan-hover: #00e5ff;
+  --iz-cyan-dark: #0097a7;
+  --iz-btn-text-dark: #061923;
+}
+
+/* Page Root */
+.iz-contact-page {
+  background-color: var(--iz-bg-page);
+  color: var(--iz-text-title);
+  font-family: var(--iz-font-body);
+  position: relative;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.iz-contact-page *,
+.iz-contact-page *::before,
+.iz-contact-page *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   1. HERO HEADER WITH 3D DOT SPHERE & DIAGONAL ANGLED CUT
+   ========================================================================== */
+.iz-hero-section {
+  position: relative;
+  background: radial-gradient(circle at 10% 20%, rgba(0, 210, 211, 0.12) 0%, transparent 45%),
+              linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 65%, #F1F5F9 100%);
+  padding-top: 150px;
+  padding-bottom: 120px;
+  text-align: center;
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%);
+  border-bottom: 1px solid var(--iz-card-border);
+}
+
+/* 3D Dotted Globe Wireframe Texture (Top-Left) */
+.iz-hero-globe-mesh {
+  position: absolute;
+  top: 10px;
+  left: -40px;
+  width: 380px;
+  height: 380px;
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+}
+
+.iz-hero-content {
+  position: relative;
+  z-index: 5;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.iz-hero-title {
+  font-family: var(--iz-font-display);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 850;
+  color: var(--iz-text-title);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.15;
+}
+
+/* ==========================================================================
+   2. MAIN 2-COLUMN SECTION: GET IN TOUCH & FLOATING "YOUR DETAIL" CARD
+   ========================================================================== */
+.iz-main-section {
+  position: relative;
+  background: #FFFFFF;
+  padding: 40px 0 65px;
+  z-index: 10;
+}
+
+.iz-container {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.iz-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 55px;
+  align-items: start;
+}
+
+/* ── Left Column: Get In Touch ── */
+.iz-touch-col {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.iz-touch-title {
+  font-family: var(--iz-font-display);
+  font-size: 2rem;
+  color: var(--iz-text-title);
+  margin: 0 0 14px 0;
+  letter-spacing: -0.01em;
+  font-weight: 750;
+}
+
+.iz-touch-desc {
+  font-size: 0.96rem;
+  line-height: 1.68;
+  color: var(--iz-text-muted);
+  margin: 0 0 36px 0;
+  max-width: 480px;
+}
+
+.iz-touch-items {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.iz-touch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+/* Circular Icon Badge */
+.iz-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #EFF6FF;
+  border: 1px solid #BAE6FD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--iz-blue-primary);
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+
+.iz-touch-item:hover .iz-icon-circle {
+  transform: translateY(-2px) scale(1.05);
+  background: var(--iz-cyan-primary);
+  border-color: var(--iz-cyan-primary);
+  color: var(--iz-btn-text-dark);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
+}
+
+.iz-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.iz-item-heading {
+  font-family: var(--iz-font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--iz-text-title);
+  letter-spacing: 0.01em;
+}
+
+.iz-item-text {
+  font-size: 0.88rem;
+  color: var(--iz-text-body);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.iz-item-sub {
+  font-size: 0.82rem;
+  color: var(--iz-text-muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.iz-item-sub a {
+  color: var(--iz-blue-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.18s ease;
+}
+
+.iz-item-sub a:hover {
+  color: var(--iz-cyan-dark);
+  text-decoration: underline;
+}
+
+/* ── Right Column: Form Card with Premium Gradient Border & Ambient Glow ── */
+.iz-form-card {
+  position: relative;
+  background: 
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, rgba(0, 210, 211, 0.75) 0%, rgba(2, 132, 199, 0.45) 40%, rgba(203, 213, 225, 0.8) 75%, rgba(0, 210, 211, 0.35) 100%) border-box;
+  border: 1.5px solid transparent;
+  border-radius: 28px;
+  padding: 42px 40px;
+  box-shadow: 
+    0 20px 48px -8px rgba(15, 23, 42, 0.08),
+    0 4px 16px -2px rgba(2, 132, 199, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+/* Glowing Top Accent Line */
+.iz-form-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent 0%, #00d2d3 25%, #0284c7 50%, #00d2d3 75%, transparent 100%);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px rgba(0, 210, 211, 0.6));
+  pointer-events: none;
+  z-index: 2;
+}
+
+.iz-form-card:hover {
+  background: 
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, #00d2d3 0%, #0284c7 40%, #38bdf8 70%, #00d2d3 100%) border-box;
+  border: 1.5px solid transparent;
+  box-shadow: 
+    0 26px 56px -10px rgba(2, 132, 199, 0.18),
+    0 8px 24px -4px rgba(0, 210, 211, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  transform: translateY(-2px);
+}
+
+.iz-card-title {
+  font-family: var(--iz-font-display);
+  font-size: 1.45rem;
+  color: var(--iz-text-title);
+  margin: 0 0 28px 0;
+  letter-spacing: -0.01em;
+}
+
+.iz-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.iz-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.iz-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.iz-input-label {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #334155;
+  letter-spacing: 0.02em;
+}
+
+.iz-input-label span {
+  color: var(--iz-cyan-dark);
+}
+
+/* Minimalist Underline Inputs */
+.iz-input-underline {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #CBD5E1;
+  border-radius: 0;
+  padding: 10px 0 12px 0;
+  font-size: 0.95rem;
+  color: var(--iz-text-title);
+  font-family: var(--iz-font-body);
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  width: 100%;
+}
+
+.iz-input-underline::placeholder {
+  color: #94A3B8;
+  font-size: 0.9rem;
+}
+
+.iz-input-underline:focus {
+  border-bottom-color: var(--iz-cyan-primary);
+  box-shadow: 0 1px 0 var(--iz-cyan-primary);
+}
+
+.iz-textarea-underline {
+  resize: vertical;
+  min-height: 60px;
+}
+
+select.iz-input-underline {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230097a7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 15px;
+  padding-right: 28px;
+  color: var(--iz-text-title);
+}
+
+select.iz-input-underline option {
+  background: #FFFFFF;
+  color: var(--iz-text-title);
+}
+
+/* Submit Pill Button (Matching "Contact Us" Button in Navbar) */
+.iz-submit-btn {
+  background: var(--iz-cyan-primary);
+  color: var(--iz-btn-text-dark);
+  border: none;
+  border-radius: 9999px;
+  padding: 13px 36px;
+  font-family: var(--iz-font-body);
+  font-size: 0.92rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 10px;
+  box-shadow: 0 4px 18px rgba(0, 210, 211, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.iz-submit-btn:hover {
+  background: var(--iz-cyan-hover);
+  color: #03121b;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(0, 229, 255, 0.5);
+}
+
+.iz-submit-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.iz-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success View inside card */
+.iz-success-box {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 16px;
+  padding: 26px 20px;
+  text-align: center;
+}
+
+.iz-success-box h4 {
+  color: #16A34A;
+  font-size: 1.2rem;
+  margin: 0 0 8px 0;
+}
+
+.iz-success-box p {
+  font-size: 0.88rem;
+  color: var(--iz-text-body);
+  margin: 0 0 18px 0;
+  line-height: 1.5;
+}
+
+.iz-reset-btn {
+  background: var(--iz-cyan-primary);
+  color: var(--iz-btn-text-dark);
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 26px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 210, 211, 0.35);
+  transition: all 0.22s ease;
+}
+
+.iz-reset-btn:hover {
+  background: var(--iz-cyan-hover);
+  color: #03121b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.45);
+}
+
+/* ==========================================================================
+   3. HORIZONTAL BUSINESS ASSOCIATES SECTION (BEFORE MAP)
+   ========================================================================== */
+.iz-associates-section {
+  position: relative;
+  background: var(--iz-bg-subtle);
+  border-top: 1px solid var(--iz-card-border);
+  padding: 70px 0 85px;
+  z-index: 10;
+}
+
+.iz-associates-header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 50px auto;
+}
+
+.iz-associates-title {
+  font-family: var(--iz-font-display);
+  font-size: clamp(2rem, 3.2vw, 2.4rem);
+  color: var(--iz-text-title);
+  letter-spacing: -0.015em;
+  margin: 0 0 12px 0;
+  font-weight: 750;
+}
+
+.iz-associates-sub {
+  font-size: 0.96rem;
+  color: var(--iz-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 3-Column Horizontal Card Row */
+.iz-associates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+  align-items: stretch;
+}
+
+.iz-associate-card {
+  background: #FFFFFF;
+  border: 1px solid var(--iz-card-border);
+  border-radius: 24px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 6px 24px -4px rgba(15, 23, 42, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.iz-associate-card:hover {
+  transform: translateY(-4px);
+  border-color: #BAE6FD;
+  box-shadow: 0 14px 32px -4px rgba(2, 132, 199, 0.16);
+}
+
+.iz-card-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.iz-associate-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 1.5px solid var(--iz-card-border);
+  background: #F1F5F9;
+  flex-shrink: 0;
+}
+
+.iz-card-top-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.iz-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.iz-associate-name {
+  font-family: var(--iz-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--iz-text-title);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px 0;
+}
+
+.iz-associate-role {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--iz-text-muted);
+  line-height: 1.45;
+  margin: 0 0 18px 0;
+  min-height: 40px;
+}
+
+.iz-card-contact-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border-top: 1px solid var(--iz-card-border);
+  padding-top: 14px;
+  margin-top: auto;
+}
+
+.iz-card-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.82rem;
+  color: var(--iz-text-body);
+}
+
+.iz-card-line svg {
+  color: var(--iz-blue-primary);
+  flex-shrink: 0;
+}
+
+.iz-card-line a {
+  color: #1E293B;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.18s ease;
+}
+
+.iz-card-line a:hover {
+  color: var(--iz-blue-primary);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   4. FULL-WIDTH GOOGLE MAP SECTION (DIRECTLY ABOVE FOOTER)
+   ========================================================================== */
+.iz-map-section {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--iz-card-border);
+  z-index: 10;
+  background: #FFFFFF;
+}
+
+.iz-map-frame {
+  width: 100%;
+  height: 440px;
+  border: none;
+  display: block;
+  filter: contrast(1.02) saturate(1.08);
+}
+
+/* Floating Location Spotlight Card on Map */
+.iz-map-spotlight-card {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--iz-card-border);
+  border-radius: 18px;
+  padding: 18px 22px;
+  max-width: 380px;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
+  z-index: 15;
+  transition: all 0.3s ease;
+}
+
+.iz-map-spotlight-card:hover {
+  border-color: #BAE6FD;
+  box-shadow: 0 18px 44px rgba(2, 132, 199, 0.18);
+}
+
+.iz-map-spotlight-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.iz-map-pin-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  border: 1px solid #BAE6FD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--iz-blue-primary);
+  flex-shrink: 0;
+}
+
+.iz-map-spotlight-title {
+  font-family: var(--iz-font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--iz-text-title);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.iz-map-spotlight-sub {
+  font-size: 0.75rem;
+  color: var(--iz-blue-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.iz-map-spotlight-address {
+  font-size: 0.82rem;
+  color: var(--iz-text-body);
+  line-height: 1.5;
+  margin: 0 0 14px 0;
+}
+
+.iz-map-spotlight-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iz-map-directions-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--iz-cyan-primary);
+  color: var(--iz-btn-text-dark);
+  font-size: 0.8rem;
+  font-weight: 750;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 210, 211, 0.35);
+}
+
+.iz-map-directions-btn:hover {
+  background: var(--iz-cyan-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 229, 255, 0.5);
+}
+
+/* ==========================================================================
+   5. RESPONSIVE DESIGN (TABLET & MOBILE)
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .iz-associates-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .iz-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .iz-hero-section {
+    padding-top: 120px;
+    padding-bottom: 90px;
+    clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+  }
+  .iz-hero-title {
+    font-size: 2.2rem;
+  }
+  .iz-form-card {
+    padding: 30px 22px;
+  }
+  .iz-form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .iz-associates-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .iz-map-frame {
+    height: 320px;
+  }
+  .iz-map-spotlight-card {
+    position: static;
+    margin: 16px;
+    max-width: calc(100% - 32px);
+  }
+}
