@@ -7,27 +7,17 @@ import {
   X,
   Plus,
   Sparkles,
-  Globe,
   ArrowUpRight,
   Star,
   Quote,
   Network,
-  Server,
   ShieldCheck,
-  CheckCircle2,
   Layers,
   ArrowRight,
-  Zap,
-  Lock,
-  Cpu,
   Cloud,
-  Laptop,
-  Activity,
-  HardDrive,
-  Shield,
   Radio,
   FileCheck2,
-  MessageSquareShare
+
 } from 'lucide-react';
 import logoImg from '../../assets/Transparent Tech Logo with Cloud Mark.png';
 import heroVideo from '../../assets/gemini_generated_video_61d17737.mp4';
@@ -35,17 +25,11 @@ import teamHandshakeImg from '../../assets/corporate_team_handshake.jpg';
 import engineersImg from '../../assets/office_engineers_collaborating.jpg';
 
 // Service Accordion Imagery Assets
-import itInfraImg from '../../assets/IT Infrastructure Management.png';
-import cloudHostingImg from '../../assets/Cloud Server Hosting.png';
-import managedItImg from '../../assets/Managed IT Services Hub.png';
-import microsoftImg from '../../assets/Microsoft Licensing Solutions.png';
-import tallyPrimeImg from '../../assets/tally prime.png';
-import cybersecurityImg from '../../assets/Cybersecurity Solutions.png';
 import sfdcLogo from '../../assets/SFDC_logo.png';
 import teaBoardLogo from '../../assets/tea_board_logo.png';
 
 // User-Provided Strategic Service Showcase Imagery Assets
-import imageCopy from '../../assets/image copy.png';
+
 import imageCopy2 from '../../assets/image copy 2.png';
 import imageCopy3 from '../../assets/image copy 3.png';
 import imageCopy4 from '../../assets/image copy 4.png';
@@ -58,13 +42,6 @@ import megaProductsImg from '../../assets/products_mega_features.jpg';
 import megaServicesImg from '../../assets/services_mega_features.jpg';
 import megaSolutionsImg from '../../assets/solutions_mega_features.jpg';
 import megaAboutImg from '../../assets/about_mega_features.jpg';
-
-// Authentic Professional Enterprise Photography (Real IT Engineers & Specialists)
-import photoInfraEngineer from '../../assets/it_infrastructure_engineer.jpg';
-import photoDatacenterArchitect from '../../assets/photo_datacenter_architect.jpg';
-import photoOfficeNetworkEng from '../../assets/photo_office_network_eng.jpg';
-import photoMicrosoftCloudEng from '../../assets/photo_microsoft_cloud_eng.jpg';
-import photoFinancialSpecialist from '../../assets/photo_financial_erp_specialist.jpg';
 
 // Global Shared Components
 import GoogleReviewsSection from '../../components/GoogleReviewsSection';

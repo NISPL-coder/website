@@ -1,36 +1,34 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import ScrollToTop from './components/ScrollToTop';
-import Header from './components/Header';
-import Footer from './components/Footer';
-
-import ServicesPage from './pages/ServicesPage';
-import ServiceDetailPage from './pages/ServiceDetailPage';
-import SolutionsPage from './pages/SolutionsPage';
-import PortfolioPage from './pages/PortfolioPage';
-import ContactPage from './pages/ContactPage';
-import ContactBusinessPage from './pages/ContactBusinessPage';
-import CareersPage from './pages/CareersPage';
-
+import WhatsAppButton from './components/WhatsAppButton';
+import DemoHomepage from './pages/Demo Page/Homepage';
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
-import Toast from './components/Toast';
-import WhatsAppButton from './components/WhatsAppButton';
-import DemoHomepage from './pages/Demo Page/Homepage';
-
-import { 
-  INITIAL_TRANSACTIONS, 
-  INITIAL_PRODUCTS 
-} from './data/mockData';
-import './components/InvoiceModal.css';
+import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import './App.css';
 
-function AppLayout() {
-  const location = useLocation();
-  const normalizedPath = location.pathname.toLowerCase().replace(/\/+$/, '');
-  const isHomeRoute = normalizedPath === '';
+// Smooth scroll to top on route change or handle hash anchors
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
 
+  useEffect(() => {
+    if (hash) {
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
+
+function MainApp() {
   const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [products] = useState(INITIAL_PRODUCTS);
 
@@ -39,14 +37,7 @@ function AppLayout() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  // Toast feedback state
-  const [toastMessage, setToastMessage] = useState(null);
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-  };
-
-  // Keyboard shortcut: Ctrl + K or Cmd + K for global search
+  // Keyboard shortcut: Ctrl + K or Cmd + K for global search palette
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -58,150 +49,37 @@ function AppLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  if (isHomeRoute) {
-    return (
-      <div className="demo-app-root">
-        <ScrollToTop />
-        <DemoHomepage 
-          onOpenContact={() => setIsDemoModalOpen(true)}
-          onOpenConsultation={() => setIsDemoModalOpen(true)}
-        />
-
-        {/* FLOATING WHATSAPP CHAT BUTTON */}
-        <WhatsAppButton />
-
-        {/* GLOBAL MODALS & TOAST */}
-        <DemoModal
-          isOpen={isDemoModalOpen}
-          onClose={() => setIsDemoModalOpen(false)}
-          onSubmitSuccess={(msg) => showToast(msg)}
-        />
-        <LoginModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-          onLoginSuccess={(msg) => showToast(msg)}
-        />
-        <SearchModal
-          isOpen={isSearchModalOpen}
-          onClose={() => setIsSearchModalOpen(false)}
-          transactions={transactions}
-          products={products}
-          onSelectAction={() => {}}
-        />
-        <Toast
-          message={toastMessage}
-          onClose={() => setToastMessage(null)}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="app-wrapper">
+    <div className="demo-app-root">
       <ScrollToTop />
       
-      {/* GLOBAL FIXED HEADER */}
-      <Header
-        onOpenDemo={() => setIsDemoModalOpen(true)}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
-      />
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <DemoHomepage 
+              onOpenContact={() => setIsDemoModalOpen(true)}
+              onOpenConsultation={() => setIsDemoModalOpen(true)}
+            />
+          } 
+        />
+        {/* All routes fallback directly to the official Homepage */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-      {/* MULTI-PAGE ROUTED CONTENT */}
-      <main className="main-content">
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <DemoHomepage 
-                onOpenContact={() => setIsDemoModalOpen(true)}
-                onOpenConsultation={() => setIsDemoModalOpen(true)}
-              />
-            } 
-          />
-          {/* Redirect /about to home */}
-          <Route path="/about" element={<Navigate to="/" replace />} />
-          <Route 
-            path="/services" 
-            element={
-              <ServicesPage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
-                onShowToast={showToast}
-              />
-            } 
-          />
-          <Route 
-            path="/services/:serviceId" 
-            element={
-              <ServiceDetailPage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
-              />
-            } 
-          />
-          {/* Direct service aliases */}
-          <Route path="/tally-prime" element={<Navigate to="/services/tally-prime" replace />} />
-          <Route path="/tally-cloud" element={<Navigate to="/services/tally-on-cloud" replace />} />
-          <Route path="/tally-on-cloud" element={<Navigate to="/services/tally-on-cloud" replace />} />
-          <Route path="/cloud-hosting" element={<Navigate to="/services/data-center-cloud" replace />} />
-          <Route path="/it-infrastructure" element={<Navigate to="/services/it-infra-security" replace />} />
-          <Route path="/it-repair" element={<Navigate to="/services/it-repair-maintenance" replace />} />
-          <Route path="/it-rental" element={<Navigate to="/services/it-sales-rental" replace />} />
-          <Route 
-            path="/solutions" 
-            element={
-              <SolutionsPage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
-              />
-            } 
-          />
-          <Route 
-            path="/portfolio" 
-            element={
-              <PortfolioPage 
-                onOpenDemo={() => setIsDemoModalOpen(true)} 
-              />
-            } 
-          />
-          <Route 
-            path="/contact" 
-            element={
-              <ContactPage 
-                onShowToast={showToast} 
-              />
-            } 
-          />
-          <Route
-            path="/contact/business"
-            element={
-              <ContactBusinessPage
-                onShowToast={showToast}
-              />
-            }
-          />
-          <Route path="/business" element={<Navigate to="/contact/business" replace />} />
-          <Route path="/contact/careers" element={<CareersPage onShowToast={showToast} />} />
-          <Route path="/careers" element={<Navigate to="/contact/careers" replace />} />
-          {/* Catch-all redirect to Home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-
-      {/* GLOBAL OFFICIAL FOOTER */}
-      <Footer />
-
-      {/* FLOATING WHATSAPP CHAT BUTTON */}
+      {/* Floating WhatsApp Contact Widget */}
       <WhatsAppButton />
 
-      {/* GLOBAL MODALS */}
+      {/* Global Interactive Modals */}
       <DemoModal
         isOpen={isDemoModalOpen}
         onClose={() => setIsDemoModalOpen(false)}
-        onSubmitSuccess={(msg) => showToast(msg)}
+        onSubmitSuccess={(msg) => console.log(msg)}
       />
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={(msg) => showToast(msg)}
+        onLoginSuccess={(msg) => console.log(msg)}
       />
       <SearchModal
         isOpen={isSearchModalOpen}
@@ -210,10 +88,6 @@ function AppLayout() {
         products={products}
         onSelectAction={() => {}}
       />
-      <Toast
-        message={toastMessage}
-        onClose={() => setToastMessage(null)}
-      />
     </div>
   );
 }
@@ -221,8 +95,7 @@ function AppLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppLayout />
+      <MainApp />
     </BrowserRouter>
   );
 }
-
