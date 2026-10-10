@@ -344,25 +344,6 @@
   transform: scale(1.04);
 }
 
-.demo-mega-banner-overlay-badge {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
-  background: rgba(6, 11, 20, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  padding: 5px 10px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #e2e8f0;
-}
-
 .banner-badge-dot {
   width: 6px;
   height: 6px;
@@ -370,14 +351,6 @@
   background: var(--demo-cyan-primary);
   box-shadow: 0 0 8px var(--demo-cyan-primary);
   flex-shrink: 0;
-}
-
-/* Feature Pills Micro-Strip */
-.demo-mega-feature-pills-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
 }
 
 .demo-mega-feature-pill {

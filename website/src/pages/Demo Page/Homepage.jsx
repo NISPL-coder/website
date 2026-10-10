@@ -110,7 +110,7 @@ const NAV_ITEMS = [
   { id: 'industries', label: 'Industries', path: '/industries' },
   { id: 'services', label: 'Services', path: '/services' },
   { id: 'solutions', label: 'Solutions', path: '/solutions' },
-  { id: 'contact', label: 'Contact', path: '/contact' }
+  { id: 'career', label: 'Career', path: '/career' }
 ];
 
 // CodeLogicX-style 3-panel Mega Menu data configuration:
@@ -707,57 +707,7 @@ const MEGA_MENU_CONFIG = {
       }
     ]
   },
-  contact: {
-    id: 'contact',
-    label: 'Contact',
-    title: 'Contact',
-    image: megaAboutImg,
-    imageTag: 'Central Engineering & Solutions Desk',
-    overview: 'Connect directly with our solutions architects for corporate proposals, infrastructure assessment, or explore engineering careers with Eastern India’s leading IT powerhouse.',
-    featurePills: ['Business Inquiries', 'Engineering Careers'],
-    cards: [
-      { id: 'ct1', label: 'Business Inquiries', sub: 'Proposals & Quotes', badge: 'Sales Desk' },
-      { id: 'ct2', label: 'Careers', sub: 'Join Engineering Team', badge: 'We Are Hiring' }
-    ],
-    items: [
-      {
-        id: 'cnt-business-quotes',
-        label: 'Business Inquiries',
-        path: '/contact/business',
-        badge: 'Sales & Architecture',
-        heading: 'Consult Senior Solution Architects',
-        slaGrade: 'Technical Proposals within 24 Hours',
-        metrics: ['⏱️ < 24 Hr Proposal SLA', '📋 Detailed Cost Breakups', '💡 Architecture Feasibility', '🤝 Transparent Pricing'],
-        desc1: 'Looking for an Annual Maintenance Contract (AMC), Tally on Cloud migration, or Microsoft 365 volume licensing? Reach out to our corporate sales desk.',
-        desc2: 'We prepare transparent, detailed technical proposals with clear SLAs and competitive enterprise pricing within 24 hours.',
-        capabilities: [
-          { title: 'Complimentary IT Audit', desc: 'We assess your current network and server health before providing recommendations.' },
-          { title: 'Customized Volume Licensing', desc: 'Direct corporate pricing discounts on Microsoft and Tally volume purchases.' },
-          { title: 'Transparent SLA Terms', desc: 'Explicit penalties and response commitments documented in every contract.' },
-          { title: 'Proof-of-Concept (POC)', desc: 'Test-drive Tally on Cloud or Cloud VPS for 7 days on your sample company data.' }
-        ],
-        techSpecs: 'Direct Hotline: +91 9330113000 • Email: info@netinfotechsystem.com'
-      },
-      {
-        id: 'cnt-careers-role',
-        label: 'Careers',
-        path: '/contact/careers',
-        badge: 'Tech Hiring',
-        heading: 'Join Eastern India’s Leading IT Services Firm',
-        slaGrade: 'Equal Opportunity Engineering Workplace',
-        metrics: ['🚀 Rapid Career Growth', '🎓 Vendor Certifications', '👥 Vibrant Team Culture', '💼 Competitive Compensation'],
-        desc1: 'We are always looking for passionate network engineers, cloud architects, Tally customization developers, and technical support specialists.',
-        desc2: 'Explore rewarding career paths with competitive packages, continuous vendor certifications, and a vibrant engineering culture.',
-        capabilities: [
-          { title: 'Sponsored Certifications', desc: 'We sponsor and support your Microsoft MCSE, Cisco CCNA, and Tally certifications.' },
-          { title: 'Hands-On Datacenter Exposure', desc: 'Work directly on enterprise-grade server racks, UTM firewalls, and cloud migrations.' },
-          { title: 'Merit-Based Progression', desc: 'Clear career ladders from field support technician to principal solutions architect.' },
-          { title: 'Health & Professional Benefits', desc: 'Comprehensive health coverage and annual performance bonuses.' }
-        ],
-        techSpecs: 'Open Roles: Systems Engineers, Cloud Administrators, TDL Developers, Account Managers'
-      }
-    ]
-  }
+  
 };
 
 // 6 Core Strategic Services (Bespoke Enterprise Slit Accordion)
@@ -1313,10 +1263,6 @@ export default function Homepage({
                         alt={`${MEGA_MENU_CONFIG[activeCategory].title} Feature Ecosystem`} 
                         className="demo-mega-feature-banner-img"
                       />
-                      <div className="demo-mega-banner-overlay-badge">
-                        <span className="banner-badge-dot" />
-                        <span>{MEGA_MENU_CONFIG[activeCategory].imageTag || 'Enterprise Suite'}</span>
-                      </div>
                     </div>
                   )}
 
