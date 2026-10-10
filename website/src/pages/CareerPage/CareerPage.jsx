@@ -20,75 +20,75 @@ import './CareerPage.css';
 const JOBS = [
   {
     id: 'cloud-arch',
-    title: 'Senior Cloud & Infrastructure Architect',
+    title: 'Cloud & Infrastructure Architect',
     department: 'Cloud & DevOps',
     category: 'cloud',
-    badge: 'Immediate Opening',
+    badge: 'Immediate',
     experience: '3 – 6 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Architect, deploy, and optimize scalable enterprise cloud environments across AWS, Azure, and private datacenters. Lead automated migrations and NOC monitoring.',
-    skills: ['AWS / Azure Cloud', 'VMware ESXi', 'Windows Server & AD', 'Tier-4 NOC Ops', 'Backup & DR']
+    description: 'Architect scalable enterprise cloud environments and lead automated migrations.',
+    skills: ['AWS / Azure', 'VMware', 'NOC Ops']
   },
   {
     id: 'tally-consultant',
-    title: 'TallyPrime & ERP Solution Consultant',
+    title: 'TallyPrime Consultant',
     department: 'ERP & Business Solutions',
     category: 'erp',
-    badge: 'Tally 3-Star Certified',
+    badge: 'Certified',
     experience: '2 – 5 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Implement enterprise TallyPrime workflows, GST compliance, e-invoicing integrations, and multi-branch synchronization for large corporate clients.',
-    skills: ['TallyPrime ERP', 'GST & E-Invoicing', 'Cloud Tally Hosting', 'Database Sync', 'Corporate Training']
+    description: 'Implement TallyPrime workflows, GST compliance, and integrations for corporate clients.',
+    skills: ['TallyPrime', 'GST', 'Cloud Tally']
   },
   {
     id: 'security-engineer',
-    title: 'Network & Cyber Security Engineer',
+    title: 'Network Security Engineer',
     department: 'IT Infrastructure & AMC',
     category: 'infra',
-    badge: 'Priority Role',
+    badge: 'Priority',
     experience: '2 – 5 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Configure and maintain enterprise next-gen firewalls (Fortinet / Sophos), managed switches, VLAN routing, and zero-trust cybersecurity policies.',
-    skills: ['Fortinet / Sophos', 'Cisco Switching', 'VLAN & Routing', 'Enterprise AMC', 'Disaster Recovery']
+    description: 'Configure and maintain next-gen firewalls, routing, and zero-trust security policies.',
+    skills: ['Firewalls', 'Routing', 'AMC']
   },
   {
     id: 'cloud-migration',
-    title: 'Cloud Migration & Virtualization Specialist',
+    title: 'Cloud Migration Specialist',
     department: 'Cloud & DevOps',
     category: 'cloud',
-    badge: 'Open Position',
+    badge: 'Open',
     experience: '1 – 3 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Execute seamless on-premise to cloud data migrations, virtual machine deployments, automated hourly backups, and remote client systems maintenance.',
-    skills: ['Windows Server', 'Hyper-V / VMware', 'Cloud Backups', 'Active Directory', 'DNS / DHCP']
+    description: 'Execute seamless data migrations, virtual machine deployments, and system maintenance.',
+    skills: ['Windows Server', 'Hyper-V', 'Backups']
   },
   {
     id: 'erp-support',
-    title: 'Enterprise ERP Technical Support Specialist',
+    title: 'ERP Technical Support',
     department: 'ERP & Business Solutions',
     category: 'erp',
-    badge: 'Open Position',
+    badge: 'Open',
     experience: '1 – 3 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Provide tier-2 technical resolution for TallyPrime and integrated corporate business modules, assisting enterprise accountants and CFO teams.',
-    skills: ['TallyPrime', 'Accounting Systems', 'Data Integrity', 'Client Support', 'Troubleshooting']
+    description: 'Provide tier-2 technical resolution for TallyPrime and integrated business modules.',
+    skills: ['TallyPrime', 'Support', 'Accounting']
   },
   {
     id: 'sales-executive',
-    title: 'Enterprise IT Solutions Sales Manager',
+    title: 'IT Sales Manager',
     department: 'Business Development',
     category: 'sales',
-    badge: 'High Incentive',
+    badge: 'Hiring',
     experience: '2 – 5 Years',
-    type: 'Full-Time • On-Site',
+    type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Drive corporate B2B client acquisition for enterprise cloud hosting, turnkey IT infrastructure AMC, Microsoft 365 licensing, and ERP projects.',
-    skills: ['B2B Tech Sales', 'Enterprise AMC', 'Microsoft 365', 'Client Engagement', 'Contract Closing']
+    description: 'Drive corporate B2B client acquisition for enterprise cloud hosting and ERP projects.',
+    skills: ['B2B Sales', 'Tech Sales', 'Client Engagement']
   }
 ];
 
