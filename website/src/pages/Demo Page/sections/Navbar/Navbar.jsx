@@ -146,28 +146,38 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
           {/* Desktop Navigation Links (Center) */}
           <ul className="demo-nav-links">
             {NAV_ITEMS.map((item) => {
+              const hasDropdown = Boolean(MEGA_MENU_CONFIG[item.id]);
               const isOpen = activeCategory === item.id;
               return (
                 <li 
                   key={item.id}
-                  className={`demo-nav-item has-dropdown ${isOpen ? 'active' : ''}`}
-                  onMouseEnter={() => handleNavEnter(item.id)}
-                  onMouseLeave={handleNavLeave}
+                  className={`demo-nav-item ${hasDropdown ? 'has-dropdown' : ''} ${isOpen ? 'active' : ''}`}
+                  onMouseEnter={() => {
+                    if (hasDropdown) handleNavEnter(item.id);
+                  }}
+                  onMouseLeave={() => {
+                    if (hasDropdown) handleNavLeave();
+                  }}
                 >
                   <button 
                     type="button" 
                     className={`demo-nav-link ${isOpen ? 'active' : ''}`}
                     onClick={() => {
-                      if (activeCategory === item.id) {
+                      if (hasDropdown) {
+                        if (activeCategory === item.id) {
+                          setActiveCategory(null);
+                        } else {
+                          handleNavEnter(item.id);
+                        }
+                      } else if (item.path) {
                         setActiveCategory(null);
-                      } else {
-                        handleNavEnter(item.id);
+                        navigate(item.path);
                       }
                     }}
                     aria-expanded={isOpen}
                   >
                     <span>{item.label}</span>
-                    <ChevronDown className="demo-nav-chevron" />
+                    {hasDropdown && <ChevronDown className="demo-nav-chevron" />}
                   </button>
                 </li>
               );
@@ -276,44 +286,54 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
 
       {/* Mobile Drawer Navigation */}
       <div className={`demo-mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
-        {NAV_ITEMS.map((item) => (
-          <div key={item.id} className="demo-mobile-item-wrap">
-            <button
-              type="button"
-              className="demo-mobile-nav-link"
-              onClick={() => {
-                setActiveCategory(activeCategory === item.id ? null : item.id);
-              }}
-            >
-              <span>{item.label}</span>
-              <ChevronDown size={15} className={activeCategory === item.id ? 'rotated' : ''} />
-            </button>
-            {activeCategory === item.id && MEGA_MENU_CONFIG[item.id] && (
-              <div className="demo-mobile-sub-list animate-fade-in">
-                {MEGA_MENU_CONFIG[item.id].items.map((sub) => (
-                  <a
-                    key={sub.id}
-                    href={sub.path}
-                    className="demo-mobile-sub-link"
-                    onClick={(e) => {
-                      if (sub.path.startsWith('#')) {
-                        e.preventDefault();
-                        setMobileMenuOpen(false);
-                        const target = document.querySelector(sub.path);
-                        if (target) target.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        setMobileMenuOpen(false);
-                      }
-                    }}
-                  >
-                    <span>{sub.label}</span>
-                    <ArrowRight size={13} opacity={0.6} />
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const hasDropdown = Boolean(MEGA_MENU_CONFIG[item.id]);
+          return (
+            <div key={item.id} className="demo-mobile-item-wrap">
+              <button
+                type="button"
+                className="demo-mobile-nav-link"
+                onClick={() => {
+                  if (hasDropdown) {
+                    setActiveCategory(activeCategory === item.id ? null : item.id);
+                  } else if (item.path) {
+                    setMobileMenuOpen(false);
+                    navigate(item.path);
+                  }
+                }}
+              >
+                <span>{item.label}</span>
+                {hasDropdown && (
+                  <ChevronDown size={15} className={activeCategory === item.id ? 'rotated' : ''} />
+                )}
+              </button>
+              {hasDropdown && activeCategory === item.id && (
+                <div className="demo-mobile-sub-list animate-fade-in">
+                  {MEGA_MENU_CONFIG[item.id].items.map((sub) => (
+                    <a
+                      key={sub.id}
+                      href={sub.path}
+                      className="demo-mobile-sub-link"
+                      onClick={(e) => {
+                        if (sub.path.startsWith('#')) {
+                          e.preventDefault();
+                          setMobileMenuOpen(false);
+                          const target = document.querySelector(sub.path);
+                          if (target) target.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          setMobileMenuOpen(false);
+                        }
+                      }}
+                    >
+                      <span>{sub.label}</span>
+                      <ArrowRight size={13} opacity={0.6} />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
         <button 
           type="button" 
           className="demo-contact-pill-btn"

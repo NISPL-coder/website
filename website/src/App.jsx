@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 // import WhatsAppButton from './components/WhatsAppButton';
 import DemoHomepage from './pages/Demo Page/Homepage';
 import ContactPage from './pages/ContactPage/ContactPage';
+import CareerPage from './pages/CareerPage/CareerPage';
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
@@ -65,6 +66,7 @@ function MainApp() {
           } 
         />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/career" element={<CareerPage />} />
         {/* All routes fallback directly to the official Homepage */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

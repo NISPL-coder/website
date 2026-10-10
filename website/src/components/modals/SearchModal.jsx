@@ -127,7 +127,7 @@ export default function SearchModal({
     {
       id: 'contact',
       title: 'Contact & Registered Office',
-      desc: 'Webel Tower 1, Salt Lake Sector V, Kolkata • Hotline: 033-4001 3000 / +91 9330113000',
+      desc: 'Webel Tower 1, Salt Lake Sector V, Kolkata • Hotline: 033-4004 1899 / +91 9330113000',
       badge: 'Contact',
       badgeClass: 'badge-company',
       path: '/contact',

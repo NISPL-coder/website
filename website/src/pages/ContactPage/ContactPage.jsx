@@ -175,9 +175,12 @@ export default function ContactPage() {
                     <Phone size={22} />
                   </div>
                   <div className="iz-item-info">
-                    <span className="iz-item-heading">Business Solutions &amp; Tally Prime</span>
+                    <span className="iz-item-heading">Business Solutions</span>
                     <p className="iz-item-text">
                       Direct Hotline: <a href="tel:+919330113000">+91 9330113000</a>
+                    </p>
+                     <p className="iz-item-text">
+                      Helpdesk: <a href="tel:03340041899">033 - 4004 1899</a>
                     </p>
                     <span className="iz-item-sub">
                       Email: <a href="mailto:business@netinfotechsystem.com">business@netinfotechsystem.com</a>
@@ -185,21 +188,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Contact Point 3: Technical AMC & Cloud Support */}
-                <div className="iz-touch-item">
-                  <div className="iz-icon-circle">
-                    <Mail size={22} />
-                  </div>
-                  <div className="iz-item-info">
-                    <span className="iz-item-heading">Cloud Hosting &amp; AMC Services</span>
-                    <p className="iz-item-text">
-                      Helpdesk: <a href="tel:03340013000">033 - 4001 3000</a>
-                    </p>
-                    <span className="iz-item-sub">
-                      Email: <a href="mailto:support@netinfotechsystem.com">support@netinfotechsystem.com</a>
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 

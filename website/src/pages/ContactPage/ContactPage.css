@@ -80,14 +80,14 @@
 }
 
 .iz-hero-title {
-  font-family: var(--iz-font-display);
-  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
-  font-weight: 850;
-  color: var(--iz-text-title);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 0;
-  line-height: 1.15;
+  font-family: var(--iz-font-display) !important;
+  font-size: clamp(2.1rem, 3.6vw, 3rem) !important;
+  font-weight: 400 !important;
+  color: #0f172a !important;
+  line-height: 1.24 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 !important;
+  text-transform: none !important;
 }
 
 /* ==========================================================================
@@ -121,12 +121,13 @@
 }
 
 .iz-touch-title {
-  font-family: var(--iz-font-display);
-  font-size: 2rem;
-  color: var(--iz-text-title);
-  margin: 0 0 14px 0;
-  letter-spacing: -0.01em;
-  font-weight: 750;
+  font-family: var(--iz-font-display) !important;
+  font-size: clamp(2.1rem, 3.6vw, 3rem) !important;
+  font-weight: 400 !important;
+  color: #0f172a !important;
+  line-height: 1.24 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 0 14px 0 !important;
 }
 
 .iz-touch-desc {

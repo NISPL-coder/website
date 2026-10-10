@@ -6,7 +6,7 @@ export const COMPANY_INFO = {
   tagline: "Smart IT Solutions for a Digital Future",
   gstin: "19AABCN4321Q1ZM",
   phone: "+91 9330113000",
-  landline: "033 - 4001 3000",
+  landline: "033 - 4004 1899",
   email: "info@netinfotechsystem.com",
   directEmail: "nghosal@netinfotechsystem.com",
   supportEmail: "support@netinfotechsystem.com",
