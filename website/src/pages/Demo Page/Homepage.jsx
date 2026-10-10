@@ -44,6 +44,15 @@ import cybersecurityImg from '../../assets/Cybersecurity Solutions.png';
 import sfdcLogo from '../../assets/SFDC_logo.png';
 import teaBoardLogo from '../../assets/tea_board_logo.png';
 
+// User-Provided Strategic Service Showcase Imagery Assets
+import imageCopy from '../../assets/image copy.png';
+import imageCopy2 from '../../assets/image copy 2.png';
+import imageCopy3 from '../../assets/image copy 3.png';
+import imageCopy4 from '../../assets/image copy 4.png';
+import imageCopy5 from '../../assets/image copy 5.png';
+import imageCopy6 from '../../assets/image copy 6.png';
+import imageCopy7 from '../../assets/image copy 7.png';
+
 // CodeLogicX-Style Generated Mega Menu Feature Showcase Imagery
 import megaProductsImg from '../../assets/products_mega_features.jpg';
 import megaServicesImg from '../../assets/services_mega_features.jpg';
@@ -159,42 +168,6 @@ const MEGA_MENU_CONFIG = {
           { title: 'Periodic Vendor Audits', desc: 'Compliant licensing structures that pass all statutory corporate IT audits.' }
         ],
         techSpecs: 'Partner Tiers: Tier-1 Direct Cloud Solution Provider (CSP) • Tier-4 Indian Datacenter Colocation'
-      },
-      {
-        id: 'client-reviews',
-        label: 'Client Success & Reviews',
-        path: '#client-reviews',
-        badge: 'Verified Track Record',
-        heading: 'Trusted by India\'s Foremost Corporations',
-        slaGrade: 'Authentic 4.5★ Google Verified Rating',
-        metrics: ['★ 4.5+ Google Rating', '🏢 Tata Steel & L&T', '🌿 Tea Board of India', '🛡️ SFDC Govt. of WB'],
-        desc1: 'Over 1,000 corporate clients rely on NISPL for mission-critical IT operations, including Tata Steel, Larsen & Toubro, ITC Limited, West Bengal SFDC, Tea Board of India, Reliance Industries, Emami Group, and Exide Industries.',
-        desc2: 'Our clients rate us 4.5+ stars on Google for rapid SLA emergency response times, transparent Annual Maintenance Contracts (AMC), and flawless cloud performance across multi-branch operations.',
-        capabilities: [
-          { title: 'Long-Term Corporate AMCs', desc: 'Multi-year retained infrastructure maintenance contracts with major industrial conglomerates.' },
-          { title: 'Public Sector Compliance', desc: 'High-security institutional deployments compliant with state and national government standards.' },
-          { title: 'Transparent SLA Reporting', desc: 'Monthly uptime, incident resolution, and preventative maintenance audit documentation.' },
-          { title: 'Rapid Incident Turnaround', desc: 'Average ticket resolution time under 45 minutes for critical ERP incidents.' }
-        ],
-        techSpecs: 'Client Base: Manufacturing, Retail, FMCG, Healthcare, Government, and Corporate Legal'
-      },
-      {
-        id: 'core-values',
-        label: 'Core Leadership & Values',
-        path: '/about',
-        badge: 'Engineering Philosophy',
-        heading: 'Client-First Engineering & Integrity',
-        slaGrade: 'Zero-Downtime Commitment',
-        metrics: ['🔒 Zero-Compromise Security', '⚡ Rapid SLA Response', '🤝 Client-First Transparency', '📈 Continuous Optimization'],
-        desc1: 'We believe that technology infrastructure should be an invisible, reliable engine that propels business growth. Our engineering practices are anchored in proactive monitoring, rigorous data confidentiality, and transparent accountability.',
-        desc2: 'Every client engagement is supported by dedicated technical account managers, certified systems administrators, and clear escalation protocols to ensure zero downtime and total peace of mind.',
-        capabilities: [
-          { title: 'Preventive Engineering', desc: 'Proactive component replacement and thermal audits before hardware failures occur.' },
-          { title: 'Data Confidentiality NDAs', desc: 'Strict data protection protocols and access control logs for all client database systems.' },
-          { title: 'Dedicated Account Leads', desc: 'Single point of contact for routine support, escalations, and technology modernization.' },
-          { title: 'Transparent Billing', desc: 'No hidden license surcharges or unexpected maintenance dispatch costs.' }
-        ],
-        techSpecs: 'Governance: ITIL-Aligned Service Delivery • 24/7 Ticketing Escalation Matrix'
       }
     ]
   },
@@ -740,36 +713,16 @@ const MEGA_MENU_CONFIG = {
     title: 'Contact',
     image: megaAboutImg,
     imageTag: 'Central Engineering & Solutions Desk',
-    overview: 'Connect directly with our solutions architects, enterprise sales consultants, and technical engineers to discuss your infrastructure, cloud, or AMC requirements.',
-    featurePills: ['Kolkata HQ', '24/7 NOC Hotline', 'Enterprise Sales', 'Tech Recruitment', 'Rapid Inquiries'],
+    overview: 'Connect directly with our solutions architects for corporate proposals, infrastructure assessment, or explore engineering careers with Eastern India’s leading IT powerhouse.',
+    featurePills: ['Business Inquiries', 'Engineering Careers'],
     cards: [
-      { id: 'ct1', label: 'Kolkata HQ', sub: 'Central Operations Hub', badge: 'Headquarters' },
-      { id: 'ct2', label: 'Call Hotline', sub: '+91 9330113000', badge: 'Instant Support' },
-      { id: 'ct3', label: 'Email Desk', sub: 'info@netinfotechsystem.com', badge: 'Quick Response' },
-      { id: 'ct4', label: 'Careers Hub', sub: 'Join Engineering Team', badge: 'We Are Hiring' }
+      { id: 'ct1', label: 'Business Inquiries', sub: 'Proposals & Quotes', badge: 'Sales Desk' },
+      { id: 'ct2', label: 'Careers', sub: 'Join Engineering Team', badge: 'We Are Hiring' }
     ],
     items: [
       {
-        id: 'cnt-hq-office',
-        label: 'Corporate Headquarters',
-        path: '/contact',
-        badge: 'Kolkata Central Office',
-        heading: 'Net Infotech System Pvt. Ltd. Headquarters',
-        slaGrade: 'Principal Engineering & Executive Office',
-        metrics: ['📍 Kolkata Headquarters', '⏱️ Mon - Sat: 9:30 AM - 7:00 PM', '🚗 Client Demo Center', '⚡ 24/7 Monitored Facility'],
-        desc1: 'Visit our central headquarters and Network Operations Center in Kolkata. Our facilities house our executive leadership, datacenter architects, and certified Tally engineers.',
-        desc2: 'We welcome enterprise clients for in-person consultations, infrastructure assessments, and custom software demonstrations.',
-        capabilities: [
-          { title: 'Executive Demo Center', desc: 'Live demonstrations of Tally on Cloud, Microsoft 365, and UTM hardware firewalls.' },
-          { title: 'In-Person Architecture Review', desc: 'Sit down with our principal engineers to map your IT modernization roadmap.' },
-          { title: 'Hardware Staging Facility', desc: 'Where client server racks, routers, and workstation fleets are pre-configured.' },
-          { title: 'Direct Management Access', desc: 'Executive leadership accessibility for large multi-year enterprise contracts.' }
-        ],
-        techSpecs: 'Location: Kolkata, West Bengal • Serving Pan-India Enterprise Clients'
-      },
-      {
         id: 'cnt-business-quotes',
-        label: 'Business Inquiries & Quotes',
+        label: 'Business Inquiries',
         path: '/contact/business',
         badge: 'Sales & Architecture',
         heading: 'Consult Senior Solution Architects',
@@ -787,7 +740,7 @@ const MEGA_MENU_CONFIG = {
       },
       {
         id: 'cnt-careers-role',
-        label: 'Careers & Opportunities',
+        label: 'Careers',
         path: '/contact/careers',
         badge: 'Tech Hiring',
         heading: 'Join Eastern India’s Leading IT Services Firm',
@@ -802,105 +755,114 @@ const MEGA_MENU_CONFIG = {
           { title: 'Health & Professional Benefits', desc: 'Comprehensive health coverage and annual performance bonuses.' }
         ],
         techSpecs: 'Open Roles: Systems Engineers, Cloud Administrators, TDL Developers, Account Managers'
-      },
-      {
-        id: 'cnt-emerg-support',
-        label: 'Emergency IT NOC Support',
-        path: 'tel:+919330113000',
-        badge: '24/7 Hotline',
-        heading: '24/7 SLA Emergency Assistance',
-        slaGrade: 'Immediate Triage for Retained AMC Clients',
-        metrics: ['📞 24/7 Phone: +91 9330113000', '⏱️ Instant Triage Protocol', '⚡ Priority Server Dispatch', '🛡️ Zero Downtime Focus'],
-        desc1: 'Existing AMC and cloud clients can reach our emergency support desk 24 hours a day, 7 days a week for urgent server outages or network incidents.',
-        desc2: 'Call our emergency hotline directly at +91 9330113000 or raise a high-priority ticket via our client portal.',
-        capabilities: [
-          { title: 'After-Hours Emergency Dispatch', desc: 'Standby field engineers on call for unexpected weekend server crashes.' },
-          { title: 'Remote Outage Triage', desc: 'Immediate remote access to diagnostics consoles to restore core services.' },
-          { title: 'Standby Hardware Deployment', desc: 'Emergency dispatch of backup network switches and loaner servers.' },
-          { title: 'Direct CTO Incident Channel', desc: 'Direct escalation hotline for enterprise CIOs and IT heads during outages.' }
-        ],
-        techSpecs: 'Hotline: +91 9330113000 • Priority Code: Existing Client AMC Contract ID'
       }
     ]
   }
 };
 
-// 5 Core Strategic Services (Bespoke Enterprise Slit Accordion)
-// Based exactly on user requirements:
-// 1 | IT & Security Services | CCTV, LAN, UPS, Antivirus, AMC, Attendance
-// 2 | IT Infrastructure | Servers, Network, Storage, Wi-Fi
-// 3 | Office IT & Security | Integrated IT & security solutions
-// 4 | Microsoft Solutions | Microsoft 365, Windows, Server, Entra ID, Intune
-// 5 | TallyPrime Solutions | Banking, GST, e-Invoice, e-Way Bill, WhatsApp
+// 6 Core Strategic Services (Bespoke Enterprise Slit Accordion)
+// Matching user specified services & custom imagery assets:
+// 1 | IT Infrastructure Management
+// 2 | Cloud Server & Hosting
+// 3 | Managed IT Services
+// 4 | Cyber Security Solutions
+// 5 | Microsoft Licensing
+// 6 | TallyPrime & Tally On Cloud
 const SERVICES_ACCORDION = [
   {
-    id: 'it-security-services',
-    tabTitle: 'IT & Security Services',
-    icon: Shield,
-    tag: 'IT & Security Services',
-    mainHeading: 'IT & Security Services',
-    headline: 'Continuous Workplace Protection & Power Reliability',
-    description: 'We deliver comprehensive workplace IT and physical security solutions designed to ensure uninterrupted business continuity. Our unified service integrates structured high-speed LAN connectivity, centralized 24/7 CCTV surveillance monitoring, biometric attendance and access control, reliable online UPS power continuity, proactive IT AMC maintenance contracts, and multi-layered endpoint antivirus defense.',
-    focus: 'CCTV, LAN, UPS, Antivirus, AMC, Attendance',
-    badge: 'Proactive 24/7 Monitoring • Zero-Downtime Power • Multi-Layered Threat Defense',
-    image: managedItImg,
-    bgImage: photoInfraEngineer,
-    ctaText: 'Consult Security Specialist'
-  },
-  {
     id: 'it-infrastructure',
-    tabTitle: 'IT Infrastructure',
+    tabTitle: 'IT Infrastructure Management',
     icon: Network,
     tag: 'IT Infrastructure',
-    mainHeading: 'IT Infrastructure',
-    headline: 'High-Performance Enterprise Servers, Storage & Networks',
-    description: 'Empowering mission-critical enterprise workloads with scalable, robust IT infrastructure built for maximum performance. We architect, deploy, and manage high-availability rack and blade servers, carrier-neutral low-latency network switching fabrics, secure high-density storage arrays, and enterprise-grade business Wi-Fi to support high-throughput operations across all your offices.',
-    focus: 'Servers, Network, Storage, Wi-Fi',
+    mainHeading: 'IT Infrastructure Management',
+    headline: 'High-Performance Enterprise Servers, Storage & Network Fabrics',
+    description: 'Empowering mission-critical enterprise workloads with scalable, robust IT infrastructure built for maximum performance. We architect, deploy, and manage high-availability rack servers, carrier-neutral low-latency switching fabrics, secure high-density storage arrays, and enterprise-grade business Wi-Fi to support high-throughput operations across all your offices.',
+    focus: 'Servers, Network, Storage, Enterprise Wi-Fi',
     badge: 'Redundant Core Architecture • Low-Latency Switching • High Data Availability',
-    image: itInfraImg,
-    bgImage: photoDatacenterArchitect,
+    image: imageCopy3,
+    bgImage: imageCopy,
+    showcaseBg: '#050a14',
+    imgFit: 'cover',
     ctaText: 'Explore Infrastructure Solutions'
   },
   {
-    id: 'office-it-security',
-    tabTitle: 'Office IT & Security',
-    icon: Laptop,
-    tag: 'Office IT & Security',
-    mainHeading: 'Office IT & Security',
-    headline: 'Seamlessly Integrated Office Computing & Security Ecosystems',
-    description: 'A complete, single-window technology integration designed for modern offices and enterprise workplaces. We bridge office workstation networks, zero-trust network firewalls, perimeter cybersecurity, surveillance monitoring, smart biometric gate systems, and rapid SLA-backed IT maintenance into an intelligent, cohesive environment that accelerates team productivity while defending company assets.',
-    focus: 'Integrated IT & security solutions',
-    badge: 'End-to-End Enterprise Workspace Architecture & Proactive SLA Support',
-    image: cybersecurityImg,
-    bgImage: photoOfficeNetworkEng,
-    ctaText: 'Schedule Office IT Assessment'
+    id: 'cloud-server-hosting',
+    tabTitle: 'Cloud Server & Hosting',
+    icon: Cloud,
+    tag: 'Cloud & Datacenter',
+    mainHeading: 'Cloud Server & Hosting',
+    headline: 'Scalable Enterprise VPS, Dedicated Cloud & Storage Infrastructure',
+    description: 'Deploy high-performance virtual private servers, dedicated cloud instances, and automated offsite data storage with 99.95% uptime guarantees, enterprise DDoS defense, and seamless elastic scalability. Built to handle heavy database workloads and multi-branch enterprise applications with zero lag.',
+    focus: 'Cloud VPS, Dedicated Compute, Encrypted Data Storage',
+    badge: 'Tier-4 Datacenter • 99.95% SLA Uptime • Automated Daily Snapshots',
+    image: imageCopy2,
+    bgImage: photoDatacenterArchitect,
+    showcaseBg: '#050a14',
+    imgFit: 'cover',
+    ctaText: 'Deploy Cloud Server'
   },
   {
-    id: 'microsoft-solutions',
-    tabTitle: 'Microsoft Solutions',
+    id: 'managed-it-services',
+    tabTitle: 'Managed IT Services',
+    icon: Radio,
+    tag: 'Managed IT & NOC',
+    mainHeading: 'Managed IT Services',
+    headline: '24/7 Proactive Network Operations Center & Enterprise AMC',
+    description: 'Offload day-to-day IT complexities to our certified Network Operations Center (NOC). We monitor your servers, firewalls, workstations, and network switches around the clock with rapid emergency SLA dispatch, scheduled preventive maintenance, automated patching, and executive monthly uptime reports.',
+    focus: '24/7 Monitoring, IT AMC, Remote Helpdesk, Preventive Audits',
+    badge: 'Central NOC in Kolkata • < 15 Min Triage • SLA Hardware Replacement',
+    image: imageCopy4,
+    bgImage: photoInfraEngineer,
+    showcaseBg: '#050a14',
+    imgFit: 'cover',
+    ctaText: 'Consult Managed IT Specialist'
+  },
+  {
+    id: 'cyber-security-solutions',
+    tabTitle: 'Cyber Security Solutions',
+    icon: ShieldCheck,
+    tag: 'Zero-Trust Defense',
+    mainHeading: 'Cyber Security Solutions',
+    headline: 'Multi-Layered UTM Firewalls, Endpoint Defense & Threat Intelligence',
+    description: 'Defend your enterprise perimeter against advanced malware, ransomware, phishing, and unauthorized intrusions with certified hardware UTM firewalls, encrypted VPN gateways, and centralized endpoint governance. Complete visibility and instant isolation of compromised devices before infections spread.',
+    focus: 'UTM Firewalls, Endpoint Antivirus, Phishing Defense, Encryption',
+    badge: 'Zero-Trust Architecture • Bank-Grade 256-Bit SSL • Real-Time Threat Isolation',
+    image: imageCopy5,
+    bgImage: photoOfficeNetworkEng,
+    showcaseBg: '#050a14',
+    imgFit: 'cover',
+    ctaText: 'Schedule Security Assessment'
+  },
+  {
+    id: 'microsoft-licensing',
+    tabTitle: 'Microsoft Licensing',
     icon: Layers,
-    tag: 'Microsoft Solutions',
-    mainHeading: 'Microsoft Solutions',
-    headline: 'Cloud Productivity, Identity Protection & Modern Endpoint Management',
-    description: 'Maximize corporate collaboration and ensure enterprise compliance with genuine Microsoft cloud and licensing solutions. As an authorized partner, we provide turnkey deployment and migration for Microsoft 365 productivity suites, genuine Windows OS and Windows Server environments, cloud-native identity governance with Microsoft Entra ID, and centralized device fleet management through Microsoft Intune.',
-    focus: 'Microsoft 365, Windows, Server, Entra ID, Intune',
-    badge: 'Official Microsoft Cloud Sync • Zero-Trust Identity • Automated Endpoint Compliance',
-    image: microsoftImg,
+    tag: 'Cloud Workplace',
+    mainHeading: 'Microsoft Licensing Solutions',
+    headline: 'Genuine Microsoft 365, Windows Server & Modern Endpoint Governance',
+    description: 'Maximize corporate collaboration and ensure enterprise compliance with genuine Microsoft cloud and licensing solutions. As an authorized partner, we provide turnkey deployment and migration for Microsoft 365 productivity suites, genuine Windows Server environments, Microsoft Entra ID identity governance, and Microsoft Intune device fleet management.',
+    focus: 'Microsoft 365, Teams, OneDrive, Exchange, Entra ID, Intune',
+    badge: 'Official Microsoft Solutions Partner • Volume Licensing Discounts • Turnkey Migration',
+    image: imageCopy6,
     bgImage: photoMicrosoftCloudEng,
+    showcaseBg: '#0f172a',
+    imgFit: 'cover',
     ctaText: 'Consult Microsoft Licensing Advisor'
   },
   {
-    id: 'tallyprime-solutions',
-    tabTitle: 'TallyPrime Solutions',
+    id: 'tallyprime-cloud',
+    tabTitle: 'TallyPrime & Tally On Cloud',
     icon: FileCheck2,
-    tag: 'TallyPrime Solutions',
-    mainHeading: 'TallyPrime Solutions',
-    headline: 'Automated Accounting, Real-Time Compliance & Connected Commerce',
-    description: 'Accelerate your financial administration with certified TallyPrime business automation. Our comprehensive solution empowers enterprises with direct connected banking reconciliations, real-time GST tax compliance and filing, instant electronic invoice (e-Invoice) generation, seamless e-Way bill creation, automated WhatsApp invoice dispatch, and secure 256-bit encrypted multi-user cloud access from anywhere.',
-    focus: 'Banking, GST, e-Invoice, e-Way Bill, WhatsApp',
-    badge: 'Certified 3-Star Tally Partner • 256-Bit SSL Encrypted Anywhere Access',
-    image: tallyPrimeImg,
+    tag: 'Accounting & ERP',
+    mainHeading: 'TallyPrime & Tally On Cloud',
+    headline: 'Anywhere Connected Accounting, GST Compliance & High-Speed Cloud VPS',
+    description: 'Run your complete TallyPrime accounting, inventory, and GST compliance software securely over the cloud from any Windows, Mac, or mobile device with zero latency. Features automated hourly encrypted backups, direct connected banking, instant e-Invoice generation, and multi-branch data synchronization.',
+    focus: 'Tally on Cloud, Anywhere Access, Auto Backups, GST Invoicing',
+    badge: 'Certified 3-Star Tally Partner • 256-Bit SSL Encryption • 99.9% Cloud Uptime',
+    image: imageCopy7,
     bgImage: photoFinancialSpecialist,
+    showcaseBg: '#ffffff',
+    imgFit: 'contain',
     ctaText: 'Request Tally Consultation'
   }
 ];
@@ -1358,17 +1320,6 @@ export default function Homepage({
                     </div>
                   )}
 
-                  {/* Feature Pills Micro-Strip */}
-                  {MEGA_MENU_CONFIG[activeCategory].featurePills && (
-                    <div className="demo-mega-feature-pills-wrap">
-                      {MEGA_MENU_CONFIG[activeCategory].featurePills.map((pill, pIdx) => (
-                        <span key={pIdx} className="demo-mega-feature-pill">
-                          {pill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
                   <p className="demo-mega-overview">{MEGA_MENU_CONFIG[activeCategory].overview}</p>
                 </div>
 
@@ -1812,10 +1763,6 @@ export default function Homepage({
 
                   {/* Vertical Spine: Visible when collapsed or all closed */}
                   <div className="demo-card-vertical-spine">
-                    <div className="demo-spine-top-icon">
-                      {service.icon && React.createElement(service.icon, { size: 18 })}
-                    </div>
-                    <span className="demo-spine-number">0{index + 1}</span>
                     <span className="demo-card-vertical-title">{service.tabTitle}</span>
                     <div className="demo-spine-bottom-indicator">
                       <Plus size={16} />
@@ -1833,7 +1780,7 @@ export default function Homepage({
                       <div className="demo-card-top-meta">
                         <div className="demo-card-tag-group">
                           <span className="demo-card-tag">{service.tag}</span>
-                          <span className="demo-card-number">0{index + 1} / 05</span>
+                          <span className="demo-card-number">0{index + 1} / 0{SERVICES_ACCORDION.length}</span>
                         </div>
                         <button 
                           type="button" 
@@ -1891,13 +1838,17 @@ export default function Homepage({
                     {/* Right Column: Dedicated Service Image Showcase */}
                     <div 
                       className="demo-card-image-showcase"
+                      style={{ background: service.showcaseBg || '#050a14' }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="demo-showcase-frame">
+                      <div 
+                        className="demo-showcase-frame"
+                        style={{ background: service.showcaseBg || '#050a14' }}
+                      >
                         <img 
                           src={service.image} 
                           alt={service.mainHeading} 
-                          className="demo-showcase-img"
+                          className={`demo-showcase-img ${service.imgFit === 'contain' ? 'fit-contain' : 'fit-cover'}`}
                           loading="lazy"
                         />
                       </div>

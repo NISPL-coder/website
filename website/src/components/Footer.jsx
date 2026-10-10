@@ -18,7 +18,13 @@ import './Footer.css';
 export default function Footer() {
   return (
     <footer id="footer-section" className="nis-official-footer">
-      <div className="container">
+      {/* Background Ambience Layers */}
+      <div className="footer-bg-glow-orb footer-bg-glow-center" aria-hidden="true" />
+      <div className="footer-bg-glow-orb footer-bg-glow-right" aria-hidden="true" />
+      <div className="footer-bg-grid-mesh" aria-hidden="true" />
+      <div className="footer-top-accent-line" aria-hidden="true" />
+
+      <div className="container footer-content-container">
         
         {/* Main Footer Grid */}
         <div className="footer-main-grid">
