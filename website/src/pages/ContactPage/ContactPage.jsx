@@ -165,7 +165,7 @@ export default function ContactPage() {
                     <p className="iz-item-text">
                       Webel Tower 1, BN Block, Salt Lake City, Sector-V, Kolkata - 700091
                     </p>
-                    <span className="iz-item-sub">Corporate Operations &amp; Data Center Hub</span>
+                    <span className="iz-item-sub">Corporate Office</span>
                   </div>
                 </div>
 
@@ -176,14 +176,17 @@ export default function ContactPage() {
                   </div>
                   <div className="iz-item-info">
                     <span className="iz-item-heading">Business Solutions</span>
-                    <p className="iz-item-text">
-                      Direct Hotline: <a href="tel:+919330113000">+91 9330113000</a>
-                    </p>
                      <p className="iz-item-text">
-                      Helpdesk: <a href="tel:03340041899">033 - 4004 1899</a>
+                      Landline <a href="tel:03340041899">033 - 4004 1899</a>
+                    </p>
+                    <p className="iz-item-text">
+                      Mobile <a href="tel:+919330113000">+91 9330113000</a>
                     </p>
                     <span className="iz-item-sub">
-                      Email: <a href="mailto:business@netinfotechsystem.com">business@netinfotechsystem.com</a>
+                      Email: <a href="mailto:info@netinfotechsystem.com">info@netinfotechsystem.com</a>
+                    </span>
+                    <span className="iz-item-sub">
+                      Email: <a href="mailto:nghosal@netinfotechsystem.com">nghosal@netinfotechsystem.com</a>
                     </span>
                   </div>
                 </div>
@@ -362,7 +365,7 @@ export default function ContactPage() {
             </div>
             <div>
               <h4 className="iz-map-spotlight-title">Net Infotech System Pvt. Ltd.</h4>
-              <span className="iz-map-spotlight-sub">Corporate Operations &amp; Data Center Hub</span>
+              <span className="iz-map-spotlight-sub">Corporate Office</span>
             </div>
           </div>
           <p className="iz-map-spotlight-address">

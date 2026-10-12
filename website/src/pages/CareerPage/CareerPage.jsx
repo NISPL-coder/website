@@ -31,64 +31,64 @@ const JOBS = [
     skills: ['AWS / Azure', 'VMware', 'NOC Ops']
   },
   {
-    id: 'tally-consultant',
-    title: 'TallyPrime Consultant',
-    department: 'ERP & Business Solutions',
-    category: 'erp',
-    badge: 'Certified',
-    experience: '2 – 5 Years',
-    type: 'Full-Time',
-    location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Implement TallyPrime workflows, GST compliance, and integrations for corporate clients.',
-    skills: ['TallyPrime', 'GST', 'Cloud Tally']
-  },
-  {
-    id: 'security-engineer',
-    title: 'Network Security Engineer',
-    department: 'IT Infrastructure & AMC',
-    category: 'infra',
-    badge: 'Priority',
-    experience: '2 – 5 Years',
-    type: 'Full-Time',
-    location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Configure and maintain next-gen firewalls, routing, and zero-trust security policies.',
-    skills: ['Firewalls', 'Routing', 'AMC']
-  },
-  {
-    id: 'cloud-migration',
-    title: 'Cloud Migration Specialist',
+    id: 'devops-engineer',
+    title: 'DevOps Automation Engineer',
     department: 'Cloud & DevOps',
     category: 'cloud',
     badge: 'Open',
-    experience: '1 – 3 Years',
+    experience: '2 – 5 Years',
     type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Execute seamless data migrations, virtual machine deployments, and system maintenance.',
-    skills: ['Windows Server', 'Hyper-V', 'Backups']
+    description: 'Implement CI/CD pipelines, container orchestration, and automate infrastructure deployments.',
+    skills: ['Docker', 'Kubernetes', 'Jenkins']
   },
   {
-    id: 'erp-support',
-    title: 'ERP Technical Support',
-    department: 'ERP & Business Solutions',
-    category: 'erp',
-    badge: 'Open',
-    experience: '1 – 3 Years',
-    type: 'Full-Time',
-    location: 'Salt Lake Sector-V, Kolkata',
-    description: 'Provide tier-2 technical resolution for TallyPrime and integrated business modules.',
-    skills: ['TallyPrime', 'Support', 'Accounting']
-  },
-  {
-    id: 'sales-executive',
+    id: 'sales-manager',
     title: 'IT Sales Manager',
     department: 'Business Development',
-    category: 'sales',
-    badge: 'Hiring',
-    experience: '2 – 5 Years',
+    category: 'bd',
+    badge: 'Priority',
+    experience: '3 – 6 Years',
     type: 'Full-Time',
     location: 'Salt Lake Sector-V, Kolkata',
     description: 'Drive corporate B2B client acquisition for enterprise cloud hosting and ERP projects.',
     skills: ['B2B Sales', 'Tech Sales', 'Client Engagement']
+  },
+  {
+    id: 'business-analyst',
+    title: 'Pre-Sales Business Analyst',
+    department: 'Business Development',
+    category: 'bd',
+    badge: 'Open',
+    experience: '2 – 4 Years',
+    type: 'Full-Time',
+    location: 'Salt Lake Sector-V, Kolkata',
+    description: 'Understand client requirements, prepare proposals, and assist in solution design presentations.',
+    skills: ['Requirements Gathering', 'Proposals', 'Client Facing']
+  },
+  {
+    id: 'hr-executive',
+    title: 'Senior HR Executive',
+    department: 'HR',
+    category: 'hr',
+    badge: 'Hiring',
+    experience: '3 – 5 Years',
+    type: 'Full-Time',
+    location: 'Salt Lake Sector-V, Kolkata',
+    description: 'Manage talent acquisition, employee engagement, and enforce company policies.',
+    skills: ['Recruitment', 'Operations', 'Compliance']
+  },
+  {
+    id: 'it-recruiter',
+    title: 'Technical IT Recruiter',
+    department: 'HR',
+    category: 'hr',
+    badge: 'Open',
+    experience: '1 – 3 Years',
+    type: 'Full-Time',
+    location: 'Salt Lake Sector-V, Kolkata',
+    description: 'Source, screen, and recruit technical talent for cloud, development, and support teams.',
+    skills: ['Sourcing', 'Screening', 'Negotiation']
   }
 ];
 
@@ -164,6 +164,15 @@ export default function CareerPage() {
       <Navbar />
 
       {/* =====================================================================
+          0. HERO HEADER
+          ===================================================================== */}
+      <section className="iz-career-hero-section">
+        <div className="iz-career-hero-content">
+          
+        </div>
+      </section>
+
+      {/* =====================================================================
           1. OPEN POSITIONS BOARD
           ===================================================================== */}
       <section className="iz-career-jobs-section" id="open-roles">
@@ -175,99 +184,57 @@ export default function CareerPage() {
             </p>
           </div>
 
-          <div className="iz-career-filter-bar">
-            <div className="iz-career-filter-tabs">
+          <div className="iz-career-layout-split">
+            <div className="iz-career-sidebar">
               <button 
                 type="button" 
-                className={`iz-career-tab ${selectedCategory === 'all' ? 'active' : ''}`}
+                className={`iz-career-sidebar-tab ${selectedCategory === 'all' ? 'active' : ''}`}
                 onClick={() => setSelectedCategory('all')}
               >
                 All Roles
               </button>
               <button 
                 type="button" 
-                className={`iz-career-tab ${selectedCategory === 'cloud' ? 'active' : ''}`}
+                className={`iz-career-sidebar-tab ${selectedCategory === 'hr' ? 'active' : ''}`}
+                onClick={() => setSelectedCategory('hr')}
+              >
+                HR
+              </button>
+              <button 
+                type="button" 
+                className={`iz-career-sidebar-tab ${selectedCategory === 'bd' ? 'active' : ''}`}
+                onClick={() => setSelectedCategory('bd')}
+              >
+                Business Development
+              </button>
+              <button 
+                type="button" 
+                className={`iz-career-sidebar-tab ${selectedCategory === 'cloud' ? 'active' : ''}`}
                 onClick={() => setSelectedCategory('cloud')}
               >
                 Cloud &amp; DevOps
               </button>
-              <button 
-                type="button" 
-                className={`iz-career-tab ${selectedCategory === 'erp' ? 'active' : ''}`}
-                onClick={() => setSelectedCategory('erp')}
-              >
-                ERP Solutions
-              </button>
-              <button 
-                type="button" 
-                className={`iz-career-tab ${selectedCategory === 'infra' ? 'active' : ''}`}
-                onClick={() => setSelectedCategory('infra')}
-              >
-                Security &amp; AMC
-              </button>
             </div>
 
-            <div className="iz-career-search-box">
-              <Search size={18} className="iz-career-search-icon" />
-              <input 
-                type="text"
-                placeholder="Search by keyword or skill..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="iz-career-search-input"
-              />
-            </div>
-          </div>
-
-          <div className="iz-career-jobs-grid">
-            {filteredJobs.length === 0 ? (
-              <div className="iz-career-no-results">
-                <p>No open positions match your search criteria. Please try a different keyword.</p>
-              </div>
-            ) : (
-              filteredJobs.map((job) => (
-                <div key={job.id} className="iz-career-job-card">
-                  <div>
-                    <div className="iz-career-job-header">
-                      <span className="iz-career-dept-pill">{job.department}</span>
-                      <span className="iz-career-status-badge">{job.badge}</span>
-                    </div>
-                    <h3 className="iz-career-job-title">{job.title}</h3>
-                    <p className="iz-career-job-desc">{job.description}</p>
-                    
-                    <div className="iz-career-skills-list">
-                      {job.skills.map((skill, sIdx) => (
-                        <span key={sIdx} className="iz-career-skill-badge">{skill}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="iz-career-job-meta-row">
-                      <div className="iz-career-meta-item">
-                        <Clock size={16} />
-                        <span>{job.experience}</span>
-                      </div>
-                      <div className="iz-career-meta-item">
-                        <MapPin size={16} />
-                        <span>{job.location}</span>
-                      </div>
-                    </div>
-
-                    <button 
-                      type="button" 
-                      className="iz-career-job-apply-btn"
-                      onClick={handleApplyClick}
-                    >
-                      <span>Apply For Position</span>
-                      <div className="iz-icon-wrap">
-                        <ArrowRight size={18} />
-                      </div>
-                    </button>
-                  </div>
+            <div className="iz-career-jobs-list">
+              {filteredJobs.length === 0 ? (
+                <div className="iz-career-no-results">
+                  <p>No open positions match your search criteria. Please try a different keyword.</p>
                 </div>
-              ))
-            )}
+              ) : (
+                filteredJobs.map((job) => (
+                  <div key={job.id} className="iz-career-simple-card" onClick={handleApplyClick}>
+                    <div className="iz-career-simple-info">
+                      <h3 className="iz-career-simple-title">{job.title}</h3>
+                      <span className="iz-career-simple-exp">({job.experience})</span>
+                    </div>
+                    <div className="iz-career-simple-icon-wrap">
+                      <User size={28} strokeWidth={1.5} color="#FFFFFF" />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -288,7 +255,7 @@ export default function CareerPage() {
             <div className="iz-career-form-card">
               <form onSubmit={handleSubmit}>
                 <div className="iz-career-input-group">
-                  <label htmlFor="name">Full Name</label>
+                  <label htmlFor="name">Name</label>
                   <input 
                     type="text" 
                     id="name"
@@ -302,7 +269,7 @@ export default function CareerPage() {
                 </div>
                 
                 <div className="iz-career-input-group">
-                  <label htmlFor="email">Email Address</label>
+                  <label htmlFor="email">Email</label>
                   <input 
                     type="email" 
                     id="email"
@@ -313,52 +280,6 @@ export default function CareerPage() {
                     onChange={handleChange}
                     required 
                   />
-                </div>
-
-                <div className="iz-career-input-group">
-                  <label htmlFor="organisation">Organisation</label>
-                  <input 
-                    type="text" 
-                    id="organisation"
-                    name="organisation"
-                    className="iz-career-input"
-                    placeholder="Current Company / University"
-                    value={formData.organisation}
-                    onChange={handleChange}
-                    required 
-                  />
-                </div>
-
-                <div className="iz-career-input-group">
-                  <label htmlFor="source">How did you hear about us?</label>
-                  <select 
-                    id="source"
-                    name="source"
-                    className="iz-career-select"
-                    value={formData.source}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="" disabled>Select an option</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="Indeed / Naukri">Indeed / Naukri</option>
-                    <option value="Referral">Employee Referral</option>
-                    <option value="Website">Company Website</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="iz-career-input-group">
-                  <label htmlFor="description">Brief Description / Cover Letter</label>
-                  <textarea 
-                    id="description"
-                    name="description"
-                    className="iz-career-textarea"
-                    placeholder="Tell us about your experience and why you'd be a great fit..."
-                    value={formData.description}
-                    onChange={handleChange}
-                    required 
-                  ></textarea>
                 </div>
 
                 <div className="iz-career-input-group">

@@ -14,6 +14,7 @@ import './App.css';
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
+  
   useEffect(() => {
     if (hash) {
       setTimeout(() => {

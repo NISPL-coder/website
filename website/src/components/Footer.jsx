@@ -110,7 +110,7 @@ export default function Footer() {
             <div className="contact-item">
               <Phone size={18} className="contact-icon" />
               <div>
-                <span className="contact-label">Phone & Hotline:</span>
+                <span className="contact-label">Landline & Mobile:</span>
                 <a href="tel:03340041899" className="contact-val block">
                   {COMPANY_INFO.landline}
                 </a>
