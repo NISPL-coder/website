@@ -241,6 +241,10 @@
   animation: demoNomadFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.demo-nomad-dropdown-card.demo-nomad-cols-2 {
+  width: min(560px, calc(100vw - 36px));
+}
+
 /* Invisible bridge so cursor transitions smoothly from navbar to dropdown */
 .demo-nomad-dropdown-card::before {
   content: '';

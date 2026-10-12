@@ -208,11 +208,16 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
 
         {activeCategory && MEGA_MENU_CONFIG[activeCategory] && (
           <div 
-            className="demo-nomad-dropdown-card animate-fade-in"
+            className={`demo-nomad-dropdown-card animate-fade-in demo-nomad-cols-${MEGA_MENU_CONFIG[activeCategory].columns.length}`}
             onMouseEnter={handleMenuContainerEnter}
             onMouseLeave={handleMenuContainerLeave}
           >
-            <div className="demo-nomad-grid">
+            <div 
+              className="demo-nomad-grid"
+              style={{
+                gridTemplateColumns: `repeat(${MEGA_MENU_CONFIG[activeCategory].columns.length}, minmax(0, 1fr))`
+              }}
+            >
               {MEGA_MENU_CONFIG[activeCategory].columns.map((column) => (
                 <div key={column.id} className="demo-nomad-column">
                   {/* Top Preview Thumbnail Image */}

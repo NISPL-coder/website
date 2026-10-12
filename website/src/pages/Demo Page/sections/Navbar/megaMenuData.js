@@ -316,7 +316,7 @@ export const MEGA_MENU_CONFIG = {
   },
 
   // =========================================================================
-  // ABOUT US MEGA MENU (Nomad Style 4 Columns)
+  // ABOUT US MEGA MENU (Nomad Style 2 Columns)
   // =========================================================================
   about: {
     id: 'about',
@@ -339,7 +339,7 @@ export const MEGA_MENU_CONFIG = {
       },
       {
         id: 'col-about-culture',
-        title: 'People & Culture',
+        title: 'Work Culture',
         image: imgCelebration,
         path: '/about#work-culture',
         links: [
@@ -350,41 +350,11 @@ export const MEGA_MENU_CONFIG = {
           { label: 'Festive Traditions & Events', path: '/about#work-culture' },
           { label: 'Collaborative Open Floors', path: '/about#work-culture' }
         ]
-      },
-      {
-        id: 'col-about-alliances',
-        title: 'Strategic Alliances',
-        image: imgEngineers,
-        path: '/about#authorized-partners',
-        links: [
-          { label: 'Tally Certified 3-Star Partner', path: '/about#authorized-partners', badge: 'OFFICIAL' },
-          { label: 'Microsoft Solutions Partner', path: '/about#authorized-partners', badge: 'TIER-1' },
-          { label: 'AWS Partner Cloud Network', path: '/about#authorized-partners' },
-          { label: 'Dell Technologies Channel', path: '/about#authorized-partners' },
-          { label: 'CtrlS Datacenter Colocation', path: '/about#authorized-partners' },
-          { label: 'Sophos & Fortinet Alliances', path: '/about#authorized-partners' }
-        ]
-      },
-      {
-        id: 'col-about-careers',
-        title: 'Careers & Team',
-        image: imgOfficeIT,
-        path: '/career',
-        links: [
-          { label: 'Explore Open Positions', path: '/career', badge: 'HIRING' },
-          { label: 'Network & Cloud Engineers', path: '/career' },
-          { label: 'Tally Implementation Leads', path: '/career' },
-          { label: 'Hardware & AMC Specialists', path: '/career' },
-          { label: 'Enterprise Sales Managers', path: '/career' },
-          { label: 'Student Internships Program', path: '/career' }
-        ]
       }
     ],
     items: [
-      { id: 'about-nispl', label: 'About Net Infotech System', path: '/about' },
-      { id: 'work-culture', label: 'Work Culture & Life at NISPL', path: '/about#work-culture' },
-      { id: 'partners', label: 'Authorized Global Technology Partners', path: '/about#authorized-partners' },
-      { id: 'careers', label: 'Careers & Opportunities', path: '/career' }
+      { id: 'about-nispl', label: 'Company Overview', path: '/about' },
+      { id: 'work-culture', label: 'Work Culture & Life at NISPL', path: '/about#work-culture' }
     ]
   }
 };

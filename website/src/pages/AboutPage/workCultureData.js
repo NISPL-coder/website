@@ -145,40 +145,6 @@ export const WORK_CULTURE_STORIES = [
     image: imgSummit,
     imageAlt: 'NISPL delegation participating in a grand technology conclave audience',
     caption: 'Engaging with hundreds of industry visionaries at premier tech forums'
-  },
-  {
-    id: 'culture-9',
-    category: 'festivities',
-    tag: 'Vibrant Togetherness',
-    heading: 'Festive Smiles & Enduring Camaraderie',
-    quote: 'A family bonded by joy, warmth, and shared cultural pride',
-    description:
-      'At NISPL, work and life intertwine with celebratory warmth. We commemorate regional festivals, cultural days, and company milestones with traditional attire, flower garlands, festive lunches, and unforgettable memories that bind our team like family.',
-    pills: ['Cultural Celebrations', 'Family Atmosphere', 'Memorable Bonds'],
-    stats: [
-      { label: 'Festival Gatherings', value: 'Year-Round' },
-      { label: 'Work-Life Harmony', value: 'Prized' }
-    ],
-    image: imgFestiveGroup,
-    imageAlt: 'NISPL team dressed in vibrant traditional attire celebrating at office entrance',
-    caption: 'Celebrating cultural festivals with laughter, sweets, and shared joy'
-  },
-  {
-    id: 'culture-10',
-    category: 'festivities',
-    tag: 'Heritage & Gratitude',
-    heading: 'Rooted in Gratitude & Auspicious Beginnings',
-    quote: 'Honoring our crafts, instruments, and collective journey',
-    description:
-      'Every server, system, code repository, and person is valued with heartfelt reverence. Our annual Vishwakarma Puja and auspicious ceremonies keep our feet firmly rooted in humility and gratitude while we engineer modern cloud solutions for the future.',
-    pills: ['Traditional Puja', 'Gratitude for Tools', 'Spiritual Harmony'],
-    stats: [
-      { label: 'Annual Traditions', value: 'Sacred' },
-      { label: 'Positive Aura', value: 'Enduring' }
-    ],
-    image: imgPujaHeritage,
-    imageAlt: 'NISPL team performing traditional Vishwakarma Puja in the office',
-    caption: 'Seeking auspicious blessings for craftsmanship, technology, and team prosperity'
   }
 ];
 
