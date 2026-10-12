@@ -4,77 +4,11 @@ import {
   ChevronDown, 
   Menu, 
   X, 
-  ArrowUpRight, 
-  ArrowRight,
-  Factory,
-  ShoppingBag,
-  HeartPulse,
-  Landmark,
-  Calculator,
-  Cloud,
-  Server,
-  ShieldCheck,
-  Cpu,
-  Laptop,
-  Database,
-  RefreshCw,
-  Workflow,
-  Wrench,
-  Network,
-  Users,
-  Award,
-  Building2,
-  FileText,
-  Briefcase,
-  PhoneCall,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import logoImg from '../../../../assets/Net Infotech Transparent Logo.png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
-const ITEM_ICON_MAP = {
-  // About
-  'about-nispl': Building2,
-  'work-culture': Users,
-  'partners': Award,
-  'noc-facility': Server,
-
-  // Products
-  'tally-cloud': Cloud,
-  'm365-suite': Briefcase,
-  'datacenter-vps': Server,
-  'utm-defense': ShieldCheck,
-  'smart-biometrics': Cpu,
-  'antivirus-edr': RefreshCw,
-
-  // Industries
-  'ind-mfg': Factory,
-  'ind-retail-fmcg': ShoppingBag,
-  'ind-health': HeartPulse,
-  'ind-public': Landmark,
-  'ind-ca-fin': Calculator,
-  'ind-corp': Building2,
-
-  // Services
-  'srv-managed-noc': Workflow,
-  'srv-it-amc': Wrench,
-  'srv-lan-server': Network,
-  'srv-cloud-mig': Cloud,
-  'srv-tally-supp': FileText,
-  'srv-cyber-mgmt': ShieldCheck,
-  'srv-cctv-wifi': Laptop,
-  'srv-remote-supp': RefreshCw,
-
-  // Solutions
-  'sol-tally-prime': FileText,
-  'sol-cloud-tally': Cloud,
-  'sol-cloud-vps': Server,
-  'sol-cyber-sec': ShieldCheck,
-  'sol-m365-lic': Briefcase,
-  'sol-backup-dr': Database,
-  'sol-it-infra': Server,
-  'sol-crm-helpdesk': Workflow,
-};
 
 export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const navigate = useNavigate();
@@ -272,106 +206,61 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
           </div>
         </nav>
 
-        {activeCategory && MEGA_MENU_CONFIG[activeCategory] && (() => {
-          const catData = MEGA_MENU_CONFIG[activeCategory];
-          return (
-            <div 
-              className="demo-mega-menu-container animate-fade-in"
-              onMouseEnter={handleMenuContainerEnter}
-              onMouseLeave={handleMenuContainerLeave}
-            >
-              <div className="demo-mega-menu-inner">
-                
-                {/* ---------------------------------------------------------------
-                    LEFT PANEL: "Use Cases" Style 2-Column Grid with Black Squircles
-                    --------------------------------------------------------------- */}
-                <div className="demo-mega-left-panel">
-                  <div className="demo-mega-section-title">
-                    {catData.leftTitle || 'Use Cases'}
+        {activeCategory && MEGA_MENU_CONFIG[activeCategory] && (
+          <div 
+            className="demo-nomad-dropdown-card animate-fade-in"
+            onMouseEnter={handleMenuContainerEnter}
+            onMouseLeave={handleMenuContainerLeave}
+          >
+            <div className="demo-nomad-grid">
+              {MEGA_MENU_CONFIG[activeCategory].columns.map((column) => (
+                <div key={column.id} className="demo-nomad-column">
+                  {/* Top Preview Thumbnail Image */}
+                  <div 
+                    className="demo-nomad-image-wrap"
+                    onClick={() => handleMenuItemClick(column.path)}
+                    title={column.title}
+                  >
+                    <img 
+                      src={column.image} 
+                      alt={column.title} 
+                      className="demo-nomad-image"
+                      loading="lazy"
+                    />
                   </div>
 
-                  <div className="demo-mega-left-grid">
-                    {catData.items.map((subItem) => {
-                      const IconComponent = ITEM_ICON_MAP[subItem.id] || Briefcase;
-                      const shortDesc = subItem.desc1 
-                        ? (subItem.desc1.split('.')[0] + '.') 
-                        : (subItem.badge || 'Enterprise IT solution tailored for scalability.');
+                  {/* Column Title */}
+                  <h3 
+                    className="demo-nomad-column-title"
+                    onClick={() => handleMenuItemClick(column.path)}
+                  >
+                    {column.title}
+                  </h3>
 
-                      return (
-                        <div
-                          key={subItem.id}
-                          className="demo-mega-item-card"
-                          onClick={() => handleMenuItemClick(subItem.path)}
+                  {/* List of Sub-Links */}
+                  <ul className="demo-nomad-links-list">
+                    {column.links.map((link, lIdx) => (
+                      <li key={lIdx} className="demo-nomad-link-item">
+                        <button
+                          type="button"
+                          className="demo-nomad-link-btn"
+                          onClick={() => handleMenuItemClick(link.path)}
                         >
-                          <div className="demo-mega-squircle-icon">
-                            <IconComponent size={20} strokeWidth={2.2} />
-                          </div>
-                          <div className="demo-mega-item-text">
-                            <span className="demo-mega-item-title">{subItem.label}</span>
-                            <p className="demo-mega-item-sub">{shortDesc}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          <span className="demo-nomad-link-text">{link.label}</span>
+                          {link.badge && (
+                            <span className={`demo-nomad-badge badge-${link.badge.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}>
+                              {link.badge}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-
-                {/* ---------------------------------------------------------------
-                    RIGHT PANEL: "AI Features" Style 3 Sub-Columns + Bottom Card
-                    --------------------------------------------------------------- */}
-                <div className="demo-mega-right-panel">
-                  <div className="demo-mega-right-top">
-                    <div className="demo-mega-section-title">
-                      {catData.rightTitle || 'Key Capabilities'}
-                    </div>
-
-                    <div className="demo-mega-columns-grid">
-                      {(catData.rightColumns || []).map((col, cIdx) => (
-                        <div key={cIdx} className="demo-mega-sub-col">
-                          <span className="demo-mega-col-header">{col.title}</span>
-                          <ul className="demo-mega-link-list">
-                            {col.items.map((item, iIdx) => (
-                              <li key={iIdx}>
-                                <button
-                                  type="button"
-                                  className="demo-mega-text-link"
-                                  onClick={() => handleMenuItemClick(item.path)}
-                                >
-                                  <span>{item.label}</span>
-                                  {item.badge && (
-                                    <span className="demo-mega-pill-badge">{item.badge}</span>
-                                  )}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bottom "Meet Underlord" style Callout Card */}
-                  {catData.callout && (
-                    <div 
-                      className="demo-mega-callout-card"
-                      onClick={() => {
-                        setActiveCategory(null);
-                        handleCtaClick();
-                      }}
-                    >
-                      <div className="demo-mega-callout-action">
-                        <span>{catData.callout.actionLabel || 'Book Call'}</span>
-                        <ArrowRight size={14} />
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-
-              </div>
+              ))}
             </div>
-          );
-        })()}
+          </div>
+        )}
 
       </header>
 
