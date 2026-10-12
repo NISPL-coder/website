@@ -236,7 +236,7 @@ export default function ContactPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="Your Email"
+                        placeholder="Your Email Address"
                         className="iz-input-underline"
                         required
                       />
