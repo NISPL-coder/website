@@ -12,7 +12,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/Transparent Tech Logo with Cloud Mark.png';
+import logoImg from '../assets/nispl-logo-transparent.png';
 import './Footer.css';
 
 export default function Footer() {
@@ -153,11 +153,13 @@ export default function Footer() {
           <div className="legal-links">
             <Link to="/">Home</Link>
             <span className="dot-sep">•</span>
+            <Link to="/about">About Us</Link>
+            <span className="dot-sep">•</span>
             <Link to="/services">Services</Link>
             <span className="dot-sep">•</span>
             <Link to="/solutions">Solutions</Link>
             <span className="dot-sep">•</span>
-            <Link to="/portfolio">Portfolio</Link>
+            <Link to="/career">Careers</Link>
             <span className="dot-sep">•</span>
             <Link to="/contact">Contact</Link>
           </div>

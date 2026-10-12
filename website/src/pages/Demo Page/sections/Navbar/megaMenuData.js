@@ -4,6 +4,7 @@ import megaSolutionsImg from '../../../../assets/solutions_mega_features.jpg';
 import megaAboutImg from '../../../../assets/about_mega_features.jpg';
 
 const NAV_ITEMS = [
+  { id: 'about', label: 'About Us', path: '/about' },
   { id: 'products', label: 'Products', path: '/products' },
   { id: 'industries', label: 'Industries', path: '/industries' },
   { id: 'services', label: 'Services', path: '/services' },
@@ -34,7 +35,7 @@ const MEGA_MENU_CONFIG = {
       {
         id: 'about-nispl',
         label: 'About NISPL',
-        path: '#innovators-partners',
+        path: '/about',
         badge: 'Enterprise Overview',
         heading: 'About Net Infotech System',
         slaGrade: 'ISO 9001:2015 Certified Operations',
@@ -48,6 +49,24 @@ const MEGA_MENU_CONFIG = {
           { title: 'Certified Technical Team', desc: 'Microsoft Certified Systems Engineers (MCSE) and Tally Certified Specialists.' }
         ],
         techSpecs: 'Headquarters: Kolkata, India • Facilities: 24/7 NOC & Certified Hardware Lab • Pan-India Remote SLA Dispatch'
+      },
+      {
+        id: 'work-culture',
+        label: 'Work Culture & Life',
+        path: '/about#work-culture',
+        badge: 'Our People & Spirit',
+        heading: 'Inside NISPL: People, Culture & Milestones',
+        slaGrade: 'Inspiring Workplace Excellence FY 2024–25',
+        metrics: ['🏅 Workplace Excellence Award', '🤝 Aikyam: One Team Synergy', '💡 Continuous Skill Sprints', '🎉 Festive Family Spirit'],
+        desc1: 'Experience our vibrant open-floor workspace, high-tech war rooms, prestigious industry accolades, and rich cultural traditions that make NISPL a truly inspiring workplace.',
+        desc2: 'From everyday innovation to national technology summits and auspicious celebrations, our people-first ethos drives Eastern India’s digital transformation.',
+        capabilities: [
+          { title: 'Inspiring Workplace Honor', desc: 'Conferred the Workplace Excellence Award FY 2024-25 by Tally leadership.' },
+          { title: 'Aikyam (Unified Team)', desc: 'Zero silos, cross-functional collaboration, and mutual mentorship across every team.' },
+          { title: 'Knowledge & Thought Leadership', desc: 'Active keynote speakers and panel delegates at national enterprise technology forums.' },
+          { title: 'Warm Festive Traditions', desc: 'Year-round festive togetherness, Vishwakarma Puja, and family-like camaraderie.' }
+        ],
+        techSpecs: 'Location: Salt Lake Sector-V, Kolkata • Modern Tech Floor & Collaborative Suites'
       },
       {
         id: 'partners',

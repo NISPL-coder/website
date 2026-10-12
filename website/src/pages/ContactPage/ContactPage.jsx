@@ -11,9 +11,9 @@ import {
 import Navbar from '../Demo Page/sections/Navbar/Navbar';
 import Footer from '../../components/Footer';
 import LinkedInQRCode from '../../components/LinkedInQRCode';
-import photoFinancialSpecialist from '../../assets/photo_financial_erp_specialist.jpg';
-import photoMicrosoftCloudEng from '../../assets/photo_microsoft_cloud_eng.jpg';
-import photoDatacenterArchitect from '../../assets/photo_datacenter_architect.jpg';
+import photoFinancialSpecialist from '../../assets/corporate_team_handshake.jpg';
+import photoMicrosoftCloudEng from '../../assets/office_engineers_collaborating.jpg';
+import photoDatacenterArchitect from '../../assets/client_team_celebration.jpg';
 import './ContactPage.css';
 
 const ASSOCIATES = [

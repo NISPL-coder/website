@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 // import WhatsAppButton from './components/WhatsAppButton';
 import DemoHomepage from './pages/Demo Page/Homepage';
+import AboutPage from './pages/AboutPage/AboutPage';
 import ContactPage from './pages/ContactPage/ContactPage';
 import CareerPage from './pages/CareerPage/CareerPage';
 import DemoModal from './components/modals/DemoModal';
@@ -61,6 +62,24 @@ function MainApp() {
           path="/" 
           element={
             <DemoHomepage 
+              onOpenContact={() => setIsDemoModalOpen(true)}
+              onOpenConsultation={() => setIsDemoModalOpen(true)}
+            />
+          } 
+        />
+        <Route 
+          path="/about" 
+          element={
+            <AboutPage 
+              onOpenContact={() => setIsDemoModalOpen(true)}
+              onOpenConsultation={() => setIsDemoModalOpen(true)}
+            />
+          } 
+        />
+        <Route 
+          path="/about-us" 
+          element={
+            <AboutPage 
               onOpenContact={() => setIsDemoModalOpen(true)}
               onOpenConsultation={() => setIsDemoModalOpen(true)}
             />
