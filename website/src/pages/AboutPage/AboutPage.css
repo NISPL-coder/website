@@ -237,15 +237,21 @@
    3. WORK CULTURE MAIN SECTION (Alternating Zig-Zag Layout)
    ========================================================================== */
 .about-culture-section {
-  padding: 90px 0 110px 0;
-  background: #F8FAFC;
+  padding-top: calc(var(--header-height, 120px) + 50px);
+  padding-bottom: 110px;
+  background: 
+    radial-gradient(circle at 15% 10%, rgba(2, 132, 199, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(79, 70, 229, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 35%, #F8FAFC 70%, #F0F9FF 100%);
   position: relative;
+  min-height: 100vh;
 }
 
 .about-culture-header {
   text-align: center;
-  max-width: 820px;
-  margin: 0 auto 50px auto;
+  max-width: 860px;
+  margin: 0 auto 64px auto;
 }
 
 .about-section-pill {
@@ -265,18 +271,23 @@
 }
 
 .about-section-heading {
-  font-size: clamp(2rem, 3.2vw, 2.75rem);
-  font-weight: 800;
+  font-family: var(--demo-font-display, 'Outfit', 'Inter', sans-serif);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 400;
   color: #0F172A;
-  letter-spacing: -0.02em;
-  margin-bottom: 16px;
+  letter-spacing: -0.015em;
+  line-height: 1.22;
+  margin-bottom: 18px;
 }
 
 .about-section-desc {
+  font-family: var(--demo-font-body, 'Inter', sans-serif);
   font-size: 1.05rem;
+  font-weight: 400;
   color: #64748B;
   line-height: 1.65;
-  margin: 0;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 /* Category Filter Tabs */
@@ -853,9 +864,9 @@
 }
 
 @media (max-width: 860px) {
-  .about-hero-section {
-    padding-top: calc(var(--header-height, 80px) + 24px);
-    padding-bottom: 50px;
+  .about-culture-section {
+    padding-top: calc(var(--header-height, 80px) + 36px);
+    padding-bottom: 70px;
   }
 
   .about-culture-list {

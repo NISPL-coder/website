@@ -127,13 +127,6 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
 
                   {/* Text Content Column */}
                   <div className="about-culture-text-col">
-                    <div className="about-item-index-badge">
-                      <span className="about-item-num">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <span className="about-item-tag">{story.tag}</span>
-                    </div>
-
                     <h3 className="about-item-heading">{story.heading}</h3>
 
                     {story.quote && (

@@ -21,6 +21,42 @@ const MEGA_MENU_CONFIG = {
     id: 'about',
     label: 'About Us',
     title: 'About Us',
+    leftTitle: 'About NISPL',
+    rightTitle: 'Corporate Snapshot',
+    rightColumns: [
+      {
+        title: 'Milestones',
+        items: [
+          { label: '25+ Years in Business', path: '/about' },
+          { label: '1,000+ Corporate Clients', path: '/about' },
+          { label: 'Pan-India Reach', path: '/about' },
+          { label: 'ISO 9001:2015 Operations', path: '/about', badge: 'VERIFIED' }
+        ]
+      },
+      {
+        title: 'Alliances',
+        items: [
+          { label: 'Tally Certified 3-Star', path: '/about' },
+          { label: 'Microsoft CSP Partner', path: '/about' },
+          { label: 'Dell Technologies Channel', path: '/about' },
+          { label: 'Sophos Gold Reseller', path: '/about' }
+        ]
+      },
+      {
+        title: 'Workplace & Life',
+        items: [
+          { label: 'Inspiring Workplace Honor', path: '/about#work-culture' },
+          { label: 'Aikyam One Team Spirit', path: '/about#work-culture' },
+          { label: 'Festive Traditions', path: '/about#work-culture' },
+          { label: 'Engineering War Rooms', path: '/about#work-culture' }
+        ]
+      }
+    ],
+    callout: {
+      title: 'Partner With Eastern India’s IT Leader',
+      desc: 'Discover how NISPL has powered growth and 99.9% uptime for enterprises for over 25 years.',
+      actionLabel: 'View Story'
+    },
     image: megaAboutImg,
     imageTag: '25+ Years Technology Excellence & Alliances',
     overview: 'Net Infotech System Pvt. Ltd. (NISPL) is Eastern India’s leading IT infrastructure, enterprise cloud, and business automation powerhouse with over 25 years of technology excellence.',
@@ -40,7 +76,7 @@ const MEGA_MENU_CONFIG = {
         heading: 'About Net Infotech System',
         slaGrade: 'ISO 9001:2015 Certified Operations',
         metrics: ['🏆 25+ Years of Excellence', '🌐 Pan-India Enterprise Reach', '⚡ 99.9% Infrastructure Uptime', '👥 1,000+ Corporate Engagements'],
-        desc1: 'Founded with a core commitment to connect people and accelerate organizational efficiency, Net Infotech System Pvt. Ltd. has evolved into Eastern India’s most trusted IT infrastructure, datacenter, and cloud powerhouse.',
+        desc1: 'Eastern India’s leading IT infrastructure, datacenter, and enterprise cloud powerhouse with over 25 years of excellence.',
         desc2: 'From high-throughput enterprise networks and structured server cabling to bank-grade cloud migrations and proactive 24/7 hardware maintenance, our certified architects deliver 99.9% uptime and uncompromising system security for growing enterprises.',
         capabilities: [
           { title: 'Turnkey Systems Integration', desc: 'End-to-end datacenter, cloud, hardware AMC, and software deployment under one roof.' },
@@ -58,7 +94,7 @@ const MEGA_MENU_CONFIG = {
         heading: 'Inside NISPL: People, Culture & Milestones',
         slaGrade: 'Inspiring Workplace Excellence FY 2024–25',
         metrics: ['🏅 Workplace Excellence Award', '🤝 Aikyam: One Team Synergy', '💡 Continuous Skill Sprints', '🎉 Festive Family Spirit'],
-        desc1: 'Experience our vibrant open-floor workspace, high-tech war rooms, prestigious industry accolades, and rich cultural traditions that make NISPL a truly inspiring workplace.',
+        desc1: 'Experience our vibrant open-floor workspace, high-tech war rooms, prestigious industry accolades, and rich cultural traditions.',
         desc2: 'From everyday innovation to national technology summits and auspicious celebrations, our people-first ethos drives Eastern India’s digital transformation.',
         capabilities: [
           { title: 'Inspiring Workplace Honor', desc: 'Conferred the Workplace Excellence Award FY 2024-25 by Tally leadership.' },
@@ -76,7 +112,7 @@ const MEGA_MENU_CONFIG = {
         heading: 'Certified Global Technology Alliances',
         slaGrade: 'Direct Vendor Authorized Channel',
         metrics: ['★ Tally Certified 3-Star', '☁️ Microsoft Solutions Partner', '🚀 AWS Partner Network', '🖥️ Dell & CtrlS Datacenter'],
-        desc1: 'We maintain certified direct partnerships with the world\'s leading enterprise technology providers, including Microsoft Solutions Partner, Tally Certified 3-Star Partner, AWS Partner Network, Google Cloud, Dell Technologies, and CtrlS Datacenters.',
+        desc1: 'Direct certified partnerships with Microsoft, Tally (3-Star), AWS, Google Cloud, Dell Technologies, and CtrlS Datacenters.',
         desc2: 'These premier alliances ensure that your enterprise receives genuine volume software licensing, factory-backed hardware warranties, Tier-4 datacenter uptime, and certified engineering deployments without third-party intermediaries.',
         capabilities: [
           { title: 'Genuine Licensing Tier', desc: 'Direct authorized procurement for Microsoft 365, Windows Server, and TallyPrime licenses.' },
@@ -85,6 +121,24 @@ const MEGA_MENU_CONFIG = {
           { title: 'Periodic Vendor Audits', desc: 'Compliant licensing structures that pass all statutory corporate IT audits.' }
         ],
         techSpecs: 'Partner Tiers: Tier-1 Direct Cloud Solution Provider (CSP) • Tier-4 Indian Datacenter Colocation'
+      },
+      {
+        id: 'noc-facility',
+        label: 'NOC & Hardware Lab',
+        path: '/about',
+        badge: 'Technical Infrastructure',
+        heading: '24/7 Central NOC & Diagnostic Lab',
+        slaGrade: 'Tier-4 Diagnostic Facilities',
+        metrics: ['⚡ 24/7 Operations Floor', '🔬 Component Diagnostic Lab', '📦 Buffer Spare Stock', '🚗 Fast Dispatch Vans'],
+        desc1: 'Centralized Network Operations Center in Salt Lake Sector-V with dedicated component-level diagnostic laboratories.',
+        desc2: 'Houses our buffer inventory of standby enterprise servers, motherboards, and Cisco switches for rapid on-site replacement.',
+        capabilities: [
+          { title: 'Sector-V Operations Hub', desc: 'High-tech monitoring war room tracking client server telemetry 24 hours a day.' },
+          { title: 'Component-Level Repair', desc: 'Advanced micro-soldering and oscilloscope diagnostics for server boards and UPS units.' },
+          { title: 'Emergency Technician Fleet', desc: 'Equipped service fleet providing guaranteed 2 to 4 hour emergency arrival across Kolkata.' },
+          { title: 'Zero-Downtime Buffer Stock', desc: 'Pre-configured replacement servers ready for immediate hot-swap deployment.' }
+        ],
+        techSpecs: 'Location: Salt Lake Sector-V, Kolkata • ISO 9001:2015 Certified Service Facility'
       }
     ]
   },
@@ -92,6 +146,42 @@ const MEGA_MENU_CONFIG = {
     id: 'products',
     label: 'Products',
     title: 'Products',
+    leftTitle: 'Product Ecosystem',
+    rightTitle: 'Platform Highlights',
+    rightColumns: [
+      {
+        title: 'Cloud & Accounts',
+        items: [
+          { label: 'Tally Anywhere Access', path: '/products' },
+          { label: 'Hourly Backups', path: '/products' },
+          { label: 'Multi-User Concurrency', path: '/products' },
+          { label: 'Connected E-Invoicing', path: '/products', badge: 'POPULAR' }
+        ]
+      },
+      {
+        title: 'Workplace Suite',
+        items: [
+          { label: 'Microsoft Entra ID', path: '/products' },
+          { label: '1 TB OneDrive Storage', path: '/products' },
+          { label: 'Exchange 50 GB Mail', path: '/products' },
+          { label: 'Intune Device MDM', path: '/products' }
+        ]
+      },
+      {
+        title: 'Edge & Defense',
+        items: [
+          { label: 'Deep Packet Inspection', path: '/products' },
+          { label: 'Multi-WAN Failover', path: '/products' },
+          { label: 'Touchless Biometrics', path: '/products' },
+          { label: '60-Day CCTV Storage', path: '/products' }
+        ]
+      }
+    ],
+    callout: {
+      title: 'Official Authorized Licensing',
+      desc: 'Direct Microsoft CSP Tier-1 and Tally 3-Star partner providing authentic licenses and direct factory SLA support.',
+      actionLabel: 'Request Quote'
+    },
     image: megaProductsImg,
     imageTag: 'Integrated Enterprise Product Ecosystem',
     overview: 'NISPL delivers a versatile suite of advanced enterprise software, secure cloud platforms, and hardware products to drive operational efficiency.',
@@ -192,6 +282,24 @@ const MEGA_MENU_CONFIG = {
           { title: 'Power-over-Ethernet (PoE)', desc: 'Structured single-cable camera deployments with centralized UPS battery backup.' }
         ],
         techSpecs: 'Video: H.265+ Compression • Storage: WD Purple Surveillance HDDs • Night Vision: 50m IR Smart EXIR'
+      },
+      {
+        id: 'antivirus-edr',
+        label: 'Endpoint Security & EDR',
+        path: '/services',
+        badge: 'Zero-Day Shield',
+        heading: 'Proactive EDR & Anti-Ransomware Shields',
+        slaGrade: 'Real-Time Behavioral Threat Interception',
+        metrics: ['🛡️ Sophos Intercept X', '🚫 Anti-Ransomware Traps', '🔒 USB Port Access Lock', '⚡ Sub-Second Isolation'],
+        desc1: 'Next-generation AI endpoint detection and response halting ransomware encryption in milliseconds across all workstations.',
+        desc2: 'Combines signatureless deep learning threat analysis, automatic file rollbacks, and centralized USB media locking.',
+        capabilities: [
+          { title: 'Zero-Day Behavioral Analysis', desc: 'Halts unauthorized encryption and credential dumping before definitions update.' },
+          { title: 'Automated Threat Isolation', desc: 'Isolates infected laptops from the network to prevent lateral propagation.' },
+          { title: 'Removable Storage Policies', desc: 'Enforces read-only or blocked USB policies stopping confidential data leaks.' },
+          { title: 'One-Click Ransomware Rollback', desc: 'Automatically reverts tampered files back to their pristine pre-attack state.' }
+        ],
+        techSpecs: 'Engines: Sophos Intercept X Advanced with XDR • Seqrite Endpoint Security'
       }
     ]
   },
@@ -199,6 +307,42 @@ const MEGA_MENU_CONFIG = {
     id: 'industries',
     label: 'Industries',
     title: 'Industries',
+    leftTitle: 'Use Cases',
+    rightTitle: 'Sector Capabilities',
+    rightColumns: [
+      {
+        title: 'Plant & Retail',
+        items: [
+          { label: 'Shop-Floor BOM Sync', path: '/industries' },
+          { label: 'Weighbridge Automation', path: '/industries' },
+          { label: 'Multi-Store POS Sync', path: '/industries' },
+          { label: 'Barcode Scanning', path: '/industries', badge: 'POPULAR' }
+        ]
+      },
+      {
+        title: 'Healthcare & Pharma',
+        items: [
+          { label: 'FEFO Drug Expiry', path: '/industries' },
+          { label: 'Encrypted Health Vaults', path: '/industries' },
+          { label: 'Clean Power Continuity', path: '/industries' },
+          { label: 'NABH Audit Alignment', path: '/industries' }
+        ]
+      },
+      {
+        title: 'Govt & Finance',
+        items: [
+          { label: 'WB SFDC & Tea Board', path: '/industries' },
+          { label: 'Client Sandboxing', path: '/industries' },
+          { label: '1-Click GST Returns', path: '/industries' },
+          { label: 'CAG Audit Trails', path: '/industries' }
+        ]
+      }
+    ],
+    callout: {
+      title: 'Need Industry-Specific Architecture?',
+      desc: 'Our certified engineers calibrate network and software deployments for your sector’s exact compliance standards.',
+      actionLabel: 'Consult Architect'
+    },
     image: megaSolutionsImg,
     imageTag: 'Sector-Specific Digital Architectures',
     overview: 'We engineer tailored IT architectures, high-performance networks, and statutory compliance software specifically calibrated for the operating demands and regulatory standards of each sector.',
@@ -212,13 +356,13 @@ const MEGA_MENU_CONFIG = {
     items: [
       {
         id: 'ind-mfg',
-        label: 'Manufacturing & Heavy Engineering',
+        label: 'Manufacturing & Plants',
         path: '/industries',
         badge: 'Industrial Solutions',
         heading: 'Manufacturing & Plant Floor IT Infrastructure',
         slaGrade: '24/7 Continuous Plant Floor Uptime',
         metrics: ['🏭 Industrial Fiber LAN', '📦 Multi-Plant ERP Sync', '⚡ Surge-Proof Server Racks', '⏱️ Zero Production Stoppage'],
-        desc1: 'Industrial plants require continuous shop-floor network reliability, ruggedized edge computing hardware, and seamless Tally/ERP synchronization between factories and corporate headquarters.',
+        desc1: 'Industrial plant fiber backbones, shop-floor ERP synchronization, and surge-protected edge server racks.',
         desc2: 'NISPL deploys redundant industrial fiber backbones, surge-protected server racks, and automated supply-chain inventory synchronization to keep production lines operating with zero unexpected interruptions.',
         capabilities: [
           { title: 'Harsh Environment Cabling', desc: 'Armored industrial fiber optic backbones resistant to dust, heat, and electromagnetic noise.' },
@@ -230,13 +374,13 @@ const MEGA_MENU_CONFIG = {
       },
       {
         id: 'ind-retail-fmcg',
-        label: 'Retail, FMCG & Wholesale Distribution',
+        label: 'Retail & FMCG Distribution',
         path: '/industries',
         badge: 'High-Volume Commerce',
         heading: 'Retail Chains & Multi-Warehouse Distribution',
         slaGrade: 'Real-Time Inventory Synchronization',
         metrics: ['🛒 POS Terminal Sync', '⚡ Instant E-Way Bills', '📊 Multi-Outlet Stock View', '🔍 Barcode Dispatch Speed'],
-        desc1: 'Speed, stock accuracy, and statutory compliance are paramount for multi-store retail brands and high-volume distributors. We provide synchronized multi-branch Tally setups, automated e-Way bill creation, and cloud-synced POS systems.',
+        desc1: 'Multi-store synchronized POS setups, automated e-Way bill creation, and barcode scanner fulfillment networks.',
         desc2: 'Empowers logistics and store managers with instant visibility across regional warehouses, automated low-stock re-order thresholds, and integrated barcode scanner networks.',
         capabilities: [
           { title: 'Instant Branch Consolidations', desc: 'Consolidated balance sheets across 100+ stores with instant inter-branch stock transfers.' },
@@ -248,13 +392,13 @@ const MEGA_MENU_CONFIG = {
       },
       {
         id: 'ind-health',
-        label: 'Healthcare, Hospitals & Pharmaceuticals',
+        label: 'Healthcare & Pharmaceuticals',
         path: '/industries',
         badge: 'Critical Care Infrastructure',
         heading: 'Healthcare & Pharmaceutical IT Systems',
         slaGrade: 'HIPAA & NABH Infrastructure Alignment',
         metrics: ['🏥 99.99% Hospital Uptime', '💊 Drug Expiry Alerts', '🔒 Encrypted Medical Records', '⏱️ 24/7 ICU Power Continuity'],
-        desc1: 'Hospitals, diagnostic clinics, and pharmaceutical distributors require continuous system availability, patient data confidentiality, and strict batch-expiry tracking compliance.',
+        desc1: 'High-availability server clusters, doctor tele-workstations, and automated FEFO drug expiry tracking.',
         desc2: 'We architect high-availability server clusters, doctor-patient tele-workstations, biometric ward access, and redundant uninterruptible power backups to support continuous care delivery.',
         capabilities: [
           { title: 'Batch & Expiry Governance', desc: 'Strict first-expiry-first-out (FEFO) automated picking logic preventing expired sales.' },
@@ -266,13 +410,13 @@ const MEGA_MENU_CONFIG = {
       },
       {
         id: 'ind-public',
-        label: 'Government, Public Sector & Tea Estates',
+        label: 'Govt & Tea Estates',
         path: '/industries',
         badge: 'Public Sector Excellence',
         heading: 'Government Enterprises & Tea Plantations',
         slaGrade: 'High-Security Institutional Deployment',
         metrics: ['🏛️ WB SFDC & Tea Board', '☕ Remote Plantation Links', '🔒 Government Intranet Sync', '🛡️ Audit-Ready Systems'],
-        desc1: 'With prestigious public sector engagements including West Bengal SFDC and the Tea Board of India, NISPL has proven engineering competence in managing large institutional systems and remote plantation connectivity.',
+        desc1: 'Long-range wireless plantation bridges connecting gardens and secure state intranet backbones.',
         desc2: 'From solar-assisted plantation wireless links across vast tea gardens to secured state intranet backbones, our solutions withstand demanding operating environments and strict audit standards.',
         capabilities: [
           { title: 'Long-Range Wireless Bridges', desc: 'Point-to-point wireless links connecting remote tea estate factory sheds across hills.' },
@@ -284,13 +428,13 @@ const MEGA_MENU_CONFIG = {
       },
       {
         id: 'ind-ca-fin',
-        label: 'Chartered Accountants & Financial Services',
+        label: 'CA & Financial Services',
         path: '/industries',
         badge: 'Financial Confidentiality',
         heading: 'CA Firms, Audit Practices & Corporate Finance',
         slaGrade: 'Bank-Grade Isolated Client Instances',
         metrics: ['📊 Peak Audit Concurrency', '🔒 Client-Wise Folders', '⚡ 1-Click GST & Tax Filing', '💾 Zero Data Corruption'],
-        desc1: 'Chartered accountants and financial consultants handle sensitive client audit books and require blazing-fast concurrent multi-user Tally performance during peak tax audit deadlines.',
+        desc1: 'Dedicated Tally on Cloud instances with isolated client book folders, audit trails, and 1-click tax filing.',
         desc2: 'Our dedicated Tally on Cloud instances provide isolated bank-grade data security, client-wise folder access permissions, automated audit trails, and instant GST return filing capabilities.',
         capabilities: [
           { title: 'Client Folder Sandboxing', desc: 'Strict access controls so junior article clerks only access authorized company books.' },
@@ -299,6 +443,24 @@ const MEGA_MENU_CONFIG = {
           { title: 'Automated Audit History', desc: 'Trace every voucher edit, deletion, or backdated voucher entry with detailed user logs.' }
         ],
         techSpecs: 'Platform: Dedicated Windows Server 2022 • 256-Bit TLS VPN Gateway'
+      },
+      {
+        id: 'ind-corp',
+        label: 'Corporate Offices & IT Hubs',
+        path: '/industries',
+        badge: 'Modern Workplace',
+        heading: 'Corporate Headquarters & Multi-Floor IT Workspaces',
+        slaGrade: 'Enterprise Wi-Fi 6 & Active Directory Standard',
+        metrics: ['🏢 Multi-Floor Wi-Fi 6', '🔐 Central Active Directory', '💻 Meeting Room Systems', '🛡️ Zero Deadzones'],
+        desc1: 'High-density enterprise Wi-Fi 6 roaming, structured boardroom AV systems, and centralized user management.',
+        desc2: 'Engineered for seamless mobility across modern corporate floors, guest portal bandwidth controls, and secure single-sign-on access.',
+        capabilities: [
+          { title: 'High-Density Wi-Fi 6 Roaming', desc: 'Zero dropouts when 300+ laptops and mobile devices roam between conference suites.' },
+          { title: 'Centralized User Privileges', desc: 'Active Directory domain control regulating file permissions and password policies.' },
+          { title: 'Boardroom Video Conferencing', desc: 'Integrated 4K cameras, ceiling microphones, and Teams/Zoom display hubs.' },
+          { title: 'Automated Power Contingency', desc: 'Centralized online UPS protecting all workstation feeds against brownouts.' }
+        ],
+        techSpecs: 'Scale: 50 to 1,000+ Workstations • Cisco / Aruba / Ubiquiti Enterprise'
       }
     ]
   },
@@ -306,6 +468,42 @@ const MEGA_MENU_CONFIG = {
     id: 'services',
     label: 'Services',
     title: 'Services',
+    leftTitle: 'Core Services',
+    rightTitle: 'Support Capabilities',
+    rightColumns: [
+      {
+        title: 'Hardware AMC',
+        items: [
+          { label: 'Comprehensive AMC', path: '/services' },
+          { label: 'Standby Spare Stock', path: '/services' },
+          { label: 'Resident Field Engineers', path: '/services' },
+          { label: 'UPS Battery Maintenance', path: '/services', badge: '2-4 HR' }
+        ]
+      },
+      {
+        title: 'Infrastructure',
+        items: [
+          { label: 'Structured Server Racks', path: '/services' },
+          { label: 'Fluke Cable Testing', path: '/services' },
+          { label: 'Wi-Fi 6 Zero Deadzones', path: '/services' },
+          { label: 'Active Directory Policies', path: '/services' }
+        ]
+      },
+      {
+        title: 'Helpdesk & NOC',
+        items: [
+          { label: 'Instant Screen Connect', path: '/services' },
+          { label: '< 20 Min Fix Average', path: '/services' },
+          { label: 'Web Ticketing Portal', path: '/services' },
+          { label: 'Field Technician Dispatch', path: '/services' }
+        ]
+      }
+    ],
+    callout: {
+      title: 'Guaranteed 2 to 4 Hour On-Site SLA',
+      desc: 'Protect your office workstations and servers with Eastern India’s most responsive IT support team.',
+      actionLabel: 'Inquire AMC'
+    },
     image: megaServicesImg,
     imageTag: '24/7 Managed NOC & Systems Operations',
     overview: 'From 24/7 proactive Network Operations Center (NOC) monitoring to SLA-backed hardware AMC and cloud migrations, NISPL delivers end-to-end IT lifecycle management for modern enterprises.',
@@ -467,6 +665,42 @@ const MEGA_MENU_CONFIG = {
     id: 'solutions',
     label: 'Solutions',
     title: 'Solutions',
+    leftTitle: 'Enterprise Solutions',
+    rightTitle: 'Architecture Standards',
+    rightColumns: [
+      {
+        title: 'Cloud & Backup',
+        items: [
+          { label: 'Automated 3-2-1 Backups', path: '/solutions' },
+          { label: 'Encrypted Offsite Vaults', path: '/solutions' },
+          { label: 'RPO < 15 Min Recovery', path: '/solutions' },
+          { label: 'Tier-4 Indian Datacenter', path: '/solutions', badge: 'FAST' }
+        ]
+      },
+      {
+        title: 'ERP & Accounting',
+        items: [
+          { label: 'Connected Banking APIs', path: '/solutions' },
+          { label: 'Audit Trail (Edit Log)', path: '/solutions' },
+          { label: 'Multi-Branch Sync', path: '/solutions' },
+          { label: 'Statutory Tax Readiness', path: '/solutions' }
+        ]
+      },
+      {
+        title: 'Perimeter Defense',
+        items: [
+          { label: 'Zero-Trust Network Access', path: '/solutions' },
+          { label: 'Branch IPsec VPN', path: '/solutions' },
+          { label: 'Data Loss Prevention', path: '/solutions' },
+          { label: 'Multi-Factor 2FA Gateways', path: '/solutions' }
+        ]
+      }
+    ],
+    callout: {
+      title: 'Enterprise Systems Sizing Review',
+      desc: 'Eliminate downtime and optimize hardware and cloud licensing investments before scaling.',
+      actionLabel: 'Schedule Review'
+    },
     image: megaSolutionsImg,
     imageTag: 'Turnkey Enterprise Digital Ecosystem',
     overview: 'Engineered solutions designed to solve critical business bottlenecks, guarantee regulatory compliance, and provide resilient business continuity for modern corporate enterprises.',

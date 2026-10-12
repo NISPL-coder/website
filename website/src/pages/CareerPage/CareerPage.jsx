@@ -167,8 +167,15 @@ export default function CareerPage() {
           0. HERO HEADER
           ===================================================================== */}
       <section className="iz-career-hero-section">
+        <div className="iz-career-hero-overlay" />
         <div className="iz-career-hero-content">
-          
+          <h1 className="iz-career-page-title">
+            Build the Future of Enterprise IT
+          </h1>
+          <p className="iz-career-hero-tagline">
+            Join Eastern India’s leading technology powerhouse delivering high-impact cloud,
+            ERP, datacenter, and security solutions to 1,000+ corporate clients.
+          </p>
         </div>
       </section>
 
@@ -178,9 +185,9 @@ export default function CareerPage() {
       <section className="iz-career-jobs-section" id="open-roles">
         <div className="iz-career-container">
           <div className="iz-career-section-header">
-            <h2 className="iz-career-section-title">Shape the Future of Enterprise IT</h2>
+            <h2 className="iz-career-section-title">Explore Open Roles</h2>
             <p className="iz-career-section-desc">
-              Join a team of certified professionals delivering high-impact cloud, ERP, and security solutions to 1000+ corporate clients.
+              Discover opportunities that challenge, inspire, and reward your passion for technology.
             </p>
           </div>
 
