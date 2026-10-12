@@ -4,7 +4,6 @@ import imgInfra from '../../../../assets/bg_digital_infra.jpg';
 import imgOfficeIT from '../../../../assets/bg_digital_office_it.jpg';
 import imgFinancial from '../../../../assets/bg_digital_financial.jpg';
 import imgEngineers from '../../../../assets/office_engineers_collaborating.jpg';
-import imgHandshake from '../../../../assets/corporate_team_handshake.jpg';
 import imgCelebration from '../../../../assets/client_team_celebration.jpg';
 
 export const NAV_ITEMS = [
@@ -316,27 +315,13 @@ export const MEGA_MENU_CONFIG = {
   },
 
   // =========================================================================
-  // ABOUT US MEGA MENU (Nomad Style 2 Columns)
+  // ABOUT US MEGA MENU (Nomad Style: Work Culture Only)
   // =========================================================================
   about: {
     id: 'about',
     label: 'About Us',
-    title: 'About Net Infotech System',
+    title: 'Work Culture',
     columns: [
-      {
-        id: 'col-about-profile',
-        title: 'Company Overview',
-        image: imgHandshake,
-        path: '/about',
-        links: [
-          { label: 'About NISPL Overview', path: '/about', badge: '25+ YEARS' },
-          { label: 'Our Mission & Leadership', path: '/about' },
-          { label: 'Eastern India Enterprise Reach', path: '/about' },
-          { label: '1,000+ Corporate Engagements', path: '/about' },
-          { label: 'ISO 9001:2015 Certification', path: '/about' },
-          { label: 'Pan-India 24/7 Operations Hub', path: '/about' }
-        ]
-      },
       {
         id: 'col-about-culture',
         title: 'Work Culture',
@@ -353,7 +338,6 @@ export const MEGA_MENU_CONFIG = {
       }
     ],
     items: [
-      { id: 'about-nispl', label: 'Company Overview', path: '/about' },
       { id: 'work-culture', label: 'Work Culture & Life at NISPL', path: '/about#work-culture' }
     ]
   }
