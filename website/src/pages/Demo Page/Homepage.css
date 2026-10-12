@@ -72,7 +72,7 @@
   pointer-events: auto;
   width: 100%;
   max-width: 1360px;
-  height: 74px;
+  height: 88px;
   background: var(--demo-glass-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -124,9 +124,9 @@
 }
 
 .demo-brand-logo-img {
-  height: 68px;
+  height: 80px;
   width: auto;
-  max-width: 290px;
+  max-width: 350px;
   object-fit: contain;
   display: block;
 }
@@ -878,8 +878,17 @@
     display: block;
   }
   .demo-pill-navbar {
-    height: 58px;
-    padding: 0 8px 0 14px;
+    height: 68px;
+    padding: 0 10px 0 16px;
+  }
+  .demo-brand {
+    max-width: 220px;
+  }
+  .demo-brand-logo-img {
+    height: 56px;
+    width: auto;
+    max-width: 300px;
+    object-fit: contain;
   }
   .demo-contact-pill-btn {
     padding: 9px 18px;
@@ -902,20 +911,20 @@
     padding: 0 10px;
   }
   .demo-pill-navbar {
-    height: 56px;
+    height: 64px;
     padding: 0 8px 0 12px;
   }
   .demo-brand {
-    max-width: 145px;
+    max-width: 190px;
     flex-shrink: 1;
   }
   .demo-brand-logo-frame {
     padding: 0;
   }
   .demo-brand-logo-img {
-    height: 36px;
+    height: 50px;
     width: auto;
-    max-width: 140px;
+    max-width: 175px;
     object-fit: contain;
   }
   .demo-nav-actions {

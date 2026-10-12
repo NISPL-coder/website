@@ -167,35 +167,7 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
       </section>
 
       {/* 5. CTA Section: Join Our Team / Life at NISPL */}
-      <section className="about-cta-section">
-        <div className="about-container">
-          <div className="about-cta-card">
-            <div className="about-cta-badge">
-              <Users size={14} />
-              <span>Grow With Us</span>
-            </div>
 
-            <h2 className="about-cta-title">
-              Ready to Shape the Future of Technology With Us?
-            </h2>
-
-            <p className="about-cta-desc">
-              Whether you are an ambitious cloud engineer, software developer, enterprise consultant,
-              or business leader — NISPL offers an empowering workspace where your craft is celebrated.
-            </p>
-
-            <div className="about-cta-actions">
-              <Link to="/career" className="about-btn-primary">
-                <span>Explore Open Careers</span>
-                <ArrowRight size={18} />
-              </Link>
-              <Link to="/contact" className="about-btn-secondary">
-                <span>Connect With Our Team</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 6. Lightbox Modal for High-Resolution Image Preview */}
       {activeLightboxItem && (
