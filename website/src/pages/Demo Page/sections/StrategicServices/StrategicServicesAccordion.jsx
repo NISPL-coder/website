@@ -79,27 +79,17 @@ export default function StrategicServicesAccordion({ onOpenConsultation }) {
                       </button>
                     </div>
 
-                    {/* Concise Editorial Headings */}
+                    {/* Clean Professional Editorial Headings */}
                     <div className="demo-card-heading-group">
                       <h3 className="demo-card-main-heading">{service.mainHeading}</h3>
                       <h4 className="demo-card-headline">{service.headline}</h4>
                     </div>
 
-                    {/* Professional Brief Narrative (Without bullet points) */}
+                    {/* Professional Description */}
                     <div className="demo-card-brief-overview">
                       <p className="demo-card-overview-text">
                         {service.description}
                       </p>
-                      <div className="demo-card-focus-capsule">
-                        <span className="demo-focus-label">Main Focus:</span>
-                        <span className="demo-focus-value">{service.focus}</span>
-                      </div>
-                    </div>
-
-                    {/* Architecture Interconnect Badge */}
-                    <div className="demo-card-connection-banner">
-                      <span className="demo-status-pulse" />
-                      <span className="demo-connection-text">{service.badge}</span>
                     </div>
 
                     {/* Action Consultation Button */}
@@ -113,7 +103,7 @@ export default function StrategicServicesAccordion({ onOpenConsultation }) {
                         }}
                       >
                         <span>{service.ctaText || 'Consult Solution Specialist'}</span>
-                        <ArrowUpRight size={14} />
+                        <ArrowUpRight size={15} />
                       </button>
                     </div>
                   </div>
