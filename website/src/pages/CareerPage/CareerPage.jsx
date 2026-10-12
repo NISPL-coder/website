@@ -261,7 +261,7 @@ export default function CareerPage() {
                     id="name"
                     name="name"
                     className="iz-career-input"
-                    placeholder="John Doe"
+                    placeholder="Enter your Name"
                     value={formData.name}
                     onChange={handleChange}
                     required 
@@ -275,7 +275,7 @@ export default function CareerPage() {
                     id="email"
                     name="email"
                     className="iz-career-input"
-                    placeholder="john@example.com"
+                    placeholder="Enter your Email Address"
                     value={formData.email}
                     onChange={handleChange}
                     required 
