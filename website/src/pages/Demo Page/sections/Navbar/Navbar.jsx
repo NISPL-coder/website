@@ -7,7 +7,7 @@ import {
   ArrowUpRight, 
   ArrowRight 
 } from 'lucide-react';
-import logoImg from '../../../../assets/nispl-logo-transparent.png';
+import logoImg from '../../../../assets/Net Infotech Transparent Logo.png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
 export default function Navbar({ onOpenContact, onOpenConsultation }) {

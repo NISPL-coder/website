@@ -12,7 +12,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/nispl-logo-transparent.png';
+import logoImg from '../assets/Net Infotech Transparent Logo.png';
 import './Footer.css';
 
 export default function Footer() {
