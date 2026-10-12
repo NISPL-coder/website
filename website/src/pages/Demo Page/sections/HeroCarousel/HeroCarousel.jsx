@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import heroVideo from '../../../../assets/gemini_generated_video_61d17737.webm';
+import heroVideo from '../../../../assets/gemini_generated_video_08caffc0.webm';
 import { SLIDES } from './carouselData';
 
 export default function HeroCarousel({ onOpenContact, onOpenConsultation }) {
