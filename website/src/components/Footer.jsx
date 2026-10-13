@@ -129,7 +129,7 @@ export default function Footer() {
                     {COMPANY_INFO.email}
                   </a>
                   <span className="sep">•</span>
-                  <a href={`mailto:${COMPANY_INFO.directEmail}`} className="contact-val">
+                  <a href={`mailto:${COMPANY_INFO.directEmail}`} className="contact-val highlight-phone">
                     {COMPANY_INFO.directEmail}
                   </a>
                 </div>
