@@ -219,7 +219,8 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
 
         {activeCategory && MEGA_MENU_CONFIG[activeCategory] && (
           <div 
-            className={`demo-nomad-dropdown-card animate-fade-in demo-nomad-cols-${MEGA_MENU_CONFIG[activeCategory].columns.length}`}
+            key={activeCategory}
+            className={`demo-nomad-dropdown-card demo-nomad-cols-${MEGA_MENU_CONFIG[activeCategory].columns.length}`}
             onMouseEnter={handleMenuContainerEnter}
             onMouseLeave={handleMenuContainerLeave}
           >
@@ -263,11 +264,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                           onClick={() => handleMenuItemClick(link.path)}
                         >
                           <span className="demo-nomad-link-text">{link.label}</span>
-                          {link.badge && (
-                            <span className={`demo-nomad-badge badge-${link.badge.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}>
-                              {link.badge}
-                            </span>
-                          )}
                         </button>
                       </li>
                     ))}
