@@ -98,12 +98,11 @@
   text-decoration: none;
   cursor: pointer;
   user-select: none;
-  transition: all 0.25s ease;
   flex-shrink: 0;
 }
 
 .demo-brand:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .demo-brand-logo-frame {
@@ -114,21 +113,23 @@
   padding: 0;
   border-radius: 0;
   box-shadow: none;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.demo-brand:hover .demo-brand-logo-frame {
+.demo-brand:hover .demo-brand-logo-frame,
+.demo-brand-logo-img:hover {
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(0 0 14px rgba(0, 210, 211, 0.5));
+  filter: none;
+  transform: none;
 }
 
 .demo-brand-logo-img {
-  height: 73px;
+  height: 80px;
   width: auto;
   max-width: 350px;
   object-fit: contain;
   display: block;
+  transition: none;
 }
 
 /* Navigation Links (Center) */
@@ -1496,7 +1497,6 @@
   transform: rotate(180deg);
   font-family: var(--demo-font-display);
   font-size: 1.80rem;
-  font-weight: 600;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
