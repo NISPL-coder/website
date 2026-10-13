@@ -186,6 +186,50 @@ const AUTHORIZED_PARTNERS = [
         </div>
       </div>
     )
+  },
+
+  // 11. Tally Prime
+  {
+    id: 'tally-prime',
+    name: 'Tally Prime',
+    render: () => (
+      <div className="demo-big-logo-item demo-tally-partner">
+        <div className="tally-prime-logo-box" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="8" fill="#0A2540" />
+            <path d="M8 12.5C8 11.12 9.12 10 10.5 10H25.5C26.88 10 28 11.12 28 12.5V14.5H8V12.5Z" fill="#F5A623" />
+            <path d="M14.5 14.5H20.5V23C20.5 24.93 18.93 26.5 17 26.5C15.62 26.5 14.5 25.38 14.5 24V14.5Z" fill="#00A3E0" />
+            <circle cx="24.5" cy="23.5" r="2.8" fill="#F5A623" />
+          </svg>
+        </div>
+        <div className="partner-name-stack">
+          <div className="tally-brand-row">
+            <span className="tally-name-bold">Tally</span>
+            <span className="prime-name-tag">Prime</span>
+          </div>
+          <span className="partner-sub-text">Authorized Partner</span>
+        </div>
+      </div>
+    )
+  },
+
+  // 12. Zoho
+  {
+    id: 'zoho',
+    name: 'Zoho',
+    render: () => (
+      <div className="demo-big-logo-item demo-zoho-partner">
+        <div className="zoho-pettis-logo" aria-hidden="true">
+          <span className="zoho-petti zoho-petti-red">Z</span>
+          <span className="zoho-petti zoho-petti-green">O</span>
+          <span className="zoho-petti zoho-petti-blue">H</span>
+          <span className="zoho-petti zoho-petti-yellow">O</span>
+        </div>
+        <div className="partner-name-stack">
+          <span className="partner-sub-text">Authorized Partner</span>
+        </div>
+      </div>
+    )
   }
 ];
 

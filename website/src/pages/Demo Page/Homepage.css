@@ -1884,6 +1884,8 @@
   padding: 85px 24px 95px 24px;
   background: transparent;
   position: relative;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .demo-our-clients-section {
@@ -1895,6 +1897,7 @@
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Mini Section Header (Backwards-compatible alias for unified header) */
@@ -1903,6 +1906,7 @@
   max-width: 960px;
   margin: 0 auto 50px auto;
   padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .demo-mini-title {
@@ -1935,6 +1939,8 @@
   padding: 42px 46px;
   box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .demo-our-clients-section .demo-logo-showcase-box {
@@ -1991,7 +1997,7 @@
    ========================================================================== */
 .demo-partners-row-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 22px 20px;
   align-items: center;
   justify-items: center;
@@ -2000,13 +2006,17 @@
 
 .demo-partners-row-grid .demo-logo-outer-cell {
   width: 100%;
+  min-width: 0;
   display: flex;
   justify-content: center;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .demo-partners-row-grid .demo-big-logo-item {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: 88px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -2243,28 +2253,87 @@
   line-height: 1;
 }
 
-@media (max-width: 1200px) {
-  .demo-partners-row-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+/* ── 11. Tally Prime ── */
+.demo-tally-partner {
+  gap: 12px;
+}
+.tally-prime-logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.demo-tally-partner:hover .tally-prime-logo-box {
+  transform: scale(1.06);
+}
+.tally-brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  line-height: 1.1;
+}
+.tally-name-bold {
+  font-family: var(--demo-font-display, sans-serif);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0A2540;
+  letter-spacing: -0.02em;
+}
+.prime-name-tag {
+  font-family: var(--demo-font-display, sans-serif);
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #008CD0;
+  letter-spacing: -0.01em;
 }
 
-@media (max-width: 900px) {
-  .demo-partners-row-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
+/* ── 12. Zoho ── */
+.demo-zoho-partner {
+  gap: 12px;
 }
-
-@media (max-width: 540px) {
-  .demo-partners-row-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .demo-partners-row-grid .demo-big-logo-item {
-    height: 78px;
-    padding: 8px 10px;
-  }
+.zoho-pettis-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  flex-shrink: 0;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.demo-zoho-partner:hover .zoho-pettis-logo {
+  transform: translateY(-1px) scale(1.03);
+}
+.zoho-petti {
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-family: var(--demo-font-display, system-ui, -apple-system, sans-serif);
+  font-weight: 900;
+  font-size: 0.92rem;
+  line-height: 1;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.demo-zoho-partner:hover .zoho-petti:nth-child(odd) {
+  transform: rotate(-3deg);
+}
+.demo-zoho-partner:hover .zoho-petti:nth-child(even) {
+  transform: rotate(3deg);
+}
+.zoho-petti-red {
+  background: #E42527;
+}
+.zoho-petti-green {
+  background: #089949;
+}
+.zoho-petti-blue {
+  background: #226DB4;
+}
+.zoho-petti-yellow {
+  background: #F9B21D;
 }
 
 /* ==========================================================================
@@ -2403,11 +2472,17 @@
 
 .demo-clients-row-grid .demo-logo-outer-cell {
   width: 100%;
+  min-width: 0;
   padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
 .demo-client-card {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: 94px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -2469,68 +2544,230 @@
   transform: scale(1.06);
 }
 
-/* Responsive queries for logo showcase */
-@media (max-width: 1200px) {
+/* ==========================================================================
+   UNIFIED RESPONSIVENESS: AUTHORIZED PARTNERS & CLIENTS SHOWCASE
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px 16px;
+  }
   .demo-clients-row-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 18px 16px;
   }
 }
 
-@media (max-width: 900px) {
-  .demo-logo-showcase-box {
-    padding: 30px 20px;
+@media (max-width: 820px) {
+  .demo-trusted-partners-section,
+  .demo-our-clients-section {
+    padding: 65px 18px 75px 18px;
   }
-  .demo-logos-row-grid {
-    gap: 28px 32px;
+  .demo-logo-showcase-box {
+    padding: 28px 20px;
+    border-radius: 14px;
+  }
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 12px;
+  }
+  .demo-partners-row-grid .demo-big-logo-item {
+    height: 82px;
+    padding: 8px 10px;
+    gap: 8px;
   }
   .demo-clients-row-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 14px 12px;
   }
   .demo-client-card {
-    height: 84px;
-    padding: 8px 12px;
-  }
-  .client-showcase-img {
-    max-height: 48px;
-    max-width: 120px;
-  }
-  .client-showcase-img.img-circular {
-    max-height: 52px;
-    max-width: 52px;
-  }
-  .demo-big-logo-item,
-  .demo-big-client-item {
-    height: 48px;
-  }
-  .google-word,
-  .partner-word,
-  .aws-text,
-  .linode-name,
-  .tally-brand-title,
-  .emami-red,
-  .exide-red {
-    font-size: 1.2rem;
-  }
-}
-
-@media (max-width: 540px) {
-  .demo-clients-row-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .demo-client-card {
-    height: 78px;
+    height: 82px;
     padding: 8px 10px;
   }
   .client-showcase-img {
-    max-height: 42px;
-    max-width: 110px;
+    max-height: 46px;
+    max-width: 120px;
   }
   .client-showcase-img.img-circular {
-    max-height: 46px;
-    max-width: 46px;
+    max-height: 50px;
+    max-width: 50px;
+  }
+}
+
+@media (max-width: 640px) {
+  .demo-trusted-partners-section,
+  .demo-our-clients-section {
+    padding: 45px 12px 55px 12px;
+  }
+  .demo-section-unified-header,
+  .demo-section-mini-header {
+    margin: 0 auto 32px auto;
+    padding: 0 8px;
+  }
+  .demo-logo-showcase-box {
+    padding: 16px 10px;
+    border-radius: 12px;
+    border-width: 1px;
+  }
+
+  /* 2-Column Mobile Grid for Authorized Partners */
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 8px;
+  }
+  .demo-partners-row-grid .demo-big-logo-item {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    min-height: 80px;
+    padding: 10px 6px;
+    gap: 6px;
+    text-align: center;
+    border-radius: 10px;
+  }
+  .demo-partners-row-grid .partner-name-stack {
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+  .demo-partners-row-grid .partner-sub-text {
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+    text-align: center;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  /* Compact Brand Elements for 2-column layout */
+  .lenovo-red-badge {
+    padding: 3px 8px;
+  }
+  .lenovo-text {
+    font-size: 0.98rem;
+  }
+  .ctrls-text-logo {
+    font-size: 1.2rem;
+  }
+  .hikvision-logo-wrap {
+    font-size: 1.05rem;
+  }
+  .hp-circle-logo svg {
+    width: 28px;
+    height: 28px;
+  }
+  .hp-title-text {
+    font-size: 0.92rem;
+  }
+  .cpplus-badge-box svg {
+    width: 20px;
+    height: 20px;
+  }
+  .cpplus-main-title {
+    font-size: 1.05rem;
+  }
+  .dlink-text {
+    font-size: 1.2rem;
+  }
+  .tata-tele-mark svg {
+    width: 24px;
+    height: 24px;
+  }
+  .tata-tele-title {
+    font-size: 0.72rem;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .sangam-icon-mark svg {
+    width: 20px;
+    height: 20px;
+  }
+  .sangam-main-word {
+    font-size: 1rem;
+  }
+  .sangam-crm-badge {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+  }
+  .epson-title {
+    font-size: 1.15rem;
+  }
+  .canon-title {
+    font-size: 1.25rem;
+  }
+  .tally-prime-logo-box svg {
+    width: 26px;
+    height: 26px;
+  }
+  .tally-name-bold {
+    font-size: 1.05rem;
+  }
+  .prime-name-tag {
+    font-size: 0.95rem;
+  }
+  .zoho-pettis-logo {
+    gap: 2px;
+  }
+  .zoho-petti {
+    width: 19px;
+    height: 19px;
+    font-size: 0.76rem;
+    border-radius: 3.5px;
+  }
+
+  /* 2-Column Mobile Grid for Our Clients */
+  .demo-clients-row-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 8px;
+  }
+  .demo-client-card {
+    height: 72px;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+  .client-showcase-img {
+    max-width: 100%;
+    max-height: 42px;
+    object-fit: contain;
+  }
+  .client-showcase-img.img-circular {
+    max-height: 44px;
+    max-width: 44px;
+  }
+  .client-showcase-img.img-fisheries,
+  .client-showcase-img.img-wblabour {
+    max-height: 44px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .demo-logo-showcase-box {
+    padding: 12px 8px;
+  }
+  .demo-partners-row-grid,
+  .demo-clients-row-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .demo-partners-row-grid .demo-big-logo-item {
+    flex-direction: row;
+    height: 60px;
+    min-height: auto;
+    padding: 8px 12px;
+    gap: 10px;
+    justify-content: center;
+  }
+  .demo-partners-row-grid .partner-name-stack {
+    align-items: flex-start;
+    text-align: left;
+    width: auto;
+  }
+  .demo-partners-row-grid .partner-sub-text {
+    text-align: left;
+  }
+  .tata-tele-title {
+    text-align: left;
   }
 }
 
