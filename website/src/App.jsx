@@ -9,6 +9,7 @@ import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
+import NetworkBackground from './components/background/NetworkBackground';
 import './App.css';
 
 // Smooth scroll to top on route change or handle hash anchors
@@ -56,6 +57,8 @@ function MainApp() {
   return (
     <div className="demo-app-root">
       <ScrollToTop />
+      {/* Universal Interactive Constellation Background */}
+      <NetworkBackground />
       
       <Routes>
         <Route 

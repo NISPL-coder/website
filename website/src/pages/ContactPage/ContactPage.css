@@ -28,7 +28,7 @@
 
 /* Page Root */
 .iz-contact-page {
-  background-color: var(--iz-bg-page);
+  background-color: transparent;
   color: var(--iz-text-title);
   font-family: var(--iz-font-body);
   position: relative;
@@ -49,8 +49,7 @@
    ========================================================================== */
 .iz-hero-section {
   position: relative;
-  background: radial-gradient(circle at 10% 20%, rgba(0, 210, 211, 0.12) 0%, transparent 45%),
-              linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 65%, #F1F5F9 100%);
+  background: radial-gradient(circle at 10% 20%, rgba(0, 210, 211, 0.1) 0%, transparent 45%);
   padding-top: 150px;
   padding-bottom: 120px;
   text-align: center;

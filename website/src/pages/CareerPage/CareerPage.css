@@ -7,7 +7,7 @@
 
 /* Root container */
 .iz-career-page-root {
-  background-color: #F8FAFC;
+  background-color: transparent;
   color: var(--iz-text-title, #0F172A);
   font-family: var(--iz-font-body, 'Plus Jakarta Sans', sans-serif);
   position: relative;
