@@ -10,13 +10,14 @@ import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import './App.css';
 
 // Smooth scroll to top on route change or handle hash anchors
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
-  
   useEffect(() => {
     if (hash) {
       setTimeout(() => {
@@ -41,6 +42,41 @@ function MainApp() {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Buttery smooth momentum scrolling engine
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.8,
+      infinite: false,
+    });
+
+    let animationFrameId;
+
+    function raf(time) {
+      lenis.raf(time);
+      animationFrameId = requestAnimationFrame(raf);
+    }
+
+    animationFrameId = requestAnimationFrame(raf);
+
+    // Stop scrolling if any modal is active
+    if (isDemoModalOpen || isLoginModalOpen || isSearchModalOpen) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      lenis.destroy();
+    };
+  }, [isDemoModalOpen, isLoginModalOpen, isSearchModalOpen]);
 
   // Keyboard shortcut: Ctrl + K or Cmd + K for global search palette
   useEffect(() => {

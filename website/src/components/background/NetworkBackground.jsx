@@ -119,9 +119,9 @@ export default function NetworkBackground() {
     // Render loop
     const render = () => {
       // Smoothly interpolate scroll
-      scrollY += (targetScrollY - scrollY) * 0.08;
+      scrollY += (targetScrollY - scrollY) * 0.18;
       // Decay velocity impulse
-      scrollVelocity *= 0.92;
+      scrollVelocity *= 0.90;
 
       ctx.clearRect(0, 0, width, height);
 

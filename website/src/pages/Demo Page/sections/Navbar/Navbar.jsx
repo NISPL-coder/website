@@ -21,26 +21,37 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const menuTimeoutRef = useRef(null);
   const lastScrollY = useRef(0);
 
-  // Smart scroll effect for navbar hide/show
+  // Smart scroll effect for navbar hide/show (throttled with RAF for buttery smooth scrolling)
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > 20);
+    let rafId = null;
 
-      if (currentScrollY > 140) {
-        if (currentScrollY > lastScrollY.current + 8) {
-          setNavVisible(false); // Hide on scroll down
-          setActiveCategory(null);
-        } else if (currentScrollY < lastScrollY.current - 8) {
-          setNavVisible(true); // Show on scroll up
+    const handleScroll = () => {
+      if (rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        setIsScrolled(currentScrollY > 20);
+
+        if (currentScrollY > 140) {
+          if (currentScrollY > lastScrollY.current + 8) {
+            setNavVisible(false); // Hide on scroll down
+            setActiveCategory(null);
+          } else if (currentScrollY < lastScrollY.current - 8) {
+            setNavVisible(true); // Show on scroll up
+          }
+        } else {
+          setNavVisible(true);
         }
-      } else {
-        setNavVisible(true);
-      }
-      lastScrollY.current = currentScrollY;
+        lastScrollY.current = currentScrollY;
+        rafId = null;
+      });
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Close mega menu on Escape key

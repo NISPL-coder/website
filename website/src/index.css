@@ -109,9 +109,7 @@ html {
   font-family: var(--font-sans);
   font-size: 15.5px;
   color: var(--text-main);
-  background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 35%, #EEF2FF 70%, #E0F2FE 100%) !important;
-  background-attachment: fixed !important;
-  scroll-behavior: smooth;
+  background: #F8FAFC;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -121,8 +119,7 @@ body {
   min-height: 100vh;
   overflow-x: clip;
   line-height: 1.55;
-  background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 35%, #EEF2FF 70%, #E0F2FE 100%) !important;
-  background-attachment: fixed !important;
+  background: #F8FAFC;
 }
 
 h1, h2, h3, h4, h5, h6 {

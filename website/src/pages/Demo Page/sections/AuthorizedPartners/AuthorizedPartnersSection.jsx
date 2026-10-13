@@ -14,7 +14,7 @@ export default function AuthorizedPartnersSection() {
 
         {/* Big Logos Enclosed Container matching reference image */}
         <div className="demo-logo-showcase-box">
-          <div className="demo-logos-row-grid">
+          <div className="demo-logos-row-grid demo-partners-row-grid">
             {AUTHORIZED_PARTNERS.map((partner) => (
               <div key={partner.id} className="demo-logo-outer-cell">
                 {partner.render()}

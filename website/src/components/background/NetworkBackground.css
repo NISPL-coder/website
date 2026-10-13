@@ -14,6 +14,8 @@
   z-index: 0;
   overflow: hidden;
   background: transparent;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .nis-network-bg-canvas {
@@ -24,4 +26,7 @@
   height: 100%;
   display: block;
   pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
 }

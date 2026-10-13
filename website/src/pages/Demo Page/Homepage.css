@@ -72,7 +72,7 @@
   pointer-events: auto;
   width: 100%;
   max-width: 1360px;
-  height: 88px;
+  height: 70px;
   background: var(--demo-glass-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -124,7 +124,7 @@
 }
 
 .demo-brand-logo-img {
-  height: 80px;
+  height: 73px;
   width: auto;
   max-width: 350px;
   object-fit: contain;
@@ -587,6 +587,9 @@
   align-items: center;
   overflow: hidden;
   background-color: #060911;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Background Video */
@@ -598,6 +601,8 @@
   height: 100%;
   z-index: 1;
   overflow: hidden;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .demo-bg-video {
@@ -606,6 +611,8 @@
   object-fit: cover;
   object-position: center 30%;
   display: block;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 /* Contrast Overlays to match the Reference Image */
@@ -889,7 +896,7 @@
     max-width: 220px;
   }
   .demo-brand-logo-img {
-    height: 56px;
+    height: 65px;
     width: auto;
     max-width: 300px;
     object-fit: contain;
@@ -926,7 +933,7 @@
     padding: 0;
   }
   .demo-brand-logo-img {
-    height: 50px;
+    height: 65px;
     width: auto;
     max-width: 175px;
     object-fit: contain;
@@ -1949,141 +1956,46 @@
   filter: grayscale(0%) opacity(1);
 }
 
-/* ── 1. Google Partner ── */
-.demo-google-partner {
-  gap: 12px;
-}
-
-.google-bar-mark {
-  width: 9px;
-  height: 42px;
-  background: #64748b;
-  border-radius: 3px;
-  transition: background 0.3s ease;
-}
-
-.demo-logo-outer-cell:hover .google-bar-mark {
-  background: linear-gradient(180deg, #4285F4 0%, #34A853 35%, #FBBC05 70%, #EA4335 100%);
-}
-
-.google-partner-stack {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-}
-
-.google-word {
-  font-family: 'Product Sans', sans-serif, system-ui;
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: #334155;
-  letter-spacing: -0.01em;
-}
-
-.partner-word {
-  font-family: sans-serif;
-  font-size: 1.35rem;
-  font-weight: 400;
-  color: #64748b;
-}
-
-/* ── 2. AWS Partner Network ── */
-.demo-aws-partner {
-  gap: 10px;
-}
-
-.aws-brand-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
-}
-
-.aws-text {
-  font-family: sans-serif;
-  font-size: 1.95rem;
-  font-weight: 900;
-  color: #232F3E;
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-}
-
-.aws-smile-svg {
-  display: block;
-  margin-top: 1px;
-}
-
-.aws-sub-text {
-  display: flex;
-  flex-direction: column;
-  font-family: sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #475569;
-  line-height: 1.15;
-}
-
-/* ── 3. Adobe Solution Partner ── */
-.demo-adobe-partner {
-  gap: 12px;
-}
-
-.adobe-svg {
-  flex-shrink: 0;
-}
-
-.adobe-sub-text {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.adobe-name {
-  font-family: sans-serif;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #FA0F00;
-  letter-spacing: -0.01em;
-}
-
-.adobe-partner-tag {
-  font-family: sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #475569;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* ── 4. Linode ── */
-.demo-linode-partner {
-  gap: 10px;
-}
-
-.linode-svg {
-  flex-shrink: 0;
-}
-
-.linode-name {
-  font-family: sans-serif;
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: #1e293b;
-  letter-spacing: -0.02em;
-}
-
-/* ── 5. Microsoft Solutions Partner ── */
-.demo-ms-partner {
-  gap: 12px;
-}
-
-.ms-quad-squares {
+/* ==========================================================================
+   AUTHORIZED PARTNERS LOGO SHOWCASE GRID & STYLING
+   ========================================================================== */
+.demo-partners-row-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 22px 20px;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+}
+
+.demo-partners-row-grid .demo-logo-outer-cell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.demo-partners-row-grid .demo-big-logo-item {
+  width: 100%;
+  height: 88px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  box-sizing: border-box;
+  filter: none;
+}
+
+.demo-partners-row-grid .demo-big-logo-item:hover {
+  transform: translateY(-4px);
+  border-color: #0284c7;
+  box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.16), 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .partner-name-stack {
@@ -2092,79 +2004,237 @@
   line-height: 1.2;
 }
 
-.partner-main-text {
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 1.28rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
 .partner-sub-text {
   font-family: sans-serif;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: #64748b;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
-/* ── 6. Tally Certified Partner ── */
-.demo-tally-partner {
+/* ── 1. Lenovo ── */
+.demo-lenovo-partner {
   gap: 10px;
 }
-
-.tally-brand-title {
-  font-family: Georgia, serif;
-  font-style: italic;
-  font-weight: 900;
-  font-size: 1.7rem;
-  color: #0f172a;
+.lenovo-red-badge {
+  background: #E2231A;
+  padding: 5px 12px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(226, 35, 26, 0.25);
+  transition: transform 0.2s ease;
 }
-
-.tally-stars {
-  color: #f59e0b;
-  font-size: 0.82rem;
-  letter-spacing: 1px;
-}
-
-/* ── 7. CtrlS Partner ── */
-.demo-ctrls-partner {
-  gap: 10px;
-}
-
-.ctrls-text-logo {
-  font-family: sans-serif;
-  font-weight: 900;
-  font-size: 1.55rem;
+.lenovo-text {
+  color: #FFFFFF;
+  font-family: var(--demo-font-body);
+  font-weight: 800;
+  font-size: 1.22rem;
+  letter-spacing: -0.03em;
   line-height: 1;
 }
 
-.ctrl-part {
-  color: #00A651;
-}
-
-.s-part {
-  color: #0f172a;
-}
-
-/* ── 8. Dell Technologies ── */
-.demo-dell-partner {
+/* ── 2. CtrlS ── */
+.demo-ctrls-partner {
   gap: 10px;
 }
+.ctrls-text-logo {
+  font-family: var(--demo-font-body);
+  font-weight: 900;
+  font-size: 1.55rem;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+}
+.ctrl-part {
+  color: #0F172A;
+}
+.s-part {
+  color: #65B32E;
+  margin-left: 1px;
+}
 
-.dell-circle-emblem {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #0076CE;
-  border-radius: 50%;
+/* ── 3. Hikvision ── */
+.demo-hikvision-partner {
+  gap: 10px;
+}
+.hikvision-logo-wrap {
+  font-family: var(--demo-font-display);
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.hik-part {
+  color: #0F172A;
+}
+.vision-part {
+  color: #E60012;
+}
+
+/* ── 4. HP ── */
+.demo-hp-partner {
+  gap: 10px;
+}
+.hp-circle-logo {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+.hp-title-text {
+  font-family: var(--demo-font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0096D6;
+  line-height: 1.1;
+}
+
+/* ── 5. CP Plus ── */
+.demo-cpplus-partner {
+  gap: 10px;
+}
+.cpplus-badge-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cpplus-text-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.cpplus-main-title {
+  font-family: var(--demo-font-display);
+  font-size: 1.35rem;
   font-weight: 900;
-  font-size: 0.88rem;
-  color: #0076CE;
-  font-family: sans-serif;
-  letter-spacing: -0.03em;
+  color: #D71920;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* ── 6. D-Link ── */
+.demo-dlink-partner {
+  gap: 10px;
+}
+.dlink-wordmark-wrap {
+  display: flex;
+  align-items: center;
+}
+.dlink-text {
+  font-family: var(--demo-font-body);
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #008CA6;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* ── 7. Tata Teleservice ── */
+.demo-tata-tele-partner {
+  gap: 10px;
+}
+.tata-tele-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tata-tele-title {
+  font-family: var(--demo-font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0052CC;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+
+/* ── 8. Sangam CRM ── */
+.demo-sangam-partner {
+  gap: 10px;
+}
+.sangam-icon-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sangam-text-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sangam-main-word {
+  font-family: var(--demo-font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1;
+}
+.sangam-crm-badge {
+  background: #F97316;
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* ── 9. Epson Printer ── */
+.demo-epson-partner {
+  gap: 10px;
+}
+.epson-title {
+  font-family: 'Arial Black', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #003399;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* ── 10. Canon ── */
+.demo-canon-partner {
+  gap: 10px;
+}
+.canon-title {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #CC0000;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+@media (max-width: 1200px) {
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  .demo-partners-row-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .demo-partners-row-grid .demo-big-logo-item {
+    height: 78px;
+    padding: 8px 10px;
+  }
 }
 
 /* ==========================================================================
@@ -2289,13 +2359,116 @@
   letter-spacing: 0.04em;
 }
 
+/* ==========================================================================
+   CUSTOMERS & CLIENTS LOGO GRID & CARD STYLING
+   ========================================================================== */
+.demo-clients-row-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 22px;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+}
+
+.demo-clients-row-grid .demo-logo-outer-cell {
+  width: 100%;
+  padding: 0;
+}
+
+.demo-client-card {
+  width: 100%;
+  height: 94px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.demo-client-card:hover {
+  transform: translateY(-4px);
+  border-color: #0284c7;
+  box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.16), 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.client-showcase-img {
+  max-width: 145px;
+  max-height: 56px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: contrast(102%) brightness(98%);
+  display: block;
+}
+
+.client-showcase-img.img-circular {
+  max-height: 64px;
+  max-width: 64px;
+}
+
+.client-showcase-img.img-fisheries {
+  max-height: 58px;
+  max-width: 165px;
+}
+
+.client-showcase-img.img-wblabour {
+  max-height: 58px;
+  max-width: 175px;
+  border-radius: 4px;
+}
+
+.demo-client-card-dark {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.demo-client-card-dark:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 12px 28px -6px rgba(56, 189, 248, 0.25);
+}
+
+.demo-client-card:hover .client-showcase-img {
+  transform: scale(1.06);
+}
+
 /* Responsive queries for logo showcase */
+@media (max-width: 1200px) {
+  .demo-clients-row-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+}
+
 @media (max-width: 900px) {
   .demo-logo-showcase-box {
-    padding: 30px 22px;
+    padding: 30px 20px;
   }
   .demo-logos-row-grid {
     gap: 28px 32px;
+  }
+  .demo-clients-row-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .demo-client-card {
+    height: 84px;
+    padding: 8px 12px;
+  }
+  .client-showcase-img {
+    max-height: 48px;
+    max-width: 120px;
+  }
+  .client-showcase-img.img-circular {
+    max-height: 52px;
+    max-width: 52px;
   }
   .demo-big-logo-item,
   .demo-big-client-item {
@@ -2311,3 +2484,23 @@
     font-size: 1.2rem;
   }
 }
+
+@media (max-width: 540px) {
+  .demo-clients-row-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .demo-client-card {
+    height: 78px;
+    padding: 8px 10px;
+  }
+  .client-showcase-img {
+    max-height: 42px;
+    max-width: 110px;
+  }
+  .client-showcase-img.img-circular {
+    max-height: 46px;
+    max-width: 46px;
+  }
+}
+
