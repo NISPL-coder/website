@@ -15,13 +15,11 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeSubItemMap, setActiveSubItemMap] = useState({});
   const menuTimeoutRef = useRef(null);
-  const lastScrollY = useRef(0);
 
-  // Smart scroll effect for navbar hide/show (throttled with RAF for buttery smooth scrolling)
+  // Fixed navbar scroll effect for smooth backdrop transitions
   useEffect(() => {
     let rafId = null;
 
@@ -29,20 +27,7 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
       if (rafId) return;
 
       rafId = requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        setIsScrolled(currentScrollY > 20);
-
-        if (currentScrollY > 140) {
-          if (currentScrollY > lastScrollY.current + 8) {
-            setNavVisible(false); // Hide on scroll down
-            setActiveCategory(null);
-          } else if (currentScrollY < lastScrollY.current - 8) {
-            setNavVisible(true); // Show on scroll up
-          }
-        } else {
-          setNavVisible(true);
-        }
-        lastScrollY.current = currentScrollY;
+        setIsScrolled(window.scrollY > 20);
         rafId = null;
       });
     };
@@ -139,7 +124,7 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
       {/* =====================================================================
           1. FLOATING PILL HEADER NAVBAR
           ===================================================================== */}
-      <header className={`demo-header-wrapper ${isScrolled ? 'scrolled' : ''} ${!navVisible ? 'nav-hidden' : ''}`}>
+      <header className={`demo-header-wrapper ${isScrolled ? 'scrolled' : ''}`}>
         
         {/* Floating Pill Nav Bar */}
         <nav className="demo-pill-navbar" aria-label="Main Navigation">
@@ -225,8 +210,8 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
               onMouseEnter={handleMenuContainerEnter}
               onMouseLeave={handleMenuContainerLeave}
             >
-             Work in progress...
-             <p className='highlight-phone'>Please check back soon.</p>
+              <span className="demo-cs-wip-title">Work in progress...</span>
+              <p className="demo-cs-wip-sub">Please check back soon.</p>
             </div>
           ) : (
             <div 

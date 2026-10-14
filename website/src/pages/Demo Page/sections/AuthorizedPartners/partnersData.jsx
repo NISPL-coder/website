@@ -90,13 +90,13 @@ const AUTHORIZED_PARTNERS = [
 
   // 5. Tata tele service
   {
-    id: 'tata-tele-service',
-    name: 'Tata tele service',
+    id: 'tata',
+    name: 'Tata',
     logo: tataTeleLogo,
-    website: 'https://www.tatatelebusiness.com/',
+    website: 'https://www.tata.com/',
     render: () => (
       <a 
-        href="https://www.tatatelebusiness.com/" 
+        href="https://www.tata.com/" 
         target="_blank" 
         rel="noopener noreferrer" 
         className="demo-big-logo-item demo-tata-tele-partner" 
