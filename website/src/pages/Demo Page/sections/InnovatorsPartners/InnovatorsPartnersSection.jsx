@@ -1,102 +1,22 @@
 import React from 'react';
-import { Sparkles, Quote, Star } from 'lucide-react';
-import teamHandshakeImg from '../../../../assets/corporate_team_handshake.webp';
-import engineersImg from '../../../../assets/office_engineers_collaborating.webp';
+import cultureCollageImg from '../../../../assets/homepage-culture-collage.webp';
 
 export default function InnovatorsPartnersSection() {
   return (
     <section className="demo-partners-section" id="innovators-partners">
       <div className="demo-partners-container">
-        {/* Left Column: Rich Photo Collage with Floating Testimonial Badges */}
+        {/* Left Column: Rich Photo Collage Graphic */}
         <div className="demo-collage-wrapper">
-          <div className="demo-collage-grid">
-            {/* Primary Image: Team Handshake & Partnership */}
-            <div className="demo-img-frame demo-img-primary-frame">
-              <img 
-                src={teamHandshakeImg} 
-                alt="Net Infotech System team celebrating corporate success" 
-                className="demo-collage-img" 
-                width="600"
-                height="700"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-
-            {/* Secondary Image: Engineers in Tech Workspace */}
-            <div className="demo-img-frame demo-img-secondary-frame">
-              <img 
-                src={engineersImg} 
-                alt="Modern engineers collaborating on cloud solutions" 
-                className="demo-collage-img" 
-                width="540"
-                height="680"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </div>
-
-          {/* Floating Element 1: Top-Left Orange Badge */}
-          <div className="demo-floating-badge demo-badge-orange">
-            <span>Great place</span>
-            <span>with work</span>
-          </div>
-
-          {/* Floating Element 2: Top-Right Client Quotes Card */}
-          <div className="demo-floating-card demo-card-testimonials">
-            <div className="demo-card-quote-item">
-              <div className="demo-quote-icon-badge demo-quote-icon-teal">
-                <Sparkles size={14} />
-              </div>
-              <p className="demo-quote-text">
-                They deliver exactly what I am looking for...
-              </p>
-            </div>
-            <div className="demo-card-quote-divider" />
-            <div className="demo-card-quote-item">
-              <div className="demo-quote-icon-badge demo-quote-icon-orange">
-                <Quote size={13} />
-              </div>
-              <p className="demo-quote-text">
-                Net Infotech System is able to translate complicated requirements into efficient and secure solutions...
-              </p>
-            </div>
-          </div>
-
-          {/* Floating Element 3: Bottom-Left Employee / Client Rating Card */}
-          <div className="demo-floating-card demo-card-ratings">
-            <div className="demo-rating-item">
-              <div className="demo-stars-row">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} className="demo-star-icon" fill="#f59e0b" color="#f59e0b" />
-                ))}
-              </div>
-              <p className="demo-rating-review">
-                Net Infotech System is an incredible place to work!
-              </p>
-              <span className="demo-rating-author">Kunal P (PM)</span>
-            </div>
-
-            <div className="demo-card-rating-divider" />
-
-            <div className="demo-rating-item">
-              <div className="demo-stars-row">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} className="demo-star-icon" fill="#f59e0b" color="#f59e0b" />
-                ))}
-              </div>
-              <p className="demo-rating-review">
-                One of the best IT solution teams in Kolkata.
-              </p>
-              <span className="demo-rating-author">Avijit M (Tech Lead)</span>
-            </div>
-          </div>
-
-          {/* Floating Element 4: Bottom-Right Cyan Badge */}
-          <div className="demo-floating-badge demo-badge-cyan">
-            <span>Great place</span>
-            <span>to work</span>
+          <div className="demo-single-collage-frame">
+            <img 
+              src={cultureCollageImg} 
+              alt="Net Infotech System team culture, employee reviews, and workplace excellence" 
+              className="demo-single-collage-img" 
+              width="1395"
+              height="1127"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         </div>
 

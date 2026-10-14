@@ -548,7 +548,7 @@ select.iz-input-underline option {
   color: var(--iz-text-title);
   letter-spacing: -0.015em;
   margin: 0 0 12px 0;
-  font-weight: 750;
+  font-weight: 400;
 }
 
 .iz-associates-sub {

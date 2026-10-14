@@ -389,23 +389,6 @@ export default function CookieConsent() {
           </div>
         </div>
       )}
-
-      {/* 3. Discreet Floating Cookie Settings Trigger Button (Available anytime after consent) */}
-      {hasConsented && !isVisible && !showCustomize && (
-        <button 
-          type="button" 
-          className="nis-cookie-floating-trigger" 
-          onClick={() => {
-            setIsVisible(true);
-            setShowCustomize(false);
-          }} 
-          title="Cookie & Privacy Settings"
-          aria-label="Manage Cookie & Privacy Settings"
-        >
-          <Cookie size={19} />
-          <span className="nis-cookie-floating-tooltip">Cookie Settings</span>
-        </button>
-      )}
     </>
   );
 }

@@ -9,142 +9,142 @@ import imgSummit from '../../assets/work culture/WhatsApp Image 2026-10-10 at 6.
 import imgFestiveGroup from '../../assets/work culture/WhatsApp Image 2026-10-10 at 6.27.38 PM (1).jpeg';
 import imgPujaHeritage from '../../assets/work culture/WhatsApp Image 2026-10-10 at 6.27.38 PM.jpeg';
 
-export const WORK_CULTURE_STORIES = [
+import imgOfficeInterior from '../../assets/office interior.webp';
+import imgEngineersCollaborating from '../../assets/office_engineers_collaborating.webp';
+import imgClientCelebration from '../../assets/client_team_celebration.webp';
+import imgCorporateHandshake from '../../assets/corporate_team_handshake.webp';
+
+export const GALLERY_CATEGORIES = [
   {
-    id: 'culture-1',
-    category: 'daily-life',
-    tag: 'Collaborative Workspace',
-    heading: 'Continuous Growth & Everyday Energy',
-    quote: 'Today is another chance to get BETTER',
+    id: 'casual-office',
+    title: 'Casual Days at Office',
+    subtitle: 'Everyday Life & Agile Collaboration',
     description:
-      'At Net Infotech System, our vibrant open-floor workspace is designed for continuous learning, mutual mentorship, and spontaneous problem-solving. From junior developers to principal architects, everyone collaborates side-by-side in an atmosphere filled with positive momentum.',
-    pills: ['Skill Upgradation', 'Spontaneous Ideation', 'Open Culture'],
-    stats: [
-      { label: 'Team Camaraderie', value: '100%' },
-      { label: 'Weekly Learning Sprints', value: 'Regular' }
-    ],
-    image: imgWorkspace,
-    imageAlt: 'NISPL open floor team collaborating at workstation with motivational wall art',
-    caption: 'Everyday innovation and energetic teamwork across our tech floor'
+      'At Net Infotech System, our vibrant workspace is built for continuous learning, cross-functional ideation, and spontaneous problem-solving. Engineers, consultants, and leaders collaborate side-by-side in an open floor atmosphere filled with positive momentum.',
+    tag: 'Daily Culture',
+    badge: 'Open Floor Energy',
+    photos: [
+      {
+        id: 'co-1',
+        image: imgWorkspace,
+        title: 'Open Floor Workspace & Everyday Energy',
+        caption: 'Team collaborating across open workstations with our daily guiding mantra: "Today is another chance to get BETTER".',
+        alt: 'NISPL open floor team collaborating at workstation with motivational wall art'
+      },
+      {
+        id: 'co-2',
+        image: imgConference,
+        title: 'Smart Conference Room & Sprint Retrospectives',
+        caption: 'Glass-walled conference suites equipped for architecture brainstorming, sprint planning, and system reviews.',
+        alt: 'NISPL engineering team in smart glass conference room brainstorming solutions'
+      },
+      {
+        id: 'co-3',
+        image: imgOfficeInterior,
+        title: 'High-Tech Enterprise Infrastructure',
+        caption: 'Ergonomic, modern enterprise infrastructure crafted to support 24/7 cloud server monitoring and agile deployments.',
+        alt: 'Net Infotech modern corporate office interior and workstations'
+      },
+    
+      
+    ]
   },
   {
-    id: 'culture-2',
-    category: 'innovation',
-    tag: 'Strategic War Rooms',
-    heading: 'High-Tech Brainstorming & Smart Ideation',
-    quote: 'To make everyone who touches technology happier',
+    id: 'conventions-aikyam',
+    title: 'Annual Conventions & AIKYAM',
+    subtitle: 'Uniting Our Pan-India Ecosystem',
     description:
-      'Our dedicated digital innovation hub and glass-walled conference suites host intensive architecture discussions, sprint retrospectives, and client workflow mappings. Equipped with smart interactive displays, our teams turn intricate IT challenges into streamlined solutions.',
-    pills: ['Cloud Architecture', 'Sprint Sprints', 'Client-Centric Solutions'],
-    stats: [
-      { label: 'Tech Stack Audits', value: 'Continuous' },
-      { label: 'Zero-Ego Discussions', value: 'Guaranteed' }
-    ],
-    image: imgConference,
-    imageAlt: 'NISPL engineering team in smart glass conference room brainstorming solutions',
-    caption: 'Cross-functional teams architecting cloud and automation solutions'
+      'Rooted in our core principle of "Aikyam" (The Rhythm of Oneness), our annual conventions bring together our team members, enterprise partners, and clients from across Eastern India and beyond to celebrate shared achievements and future roadmaps.',
+    tag: 'Grand Summits',
+    badge: 'Oneness in Action',
+    photos: [
+      {
+        id: 'ca-1',
+        image: imgAikyam,
+        title: 'AIKYAM — The Rhythm of Oneness',
+        caption: 'Leadership, enterprise partners, and delegates coming together under the banner of AIKYAM to celebrate collective unity.',
+        alt: 'NISPL leadership and partners on the AIKYAM convention stage'
+      },
+      {
+        id: 'ca-2',
+        image: imgSummit,
+        title: 'Premier Technology Conclave Delegation',
+        caption: 'Our delegation engaging with hundreds of tech visionaries, CIOs, and industry stalwarts at premier national IT conventions.',
+        alt: 'NISPL delegation participating in a grand technology conclave'
+      },
+      {
+        id: 'ca-3',
+        image: imgAward,
+        title: 'Inspiring Workplace Excellence Award FY 2024–25',
+        caption: 'Proudly conferred on stage with the prestigious Inspiring Workplace Excellence Award by Tally leadership for employee welfare.',
+        alt: 'Net Infotech receiving Inspiring Workplace Excellence Award on stage'
+      },
+      
+    ]
   },
   {
-    id: 'culture-3',
-    category: 'leadership',
-    tag: 'Executive Vision',
-    heading: 'Setting Industry Benchmarks, Not Following Them',
-    quote: 'Keep looking for better ways to make things simpler, faster, and easier',
+    id: 'leadership-panels',
+    title: 'AGM, Leadership Keynotes & Panels',
+    subtitle: 'Thought Leadership & Strategic Vision',
     description:
-      'Leadership at NISPL leads from the front. Our founder, Mr. Debasish Ghosal, champions a culture where simplicity and speed define quality. With an open-door policy, executive mentors guide every engineer to think boldly and put customer happiness above all else.',
-    pills: ['Hands-on Mentorship', 'Customer First', 'Operational Simplicity'],
-    stats: [
-      { label: 'Leadership Experience', value: '25+ Years' },
-      { label: 'Open-Door Mentorship', value: 'Always' }
-    ],
-    image: imgLeadership,
-    imageAlt: 'NISPL Founder Mr. Debasish Ghosal in executive office with benchmark values mural',
-    caption: 'Executive desk with our guiding mantra: Simpler, faster, easier'
-  },
-  {
-    id: 'culture-4',
-    category: 'recognition',
-    tag: 'Prestigious Honor',
-    heading: 'Inspiring Workplace Excellence Award FY 2024–25',
-    quote: 'Celebrated for an employee-first environment and service standards',
-    description:
-      'Net Infotech System was officially conferred the Inspiring Workplace Excellence Award for FY 2024-25 by Tally leadership. This award stands as a testament to our transparent workplace policies, employee welfare initiatives, and unmatched enterprise delivery across Eastern India.',
-    pills: ['Workplace Excellence', 'Tally 3-Star Honor', 'People-First Policies'],
-    stats: [
-      { label: 'Award FY', value: '2024–25' },
-      { label: 'Category', value: 'Workplace Excellence' }
-    ],
-    image: imgAward,
-    imageAlt: 'Net Infotech System receiving the Inspiring Workplace Excellence Award on stage',
-    caption: 'Inspiring Workplace Excellence Award FY 2024-25 conferred on stage'
-  },
-  {
-    id: 'culture-5',
-    category: 'synergy',
-    tag: 'One Team Spirit',
-    heading: 'AIKYAM — The Rhythm of Oneness',
-    quote: 'Unified purpose, shared vision, and synchronous execution',
-    description:
-      'Rooted in our core motto "Aikyam", we believe true enterprise power stems from synchronicity. Whether executing seamless cloud server migrations over weekend windows or deploying multi-tier network infrastructures, our cross-functional teams move forward with undivided harmony.',
-    pills: ['Collective Ownership', 'Unified Execution', 'Zero Silos'],
-    stats: [
-      { label: 'Department Alignment', value: 'Seamless' },
-      { label: 'Project Success Rate', value: '99.8%' }
-    ],
-    image: imgAikyam,
-    imageAlt: 'NISPL leadership and partners at the AIKYAM convention stage',
-    caption: 'Embodying Aikyam: Harmony, partnership, and unstoppable collective focus'
-  },
-  {
-    id: 'culture-6',
-    category: 'leadership',
+      'We believe in proactive knowledge sharing. NISPL leadership regularly shares domain insights on cloud migration, hybrid datacenter security, ERP modernization, and the future of enterprise software at corporate conclaves and panel debates.',
     tag: 'Thought Leadership',
-    heading: 'Sharing Insights & Inspiring the Ecosystem',
-    quote: 'Knowledge multiplies when shared with passion and clarity',
-    description:
-      'We believe in active thought leadership. Our leaders frequently address corporate audiences, partner forums, and technology conventions, sharing deep insights on cloud security, hybrid datacenters, and modern business automation strategies.',
-    pills: ['Industry Keynotes', 'Tech Evangelism', 'Future Perspectives'],
-    stats: [
-      { label: 'Keynote Addresses', value: 'Regular' },
-      { label: 'Audience Reach', value: 'Pan-India' }
-    ],
-    image: imgKeynote,
-    imageAlt: 'NISPL leadership keynote speech at technology partner conclave',
-    caption: 'Delivering keynote addresses on enterprise cloud and digital resilience'
+    badge: 'Industry Dialogue',
+    photos: [
+      {
+        id: 'lp-1',
+        image: imgKeynote,
+        title: 'Keynote Address at Technology Conclave',
+        caption: 'Executive leadership delivering a keynote address on scalable cloud infrastructure, cybersecurity governance, and business speed.',
+        alt: 'NISPL leadership keynote speech at technology partner conclave'
+      },
+      {
+        id: 'lp-2',
+        image: imgPanel,
+        title: 'Executive Panel Dialogue on Modern IT Challenges',
+        caption: 'Participating in high-level executive panels alongside regional industry pioneers, exchanging deep insights on digital resilience.',
+        alt: 'NISPL leaders in panel discussion at tech summit'
+      },
+      {
+        id: 'lp-3',
+        image: imgAward,
+        title: 'Recognition for Industry Benchmarking',
+        caption: 'Consistently recognized for pioneering enterprise service delivery standards and fostering trust across thousands of client businesses.',
+        alt: 'Net Infotech leadership receiving honors on stage'
+      },
+      {
+        id: 'lp-4',
+        image: imgLeadership,
+        title: 'Strategic Planning & Vision Roadmapping',
+        caption: 'Translating high-level technological trends into practical, secure, cost-effective solutions for growing Indian enterprises.',
+        alt: 'Executive strategy office at Net Infotech System'
+      }
+    ]
   },
   {
-    id: 'culture-7',
-    category: 'synergy',
-    tag: 'Industry Dialogue',
-    heading: 'Engaging in Strategic Fireside Panels',
-    quote: 'Pioneering conversations that shape tomorrow’s IT landscape',
+    id: 'festive-celebrations',
+    title: 'Diwali Celebration, Puja & Team Joy',
+    subtitle: 'Cherishing Heritage & Festive Traditions',
     description:
-      'NISPL actively participates in executive roundtable dialogues and panel exchanges with industry pioneers. These interactions foster rich cross-pollination of enterprise ideas, ensuring we continuously adopt the highest standards in digital governance.',
-    pills: ['Executive Roundtables', 'Ecosystem Collaboration', 'Strategic Synergies'],
-    stats: [
-      { label: 'Panel Representation', value: 'Regional & National' },
-      { label: 'Innovation Focus', value: 'High Impact' }
-    ],
-    image: imgPanel,
-    imageAlt: 'NISPL leaders in panel discussion at tech summit',
-    caption: 'Fireside panel discussions on enterprise modernization and client success'
-  },
-  {
-    id: 'culture-8',
-    category: 'recognition',
-    tag: 'National Summits',
-    heading: 'Representing Excellence at Grand Conclaves',
-    quote: 'Broadening horizons at national technology conventions',
-    description:
-      'From annual partner convocations to high-level IT infrastructure summits, our teams are regularly at the forefront of the national tech scene, gaining deep market intelligence and bringing global best practices directly to our clients.',
-    pills: ['National Conclaves', 'Benchmarking Tech', 'Global Horizons'],
-    stats: [
-      { label: 'Delegate Engagement', value: '100% Immersive' },
-      { label: 'Best-Practice Integration', value: 'Immediate' }
-    ],
-    image: imgSummit,
-    imageAlt: 'NISPL delegation participating in a grand technology conclave audience',
-    caption: 'Engaging with hundreds of industry visionaries at premier tech forums'
+      'Technology is what we build, but the bonds of friendship and tradition are what hold us together. Every festival brings our entire NISPL family together for joyous celebrations, traditional pujas, cultural festivities, and unforgettable team memories.',
+    tag: 'Cultural Heritage',
+    badge: 'Festive Traditions',
+    photos: [
+      {
+        id: 'fc-1',
+        image: imgFestiveGroup,
+        title: 'Festive Gathering & Family Spirit',
+        caption: 'The vibrant NISPL team united in celebration, cherishing shared moments of joy, gratitude, and mutual appreciation.',
+        alt: 'NISPL team dressed in traditional festive attire celebrating together'
+      },
+      {
+        id: 'fc-2',
+        image: imgPujaHeritage,
+        title: 'Traditional Office Puja & Blessings',
+        caption: 'Invoking blessings of prosperity, wisdom, and peace through time-honored Puja rituals observed with deep respect at our office.',
+        alt: 'Traditional Puja ceremony and celebrations at Net Infotech office'
+      }
+    ]
   }
 ];
 

@@ -1,63 +1,133 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Sparkles,
   Users,
-  Award,
-  Heart,
   ArrowRight,
   Maximize2,
   X,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
-  Building2,
-  Briefcase
+  Camera
 } from 'lucide-react';
 import Navbar from '../Demo Page/sections/Navbar/Navbar';
 import Footer from '../../components/Footer';
-import { WORK_CULTURE_STORIES, CULTURE_PILLARS } from './workCultureData';
+import { GALLERY_CATEGORIES } from './workCultureData';
 import './AboutPage.css';
 
-const ICON_MAP = {
-  Sparkles: Sparkles,
-  Users: Users,
-  Award: Award,
-  Heart: Heart
-};
-
 export default function AboutPage({ onOpenContact, onOpenConsultation }) {
+  // Category filter: 'all' or category ID
   const [activeCategory, setActiveCategory] = useState('all');
-  const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  // Filtered stories based on tab
-  const displayedStories =
+  // Track active photo index per category { [categoryId]: number }
+  const [activePhotoIndices, setActivePhotoIndices] = useState(() => {
+    const initial = {};
+    GALLERY_CATEGORIES.forEach((cat) => {
+      initial[cat.id] = 0;
+    });
+    return initial;
+  });
+
+  // Track which category row is hovered (to pause autoplay)
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+
+  // Lightbox Modal state
+  const [lightboxState, setLightboxState] = useState({
+    isOpen: false,
+    photos: [],
+    currentIndex: 0,
+    categoryTitle: ''
+  });
+
+  // Filtered categories
+  const displayedCategories =
     activeCategory === 'all'
-      ? WORK_CULTURE_STORIES
-      : WORK_CULTURE_STORIES.filter((item) => item.category === activeCategory);
+      ? GALLERY_CATEGORIES
+      : GALLERY_CATEGORIES.filter((cat) => cat.id === activeCategory);
 
-  // Keyboard navigation for lightbox
+  // Navigate photos in a specific category showcase
+  const handleNextPhoto = useCallback((catId, totalPhotos) => {
+    setActivePhotoIndices((prev) => ({
+      ...prev,
+      [catId]: (prev[catId] + 1) % totalPhotos
+    }));
+  }, []);
+
+  const handlePrevPhoto = useCallback((catId, totalPhotos) => {
+    setActivePhotoIndices((prev) => ({
+      ...prev,
+      [catId]: (prev[catId] - 1 + totalPhotos) % totalPhotos
+    }));
+  }, []);
+
+  const handleSelectPhoto = useCallback((catId, index) => {
+    setActivePhotoIndices((prev) => ({
+      ...prev,
+      [catId]: index
+    }));
+  }, []);
+
+  // Autoplay for category showcases (pauses when category row is hovered)
   useEffect(() => {
-    if (lightboxIndex === null) return;
+    const interval = setInterval(() => {
+      displayedCategories.forEach((cat) => {
+        if (hoveredCategory !== cat.id) {
+          setActivePhotoIndices((prev) => ({
+            ...prev,
+            [cat.id]: (prev[cat.id] + 1) % cat.photos.length
+          }));
+        }
+      });
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [displayedCategories, hoveredCategory]);
+
+  // Lightbox opening
+  const openLightbox = (photos, index, categoryTitle) => {
+    setLightboxState({
+      isOpen: true,
+      photos,
+      currentIndex: index,
+      categoryTitle
+    });
+  };
+
+  const closeLightbox = () => {
+    setLightboxState((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const nextLightboxImage = () => {
+    setLightboxState((prev) => ({
+      ...prev,
+      currentIndex: (prev.currentIndex + 1) % prev.photos.length
+    }));
+  };
+
+  const prevLightboxImage = () => {
+    setLightboxState((prev) => ({
+      ...prev,
+      currentIndex: (prev.currentIndex - 1 + prev.photos.length) % prev.photos.length
+    }));
+  };
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    if (!lightboxState.isOpen) return;
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        setLightboxIndex(null);
+        closeLightbox();
       } else if (e.key === 'ArrowRight') {
-        setLightboxIndex((prev) => (prev + 1) % displayedStories.length);
+        nextLightboxImage();
       } else if (e.key === 'ArrowLeft') {
-        setLightboxIndex((prev) => (prev - 1 + displayedStories.length) % displayedStories.length);
+        prevLightboxImage();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxIndex, displayedStories.length]);
+  }, [lightboxState.isOpen, lightboxState.photos.length]);
 
-  const activeLightboxItem =
-    lightboxIndex !== null ? displayedStories[lightboxIndex] : null;
 
   return (
     <div className="about-page-root">
@@ -67,98 +137,176 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
         onOpenConsultation={onOpenConsultation}
       />
 
- 
+      {/* 2. Angled Hero Section with 3D Globe Mesh & Centered "WORK CULTURE" (Identical to Contact Page) */}
+      <section className="iz-hero-section">
+        {/* 3D Dotted Globe Mesh (SVG) */}
+        <div className="iz-hero-globe-mesh" aria-hidden="true">
+          <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="globeGradAbout" cx="40%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.45" />
+                <stop offset="50%" stopColor="#00d2d3" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#0369a1" stopOpacity="0.05" />
+              </radialGradient>
+            </defs>
+            {/* Latitude / Longitude 3D Perspective Dots */}
+            {Array.from({ length: 11 }).map((_, rIndex) => {
+              const r = 25 + rIndex * 12;
+              return Array.from({ length: 16 }).map((_, dIndex) => {
+                const angle = (dIndex * 22.5 * Math.PI) / 180;
+                const cx = 130 + r * Math.cos(angle) * 0.95;
+                const cy = 130 + r * Math.sin(angle) * 0.55;
+                const size = 1.2 + (rIndex / 11) * 2;
+                return (
+                  <circle
+                    key={`${rIndex}-${dIndex}`}
+                    cx={cx}
+                    cy={cy}
+                    r={size}
+                    fill="url(#globeGradAbout)"
+                    opacity={0.3 + (dIndex % 3) * 0.25}
+                  />
+                );
+              });
+            })}
+          </svg>
+        </div>
 
-      {/* 4. WORK CULTURE SECTION (Alternating Zig-Zag Layout) */}
-      <section id="work-culture" className="about-culture-section">
+        <div className="iz-hero-content">
+          <h1 className="iz-hero-title">WORK CULTURE</h1>
+        </div>
+      </section>
+
+      {/* 3. Interactive Gallery Showcase (Alternating Layout like Cyberswift) */}
+      <section className="about-showcase-section">
         <div className="about-container">
-          {/* Section Header */}
-          <div className="about-culture-header">
-           
-            <h2 className="about-section-heading">
-              Inside Net Infotech System: Where Culture Fuels Innovation
-            </h2>
-            <p className="about-section-desc">
-              Experience the genuine heartbeat of our organization — from daily collaborative
-              problem-solving to leadership keynotes, industry awards, and cherished festive traditions.
-            </p>
-          </div>
-
-         
-
-          {/* Alternating Zig-Zag List */}
-          <div className="about-culture-list">
-            {displayedStories.map((story, index) => {
-              // Alternating Layout:
-              // Even index (0, 2, 4, 6, 8) -> Image on the LEFT, Text on the RIGHT
-              // Odd index (1, 3, 5, 7, 9)  -> Image on the RIGHT, Text on the LEFT
-              const isImageLeft = index % 2 === 0;
-              const layoutClass = isImageLeft ? 'layout-image-left' : 'layout-image-right';
+          <div className="about-gallery-rows-wrapper">
+            {displayedCategories.map((category, rowIndex) => {
+              const currentPhotoIndex = activePhotoIndices[category.id] || 0;
+              const activePhoto = category.photos[currentPhotoIndex] || category.photos[0];
+              // Alternating Layout: Even index -> Main Left, Thumbs Right; Odd index -> Thumbs Left, Main Right
+              const isEven = rowIndex % 2 === 0;
+              const rowLayoutClass = isEven ? 'layout-main-left' : 'layout-main-right';
 
               return (
                 <div
-                  key={story.id}
-                  className={`about-culture-item ${layoutClass}`}
+                  key={category.id}
+                  className={`about-gallery-category-card ${rowLayoutClass}`}
+                  onMouseEnter={() => setHoveredCategory(category.id)}
+                  onMouseLeave={() => setHoveredCategory(null)}
                 >
-                  {/* Media Column (Image) */}
-                  <div className="about-culture-media-col">
-                    <div
-                      className="about-culture-image-wrapper"
-                      onClick={() => setLightboxIndex(index)}
-                      title="Click to view full photo"
-                    >
-                      <img
-                        src={story.image}
-                        alt={story.imageAlt}
-                        className="about-culture-img"
-                        loading="lazy"
-                      />
-                      <div className="about-culture-overlay">
-                        <span className="about-culture-caption-pill">
-                          <Maximize2 size={13} />
-                          <span>{story.caption}</span>
-                        </span>
-                      </div>
-                      <div className="about-culture-zoom-indicator">
-                        <Maximize2 size={16} />
-                      </div>
+                  {/* Category Header Bar */}
+                  <div className="about-cat-header-strip">
+                    <div className="about-cat-header-left">
+                      <h2 className="about-cat-title">{category.title}</h2>
                     </div>
+                    <p className="about-cat-description">{category.description}</p>
                   </div>
 
-                  {/* Text Content Column */}
-                  <div className="about-culture-text-col">
-                    <h3 className="about-item-heading">{story.heading}</h3>
+                  {/* 2-Column Interactive Showcase Grid */}
+                  <div className="about-cat-showcase-grid">
+                    {/* COLUMN A: Main Featured Photo Showcase */}
+                    <div className="about-main-showcase-col">
+                      <div className="about-main-showcase-stage">
+                        {/* Main Image with Zoom Lightbox click */}
+                        <div
+                          className="about-main-image-viewport"
+                          onClick={() =>
+                            openLightbox(category.photos, currentPhotoIndex, category.title)
+                          }
+                          title="Click to view full photo in high resolution"
+                        >
+                          <img
+                            key={activePhoto.id}
+                            src={activePhoto.image}
+                            alt={activePhoto.alt}
+                            className="about-main-featured-img"
+                            loading="lazy"
+                          />
 
-                    {story.quote && (
-                      <div className="about-item-quote-box">
-                        <p className="about-item-quote-text">"{story.quote}"</p>
-                      </div>
-                    )}
+                          {/* Gradient Vignette Overlay */}
+                          <div className="about-main-image-gradient" />
 
-                    <p className="about-item-desc">{story.description}</p>
+                          {/* Zoom Expand Button */}
+                          <button
+                            type="button"
+                            className="about-main-expand-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openLightbox(category.photos, currentPhotoIndex, category.title);
+                            }}
+                            title="Expand Fullscreen"
+                            aria-label="Expand image"
+                          >
+                            <Maximize2 size={16} />
+                          </button>
 
-                    {/* Skill/Culture Pills */}
-                    <div className="about-item-pills">
-                      {story.pills.map((pill, pIdx) => (
-                        <span key={pIdx} className="about-pill-chip">
-                          <span className="dot" />
-                          {pill}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Mini Stats row */}
-                    {story.stats && (
-                      <div className="about-item-stats-row">
-                        {story.stats.map((st, sIdx) => (
-                          <div key={sIdx} className="about-item-mini-stat">
-                            <span className="about-mini-stat-val">{st.value}</span>
-                            <span className="about-mini-stat-label">{st.label}</span>
+                          {/* Bottom Caption Overlay */}
+                          <div className="about-main-caption-box">
+                            <h3 className="about-main-caption-title">{activePhoto.title}</h3>
+                            <p className="about-main-caption-text">{activePhoto.caption}</p>
                           </div>
-                        ))}
+                        </div>
+
+                        {/* Navigation Arrows for Main Slider */}
+                        <button
+                          type="button"
+                          className="about-slider-nav-btn about-slider-nav-prev"
+                          onClick={() => handlePrevPhoto(category.id, category.photos.length)}
+                          aria-label={`Previous photo in ${category.title}`}
+                          title="Previous photo"
+                        >
+                          <ChevronLeft size={22} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="about-slider-nav-btn about-slider-nav-next"
+                          onClick={() => handleNextPhoto(category.id, category.photos.length)}
+                          aria-label={`Next photo in ${category.title}`}
+                          title="Next photo"
+                        >
+                          <ChevronRight size={22} />
+                        </button>
                       </div>
-                    )}
+                    </div>
+
+                    {/* COLUMN B: Interactive Thumbnails Grid / Carousel */}
+                    <div className="about-thumbs-col">
+
+
+                      <div className="about-thumbs-grid">
+                        {category.photos.map((photo, pIdx) => {
+                          const isThumbActive = pIdx === currentPhotoIndex;
+                          return (
+                            <div
+                              key={photo.id}
+                              className={`about-thumb-card ${isThumbActive ? 'active' : ''}`}
+                              onClick={() => handleSelectPhoto(category.id, pIdx)}
+                              title={photo.title}
+                            >
+                              <div className="about-thumb-img-box">
+                                <img
+                                  src={photo.image}
+                                  alt={photo.alt}
+                                  className="about-thumb-img"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="about-thumb-info">
+                                <span className="about-thumb-title">{photo.title}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Divider line between rows if not last */}
+                  {rowIndex < displayedCategories.length - 1 && (
+                    <div className="about-cat-separator" />
+                  )}
                 </div>
               );
             })}
@@ -166,76 +314,68 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
         </div>
       </section>
 
-      {/* 5. CTA Section: Join Our Team / Life at NISPL */}
-
-
-      {/* 6. Lightbox Modal for High-Resolution Image Preview */}
-      {activeLightboxItem && (
-        <div
-          className="about-lightbox-backdrop"
-          onClick={() => setLightboxIndex(null)}
-        >
+      {/* 5. Lightbox Modal for High-Resolution Image Preview */}
+      {lightboxState.isOpen && (
+        <div className="about-lightbox-backdrop" onClick={closeLightbox}>
           <div
             className="about-lightbox-content"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
           >
+            {/* Close button */}
             <button
               type="button"
               className="about-lightbox-close-btn"
-              onClick={() => setLightboxIndex(null)}
+              onClick={closeLightbox}
               aria-label="Close Preview"
             >
               <X size={20} />
             </button>
 
+            {/* Stage */}
             <div className="about-lightbox-image-stage">
               <button
                 type="button"
                 className="about-lightbox-nav-btn about-lightbox-prev"
-                onClick={() =>
-                  setLightboxIndex(
-                    (prev) => (prev - 1 + displayedStories.length) % displayedStories.length
-                  )
-                }
+                onClick={prevLightboxImage}
                 aria-label="Previous Image"
               >
                 <ChevronLeft size={24} />
               </button>
 
               <img
-                src={activeLightboxItem.image}
-                alt={activeLightboxItem.imageAlt}
+                src={lightboxState.photos[lightboxState.currentIndex]?.image}
+                alt={lightboxState.photos[lightboxState.currentIndex]?.alt}
                 className="about-lightbox-img"
               />
 
               <button
                 type="button"
                 className="about-lightbox-nav-btn about-lightbox-next"
-                onClick={() =>
-                  setLightboxIndex((prev) => (prev + 1) % displayedStories.length)
-                }
+                onClick={nextLightboxImage}
                 aria-label="Next Image"
               >
                 <ChevronRight size={24} />
               </button>
             </div>
 
+            {/* Footer with Title, Caption and Counter */}
             <div className="about-lightbox-footer">
-              <div>
+              <div className="about-lightbox-text-col">
                 <h4 className="about-lightbox-caption">
-                  {activeLightboxItem.heading}
+                  {lightboxState.photos[lightboxState.currentIndex]?.title}
                 </h4>
-                <p className="about-lightbox-sub">{activeLightboxItem.caption}</p>
-              </div>
-              <div className="about-lightbox-counter">
-                {lightboxIndex + 1} / {displayedStories.length}
+                <p className="about-lightbox-sub">
+                  {lightboxState.photos[lightboxState.currentIndex]?.caption}
+                </p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 7. Comprehensive Official Footer */}
+      {/* 6. Comprehensive Official Footer */}
       <Footer />
     </div>
   );

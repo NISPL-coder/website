@@ -1,4 +1,4 @@
-import imgCelebration from '../../../../assets/client_team_celebration.jpg';
+import imgCelebration from '../../../../assets/client_team_celebration.webp';
 
 export const NAV_ITEMS = [
   { id: 'about', label: 'About Us', path: '/about' },
