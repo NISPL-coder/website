@@ -1,234 +1,185 @@
 import React from 'react';
 
-const AUTHORIZED_PARTNERS = [
-  // 1. Lenovo
-  {
-    id: 'lenovo',
-    name: 'Lenovo',
-    render: () => (
-      <div className="demo-big-logo-item demo-lenovo-partner">
-        <div className="lenovo-red-badge" aria-hidden="true">
-          <span className="lenovo-text">lenovo</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Authorized Partner</span>
-        </div>
-      </div>
-    )
-  },
+// Partner Logos from src/assets/partners
+import ctrlsLogo from '../../../../assets/partners/ctrls.png';
+import tallyLogo from '../../../../assets/partners/tally.png';
+import hpLogo from '../../../../assets/partners/HP.png';
+import lenovoLogo from '../../../../assets/partners/lenovo.png';
+import tataTeleLogo from '../../../../assets/partners/tata teleservice.png';
+import epsonLogo from '../../../../assets/partners/Epson.png';
+import hikvisionLogo from '../../../../assets/partners/Hik vision.png';
+import dlinkLogo from '../../../../assets/partners/D link.png';
+import canonLogo from '../../../../assets/partners/canon.png';
 
-  // 2. CtrlS
+const AUTHORIZED_PARTNERS = [
+  // 1. CTRLS
   {
     id: 'ctrls',
-    name: 'CtrlS',
+    name: 'CTRLS',
+    logo: ctrlsLogo,
+    website: 'https://www.ctrls.com/',
     render: () => (
-      <div className="demo-big-logo-item demo-ctrls-partner">
-        <div className="ctrls-text-logo">
-          <span className="ctrl-part">Ctrl</span>
-          <span className="s-part">S</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Datacenter Cloud</span>
-        </div>
-      </div>
+      <a 
+        href="https://www.ctrls.com/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-ctrls-partner" 
+        title="CTRLS - Official Website"
+      >
+        <img src={ctrlsLogo} alt="CTRLS" className="partner-brand-img" />
+      </a>
     )
   },
 
-  // 3. Hikvision
+  // 2. Tally
   {
-    id: 'hikvision',
-    name: 'Hikvision',
+    id: 'tally',
+    name: 'Tally',
+    logo: tallyLogo,
+    website: 'https://tallysolutions.com/',
     render: () => (
-      <div className="demo-big-logo-item demo-hikvision-partner">
-        <div className="hikvision-logo-wrap">
-          <span className="hik-part">HIK</span>
-          <span className="vision-part">VISION</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Security Solutions</span>
-        </div>
-      </div>
+      <a 
+        href="https://tallysolutions.com/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-tally-partner" 
+        title="Tally - Official Website"
+      >
+        <img src={tallyLogo} alt="Tally" className="partner-brand-img" />
+      </a>
     )
   },
 
-  // 4. HP
+  // 3. HP
   {
     id: 'hp',
     name: 'HP',
+    logo: hpLogo,
+    website: 'https://www.hp.com/in-en/',
     render: () => (
-      <div className="demo-big-logo-item demo-hp-partner">
-        <div className="hp-circle-logo" aria-hidden="true">
-          <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="48" fill="#0096D6" />
-            <g transform="skewX(-15) translate(14, 0)">
-              <rect x="23" y="16" width="9.5" height="68" fill="#FFFFFF" rx="2" />
-              <path d="M33 46C38 39 45 39 49 43C53 47 53 56 53 64V84H43V65C43 59 41 53 36 53C33 53 33 56 33 59V84H23" fill="#FFFFFF" />
-              <rect x="58" y="38" width="9.5" height="54" fill="#FFFFFF" rx="2" />
-              <path d="M68 47C73 40 80 40 84 44C89 49 89 58 89 65C89 72 88 80 83 85C79 89 71 89 68 83" stroke="#FFFFFF" strokeWidth="8.5" strokeLinecap="round" fill="none" />
-            </g>
-          </svg>
-        </div>
-        <div className="partner-name-stack">
-          <span className="hp-title-text">HP</span>
-          <span className="partner-sub-text">Enterprise Partner</span>
-        </div>
-      </div>
+      <a 
+        href="https://www.hp.com/in-en/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-hp-partner" 
+        title="HP - Official Website"
+      >
+        <img src={hpLogo} alt="HP" className="partner-brand-img" />
+      </a>
     )
   },
 
-  // 5. CP Plus
+  // 4. Lenovo
   {
-    id: 'cp-plus',
-    name: 'CP Plus',
+    id: 'lenovo',
+    name: 'Lenovo',
+    logo: lenovoLogo,
+    website: 'https://www.lenovo.com/in/en/',
     render: () => (
-      <div className="demo-big-logo-item demo-cpplus-partner">
-        <div className="cpplus-badge-box" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect width="24" height="24" rx="5" fill="#D71920" />
-            <circle cx="12" cy="12" r="5.5" stroke="#FFFFFF" strokeWidth="2.5" />
-            <circle cx="12" cy="12" r="2.2" fill="#FFFFFF" />
-          </svg>
-        </div>
-        <div className="cpplus-text-group">
-          <span className="cpplus-main-title">CP PLUS</span>
-          <span className="partner-sub-text">Security Systems</span>
-        </div>
-      </div>
+      <a 
+        href="https://www.lenovo.com/in/en/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-lenovo-partner" 
+        title="Lenovo - Official Website"
+      >
+        <img src={lenovoLogo} alt="Lenovo" className="partner-brand-img" />
+      </a>
     )
   },
 
-  // 6. D-Link
+  // 5. Tata tele service
   {
-    id: 'd-link',
-    name: 'D-Link',
+    id: 'tata-tele-service',
+    name: 'Tata tele service',
+    logo: tataTeleLogo,
+    website: 'https://www.tatatelebusiness.com/',
     render: () => (
-      <div className="demo-big-logo-item demo-dlink-partner">
-        <div className="dlink-wordmark-wrap">
-          <span className="dlink-text">D-Link</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Networking Partner</span>
-        </div>
-      </div>
+      <a 
+        href="https://www.tatatelebusiness.com/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-tata-tele-partner" 
+        title="Tata Tele Business Services - Official Website"
+      >
+        <img src={tataTeleLogo} alt="Tata tele service" className="partner-brand-img partner-tata-img" />
+      </a>
     )
   },
 
-  // 7. Tata Teleservice
-  {
-    id: 'tata-teleservice',
-    name: 'Tata Teleservice',
-    render: () => (
-      <div className="demo-big-logo-item demo-tata-tele-partner">
-        <div className="tata-tele-mark" aria-hidden="true">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6H21M12 6V20M8 12H16" stroke="#0052CC" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <div className="partner-name-stack">
-          <span className="tata-tele-title">TATA TELESERVICES</span>
-          <span className="partner-sub-text">Business Services</span>
-        </div>
-      </div>
-    )
-  },
-
-  // 8. Sangam CRM
-  {
-    id: 'sangam-crm',
-    name: 'Sangam CRM',
-    render: () => (
-      <div className="demo-big-logo-item demo-sangam-partner">
-        <div className="sangam-icon-mark" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#F97316" />
-            <path d="M2 17L12 22L22 17" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M2 12L12 17L22 12" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <div className="partner-name-stack">
-          <div className="sangam-text-line">
-            <span className="sangam-main-word">Sangam</span>
-            <span className="sangam-crm-badge">CRM</span>
-          </div>
-          <span className="partner-sub-text">Enterprise Solutions</span>
-        </div>
-      </div>
-    )
-  },
-
-  // 9. Epson Printer
+  // 6. Epson
   {
     id: 'epson',
-    name: 'Epson Printer',
+    name: 'Epson',
+    logo: epsonLogo,
+    website: 'https://www.epson.co.in/',
     render: () => (
-      <div className="demo-big-logo-item demo-epson-partner">
-        <div className="epson-wordmark-wrap">
-          <span className="epson-title">EPSON</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Print & Imaging</span>
-        </div>
-      </div>
+      <a 
+        href="https://www.epson.co.in/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-epson-partner" 
+        title="Epson - Official Website"
+      >
+        <img src={epsonLogo} alt="Epson" className="partner-brand-img" />
+      </a>
     )
   },
 
-  // 10. Canon
+  // 7. Hik vision
+  {
+    id: 'hikvision',
+    name: 'Hik vision',
+    logo: hikvisionLogo,
+    website: 'https://www.hikvision.com/',
+    render: () => (
+      <a 
+        href="https://www.hikvision.com/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-hikvision-partner" 
+        title="Hikvision - Official Website"
+      >
+        <img src={hikvisionLogo} alt="Hik vision" className="partner-brand-img" />
+      </a>
+    )
+  },
+
+  // 8. D link
+  {
+    id: 'd-link',
+    name: 'D link',
+    logo: dlinkLogo,
+    website: 'https://www.dlink.com/in/en',
+    render: () => (
+      <a 
+        href="https://www.dlink.com/in/en" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-dlink-partner" 
+        title="D-Link - Official Website"
+      >
+        <img src={dlinkLogo} alt="D link" className="partner-brand-img" />
+      </a>
+    )
+  },
+
+  // 9. Canon
   {
     id: 'canon',
     name: 'Canon',
+    logo: canonLogo,
+    website: 'https://in.canon/',
     render: () => (
-      <div className="demo-big-logo-item demo-canon-partner">
-        <div className="canon-wordmark-wrap">
-          <span className="canon-title">Canon</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Optics & Printing</span>
-        </div>
-      </div>
-    )
-  },
-
-  // 11. Tally Prime
-  {
-    id: 'tally-prime',
-    name: 'Tally Prime',
-    render: () => (
-      <div className="demo-big-logo-item demo-tally-partner">
-        <div className="tally-prime-logo-box" aria-hidden="true">
-          <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
-            <rect width="36" height="36" rx="8" fill="#0A2540" />
-            <path d="M8 12.5C8 11.12 9.12 10 10.5 10H25.5C26.88 10 28 11.12 28 12.5V14.5H8V12.5Z" fill="#F5A623" />
-            <path d="M14.5 14.5H20.5V23C20.5 24.93 18.93 26.5 17 26.5C15.62 26.5 14.5 25.38 14.5 24V14.5Z" fill="#00A3E0" />
-            <circle cx="24.5" cy="23.5" r="2.8" fill="#F5A623" />
-          </svg>
-        </div>
-        <div className="partner-name-stack">
-          <div className="tally-brand-row">
-            <span className="tally-name-bold">Tally</span>
-            <span className="prime-name-tag">Prime</span>
-          </div>
-          <span className="partner-sub-text">Authorized Partner</span>
-        </div>
-      </div>
-    )
-  },
-
-  // 12. Zoho
-  {
-    id: 'zoho',
-    name: 'Zoho',
-    render: () => (
-      <div className="demo-big-logo-item demo-zoho-partner">
-        <div className="zoho-pettis-logo" aria-hidden="true">
-          <span className="zoho-petti zoho-petti-red">Z</span>
-          <span className="zoho-petti zoho-petti-green">O</span>
-          <span className="zoho-petti zoho-petti-blue">H</span>
-          <span className="zoho-petti zoho-petti-yellow">O</span>
-        </div>
-        <div className="partner-name-stack">
-          <span className="partner-sub-text">Authorized Partner</span>
-        </div>
-      </div>
+      <a 
+        href="https://in.canon/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="demo-big-logo-item demo-canon-partner" 
+        title="Canon - Official Website"
+      >
+        <img src={canonLogo} alt="Canon" className="partner-brand-img" />
+      </a>
     )
   }
 ];

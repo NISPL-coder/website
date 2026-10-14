@@ -226,6 +226,30 @@
   text-shadow: 0 0 8px rgba(0, 210, 211, 0.25);
 }
 
+/* Footer Work In Progress Placeholder */
+.footer-wip-box {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed rgba(0, 210, 211, 0.25);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.footer-wip-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #00d2d3;
+  letter-spacing: 0.01em;
+}
+
+.footer-wip-sub {
+  font-size: 0.74rem;
+  color: rgba(203, 213, 225, 0.65);
+}
+
 /* Contact Column: Compact Glassmorphic Card */
 .footer-contact-col {
   display: flex;

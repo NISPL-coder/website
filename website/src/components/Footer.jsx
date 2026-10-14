@@ -1,15 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Building2, 
   Phone, 
   Mail, 
   MapPin, 
-  Clock, 
-  ShieldCheck, 
-  ArrowRight, 
-  Award,
-  ExternalLink
+  Clock 
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
 import logoImg from '../assets/Net Infotech Transparent Logo.png';
@@ -42,7 +37,7 @@ export default function Footer() {
             </div>
 
             <p className="footer-desc">
-              Net Infotech System Pvt. Ltd. provides reliable web development, software solutions, cloud services and IT support to empower modern businesses.
+              Net Infotech System Pvt. Ltd. provides reliable software solutions, cloud services and IT support to empower modern businesses.
             </p>
 
             <div className="footer-partner-badges">
@@ -65,29 +60,22 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 1: Core Services */}
+          {/* Column 1: Products & Services */}
           <div className="footer-nav-col">
             <h4 className="footer-col-title">Products & Services</h4>
-            <ul className="footer-links-list">
-              <li><Link to="/services/tally-prime">1. Tally Prime</Link></li>
-              <li><Link to="/services/tally-on-cloud">2. Tally on Cloud</Link></li>
-              <li><Link to="/services/data-center-cloud">3. Data Center & Hosting</Link></li>
-              <li><Link to="/services/it-infra-security">4. IT Infrastructure & Security</Link></li>
-              <li><Link to="/services/it-repair-maintenance">5. IT Repair & Maintenance</Link></li>
-              <li><Link to="/services/it-sales-rental">6. IT Hardware Sales & Rental</Link></li>
-            </ul>
+            <div className="footer-wip-box">
+              <span className="footer-wip-text">Work in progress...</span>
+              <span className="footer-wip-sub">Please check back soon.</span>
+            </div>
           </div>
 
           {/* Column 2: Our Solutions */}
           <div className="footer-nav-col">
             <h4 className="footer-col-title">Our Solutions</h4>
-            <ul className="footer-links-list">
-              <li><Link to="/solutions">Business Websites</Link></li>
-              <li><Link to="/solutions">E-Commerce Solutions</Link></li>
-              <li><Link to="/solutions">Custom Software & ERP</Link></li>
-              <li><Link to="/solutions">Digital Solutions</Link></li>
-              <li><Link to="/portfolio">Client Portfolio & Stories</Link></li>
-            </ul>
+            <div className="footer-wip-box">
+              <span className="footer-wip-text">Work in progress...</span>
+              <span className="footer-wip-sub">Please check back soon.</span>
+            </div>
           </div>
 
           {/* Column 3: Contact & Headquarters */}

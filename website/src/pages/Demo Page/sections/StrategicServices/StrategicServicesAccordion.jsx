@@ -9,10 +9,10 @@ export default function StrategicServicesAccordion({ onOpenConsultation }) {
     <section className="demo-services-section" id="strategic-services">
       <div className="demo-section-unified-header demo-services-header">
         <h2 className="demo-unified-title demo-services-title">
-          Engineering the Future with Strategic Services Designed for Growth
+          Industries we serve
         </h2>
         <p className="demo-unified-subtitle demo-services-subtitle">
-          Explore our advanced engineering suite armed with impressive capabilities to catalyze your business growth.
+          Explore the wide range of industries that rely on our cutting-edge solutions.
         </p>
       </div>
 

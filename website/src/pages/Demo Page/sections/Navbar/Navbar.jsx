@@ -69,10 +69,10 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
       clearTimeout(menuTimeoutRef.current);
     }
     setActiveCategory(catId);
-    if (!activeSubItemMap[catId] && MEGA_MENU_CONFIG[catId]) {
+    if (!activeSubItemMap[catId] && MEGA_MENU_CONFIG[catId]?.items?.length) {
       setActiveSubItemMap((prev) => ({
         ...prev,
-        [catId]: MEGA_MENU_CONFIG[catId].items[0]?.id
+        [catId]: MEGA_MENU_CONFIG[catId].items?.[0]?.id
       }));
     }
   };
@@ -218,60 +218,72 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
         </nav>
 
         {activeCategory && MEGA_MENU_CONFIG[activeCategory] && (
-          <div 
-            key={activeCategory}
-            className={`demo-nomad-dropdown-card demo-nomad-cols-${MEGA_MENU_CONFIG[activeCategory].columns.length}`}
-            onMouseEnter={handleMenuContainerEnter}
-            onMouseLeave={handleMenuContainerLeave}
-          >
+          MEGA_MENU_CONFIG[activeCategory].isComingSoon ? (
             <div 
-              className="demo-nomad-grid"
-              style={{
-                gridTemplateColumns: `repeat(${MEGA_MENU_CONFIG[activeCategory].columns.length}, minmax(0, 1fr))`
-              }}
+              key={activeCategory}
+              className="demo-nomad-dropdown-card demo-cs-dropdown-card font-w-400"
+              onMouseEnter={handleMenuContainerEnter}
+              onMouseLeave={handleMenuContainerLeave}
             >
-              {MEGA_MENU_CONFIG[activeCategory].columns.map((column) => (
-                <div key={column.id} className="demo-nomad-column">
-                  {/* Top Preview Thumbnail Image */}
-                  <div 
-                    className="demo-nomad-image-wrap"
-                    onClick={() => handleMenuItemClick(column.path)}
-                    title={column.title}
-                  >
-                    <img 
-                      src={column.image} 
-                      alt={column.title} 
-                      className="demo-nomad-image"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  {/* Column Title */}
-                  <h3 
-                    className="demo-nomad-column-title"
-                    onClick={() => handleMenuItemClick(column.path)}
-                  >
-                    {column.title}
-                  </h3>
-
-                  {/* List of Sub-Links */}
-                  <ul className="demo-nomad-links-list">
-                    {column.links.map((link, lIdx) => (
-                      <li key={lIdx} className="demo-nomad-link-item">
-                        <button
-                          type="button"
-                          className="demo-nomad-link-btn"
-                          onClick={() => handleMenuItemClick(link.path)}
-                        >
-                          <span className="demo-nomad-link-text">{link.label}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+             Work in progress...
+             <p className='highlight-phone'>Please check back soon.</p>
             </div>
-          </div>
+          ) : (
+            <div 
+              key={activeCategory}
+              className={`demo-nomad-dropdown-card demo-nomad-cols-${MEGA_MENU_CONFIG[activeCategory].columns.length}`}
+              onMouseEnter={handleMenuContainerEnter}
+              onMouseLeave={handleMenuContainerLeave}
+            >
+              <div 
+                className="demo-nomad-grid"
+                style={{
+                  gridTemplateColumns: `repeat(${MEGA_MENU_CONFIG[activeCategory].columns.length}, minmax(0, 1fr))`
+                }}
+              >
+                {MEGA_MENU_CONFIG[activeCategory].columns.map((column) => (
+                  <div key={column.id} className="demo-nomad-column">
+                    {/* Top Preview Thumbnail Image */}
+                    <div 
+                      className="demo-nomad-image-wrap"
+                      onClick={() => handleMenuItemClick(column.path)}
+                      title={column.title}
+                    >
+                      <img 
+                        src={column.image} 
+                        alt={column.title} 
+                        className="demo-nomad-image"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Column Title */}
+                    <h3 
+                      className="demo-nomad-column-title"
+                      onClick={() => handleMenuItemClick(column.path)}
+                    >
+                      {column.title}
+                    </h3>
+
+                    {/* List of Sub-Links */}
+                    <ul className="demo-nomad-links-list">
+                      {column.links.map((link, lIdx) => (
+                        <li key={lIdx} className="demo-nomad-link-item">
+                          <button
+                            type="button"
+                            className="demo-nomad-link-btn"
+                            onClick={() => handleMenuItemClick(link.path)}
+                          >
+                            <span className="demo-nomad-link-text">{link.label}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
         )}
 
       </header>
@@ -301,26 +313,35 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
               </button>
               {hasDropdown && activeCategory === item.id && (
                 <div className="demo-mobile-sub-list animate-fade-in">
-                  {MEGA_MENU_CONFIG[item.id].items.map((sub) => (
-                    <a
-                      key={sub.id}
-                      href={sub.path}
-                      className="demo-mobile-sub-link"
-                      onClick={(e) => {
-                        if (sub.path.startsWith('#')) {
-                          e.preventDefault();
-                          setMobileMenuOpen(false);
-                          const target = document.querySelector(sub.path);
-                          if (target) target.scrollIntoView({ behavior: 'smooth' });
-                        } else {
-                          setMobileMenuOpen(false);
-                        }
-                      }}
-                    >
-                      <span>{sub.label}</span>
-                      <ArrowRight size={13} opacity={0.6} />
-                    </a>
-                  ))}
+                  {MEGA_MENU_CONFIG[item.id].isComingSoon ? (
+                    <div className="demo-mobile-cs-box">
+                      <span className="demo-mobile-cs-badge">Work in progress...</span>
+                      <p className="demo-mobile-cs-text">
+                        Please check back soon.
+                      </p>
+                    </div>
+                  ) : (
+                    MEGA_MENU_CONFIG[item.id].items.map((sub) => (
+                      <a
+                        key={sub.id}
+                        href={sub.path}
+                        className="demo-mobile-sub-link"
+                        onClick={(e) => {
+                          if (sub.path.startsWith('#')) {
+                            e.preventDefault();
+                            setMobileMenuOpen(false);
+                            const target = document.querySelector(sub.path);
+                            if (target) target.scrollIntoView({ behavior: 'smooth' });
+                          } else {
+                            setMobileMenuOpen(false);
+                          }
+                        }}
+                      >
+                        <span>{sub.label}</span>
+                        <ArrowRight size={13} opacity={0.6} />
+                      </a>
+                    ))
+                  )}
                 </div>
               )}
             </div>
