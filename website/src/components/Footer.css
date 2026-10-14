@@ -362,13 +362,20 @@
   gap: 10px;
 }
 
-.legal-links a {
+.legal-links a,
+.footer-cookie-link {
   color: rgba(148, 163, 184, 0.65);
   font-size: 0.76rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   transition: all 0.2s ease;
 }
 
-.legal-links a:hover {
+.legal-links a:hover,
+.footer-cookie-link:hover {
   color: #00d2d3;
 }
 

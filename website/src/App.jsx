@@ -8,6 +8,7 @@ import CareerPage from './pages/CareerPage/CareerPage';
 import DemoModal from './components/modals/DemoModal';
 import LoginModal from './components/modals/LoginModal';
 import SearchModal from './components/modals/SearchModal';
+import CookieConsent from './components/CookieConsent/CookieConsent';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
 import Lenis from 'lenis';
@@ -151,6 +152,9 @@ function MainApp() {
         products={products}
         onSelectAction={() => {}}
       />
+
+      {/* Global First-Visit Cookie & Privacy Consent */}
+      <CookieConsent />
     </div>
   );
 }

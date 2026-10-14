@@ -59,9 +59,12 @@ export default function HeroCarousel({ onOpenContact, onOpenConsultation }) {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           className="demo-bg-video"
-        />
+          aria-label="Net Infotech System Background Showcase"
+        >
+          <track kind="captions" srcLang="en" label="English captions" default />
+        </video>
         {/* Meticulous gradient contrast overlays matching reference image */}
         <div className="demo-video-overlay-gradient" />
         <div className="demo-video-grid-pattern" />

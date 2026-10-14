@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   MapPin,
@@ -6,7 +6,8 @@ import {
   Mail,
   Send,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import Navbar from '../Demo Page/sections/Navbar/Navbar';
 import Footer from '../../components/Footer';
@@ -62,9 +63,29 @@ export default function ContactPage() {
     description: ''
   });
 
+  const [captchaCode, setCaptchaCode] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+  const [isSpinning, setIsSpinning] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [ticketId, setTicketId] = useState('');
+
+  const generateCaptcha = () => {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaCode(code);
+    setIsSpinning(true);
+    setTimeout(() => setIsSpinning(false), 500);
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,6 +99,14 @@ export default function ContactPage() {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.mobile.trim() || !formData.description.trim()) return;
 
+    if (!captchaInput.trim() || captchaInput.trim().toUpperCase() !== captchaCode.toUpperCase()) {
+      setCaptchaError('Incorrect captcha code. Please enter the characters shown.');
+      generateCaptcha();
+      setCaptchaInput('');
+      return;
+    }
+
+    setCaptchaError('');
     setIsSubmitting(true);
     setTimeout(() => {
       const generatedTicket = 'NIS-' + Math.floor(100000 + Math.random() * 900000);
@@ -96,6 +125,9 @@ export default function ContactPage() {
       interestedIn: '',
       description: ''
     });
+    setCaptchaInput('');
+    setCaptchaError('');
+    generateCaptcha();
     setIsSubmitted(false);
     setTicketId('');
   };
@@ -313,6 +345,42 @@ export default function ContactPage() {
                       className="iz-input-underline iz-textarea-underline"
                       required
                     />
+                  </div>
+
+                  {/* Captcha Verification Section */}
+                  <div className="iz-captcha-group">
+                    <label className="iz-input-label">
+                      Security Verification <span>*</span>
+                    </label>
+                    <div className="iz-captcha-box">
+                      <div className="iz-captcha-display" aria-label="Captcha security code">
+                        <div className="iz-captcha-noise" aria-hidden="true" />
+                        <span className="iz-captcha-text">{captchaCode}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="iz-captcha-refresh-btn"
+                        onClick={generateCaptcha}
+                        title="Generate new Captcha code"
+                        aria-label="Refresh Captcha"
+                      >
+                        <RefreshCw size={17} className={isSpinning ? 'spin' : ''} />
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      name="captchaInput"
+                      value={captchaInput}
+                      onChange={(e) => {
+                        setCaptchaInput(e.target.value);
+                        if (captchaError) setCaptchaError('');
+                      }}
+                      placeholder="Enter the 6-character code shown above"
+                      className={`iz-input-underline ${captchaError ? 'iz-input-error' : ''}`}
+                      autoComplete="off"
+                      required
+                    />
+                    {captchaError && <span className="iz-captcha-error-text">{captchaError}</span>}
                   </div>
 
                   <button type="submit" disabled={isSubmitting} className="iz-submit-btn">

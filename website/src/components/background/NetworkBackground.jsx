@@ -35,8 +35,11 @@ export default function NetworkBackground() {
     const MAX_CONNECTIONS_PER_NODE = 4;
 
     const createParticles = () => {
-      // Density calculation: ~1 node per 18,000 px^2 on desktop
-      const count = Math.max(35, Math.min(85, Math.floor((width * height) / 18500)));
+      // Density calculation: lightweight on mobile (~1 node per 32,000 px^2), rich on desktop
+      const isMobile = width < 768;
+      const count = isMobile 
+        ? Math.max(14, Math.min(24, Math.floor((width * height) / 32000)))
+        : Math.max(35, Math.min(85, Math.floor((width * height) / 18500)));
       particles = [];
 
       for (let i = 0; i < count; i++) {

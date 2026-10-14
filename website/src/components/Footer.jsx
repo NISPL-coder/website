@@ -29,12 +29,13 @@ export default function Footer() {
             <div className="footer-logo-block">
               <Link to="/">
                 <img 
-                  src={logoImg} 
+                  src="/logo.webp" 
                   alt="Net Infotech System Pvt. Ltd." 
                   className="footer-official-logo"
                   width="220"
                   height="74"
                   loading="lazy"
+                  decoding="async"
                 />
               </Link>
             </div>
@@ -156,6 +157,14 @@ export default function Footer() {
             <Link to="/career">Careers</Link>
             <span className="dot-sep">•</span>
             <Link to="/contact">Contact</Link>
+            <span className="dot-sep">•</span>
+            <button 
+              type="button" 
+              className="footer-cookie-link"
+              onClick={() => window.dispatchEvent(new Event('open-cookie-settings'))}
+            >
+              Cookie Settings
+            </button>
           </div>
         </div>
 

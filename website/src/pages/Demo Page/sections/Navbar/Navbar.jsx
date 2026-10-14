@@ -132,7 +132,7 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
           <Link to="/" className="demo-brand" title="Net Infotech System Pvt. Ltd.">
             <div className="demo-brand-logo-frame">
               <img 
-                src={logoImg} 
+                src="/logo.webp" 
                 alt="Net Infotech System Pvt. Ltd." 
                 className="demo-brand-logo-img" 
                 width="240"
