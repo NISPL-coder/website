@@ -1,15 +1,15 @@
 import React from 'react';
 
-// Partner Logos from src/assets/partners
-import ctrlsLogo from '../../../../assets/partners/ctrls.png';
-import tallyLogo from '../../../../assets/partners/tally.png';
-import hpLogo from '../../../../assets/partners/HP.png';
-import lenovoLogo from '../../../../assets/partners/lenovo.png';
-import tataTeleLogo from '../../../../assets/partners/tata teleservice.png';
-import epsonLogo from '../../../../assets/partners/Epson.png';
-import hikvisionLogo from '../../../../assets/partners/Hik vision.png';
-import dlinkLogo from '../../../../assets/partners/D link.png';
-import canonLogo from '../../../../assets/partners/canon.png';
+// Partner Logos from src/assets/partners (Optimized WebP)
+import ctrlsLogo from '../../../../assets/partners/ctrls.webp';
+import tallyLogo from '../../../../assets/partners/tally.webp';
+import hpLogo from '../../../../assets/partners/HP.webp';
+import lenovoLogo from '../../../../assets/partners/lenovo.webp';
+import tataTeleLogo from '../../../../assets/partners/tata teleservice.webp';
+import epsonLogo from '../../../../assets/partners/Epson.webp';
+import hikvisionLogo from '../../../../assets/partners/Hik vision.webp';
+import dlinkLogo from '../../../../assets/partners/D link.webp';
+import canonLogo from '../../../../assets/partners/canon.webp';
 
 const AUTHORIZED_PARTNERS = [
   // 1. CTRLS
@@ -26,7 +26,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-ctrls-partner" 
         title="CTRLS - Official Website"
       >
-        <img src={ctrlsLogo} alt="CTRLS" className="partner-brand-img" />
+        <img 
+          src={ctrlsLogo} 
+          alt="CTRLS" 
+          className="partner-brand-img" 
+          width="120"
+          height="32"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -45,7 +53,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-tally-partner" 
         title="Tally - Official Website"
       >
-        <img src={tallyLogo} alt="Tally" className="partner-brand-img" />
+        <img 
+          src={tallyLogo} 
+          alt="Tally" 
+          className="partner-brand-img" 
+          width="110"
+          height="45"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -64,7 +80,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-hp-partner" 
         title="HP - Official Website"
       >
-        <img src={hpLogo} alt="HP" className="partner-brand-img" />
+        <img 
+          src={hpLogo} 
+          alt="HP" 
+          className="partner-brand-img" 
+          width="50"
+          height="50"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -83,7 +107,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-lenovo-partner" 
         title="Lenovo - Official Website"
       >
-        <img src={lenovoLogo} alt="Lenovo" className="partner-brand-img" />
+        <img 
+          src={lenovoLogo} 
+          alt="Lenovo" 
+          className="partner-brand-img" 
+          width="120"
+          height="40"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -102,7 +134,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-tata-tele-partner" 
         title="Tata Tele Business Services - Official Website"
       >
-        <img src={tataTeleLogo} alt="Tata tele service" className="partner-brand-img partner-tata-img" />
+        <img 
+          src={tataTeleLogo} 
+          alt="Tata tele service" 
+          className="partner-brand-img partner-tata-img" 
+          width="80"
+          height="50"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -121,7 +161,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-epson-partner" 
         title="Epson - Official Website"
       >
-        <img src={epsonLogo} alt="Epson" className="partner-brand-img" />
+        <img 
+          src={epsonLogo} 
+          alt="Epson" 
+          className="partner-brand-img" 
+          width="110"
+          height="38"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -140,7 +188,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-hikvision-partner" 
         title="Hikvision - Official Website"
       >
-        <img src={hikvisionLogo} alt="Hik vision" className="partner-brand-img" />
+        <img 
+          src={hikvisionLogo} 
+          alt="Hik vision" 
+          className="partner-brand-img" 
+          width="120"
+          height="32"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -159,7 +215,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-dlink-partner" 
         title="D-Link - Official Website"
       >
-        <img src={dlinkLogo} alt="D link" className="partner-brand-img" />
+        <img 
+          src={dlinkLogo} 
+          alt="D link" 
+          className="partner-brand-img" 
+          width="110"
+          height="40"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   },
@@ -178,7 +242,15 @@ const AUTHORIZED_PARTNERS = [
         className="demo-big-logo-item demo-canon-partner" 
         title="Canon - Official Website"
       >
-        <img src={canonLogo} alt="Canon" className="partner-brand-img" />
+        <img 
+          src={canonLogo} 
+          alt="Canon" 
+          className="partner-brand-img" 
+          width="110"
+          height="40"
+          loading="lazy"
+          decoding="async"
+        />
       </a>
     )
   }

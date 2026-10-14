@@ -108,6 +108,7 @@ export default function HeroCarousel({ onOpenContact, onOpenConsultation }) {
             <button
               key={s.id}
               type="button"
+              role="tab"
               className={`demo-indicator-bar ${currentSlide === idx ? 'active' : ''}`}
               onClick={() => setCurrentSlide(idx)}
               aria-label={`Go to slide ${idx + 1}`}

@@ -7,7 +7,7 @@ import tataSteelImg from '../../../../assets/clients/tata-steel.png';
 import burdwanUnivImg from '../../../../assets/clients/burdwan-university.png';
 import oistImg from '../../../../assets/clients/oist.png';
 import stXaviersImg from '../../../../assets/clients/st-xaviers-burdwan.png';
-import ncdcImg from '../../../../assets/clients/ncdc.png';
+import ncdcImg from '../../../../assets/clients/ncdc.webp';
 import phidclImg from '../../../../assets/clients/phidcl.png';
 import westinghouseImg from '../../../../assets/clients/westinghouse-saxby.png';
 import sampurnaImg from '../../../../assets/clients/sampurna-finance.jpg';

@@ -6,7 +6,7 @@ import {
   X, 
   ArrowRight
 } from 'lucide-react';
-import logoImg from '../../../../assets/Net Infotech Transparent Logo.png';
+import logoImg from '../../../../assets/Net Infotech Transparent Logo.webp';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
 
@@ -135,6 +135,10 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                 src={logoImg} 
                 alt="Net Infotech System Pvt. Ltd." 
                 className="demo-brand-logo-img" 
+                width="240"
+                height="80"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </Link>

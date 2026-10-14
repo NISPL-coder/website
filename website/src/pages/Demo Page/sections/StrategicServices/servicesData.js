@@ -1,12 +1,12 @@
 import { Network, Cloud, Radio, ShieldCheck, Layers, FileCheck2 } from 'lucide-react';
 
-// Dedicated Industries / Strategic Services Assets from src/assets/Industries
-import itInfraImg from '../../../../assets/Industries/IT infrastructure Managment.png';
-import cloudServerImg from '../../../../assets/Industries/Clous Server & Hosting.png';
-import managedItImg from '../../../../assets/Industries/Managed IT services.png';
-import cyberSecurityImg from '../../../../assets/Industries/Cyber Security Solutions.png';
-import msLicensingImg from '../../../../assets/Industries/Microsoft Licensing Solutions.png';
-import tallyCloudImg from '../../../../assets/Industries/Tally Prime and Tally on Cloud.png';
+// Dedicated Industries / Strategic Services Assets from src/assets/Industries (Optimized WebP)
+import itInfraImg from '../../../../assets/Industries/IT infrastructure Managment.webp';
+import cloudServerImg from '../../../../assets/Industries/Clous Server & Hosting.webp';
+import managedItImg from '../../../../assets/Industries/Managed IT services.webp';
+import cyberSecurityImg from '../../../../assets/Industries/Cyber Security Solutions.webp';
+import msLicensingImg from '../../../../assets/Industries/Microsoft Licensing Solutions.webp';
+import tallyCloudImg from '../../../../assets/Industries/Tally Prime and Tally on Cloud.webp';
 
 const SERVICES_ACCORDION = [
   {

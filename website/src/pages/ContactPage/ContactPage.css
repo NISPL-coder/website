@@ -3,7 +3,7 @@
    Clean White Theme with Signature "Contact Us" Cyan Buttons
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+/* Fonts loaded in index.html */
 
 :root {
   --iz-font-display: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

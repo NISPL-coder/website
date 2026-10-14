@@ -7,7 +7,7 @@ import {
   Clock 
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/Net Infotech Transparent Logo.png';
+import logoImg from '../assets/Net Infotech Transparent Logo.webp';
 import './Footer.css';
 
 export default function Footer() {
@@ -32,6 +32,9 @@ export default function Footer() {
                   src={logoImg} 
                   alt="Net Infotech System Pvt. Ltd." 
                   className="footer-official-logo"
+                  width="220"
+                  height="74"
+                  loading="lazy"
                 />
               </Link>
             </div>
@@ -62,7 +65,7 @@ export default function Footer() {
 
           {/* Column 1: Products & Services */}
           <div className="footer-nav-col">
-            <h4 className="footer-col-title">Products & Services</h4>
+            <h3 className="footer-col-title">Products & Services</h3>
             <div className="footer-wip-box">
               <span className="footer-wip-text">Work in progress...</span>
               <span className="footer-wip-sub">Please check back soon.</span>
@@ -71,7 +74,7 @@ export default function Footer() {
 
           {/* Column 2: Our Solutions */}
           <div className="footer-nav-col">
-            <h4 className="footer-col-title">Our Solutions</h4>
+            <h3 className="footer-col-title">Our Solutions</h3>
             <div className="footer-wip-box">
               <span className="footer-wip-text">Work in progress...</span>
               <span className="footer-wip-sub">Please check back soon.</span>
@@ -80,7 +83,7 @@ export default function Footer() {
 
           {/* Column 3: Contact & Headquarters */}
           <div className="footer-contact-col">
-            <h4 className="footer-col-title">Kolkata Office</h4>
+            <h3 className="footer-col-title">Kolkata Office</h3>
             
             <div className="contact-item">
               <MapPin size={15} className="contact-icon" />

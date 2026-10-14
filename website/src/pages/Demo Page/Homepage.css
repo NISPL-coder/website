@@ -4,7 +4,7 @@
    high-tech video hero carousel with meticulous typography & glassmorphism.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+/* Fonts are loaded asynchronously in index.html to avoid render blocking */
 
 :root {
   --demo-font-display: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -736,13 +736,13 @@
 
 .demo-contact-pill-btn {
   background: var(--demo-cyan-primary);
-  color: #ffffff;
+  color: #031c2d; /* High-contrast 10:1 ratio for WCAG AAA accessibility */
   border: none;
   border-radius: 9999px;
   padding: 10px 24px;
   font-family: var(--demo-font-body);
   font-size: 0.93rem;
-  font-weight: 400; /* Un-bolded */
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -755,7 +755,7 @@
 
 .demo-contact-pill-btn:hover {
   background: var(--demo-cyan-hover);
-  color: #ffffff;
+  color: #031c2d;
   transform: translateY(-1px) scale(1.02);
   box-shadow: 0 6px 24px rgba(0, 229, 255, 0.5);
 }
@@ -1324,7 +1324,7 @@
   position: absolute;
   top: 0px;
   left: -6px;
-  background: #ff6b00;
+  background: #c2410c;
   color: #ffffff;
   border-radius: 16px;
   padding: 13px 22px;
@@ -1332,14 +1332,14 @@
   font-size: 0.98rem;
   font-weight: 800;
   line-height: 1.22;
-  box-shadow: 0 12px 28px rgba(255, 107, 0, 0.38);
+  box-shadow: 0 12px 28px rgba(194, 65, 12, 0.38);
 }
 
 .demo-badge-cyan {
   position: absolute;
   bottom: 12px;
   right: -6px;
-  background: #00b4d8;
+  background: #0284c7;
   color: #ffffff;
   border-radius: 16px;
   padding: 13px 22px;
@@ -1347,7 +1347,7 @@
   font-size: 0.98rem;
   font-weight: 800;
   line-height: 1.22;
-  box-shadow: 0 12px 28px rgba(0, 180, 216, 0.38);
+  box-shadow: 0 12px 28px rgba(2, 132, 199, 0.38);
 }
 
 /* Floating Testimonial Cards */
@@ -1496,8 +1496,8 @@
 .demo-partners-subtitle {
   font-family: var(--demo-font-display);
   font-size: clamp(1.2rem, 1.8vw, 1.45rem);
-  font-weight: 400; /* Un-bolded */
-  color: #0097a7;
+  font-weight: 500;
+  color: #0369a1; /* High contrast >5:1 ratio */
   letter-spacing: -0.01em;
   line-height: 1.35;
   margin: 0 0 24px 0;
@@ -2192,6 +2192,7 @@
 /* Big Logos Enclosure Box (Matching red box in reference image) */
 .demo-logo-showcase-box {
   background: #ffffff;
+  margin-bottom: 50px;
   border: 1.5px solid #e2e8f0;
   border-radius: 16px;
   padding: 42px 46px;

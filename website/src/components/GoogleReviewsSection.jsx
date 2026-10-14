@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquarePlus, ExternalLink, Quote } from 'lucide-react';
 import { GOOGLE_REVIEWS } from '../data/mockData';
 import { useScrollReveal } from '../utils/useScrollReveal';
-import clientTeamImg from '../assets/client_team_celebration.jpg';
+import clientTeamImg from '../assets/client_team_celebration.webp';
 import './GoogleReviewsSection.css';
 
 export default function GoogleReviewsSection() {
@@ -52,6 +52,10 @@ export default function GoogleReviewsSection() {
           src={clientTeamImg} 
           alt="Net Infotech System celebrating clients and team success" 
           className="gr-bg-photo" 
+          width="1200"
+          height="800"
+          loading="lazy"
+          decoding="async"
         />
         <div className="gr-bg-overlay" />
       </div>
@@ -178,7 +182,7 @@ export default function GoogleReviewsSection() {
                   </div>
 
                   <div className="gr-user-info">
-                    <h4 className="gr-user-name">{rev.author}</h4>
+                    <div className="gr-user-name">{rev.author}</div>
                     <p className="gr-user-role">{rev.role}</p>
                   </div>
 

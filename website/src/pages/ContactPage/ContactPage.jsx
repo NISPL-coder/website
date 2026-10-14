@@ -11,9 +11,9 @@ import {
 import Navbar from '../Demo Page/sections/Navbar/Navbar';
 import Footer from '../../components/Footer';
 import LinkedInQRCode from '../../components/LinkedInQRCode';
-import photoFinancialSpecialist from '../../assets/corporate_team_handshake.jpg';
-import photoMicrosoftCloudEng from '../../assets/office_engineers_collaborating.jpg';
-import photoDatacenterArchitect from '../../assets/client_team_celebration.jpg';
+import photoFinancialSpecialist from '../../assets/corporate_team_handshake.webp';
+import photoMicrosoftCloudEng from '../../assets/office_engineers_collaborating.webp';
+import photoDatacenterArchitect from '../../assets/client_team_celebration.webp';
 import './ContactPage.css';
 
 const ASSOCIATES = [
@@ -56,8 +56,9 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    organisation: '',
-    hearAboutUs: '',
+    mobile: '',
+    companyName: '',
+    interestedIn: '',
     description: ''
   });
 
@@ -75,7 +76,7 @@ export default function ContactPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.description.trim()) return;
+    if (!formData.name.trim() || !formData.email.trim() || !formData.mobile.trim() || !formData.description.trim()) return;
 
     setIsSubmitting(true);
     setTimeout(() => {
@@ -90,8 +91,9 @@ export default function ContactPage() {
     setFormData({
       name: '',
       email: '',
-      organisation: '',
-      hearAboutUs: '',
+      mobile: '',
+      companyName: '',
+      interestedIn: '',
       description: ''
     });
     setIsSubmitted(false);
@@ -221,7 +223,7 @@ export default function ContactPage() {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="Your Name"
+                        placeholder="Your Full Name"
                         className="iz-input-underline"
                         required
                       />
@@ -246,38 +248,56 @@ export default function ContactPage() {
                   <div className="iz-form-row">
                     <div className="iz-input-group">
                       <label className="iz-input-label">
-                        Organisation
+                        Mobile <span>*</span>
                       </label>
                       <input
-                        type="text"
-                        name="organisation"
-                        value={formData.organisation}
+                        type="tel"
+                        name="mobile"
+                        value={formData.mobile}
                         onChange={handleChange}
-                        placeholder="Your Organisation / Company"
+                        placeholder="Your Mobile Number"
                         className="iz-input-underline"
+                        required
                       />
                     </div>
 
                     <div className="iz-input-group">
                       <label className="iz-input-label">
-                        How did you hear about us?
+                        Company/Bussiness name
                       </label>
-                      <select
-                        name="hearAboutUs"
-                        value={formData.hearAboutUs}
+                      <input
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName}
                         onChange={handleChange}
+                        placeholder="Your Company / Business Name"
                         className="iz-input-underline"
-                      >
-                        <option value="">Select an option...</option>
-                        <option value="Google Search">Google Search</option>
-                        <option value="LinkedIn / Social Media">LinkedIn / Social Media</option>
-                        <option value="Referral / Word of Mouth">Referral / Word of Mouth</option>
-                        <option value="Partner Recommendation">Partner Recommendation</option>
-                        <option value="Event / Conference">Event / Conference</option>
-                        <option value="Email / Newsletter">Email / Newsletter</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      />
                     </div>
+                  </div>
+
+                  <div className="iz-input-group">
+                    <label className="iz-input-label">
+                      Interested in <span>*</span>
+                    </label>
+                    <select
+                      name="interestedIn"
+                      value={formData.interestedIn}
+                      onChange={handleChange}
+                      className="iz-input-underline"
+                      required
+                    >
+                      <option value="">Select an option...</option>
+                      <option value="Tally Prime Solutions & Customization">Tally Prime Solutions & Customization</option>
+                      <option value="Cloud Hosting & Infrastructure (AWS / Azure / CtrlS)">Cloud Hosting & Infrastructure (AWS / Azure / CtrlS)</option>
+                      <option value="Enterprise ERP & Custom Software Development">Enterprise ERP & Custom Software Development</option>
+                      <option value="IT Hardware, Servers & AMC Support">IT Hardware, Servers & AMC Support</option>
+                      <option value="Cybersecurity & Network Infrastructure">Cybersecurity & Network Infrastructure</option>
+                      <option value="Data Backup & Disaster Recovery">Data Backup & Disaster Recovery</option>
+                      <option value="Web Development & Digital Solutions">Web Development & Digital Solutions</option>
+                      <option value="Corporate IT Advisory & Consulting">Corporate IT Advisory & Consulting</option>
+                      <option value="Other / General Inquiry">Other / General Inquiry</option>
+                    </select>
                   </div>
 
                   <div className="iz-input-group">

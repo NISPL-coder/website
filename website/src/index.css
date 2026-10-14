@@ -3,7 +3,7 @@
    Production-Ready Global Styles
    =================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+/* Fonts loaded in index.html */
 
 :root {
   --primary: #0284C7;

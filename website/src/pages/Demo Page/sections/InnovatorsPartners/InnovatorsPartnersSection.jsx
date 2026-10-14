@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, Quote, Star } from 'lucide-react';
-import teamHandshakeImg from '../../../../assets/corporate_team_handshake.jpg';
-import engineersImg from '../../../../assets/office_engineers_collaborating.jpg';
+import teamHandshakeImg from '../../../../assets/corporate_team_handshake.webp';
+import engineersImg from '../../../../assets/office_engineers_collaborating.webp';
 
 export default function InnovatorsPartnersSection() {
   return (
@@ -16,7 +16,10 @@ export default function InnovatorsPartnersSection() {
                 src={teamHandshakeImg} 
                 alt="Net Infotech System team celebrating corporate success" 
                 className="demo-collage-img" 
+                width="600"
+                height="700"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -26,7 +29,10 @@ export default function InnovatorsPartnersSection() {
                 src={engineersImg} 
                 alt="Modern engineers collaborating on cloud solutions" 
                 className="demo-collage-img" 
+                width="540"
+                height="680"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
