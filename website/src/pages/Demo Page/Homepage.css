@@ -736,13 +736,13 @@
 
 .demo-contact-pill-btn {
   background: var(--demo-cyan-primary);
-  color: #ffffff; /* High-contrast 10:1 ratio for WCAG AAA accessibility */
+  color: #041624; /* 9.74:1 contrast ratio against #00d2d3 - WCAG AAA compliant */
   border: none;
   border-radius: 9999px;
   padding: 10px 24px;
   font-family: var(--demo-font-body);
   font-size: 0.93rem;
-  font-weight: 700;
+  font-weight: 750;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -754,7 +754,10 @@
 }
 
 .demo-contact-pill-btn:hover {
-  color: #ffffff;
+  background: #00e5ff;
+  color: #041624;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(0, 229, 255, 0.5);
 }
 
 .demo-contact-pill-btn:active {

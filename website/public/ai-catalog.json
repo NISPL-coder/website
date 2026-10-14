@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Net Infotech System AI Catalog",
+  "description": "AI agent service catalog and resource index for Net Infotech System Pvt. Ltd.",
+  "version": "1.0.0",
+  "provider": {
+    "name": "Net Infotech System Pvt. Ltd.",
+    "url": "https://nispl.netlify.app",
+    "contact": "info@netinfotechsystem.com"
+  },
+  "endpoints": [
+    {
+      "name": "Homepage",
+      "description": "Overview of enterprise IT infrastructure, certified technology partners, and managed services",
+      "url": "https://nispl.netlify.app/",
+      "contentType": "text/html"
+    },
+    {
+      "name": "About Us",
+      "description": "Company history, 25+ years track record, credentials, and executive leadership",
+      "url": "https://nispl.netlify.app/about",
+      "contentType": "text/html"
+    },
+    {
+      "name": "Contact & Ticketing",
+      "description": "Enterprise inquiry form, regional offices (Kolkata, Burdwan, Durgapur), and helpdesk directory",
+      "url": "https://nispl.netlify.app/contact",
+      "contentType": "text/html"
+    },
+    {
+      "name": "Careers",
+      "description": "Job openings, corporate culture, and recruitment applications",
+      "url": "https://nispl.netlify.app/career",
+      "contentType": "text/html"
+    },
+    {
+      "name": "LLMs Guide",
+      "description": "Markdown index of all site resources formatted for LLMs and autonomous agents",
+      "url": "https://nispl.netlify.app/llms.txt",
+      "contentType": "text/markdown"
+    }
+  ],
+  "capabilities": [
+    "enterprise-it-consulting",
+    "cloud-hosting-migration",
+    "tally-prime-customization",
+    "cybersecurity-auditing",
+    "amc-hardware-support",
+    "agentic-web-discovery"
+  ]
+}

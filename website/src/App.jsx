@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-// import WhatsAppButton from './components/WhatsAppButton';
 import DemoHomepage from './pages/Demo Page/Homepage';
-import AboutPage from './pages/AboutPage/AboutPage';
-import ContactPage from './pages/ContactPage/ContactPage';
-import CareerPage from './pages/CareerPage/CareerPage';
-import DemoModal from './components/modals/DemoModal';
-import LoginModal from './components/modals/LoginModal';
-import SearchModal from './components/modals/SearchModal';
 import CookieConsent from './components/CookieConsent/CookieConsent';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 import './App.css';
+
+// Code-split secondary routes & heavy modals for instant LCP and minimal initial bundle
+const AboutPage = lazy(() => import('./pages/AboutPage/AboutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage/ContactPage'));
+const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
+const DemoModal = lazy(() => import('./components/modals/DemoModal'));
+const LoginModal = lazy(() => import('./components/modals/LoginModal'));
+const SearchModal = lazy(() => import('./components/modals/SearchModal'));
 
 // Smooth scroll to top on route change or handle hash anchors
 function ScrollToTop() {
@@ -44,41 +43,6 @@ function MainApp() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  // Buttery smooth momentum scrolling engine
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.15,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.8,
-      infinite: false,
-    });
-
-    let animationFrameId;
-
-    function raf(time) {
-      lenis.raf(time);
-      animationFrameId = requestAnimationFrame(raf);
-    }
-
-    animationFrameId = requestAnimationFrame(raf);
-
-    // Stop scrolling if any modal is active
-    if (isDemoModalOpen || isLoginModalOpen || isSearchModalOpen) {
-      lenis.stop();
-    } else {
-      lenis.start();
-    }
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      lenis.destroy();
-    };
-  }, [isDemoModalOpen, isLoginModalOpen, isSearchModalOpen]);
-
   // Keyboard shortcut: Ctrl + K or Cmd + K for global search palette
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -97,61 +61,68 @@ function MainApp() {
       {/* Universal Interactive Constellation Background */}
       <NetworkBackground />
       
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            <DemoHomepage 
-              onOpenContact={() => setIsDemoModalOpen(true)}
-              onOpenConsultation={() => setIsDemoModalOpen(true)}
-            />
-          } 
-        />
-        <Route 
-          path="/about" 
-          element={
-            <AboutPage 
-              onOpenContact={() => setIsDemoModalOpen(true)}
-              onOpenConsultation={() => setIsDemoModalOpen(true)}
-            />
-          } 
-        />
-        <Route 
-          path="/about-us" 
-          element={
-            <AboutPage 
-              onOpenContact={() => setIsDemoModalOpen(true)}
-              onOpenConsultation={() => setIsDemoModalOpen(true)}
-            />
-          } 
-        />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/career" element={<CareerPage />} />
-        {/* All routes fallback directly to the official Homepage */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <DemoHomepage 
+                onOpenContact={() => setIsDemoModalOpen(true)}
+                onOpenConsultation={() => setIsDemoModalOpen(true)}
+              />
+            } 
+          />
+          <Route 
+            path="/about" 
+            element={
+              <AboutPage 
+                onOpenContact={() => setIsDemoModalOpen(true)}
+                onOpenConsultation={() => setIsDemoModalOpen(true)}
+              />
+            } 
+          />
+          <Route 
+            path="/about-us" 
+            element={
+              <AboutPage 
+                onOpenContact={() => setIsDemoModalOpen(true)}
+                onOpenConsultation={() => setIsDemoModalOpen(true)}
+              />
+            } 
+          />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/career" element={<CareerPage />} />
+          {/* All routes fallback directly to the official Homepage */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
 
-      {/* Floating WhatsApp Contact Widget */}
-      {/* <WhatsAppButton /> */}
-
-      {/* Global Interactive Modals */}
-      <DemoModal
-        isOpen={isDemoModalOpen}
-        onClose={() => setIsDemoModalOpen(false)}
-        onSubmitSuccess={(msg) => console.log(msg)}
-      />
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={(msg) => console.log(msg)}
-      />
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        transactions={transactions}
-        products={products}
-        onSelectAction={() => {}}
-      />
+      {/* Global Interactive Modals (Loaded on demand) */}
+      <Suspense fallback={null}>
+        {isDemoModalOpen && (
+          <DemoModal
+            isOpen={isDemoModalOpen}
+            onClose={() => setIsDemoModalOpen(false)}
+            onSubmitSuccess={(msg) => console.log(msg)}
+          />
+        )}
+        {isLoginModalOpen && (
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onLoginSuccess={(msg) => console.log(msg)}
+          />
+        )}
+        {isSearchModalOpen && (
+          <SearchModal
+            isOpen={isSearchModalOpen}
+            onClose={() => setIsSearchModalOpen(false)}
+            transactions={transactions}
+            products={products}
+            onSelectAction={() => {}}
+          />
+        )}
+      </Suspense>
 
       {/* Global First-Visit Cookie & Privacy Consent */}
       <CookieConsent />

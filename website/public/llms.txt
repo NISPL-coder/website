@@ -1,0 +1,24 @@
+# Net Infotech System Pvt. Ltd.
+
+> Net Infotech System Pvt. Ltd. (NISPL) is Eastern India's premier IT solutions provider and Tally 3-Star Certified Partner. With over 25 years of excellence, NISPL provides enterprise cloud hosting, custom software development, cybersecurity, hardware infrastructure, and managed IT services.
+
+## Core Pages
+
+- [Homepage](https://nispl.netlify.app/): Main web portal showcasing enterprise IT services, cloud hosting, certified technology partners, and verified client testimonials.
+- [About Us](https://nispl.netlify.app/about): Company legacy, leadership, corporate milestones, 25+ years of industry track record, and operational values.
+- [Contact & Support](https://nispl.netlify.app/contact): Official contact directory, branch offices in Kolkata, Burdwan, and Durgapur, inquiry form, and enterprise ticketing.
+- [Careers](https://nispl.netlify.app/career): Job openings, engineering and consulting opportunities, work culture, and online application portal.
+
+## Enterprise Services & Solutions
+
+- [Tally Prime Solutions & Cloud Hosting](https://nispl.netlify.app/): Certified Tally implementation, custom TDL module development, multi-user deployment, and high-speed Tally-on-Cloud hosting.
+- [Enterprise Cloud & Hosting (AWS, Azure, CtrlS)](https://nispl.netlify.app/): Cloud migration, scalable virtual machines, data backup, and hybrid cloud management.
+- [Cybersecurity & Threat Defense](https://nispl.netlify.app/): Next-generation firewall implementation, endpoint protection, vulnerability scanning, and disaster recovery.
+- [Managed IT Services & AMC Support](https://nispl.netlify.app/): 24/7 server monitoring, proactive maintenance, network uptime guarantees, and on-site engineering dispatch.
+- [Hardware & Networking Infrastructure](https://nispl.netlify.app/): Authorized enterprise partnerships with HP, Lenovo, Canon, CP PLUS, and D-Link for procurement and SLA maintenance.
+
+## Discoverability & Metadata
+
+- [Sitemap](https://nispl.netlify.app/sitemap.xml): Complete machine-readable XML sitemap for search crawlers and AI agents.
+- [Robots Configuration](https://nispl.netlify.app/robots.txt): Web crawler directives and sitemap declaration.
+- [AI Agent Catalog](https://nispl.netlify.app/ai-catalog.json): Machine-readable service and agent catalog specification.

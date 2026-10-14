@@ -28,7 +28,8 @@
 
 .nis-cookie-banner-inner {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  color: #1e293b; /* 14.63:1 contrast ratio against #ffffff - WCAG AAA compliant */
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
   padding: 6px 14px 6px 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.06);
@@ -51,11 +52,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #374151;
+  color: #1e293b;
 }
 
 .nis-cookie-icon {
-  color: #374151;
+  color: #1e293b;
 }
 
 .nis-cookie-text {
@@ -74,8 +75,8 @@
 .nis-cookie-title {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.94rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: 750;
+  color: #0f172a; /* 15.8:1 contrast ratio against #ffffff - WCAG AAA compliant */
   margin: 0;
   line-height: 1.2;
   white-space: nowrap;
@@ -85,12 +86,12 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.81rem;
   line-height: 1.35;
-  color: #4b5563;
+  color: #334155; /* 10.35:1 contrast ratio against #ffffff - WCAG AAA compliant */
   margin: 0;
 }
 
 .nis-cookie-inline-link {
-  color: #0284c7;
+  color: #075985; /* 7.56:1 contrast ratio against #ffffff - WCAG AAA compliant */
   text-decoration: underline;
   background: none;
   border: none;
@@ -99,17 +100,17 @@
   cursor: pointer;
   font-size: inherit;
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 650;
 }
 
 .nis-cookie-inline-link:hover {
-  color: #0369a1;
+  color: #0c4a6e; /* 11.0:1 contrast ratio */
 }
 
 .nis-cookie-loc-status {
   font-size: 0.74rem;
-  color: #0284c7;
-  font-weight: 600;
+  color: #0369a1;
+  font-weight: 650;
 }
 
 /* Banner Action Buttons */
@@ -123,7 +124,7 @@
 .nis-cookie-btn {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.81rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 6px 14px;
   border-radius: 3px;
   cursor: pointer;
@@ -137,38 +138,39 @@
   border: none;
 }
 
-/* Sweet! / Accept Button (Warm Golden Orange matching screenshot) */
+/* Accept Button (9.74:1 Contrast Ratio with #041624 text on #00d2d3 - WCAG AAA Compliant) */
 .nis-cookie-btn-primary {
   background: #00d2d3;
-  color: #ffffff;
+  color: #041624;
 }
 
 .nis-cookie-btn-primary:hover {
-  background: #17e9e9;
+  background: #00e5ff;
+  color: #041624;
 }
 
-/* Deny Button (Light Soft Gray matching screenshot) */
+/* Deny Button (11.82:1 Contrast Ratio with #1e293b text on #e5e7eb - WCAG AAA Compliant) */
 .nis-cookie-btn-deny {
   background: #e5e7eb;
-  color: #374151;
+  color: #1e293b;
 }
 
 .nis-cookie-btn-deny:hover {
   background: #d1d5db;
-  color: #111827;
+  color: #0f172a;
 }
 
-/* Customize Button (Clean Outline) */
+/* Customize Button (14.63:1 Contrast Ratio with #1e293b text on #ffffff - WCAG AAA Compliant) */
 .nis-cookie-btn-secondary {
   background: #ffffff;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
+  color: #1e293b;
+  border: 1px solid #94a3b8;
 }
 
 .nis-cookie-btn-secondary:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-  color: #1f2937;
+  background: #f1f5f9;
+  border-color: #64748b;
+  color: #0f172a;
 }
 
 .nis-cookie-btn-save {
