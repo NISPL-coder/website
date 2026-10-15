@@ -14,6 +14,15 @@ import imgEngineersCollaborating from '../../assets/office_engineers_collaborati
 import imgClientCelebration from '../../assets/client_team_celebration.webp';
 import imgCorporateHandshake from '../../assets/corporate_team_handshake.webp';
 
+// 7 New Work Culture & Puja Photographs
+import imgTeamCollabMeeting from '../../assets/work culture/image.png';
+import imgFocusedWorkstation from '../../assets/work culture/image copy.png';
+import imgErgonomicFloor from '../../assets/work culture/image copy 2.png';
+import imgFestiveGlassFacade from '../../assets/work culture/image copy 3.png';
+import imgSupportHotline from '../../assets/work culture/image copy 4.png';
+import imgVishwakarmaIdol from '../../assets/work culture/image copy 5.png';
+import imgHavanCeremony from '../../assets/work culture/image copy 6.png';
+
 export const GALLERY_CATEGORIES = [
   {
     id: 'casual-office',
@@ -45,8 +54,34 @@ export const GALLERY_CATEGORIES = [
         caption: 'Ergonomic, modern enterprise infrastructure crafted to support 24/7 cloud server monitoring and agile deployments.',
         alt: 'Net Infotech modern corporate office interior and workstations'
       },
-    
-      
+      {
+        id: 'co-collab',
+        image: imgTeamCollabMeeting,
+        title: 'API & Connected GST Solutions Collaboration',
+        caption: 'Engineers and consultants collaborating across the conference table on API-based connected GST compliance and enterprise solutions.',
+        alt: 'NISPL team members in conference room working on laptops with whiteboard behind'
+      },
+      {
+        id: 'co-workstation',
+        image: imgFocusedWorkstation,
+        title: 'Operations & Technical Support Desk',
+        caption: 'Focused client coordination, accounting support, and technical solution deliveries handled by our skilled team members.',
+        alt: 'NISPL staff working focused at support workstations with project files'
+      },
+      {
+        id: 'co-floor',
+        image: imgErgonomicFloor,
+        title: 'Open Floor Energy & Daily Drive',
+        caption: 'Modern ergonomic setup inspiring daily growth with our core belief: "Today is another chance to get BETTER".',
+        alt: 'NISPL open floor workstations with ergonomic chairs and motivational wall'
+      },
+      {
+        id: 'co-hotline',
+        image: imgSupportHotline,
+        title: 'Hardware Helpdesk & Client Assistance',
+        caption: 'Prompt technical support hotline ensuring seamless operations and quick turnaround for enterprise hardware and rental needs.',
+        alt: 'NISPL support staff coordinating on phone at the assistance desk'
+      }
     ]
   },
   {
@@ -143,6 +178,27 @@ export const GALLERY_CATEGORIES = [
         title: 'Traditional Office Puja & Blessings',
         caption: 'Invoking blessings of prosperity, wisdom, and peace through time-honored Puja rituals observed with deep respect at our office.',
         alt: 'Traditional Puja ceremony and celebrations at Net Infotech office'
+      },
+      {
+        id: 'fc-facade',
+        image: imgFestiveGlassFacade,
+        title: 'Durga Puja Office Facade Decor',
+        caption: 'Vibrant marigold garlands and traditional Durga artwork adorning the office glass facade, welcoming festive energy and blessings.',
+        alt: 'Office glass facade decorated with traditional Durga art and marigold garlands'
+      },
+      {
+        id: 'fc-vishwakarma',
+        image: imgVishwakarmaIdol,
+        title: 'Lord Vishwakarma Puja & Engineering Blessings',
+        caption: 'Traditional worship of Lord Vishwakarma observed with devotion, seeking craftsmanship excellence and technical mastery.',
+        alt: 'Lord Vishwakarma Puja idol and traditional offerings at NISPL office'
+      },
+      {
+        id: 'fc-havan',
+        image: imgHavanCeremony,
+        title: 'Sacred Office Havan & Ritual Ceremony',
+        caption: 'Sacred fire Havan ritual performed with purity and reverence, invoking divine blessings and prosperity for the NISPL family.',
+        alt: 'Sacred fire Havan ritual conducted with priest at Net Infotech office'
       }
     ]
   }

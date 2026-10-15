@@ -7,7 +7,7 @@
 
 /* Root container */
 .iz-career-page-root {
-  background-color: transparent;
+  background-color: transparent !important;
   color: var(--iz-text-title, #0F172A);
   font-family: var(--iz-font-body, 'Plus Jakarta Sans', sans-serif);
   position: relative;
@@ -24,39 +24,62 @@
   padding: 0 32px;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
 
 /* ==========================================================================
-   0. HERO SECTION (With High-Contrast Dark Gradient Overlay)
+   0. HERO HEADER WITH 3D NETWORK GLOBE MESH & ANGLED CUT
    ========================================================================== */
-.iz-career-hero-section {
+.iz-hero-section {
   position: relative;
-  background: 
-    url('../../assets/office interior.webp') center/cover no-repeat;
-  padding-top: calc(var(--header-height, 120px) + 40px);
-  padding-bottom: 80px;
+  background: radial-gradient(circle at 10% 20%, rgba(0, 210, 211, 0.12) 0%, transparent 45%);
+  padding-top: 150px;
+  padding-bottom: 120px;
   text-align: center;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.iz-career-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(7, 16, 31, 0.88) 0%, rgba(13, 26, 48, 0.76) 50%, rgba(15, 23, 42, 0.94) 100%);
-  backdrop-filter: blur(2px);
+  clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
   z-index: 1;
 }
 
-.iz-career-hero-content {
+/* 3D Dotted Globe Wireframe Texture (Top-Left) */
+.iz-hero-globe-mesh {
+  position: absolute;
+  top: 10px;
+  left: -40px;
+  width: 380px;
+  height: 380px;
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+}
+
+.iz-hero-content {
   position: relative;
-  z-index: 2;
-  max-width: 860px;
+  z-index: 5;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
+}
+
+.iz-hero-title {
+  font-family: var(--demo-font-display, 'Outfit', 'Inter', sans-serif) !important;
+  font-size: clamp(2.1rem, 3.6vw, 3rem) !important;
+  font-weight: 400 !important;
+  color: #0F172A !important;
+  line-height: 1.24 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+}
+
+@media (max-width: 768px) {
+  .iz-hero-section {
+    padding-top: calc(var(--header-height, 80px) + 36px);
+    padding-bottom: 60px;
+    clip-path: none;
+  }
 }
 
 .iz-career-hero-badge {
@@ -143,14 +166,17 @@
    ========================================================================== */
 .iz-career-why-section {
   padding: 75px 0 85px 0;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  background: transparent;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  position: relative;
+  z-index: 1;
 }
 
 .iz-career-why-card {
   max-width: 1040px;
   margin: 0 auto;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
   border: 1px solid #E2E8F0;
   border-radius: 20px;
   box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
@@ -224,7 +250,9 @@
    ========================================================================== */
 .iz-career-jobs-section {
   padding: 70px 0 85px;
-  background: #FFFFFF;
+  background: transparent;
+  position: relative;
+  z-index: 1;
 }
 
 /* Layout Split */
@@ -239,7 +267,8 @@
 .iz-career-sidebar {
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
@@ -287,7 +316,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
   padding: 24px 20px;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);

@@ -164,18 +164,44 @@ export default function CareerPage() {
       <Navbar />
 
       {/* =====================================================================
-          0. HERO HEADER
+          0. HERO HEADER WITH 3D NETWORK GLOBE MESH & ANGLED CUT
           ===================================================================== */}
-      <section className="iz-career-hero-section">
-        <div className="iz-career-hero-overlay" />
-        <div className="iz-career-hero-content">
-          <h1 className="iz-career-page-title">
-            Build the Future of Enterprise IT
-          </h1>
-          <p className="iz-career-hero-tagline">
-            Join Eastern India’s leading technology powerhouse delivering high-impact cloud,
-            ERP, datacenter, and security solutions to 1,000+ corporate clients.
-          </p>
+      <section className="iz-hero-section">
+        {/* 3D Dotted Globe Network Mesh (SVG) */}
+        <div className="iz-hero-globe-mesh" aria-hidden="true">
+          <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="globeGradCareer" cx="40%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.45" />
+                <stop offset="50%" stopColor="#00d2d3" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#0369a1" stopOpacity="0.05" />
+              </radialGradient>
+            </defs>
+            {/* Latitude / Longitude 3D Perspective Dots */}
+            {Array.from({ length: 11 }).map((_, rIndex) => {
+              const r = 25 + rIndex * 12;
+              return Array.from({ length: 16 }).map((_, dIndex) => {
+                const angle = (dIndex * 22.5 * Math.PI) / 180;
+                const cx = 130 + r * Math.cos(angle) * 0.95;
+                const cy = 130 + r * Math.sin(angle) * 0.55;
+                const size = 1.2 + (rIndex / 11) * 2;
+                return (
+                  <circle
+                    key={`${rIndex}-${dIndex}`}
+                    cx={cx}
+                    cy={cy}
+                    r={size}
+                    fill="url(#globeGradCareer)"
+                    opacity={0.3 + (dIndex % 3) * 0.25}
+                  />
+                );
+              });
+            })}
+          </svg>
+        </div>
+
+        <div className="iz-hero-content">
+          <h1>Build the Future of Enterprise IT</h1>
         </div>
       </section>
 
@@ -184,13 +210,14 @@ export default function CareerPage() {
           ===================================================================== */}
       <section className="iz-career-why-section" id="why-nispl">
         <div className="iz-career-container">
-          <div className="iz-career-section-header">
-           
-            <h2 className="iz-career-section-title">Why NISPL</h2>
-          </div>
+          
 
           <div className="iz-career-why-card">
             <div className="iz-career-why-content">
+              <div className="iz-career-section-header">
+           
+            <h2 className="iz-career-section-title">Why NISPL</h2>
+          </div>
               <p className="iz-career-why-paragraph">
                 Established in 2000, Net Infotech System has evolved with a clear vision to simplify technology and empower businesses to achieve more. Incorporated as Net Infotech System Pvt. Ltd. (NISPL) on 21 July 2022, we continue to build on our legacy of trust, expertise, and innovation.
               </p>
