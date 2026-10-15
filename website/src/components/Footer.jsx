@@ -142,9 +142,11 @@ export default function Footer() {
         {/* Bottom Copyright & Legal Strip */}
         <div className="footer-bottom-strip">
           <p className="copyright-text">
-            © {new Date().getFullYear()} <b>Net Infotech System Pvt. Ltd.</b> All rights reserved. 25+ Years of Excellence.
+            © {new Date().getFullYear()} <b>Net Infotech System Pvt. Ltd.</b> All rights reserved.
           </p>
-
+          <p className="footer-copyright-highlight">
+            25+ Years of Excellence.
+          </p>
           <div className="legal-links">
             <Link to="/">Home</Link>
             <span className="dot-sep">•</span>

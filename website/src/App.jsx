@@ -20,12 +20,27 @@ function ScrollToTop() {
 
   useEffect(() => {
     if (hash) {
-      setTimeout(() => {
-        const el = document.querySelector(hash);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
+      const scrollToEl = () => {
+        try {
+          const el = document.querySelector(hash);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            return true;
+          }
+        } catch {
+          // ignore invalid query selectors
         }
-      }, 100);
+        return false;
+      };
+
+      if (!scrollToEl()) {
+        const timer1 = setTimeout(scrollToEl, 120);
+        const timer2 = setTimeout(scrollToEl, 320);
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+        };
+      }
     } else {
       window.scrollTo(0, 0);
     }

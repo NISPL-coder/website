@@ -4,7 +4,7 @@ import HeroCarousel from './sections/HeroCarousel/HeroCarousel';
 import InnovatorsPartnersSection from './sections/InnovatorsPartners/InnovatorsPartnersSection';
 import StrategicServicesAccordion from './sections/StrategicServices/StrategicServicesAccordion';
 import AuthorizedPartnersSection from './sections/AuthorizedPartners/AuthorizedPartnersSection';
-import GoogleReviewsSection from '../../components/GoogleReviewsSection';
+import TestimonialsSection from '../../components/TestimonialsSection';
 import OurClientsSection from './sections/OurClients/OurClientsSection';
 import Footer from '../../components/Footer';
 import './Homepage.css';
@@ -38,8 +38,8 @@ export default function Homepage({
       {/* 5. Authorized Enterprise Technology Partners Showcase */}
       <AuthorizedPartnersSection />
 
-      {/* 6. Google Reviews & Verified Client Testimonials */}
-      <GoogleReviewsSection />
+      {/* 6. Testimonials Section (Cyberswift 3-Card Style) */}
+      <TestimonialsSection />
 
       {/* 7. Premier Clients Showcase Grid */}
       <OurClientsSection />

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquarePlus, ExternalLink, Quote } from 'lucide-react';
-import { GOOGLE_REVIEWS } from '../data/mockData';
+const GOOGLE_REVIEWS = [];
 import { useScrollReveal } from '../utils/useScrollReveal';
 import clientTeamImg from '../assets/client_team_celebration.webp';
 import './GoogleReviewsSection.css';

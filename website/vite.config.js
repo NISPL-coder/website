@@ -4,6 +4,15 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/google-places': {
+        target: 'https://maps.googleapis.com/maps/api/place',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/google-places/, '')
+      }
+    }
+  },
   build: {
     cssCodeSplit: true,
     rollupOptions: {

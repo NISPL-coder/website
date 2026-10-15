@@ -1,5 +1,3 @@
-import imgCelebration from '../../../../assets/client_team_celebration.webp';
-
 export const NAV_ITEMS = [
   { id: 'about', label: 'About Us', path: '/about' },
   { id: 'products', label: 'Products', path: '/products' },
@@ -58,7 +56,7 @@ export const MEGA_MENU_CONFIG = {
     items: []
   },
 
-  // 5. About Us (Active Work Culture)
+  // 5. About Us (Active Work Culture Tree)
   about: {
     id: 'about',
     label: 'About Us',
@@ -68,20 +66,18 @@ export const MEGA_MENU_CONFIG = {
       {
         id: 'col-about-culture',
         title: 'Work Culture',
-        image: imgCelebration,
         path: '/about#work-culture',
         links: [
-          { label: 'Inside NISPL: Work Culture', path: '/about#work-culture', badge: 'HOT' },
-          { label: 'Workplace Excellence Award', path: '/about#work-culture', badge: 'TALLY' },
-          { label: 'Aikyam: One Team Synergy', path: '/about#work-culture' },
-          { label: 'Continuous Skill Sprints', path: '/about#work-culture' },
-          { label: 'Festive Traditions & Events', path: '/about#work-culture' },
-          { label: 'Collaborative Open Floors', path: '/about#work-culture' }
+          { label: 'Inside NISPL work culture', path: '/about#casual-office' },
+          { label: 'Workplace Excell Award', path: '/about#conventions-aikyam' },
+          { label: 'Celebration & puja', path: '/about#festive-celebrations' }
         ]
       }
     ],
     items: [
-      { id: 'work-culture', label: 'Work Culture & Life at NISPL', path: '/about#work-culture' }
+      { id: 'inside-nispl', label: 'Inside NISPL work culture', path: '/about#casual-office' },
+      { id: 'workplace-award', label: 'workplace Excell Award', path: '/about#conventions-aikyam' },
+      { id: 'celebration-puja', label: 'Celebration & puja', path: '/about#festive-celebrations' }
     ]
   }
 };

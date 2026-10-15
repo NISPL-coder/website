@@ -180,7 +180,35 @@ export default function CareerPage() {
       </section>
 
       {/* =====================================================================
-          1. OPEN POSITIONS BOARD
+          1. WHY NET INFOTECH SYSTEM SECTION
+          ===================================================================== */}
+      <section className="iz-career-why-section" id="why-nispl">
+        <div className="iz-career-container">
+          <div className="iz-career-section-header">
+           
+            <h2 className="iz-career-section-title">Why NISPL</h2>
+          </div>
+
+          <div className="iz-career-why-card">
+            <div className="iz-career-why-content">
+              <p className="iz-career-why-paragraph">
+                Established in 2000, Net Infotech System has evolved with a clear vision to simplify technology and empower businesses to achieve more. Incorporated as Net Infotech System Pvt. Ltd. (NISPL) on 21 July 2022, we continue to build on our legacy of trust, expertise, and innovation.
+              </p>
+              <p className="iz-career-why-paragraph">
+                As a trusted IT solutions provider and Tally Partner, we deliver integrated technology solutions spanning TallyPrime, Tally on Cloud, IT Infrastructure, Enterprise Cloud, Cloud Server &amp; Hosting, Cyber Security, Managed IT Services, and Microsoft Licensing. From server and network management to cloud migration, Wi-Fi, CCTV, endpoint protection, Microsoft 365, Windows Server, Azure, AWS, and IT AMC, we help businesses stay secure, connected, efficient, and future-ready.
+              </p>
+              <p className="iz-career-why-paragraph">
+                By combining proven expertise with emerging technologies, we transform complex IT challenges into opportunities for growth, enabling organizations to innovate confidently and scale seamlessly.
+              </p>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================================
+          2. OPEN POSITIONS BOARD
           ===================================================================== */}
       <section className="iz-career-jobs-section" id="open-roles">
         <div className="iz-career-container">

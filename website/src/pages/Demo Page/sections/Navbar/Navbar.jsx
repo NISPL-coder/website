@@ -4,7 +4,8 @@ import {
   ChevronDown, 
   Menu, 
   X, 
-  ArrowRight
+  ArrowRight,
+  Users
 } from 'lucide-react';
 import logoImg from '../../../../assets/Net Infotech Transparent Logo.webp';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
@@ -89,16 +90,23 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const handleMenuItemClick = (path) => {
     setActiveCategory(null);
     if (!path) return;
-    if (path.startsWith('#')) {
-      if (location.pathname !== '/') {
-        navigate('/' + path);
-      } else {
-        const target = document.querySelector(path);
+
+    if (path.includes('#')) {
+      const [targetPath, hash] = path.split('#');
+      const isCurrentPage = 
+        (targetPath === '' && location.pathname === '/') || 
+        location.pathname === targetPath;
+
+      if (isCurrentPage) {
+        const target = document.getElementById(hash) || document.querySelector(`#${hash}`);
         if (target) {
           target.scrollIntoView({ behavior: 'smooth' });
+          return;
         }
       }
-    } else if (path.startsWith('/')) {
+    }
+
+    if (path.startsWith('/')) {
       navigate(path);
     } else {
       window.location.href = path;
@@ -231,43 +239,64 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                 }}
               >
                 {MEGA_MENU_CONFIG[activeCategory].columns.map((column) => (
-                  <div key={column.id} className="demo-nomad-column">
-                    {/* Top Preview Thumbnail Image */}
+                  <div key={column.id} className="demo-nomad-column demo-tree-column">
+                    {/* Top Tree Header: "Work Culture" */}
                     <div 
-                      className="demo-nomad-image-wrap"
+                      className="demo-tree-root-header"
                       onClick={() => handleMenuItemClick(column.path)}
-                      title={column.title}
+                      role="button"
+                      tabIndex={0}
                     >
-                      <img 
-                        src={column.image} 
-                        alt={column.title} 
-                        className="demo-nomad-image"
-                        loading="lazy"
-                      />
+                     
+                      <div className="demo-tree-root-info">
+                        <h3 className="demo-tree-root-title">{column.title}</h3>
+                        <span className="demo-tree-root-sub">Life &amp; People at NISPL</span>
+                      </div>
+                      
                     </div>
 
-                    {/* Column Title */}
-                    <h3 
-                      className="demo-nomad-column-title"
-                      onClick={() => handleMenuItemClick(column.path)}
-                    >
-                      {column.title}
-                    </h3>
+                    {/* Tree Hierarchy Structure with proper connecting arrow lines */}
+                    <div className="demo-tree-hierarchy" role="tree">
+                      <div className="demo-tree-stem-line" aria-hidden="true" />
 
-                    {/* List of Sub-Links */}
-                    <ul className="demo-nomad-links-list">
-                      {column.links.map((link, lIdx) => (
-                        <li key={lIdx} className="demo-nomad-link-item">
-                          <button
-                            type="button"
-                            className="demo-nomad-link-btn"
-                            onClick={() => handleMenuItemClick(link.path)}
-                          >
-                            <span className="demo-nomad-link-text">{link.label}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                      <ul className="demo-tree-links-list">
+                        {column.links.map((link, lIdx) => (
+                          <li key={lIdx} className="demo-tree-link-item">
+                            {/* Branch connector arm with arrow marker */}
+                            <div className="demo-tree-branch-arm" aria-hidden="true">
+                              <span className="demo-tree-branch-line" />
+                              <svg 
+                                className="demo-tree-branch-arrow" 
+                                viewBox="0 0 8 10" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path 
+                                  d="M1.5 1.5L6.5 5L1.5 8.5" 
+                                  stroke="currentColor" 
+                                  strokeWidth="1.6" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                />
+                              </svg>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="demo-tree-link-btn"
+                              onClick={() => handleMenuItemClick(link.path)}
+                            >
+                              <span className="demo-tree-link-text">{link.label}</span>
+                              {link.badge && (
+                                <span className={`demo-nomad-badge badge-${link.badge.toLowerCase()}`}>
+                                  {link.badge}
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -316,13 +345,16 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                         href={sub.path}
                         className="demo-mobile-sub-link"
                         onClick={(e) => {
-                          if (sub.path.startsWith('#')) {
+                          setMobileMenuOpen(false);
+                          if (sub.path.includes('#')) {
                             e.preventDefault();
-                            setMobileMenuOpen(false);
-                            const target = document.querySelector(sub.path);
-                            if (target) target.scrollIntoView({ behavior: 'smooth' });
-                          } else {
-                            setMobileMenuOpen(false);
+                            const [targetPath, hash] = sub.path.split('#');
+                            if (targetPath && targetPath !== location.pathname) {
+                              navigate(sub.path);
+                            } else {
+                              const target = document.getElementById(hash) || document.querySelector(`#${hash}`);
+                              if (target) target.scrollIntoView({ behavior: 'smooth' });
+                            }
                           }
                         }}
                       >

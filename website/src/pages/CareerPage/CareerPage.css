@@ -139,6 +139,87 @@
 }
 
 /* ==========================================================================
+   1. WHY NET INFOTECH SYSTEM SECTION
+   ========================================================================== */
+.iz-career-why-section {
+  padding: 75px 0 85px 0;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.iz-career-why-card {
+  max-width: 1040px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.iz-career-why-content {
+  padding: 44px 48px 36px 48px;
+}
+
+.iz-career-why-paragraph {
+  font-family: var(--demo-font-body, 'Inter', sans-serif);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #334155;
+  margin: 0 0 20px 0;
+}
+
+.iz-career-why-paragraph:last-of-type {
+  margin-bottom: 0;
+}
+
+.iz-career-why-brand-highlight {
+  font-weight: 700;
+  color: #38BDF8;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.iz-career-why-brand-dash {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.iz-career-why-brand-text {
+  color: #E2E8F0;
+  font-weight: 400;
+}
+
+.iz-career-why-stat-item {
+  padding: 24px 20px;
+  text-align: center;
+  border-right: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.iz-career-why-stat-item:last-child {
+  border-right: none;
+}
+
+.iz-career-why-stat-num {
+  font-family: var(--demo-font-display, 'Outfit', 'Inter', sans-serif);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0B2265;
+  letter-spacing: -0.01em;
+}
+
+.iz-career-why-stat-label {
+  font-family: var(--demo-font-body, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* ==========================================================================
    2. OPEN ROLES BOARD & RESPONSIVE SPLIT
    ========================================================================== */
 .iz-career-jobs-section {
@@ -600,5 +681,59 @@
   .iz-career-submit-btn {
     padding: 14px;
     font-size: 0.98rem;
+  }
+
+  .iz-career-why-section {
+    padding: 55px 0 65px 0;
+  }
+
+  .iz-career-why-content {
+    padding: 24px 18px 20px 18px;
+  }
+
+  .iz-career-why-paragraph {
+    font-size: 0.98rem;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .iz-career-why-banner {
+    padding: 16px 18px;
+    margin-top: 22px;
+  }
+
+  .iz-career-why-banner-tagline {
+    font-size: 0.92rem;
+    gap: 6px;
+  }
+
+  .iz-career-why-brand-highlight {
+    font-size: 1.02rem;
+  }
+
+
+  .iz-career-why-stat-item {
+    border-right: none;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 16px 14px;
+  }
+
+  .iz-career-why-stat-item:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 601px) {
+  .iz-career-why-content {
+    padding: 34px 28px 28px 28px;
+  }
+
+
+  .iz-career-why-stat-item:nth-child(2) {
+    border-right: none;
+  }
+
+  .iz-career-why-stat-item:nth-child(-n+2) {
+    border-bottom: 1px solid #E2E8F0;
   }
 }

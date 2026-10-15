@@ -178,7 +178,7 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
       </section>
 
       {/* 3. Interactive Gallery Showcase (Alternating Layout like Cyberswift) */}
-      <section className="about-showcase-section">
+      <section className="about-showcase-section" id="work-culture">
         <div className="about-container">
           <div className="about-gallery-rows-wrapper">
             {displayedCategories.map((category, rowIndex) => {
@@ -191,6 +191,7 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
               return (
                 <div
                   key={category.id}
+                  id={category.id}
                   className={`about-gallery-category-card ${rowLayoutClass}`}
                   onMouseEnter={() => setHoveredCategory(category.id)}
                   onMouseLeave={() => setHoveredCategory(null)}

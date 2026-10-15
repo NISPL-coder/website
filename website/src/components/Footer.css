@@ -351,6 +351,12 @@
   margin: 0;
 }
 
+.footer-copyright-highlight {
+  font-size: 0.78rem;
+  color: #00d2d3;
+  margin: 0;
+}
+
 .copyright-text b {
   color: #e2e8f0;
   font-weight: 600;
