@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Users
 } from 'lucide-react';
-import logoImg from '../../../../assets/Net Infotech Transparent Logo.webp';
+import logoImg from '../../../../assets/NISPL Cloud Tech Logo (2).png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
 
@@ -140,7 +140,7 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
           <Link to="/" className="demo-brand" title="Net Infotech System Pvt. Ltd.">
             <div className="demo-brand-logo-frame">
               <img 
-                src="/logo.webp" 
+                src={logoImg} 
                 alt="Net Infotech System Pvt. Ltd." 
                 className="demo-brand-logo-img" 
                 width="240"

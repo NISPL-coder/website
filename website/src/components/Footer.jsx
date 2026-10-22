@@ -7,7 +7,7 @@ import {
   Clock 
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/Net Infotech Transparent Logo.webp';
+import logoImg from '../assets/NISPL Cloud Tech Logo (2).png';
 import './Footer.css';
 
 export default function Footer() {
@@ -29,7 +29,7 @@ export default function Footer() {
             <div className="footer-logo-block">
               <Link to="/">
                 <img 
-                  src="/logo.webp" 
+                  src={logoImg} 
                   alt="Net Infotech System Pvt. Ltd." 
                   className="footer-official-logo"
                   width="220"

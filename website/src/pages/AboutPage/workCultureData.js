@@ -86,10 +86,10 @@ export const GALLERY_CATEGORIES = [
   },
   {
     id: 'conventions-aikyam',
-    title: 'Annual Conventions & AIKYAM',
+    title: 'Annual Convention',
     subtitle: 'Uniting Our Pan-India Ecosystem',
     description:
-      'Rooted in our core principle of "Aikyam" (The Rhythm of Oneness), our annual conventions bring together our team members, enterprise partners, and clients from across Eastern India and beyond to celebrate shared achievements and future roadmaps.',
+      'The Annual Convention is a cornerstone of our organizational culture, serving as a premier platform for collaboration, innovation, and growth. It brings together our team members, enterprise partners, and industry stakeholders from across the country to share insights, celebrate achievements, and chart the future course of technology and business excellence.',
     tag: 'Grand Summits',
     badge: 'Oneness in Action',
     photos: [
@@ -185,13 +185,6 @@ export const GALLERY_CATEGORIES = [
         title: 'Durga Puja Office Facade Decor',
         caption: 'Vibrant marigold garlands and traditional Durga artwork adorning the office glass facade, welcoming festive energy and blessings.',
         alt: 'Office glass facade decorated with traditional Durga art and marigold garlands'
-      },
-      {
-        id: 'fc-vishwakarma',
-        image: imgVishwakarmaIdol,
-        title: 'Lord Vishwakarma Puja & Engineering Blessings',
-        caption: 'Traditional worship of Lord Vishwakarma observed with devotion, seeking craftsmanship excellence and technical mastery.',
-        alt: 'Lord Vishwakarma Puja idol and traditional offerings at NISPL office'
       },
       {
         id: 'fc-havan',

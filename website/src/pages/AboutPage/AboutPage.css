@@ -78,7 +78,7 @@
 .about-showcase-section {
   position: relative;
   background-color: transparent;
-  padding: 50px 0 90px 0;
+  /* padding: 50px 0 90px 0; */
   scroll-margin-top: 100px;
 }
 
@@ -306,6 +306,7 @@
 }
 
 .about-main-caption-title {
+  color: #FFFFFF;
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 500;
