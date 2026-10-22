@@ -89,15 +89,46 @@ export const MEGA_MENU_CONFIG = {
   services: {
     id: 'services',
     label: 'Services',
-    title: 'Managed IT & Cloud Services',
-    subtitle: 'Cloud Hosting, Zero-Trust Defense & 24/7 IT Support',
-    categoryBadge: 'Managed Services',
-    isComingSoon: true,
-    message: 'Explore our 24/7 server monitoring, cloud backup, automated disaster recovery, and cybersecurity infrastructure.',
-    ctaText: 'Explore Services',
-    ctaPath: '/contact',
-    links: [],
-    items: []
+    title: 'Enterprise Datacenter & Cloud',
+    subtitle: 'CtrlS Kolkata Rated-4 Hub, Cloud Infrastructure & Zero-Trust',
+    categoryBadge: 'Enterprise Services',
+    isComingSoon: false,
+    links: [
+      {
+        id: 'service-ctrls',
+        label: 'CtrlS Kolkata Rated-4 Datacenter',
+        desc: '16 MW AI-ready facility at Bengal Silicon Valley, New Town',
+        path: '/#ctrls-kolkata-datacenter',
+        icon: 'Server',
+        badge: 'Premier Hub'
+      },
+      {
+        id: 'service-cloud',
+        label: 'Cloud Server & Hosting',
+        desc: 'Private, public & hybrid cloud hosting with high redundancy',
+        path: '/#strategic-services',
+        icon: 'Sparkles',
+        badge: 'Cloud'
+      },
+      {
+        id: 'service-security',
+        label: 'Cybersecurity & Managed IT',
+        desc: 'Zero-trust perimeter security, automated backups & 24/7 SOC',
+        path: '/#strategic-services',
+        icon: 'Award',
+        badge: 'Security'
+      }
+    ],
+    items: [
+      { id: 'service-ctrls', label: 'CtrlS Kolkata Rated-4 Datacenter', path: '/#ctrls-kolkata-datacenter' },
+      { id: 'service-cloud', label: 'Cloud Server & Hosting', path: '/#strategic-services' },
+      { id: 'service-security', label: 'Cybersecurity & Managed IT', path: '/#strategic-services' }
+    ],
+    footer: {
+      text: 'Need dedicated colocation or cloud architecture?',
+      linkText: 'Inquire Now',
+      path: '/contact'
+    }
   },
 
   // 5. Solutions

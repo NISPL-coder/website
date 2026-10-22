@@ -10,8 +10,14 @@ import {
   Building,
   User,
   Mail,
+  Phone,
   MessageSquare,
-  UploadCloud
+  UploadCloud,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  FileText,
+  X
 } from 'lucide-react';
 import Navbar from '../Demo Page/sections/Navbar/Navbar';
 import Footer from '../../components/Footer';
@@ -99,14 +105,17 @@ export default function CareerPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    organisation: '',
-    source: '',
-    description: '',
-    resume: null
+    phone: '',
+    appliedRole: '',
+    resume: null,
+    website: '' // Honeypot field
   });
 
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   const formRef = useRef(null);
 
@@ -118,7 +127,14 @@ export default function CareerPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleApplyClick = () => {
+  const handleApplyClick = (jobTitle) => {
+    if (jobTitle) {
+      setFormData((prev) => ({
+        ...prev,
+        appliedRole: jobTitle
+      }));
+      setFieldErrors((prev) => ({ ...prev, appliedRole: '' }));
+    }
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -130,33 +146,156 @@ export default function CareerPage() {
       ...prev,
       [name]: value
     }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+    if (submitError) {
+      setSubmitError('');
+    }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const validExtensions = ['.pdf', '.doc', '.docx'];
+      const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+      if (!validExtensions.includes(fileExt)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          resume: 'Invalid file format. Please upload a PDF, DOC, or DOCX resume.'
+        }));
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          resume: 'Resume file size exceeds the 5MB limit. Please upload a smaller file.'
+        }));
+        return;
+      }
+
       setFormData((prev) => ({
         ...prev,
-        resume: e.target.files[0]
+        resume: file
       }));
+      setFieldErrors((prev) => ({ ...prev, resume: '' }));
+      if (submitError) setSubmitError('');
     }
   };
 
-  const handleSubmit = (e) => {
+  const validate = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/;
+
+    if (!formData.name || formData.name.trim().length < 2) {
+      errors.name = 'Please enter your full name (minimum 2 characters).';
+    }
+
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
+      errors.email = 'Please provide a valid email address.';
+    }
+
+    if (!formData.phone || !phoneRegex.test(formData.phone.trim().replace(/\s+/g, ''))) {
+      errors.phone = 'Please provide a valid phone number (at least 10 digits).';
+    }
+
+    if (!formData.appliedRole || !formData.appliedRole.trim()) {
+      errors.appliedRole = 'Please select or enter the role you are applying for.';
+    }
+
+    if (!formData.resume) {
+      errors.resume = 'Please upload your resume (PDF, DOC, or DOCX).';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError('');
+
+    // Honeypot check
+    if (formData.website) {
+      // Silently simulate success for bots
       setIsSubmitted(true);
-      setFormData({
-        name: '',
-        email: '',
-        organisation: '',
-        source: '',
-        description: '',
-        resume: null
+      return;
+    }
+
+    if (!validate()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const data = new FormData();
+      data.append('name', formData.name.trim());
+      data.append('email', formData.email.trim());
+      data.append('phone', formData.phone.trim());
+      data.append('appliedRole', formData.appliedRole.trim());
+      data.append('resume', formData.resume);
+      data.append('website', formData.website || '');
+
+      // Support configurable API base URL or relative endpoint
+      const apiEndpoint = import.meta.env.VITE_API_URL 
+        ? `${import.meta.env.VITE_API_URL}/api/career/apply`
+        : '/api/career/apply';
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-      setTimeout(() => setIsSubmitted(false), 3000);
-    }, 1500);
+
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message || result?.error || `Submission failed with status ${response.status}. Please try again.`
+        );
+      }
+
+      if (result && result.success) {
+        setIsSubmitted(true);
+        setSubmissionResult({
+          applicationId: result.data?.applicationId || 'Recorded',
+          candidateName: formData.name.trim(),
+          appliedRole: formData.appliedRole.trim(),
+          timestamp: result.data?.dateTime || new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+          status: result.data?.status || 'New'
+        });
+      } else {
+        throw new Error(result?.message || 'Unable to record application. Please try again.');
+      }
+    } catch (err) {
+      console.error('Career application submission error:', err);
+      setSubmitError(
+        err.message || 'Network error or backend unavailable. Please check your connection and retry.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      appliedRole: '',
+      resume: null,
+      website: ''
+    });
+    setFieldErrors({});
+    setSubmitError('');
+    setIsSubmitted(false);
+    setSubmissionResult(null);
   };
 
   return (
@@ -285,7 +424,15 @@ export default function CareerPage() {
                 </div>
               ) : (
                 filteredJobs.map((job) => (
-                  <div key={job.id} className="iz-career-simple-card" onClick={handleApplyClick}>
+                  <div 
+                    key={job.id} 
+                    className="iz-career-simple-card" 
+                    onClick={() => handleApplyClick(job.title)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleApplyClick(job.title); } }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Apply for ${job.title}`}
+                  >
                     <div className="iz-career-simple-info">
                       <h3 className="iz-career-simple-title">{job.title}</h3>
                       <span className="iz-career-simple-exp">({job.experience})</span>
@@ -315,68 +462,205 @@ export default function CareerPage() {
             </div>
             
             <div className="iz-career-form-card">
-              <form onSubmit={handleSubmit}>
-                <div className="iz-career-input-group">
-                  <label htmlFor="name">Name</label>
-                  <input 
-                    type="text" 
-                    id="name"
-                    name="name"
-                    className="iz-career-input"
-                    placeholder="Enter your Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required 
-                  />
-                </div>
-                
-                <div className="iz-career-input-group">
-                  <label htmlFor="email">Email</label>
-                  <input 
-                    type="email" 
-                    id="email"
-                    name="email"
-                    className="iz-career-input"
-                    placeholder="Enter your Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required 
-                  />
-                </div>
+              {isSubmitted && submissionResult ? (
+                <div className="iz-career-success-card" role="alert" aria-live="polite">
+                  <div className="iz-career-success-icon-wrap">
+                    <CheckCircle2 size={48} color="#10B981" />
+                  </div>
+                  <h3 className="iz-career-success-title">Application Submitted Successfully!</h3>
+                  <p className="iz-career-success-desc">
+                    Thank you, <strong>{submissionResult.candidateName}</strong>. Your application for <strong>{submissionResult.appliedRole}</strong> has been securely recorded.
+                  </p>
 
-                <div className="iz-career-input-group">
-                  <label htmlFor="resume">Upload Resume (PDF, DOCX)</label>
-                  <div className="iz-career-file-upload">
-                    <input 
-                      type="file" 
-                      id="resume"
-                      name="resume"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileChange}
-                      className="iz-career-file-input"
-                      required
-                    />
-                    <div className="iz-career-file-label">
-                      <UploadCloud size={20} />
-                      <span>{formData.resume ? formData.resume.name : 'Click to select or drag and drop your resume'}</span>
+                  <div className="iz-career-success-details">
+                    <div className="iz-career-success-row">
+                      <span>Application ID:</span>
+                      <strong className="iz-career-app-id">{submissionResult.applicationId}</strong>
+                    </div>
+                    <div className="iz-career-success-row">
+                      <span>Submitted At:</span>
+                      <span>{submissionResult.timestamp}</span>
+                    </div>
+                    <div className="iz-career-success-row">
+                      <span>Status:</span>
+                      <span className="iz-career-status-pill">{submissionResult.status || 'New'}</span>
                     </div>
                   </div>
-                </div>
 
-                <button type="submit" className="iz-career-submit-btn" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting Application...' : (
-                    <>
-                      <span>Submit Application</span>
-                      <Send size={18} />
-                    </>
-                  )}
-                </button>
-                {isSubmitted && (
-                  <p style={{ marginTop: '16px', color: '#10B981', fontWeight: '600', textAlign: 'center' }}>
-                    Application submitted successfully! We will contact you soon.
+                  <p className="iz-career-success-note">
+                    A notification has been routed to our HR team at <code>netinfotechsystem@gmail.com</code>. We will review your profile and reach out to you shortly.
                   </p>
-                )}
-              </form>
+
+                  <button
+                    type="button"
+                    className="iz-career-reset-btn"
+                    onClick={handleResetForm}
+                  >
+                    Submit Another Application
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate>
+                  {submitError && (
+                    <div className="iz-career-error-banner" role="alert">
+                      <AlertCircle size={20} className="iz-career-error-icon" />
+                      <div className="iz-career-error-text">
+                        <strong>Submission Error:</strong> {submitError}
+                      </div>
+                      <button
+                        type="button"
+                        className="iz-career-error-dismiss"
+                        onClick={() => setSubmitError('')}
+                        aria-label="Dismiss error"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Anti-spam honeypot (invisible to real candidates) */}
+                  <div style={{ display: 'none', position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                    <label htmlFor="iz-website-hp">Website</label>
+                    <input
+                      type="text"
+                      id="iz-website-hp"
+                      name="website"
+                      value={formData.website}
+                      onChange={handleChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="iz-career-input-group">
+                    <label htmlFor="name">
+                      Candidate Name <span className="iz-required-star">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="name"
+                      name="name"
+                      className={`iz-career-input ${fieldErrors.name ? 'iz-input-invalid' : ''}`}
+                      placeholder="e.g. Debasish Ray"
+                      value={formData.name}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      required 
+                    />
+                    {fieldErrors.name && <span className="iz-field-error-msg">{fieldErrors.name}</span>}
+                  </div>
+                  
+                  <div className="iz-career-input-group">
+                    <label htmlFor="email">
+                      Email Address <span className="iz-required-star">*</span>
+                    </label>
+                    <input 
+                      type="email" 
+                      id="email"
+                      name="email"
+                      className={`iz-career-input ${fieldErrors.email ? 'iz-input-invalid' : ''}`}
+                      placeholder="e.g. debasish@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      required 
+                    />
+                    {fieldErrors.email && <span className="iz-field-error-msg">{fieldErrors.email}</span>}
+                  </div>
+
+                  <div className="iz-career-input-group">
+                    <label htmlFor="phone">
+                      Phone Number <span className="iz-required-star">*</span>
+                    </label>
+                    <input 
+                      type="tel" 
+                      id="phone"
+                      name="phone"
+                      className={`iz-career-input ${fieldErrors.phone ? 'iz-input-invalid' : ''}`}
+                      placeholder="e.g. +91 98765 43210"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      required 
+                    />
+                    {fieldErrors.phone && <span className="iz-field-error-msg">{fieldErrors.phone}</span>}
+                  </div>
+
+                  <div className="iz-career-input-group">
+                    <label htmlFor="appliedRole">
+                      Applied Role <span className="iz-required-star">*</span>
+                    </label>
+                    <select
+                      id="appliedRole"
+                      name="appliedRole"
+                      className={`iz-career-input iz-career-select ${fieldErrors.appliedRole ? 'iz-input-invalid' : ''}`}
+                      value={formData.appliedRole}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      required
+                    >
+                      <option value="">Select a Position / Role...</option>
+                      {JOBS.map((j) => (
+                        <option key={j.id} value={j.title}>{j.title} ({j.department})</option>
+                      ))}
+                      <option value="General Application / Other IT Role">General Application / Other IT Role</option>
+                    </select>
+                    {fieldErrors.appliedRole && <span className="iz-field-error-msg">{fieldErrors.appliedRole}</span>}
+                  </div>
+
+                  <div className="iz-career-input-group">
+                    <label htmlFor="resume">
+                      Resume Upload (PDF, DOC, DOCX — Max 5MB) <span className="iz-required-star">*</span>
+                    </label>
+                    <div className={`iz-career-file-upload ${fieldErrors.resume ? 'iz-file-invalid' : ''}`}>
+                      <input 
+                        type="file" 
+                        id="resume"
+                        name="resume"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={handleFileChange}
+                        className="iz-career-file-input"
+                        disabled={isSubmitting}
+                        required
+                      />
+                      <div className="iz-career-file-label">
+                        <UploadCloud size={22} className="iz-upload-icon" />
+                        <div className="iz-upload-text-wrap">
+                          <span className="iz-upload-filename">
+                            {formData.resume ? formData.resume.name : 'Click to browse or drop your resume here'}
+                          </span>
+                          <span className="iz-upload-hint">Supported: PDF, DOC, DOCX up to 5 MB</span>
+                        </div>
+                      </div>
+                    </div>
+                    {formData.resume && (
+                      <div className="iz-file-meta-tag">
+                        <FileText size={14} />
+                        <span>{(formData.resume.size / (1024 * 1024)).toFixed(2)} MB</span>
+                      </div>
+                    )}
+                    {fieldErrors.resume && <span className="iz-field-error-msg">{fieldErrors.resume}</span>}
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="iz-career-submit-btn" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={18} className="iz-spin-anim" />
+                        <span>Uploading &amp; Recording Application...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Submit Application</span>
+                        <Send size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

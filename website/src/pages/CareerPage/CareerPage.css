@@ -767,3 +767,257 @@
     border-bottom: 1px solid #E2E8F0;
   }
 }
+
+/* ==========================================================================
+   5. CAREER FORM ENHANCEMENTS, VALIDATION, AND CONFIRMED SUCCESS CARD
+   ========================================================================== */
+
+.iz-required-star {
+  color: #EF4444;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+.iz-career-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px;
+  padding-right: 42px !important;
+  cursor: pointer;
+  background-color: #FFFFFF;
+}
+
+.iz-career-select option {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  padding: 8px;
+}
+
+.iz-input-invalid {
+  border-color: #EF4444 !important;
+  background-color: #FEF2F2 !important;
+}
+
+.iz-input-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.iz-file-invalid .iz-career-file-label {
+  border-color: #EF4444 !important;
+  background-color: #FEF2F2 !important;
+  color: #DC2626 !important;
+}
+
+.iz-field-error-msg {
+  display: block;
+  font-size: 0.82rem;
+  color: #EF4444;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.iz-upload-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.iz-upload-filename {
+  font-weight: 600;
+  color: #1E293B;
+  word-break: break-all;
+}
+
+.iz-upload-hint {
+  font-size: 0.8rem;
+  color: #94A3B8;
+}
+
+.iz-file-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: #E0F2FE;
+  color: #0284C7;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Error Banner */
+.iz-career-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  color: #991B1B;
+  font-size: 0.92rem;
+  animation: izFadeSlideDown 0.3s ease;
+}
+
+.iz-career-error-icon {
+  flex-shrink: 0;
+  color: #DC2626;
+  margin-top: 2px;
+}
+
+.iz-career-error-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.iz-career-error-dismiss {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #991B1B;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.iz-career-error-dismiss:hover {
+  opacity: 1;
+}
+
+/* Submit Spinner Animation */
+.iz-spin-anim {
+  animation: izSpin 1s linear infinite;
+}
+
+@keyframes izSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes izFadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Confirmed Success Card */
+.iz-career-success-card {
+  text-align: center;
+  padding: 28px 16px;
+  animation: izFadeSlideDown 0.4s ease;
+}
+
+.iz-career-success-icon-wrap {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px auto;
+  border-radius: 50%;
+  background: #ECFDF5;
+  border: 2px solid #A7F3D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iz-career-success-title {
+  font-family: var(--demo-font-display, 'Outfit', 'Inter', sans-serif);
+  font-size: 1.6rem;
+  color: #065F46;
+  margin: 0 0 10px 0;
+}
+
+.iz-career-success-desc {
+  font-size: 1.02rem;
+  color: #334155;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.iz-career-success-details {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 22px;
+  max-width: 440px;
+  margin: 0 auto 22px auto;
+  text-align: left;
+}
+
+.iz-career-success-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.92rem;
+  color: #64748B;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.iz-career-success-row:last-child {
+  border-bottom: none;
+}
+
+.iz-career-app-id {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #0284C7;
+  letter-spacing: 0.04em;
+  background: #E0F2FE;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.iz-career-status-pill {
+  background: #DCFCE7;
+  color: #15803D;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.iz-career-success-note {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.5;
+  max-width: 480px;
+  margin: 0 auto 26px auto;
+}
+
+.iz-career-success-note code {
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0F172A;
+  font-family: monospace;
+}
+
+.iz-career-reset-btn {
+  background: #FFFFFF;
+  color: #0284C7;
+  border: 2px solid #0284C7;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iz-career-reset-btn:hover {
+  background: #0284C7;
+  color: #FFFFFF;
+}

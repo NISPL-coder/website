@@ -10,6 +10,10 @@ export default defineConfig({
         target: 'https://maps.googleapis.com/maps/api/place',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/google-places/, '')
+      },
+      '/api/career': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
       }
     }
   },

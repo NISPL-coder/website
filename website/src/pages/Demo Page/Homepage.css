@@ -16,9 +16,10 @@
   --demo-orange-accent: #ff6b00;
 
   --demo-bg-dark: #060911;
-  --demo-glass-bg: rgba(14, 20, 33, 0.68);
-  --demo-glass-border: rgba(255, 255, 255, 0.12);
-  --demo-glass-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.45);
+  --demo-glass-bg: rgba(10, 16, 30, 0.50);
+  --demo-glass-blur: blur(24px) saturate(180%);
+  --demo-glass-border: rgba(255, 255, 255, 0.14);
+  --demo-glass-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
 }
 
 /* Page Root */
@@ -69,16 +70,31 @@
   max-width: 1360px;
   height: 70px;
   background: var(--demo-glass-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: var(--demo-glass-blur);
+  -webkit-backdrop-filter: var(--demo-glass-blur);
   border: 1px solid var(--demo-glass-border);
   border-radius: 9999px;
-  box-shadow: var(--demo-glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  box-shadow: 
+    var(--demo-glass-shadow), 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 4px 20px rgba(0, 210, 211, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 14px 0 24px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(0);
+}
+
+.demo-header-wrapper.scrolled .demo-pill-navbar {
+  background: rgba(8, 14, 28, 0.65);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-color: rgba(56, 189, 248, 0.24);
+  box-shadow: 
+    0 18px 42px -8px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 25px rgba(0, 210, 211, 0.1);
 }
 
 /* Brand Logo (Left) */
@@ -114,7 +130,7 @@
 }
 
 .demo-brand-logo-img {
-  height: 80px;
+  height: 75px;
   width: auto;
   max-width: 350px;
   object-fit: contain;
@@ -222,7 +238,7 @@
   transform: translateX(-50%);
   width: 390px;
   max-width: min(390px, calc(100vw - 32px));
-  background: rgba(9, 15, 29, 0.96);
+  background: rgba(9, 15, 29, 0.86);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(56, 189, 248, 0.22);
@@ -1112,9 +1128,9 @@
   top: 90px;
   left: 20px;
   right: 20px;
-  background: rgba(14, 20, 33, 0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(10, 16, 32, 0.82);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--demo-glass-border);
   border-radius: 24px;
   padding: 24px;
@@ -1507,7 +1523,8 @@
     height: 68px;
     padding: 0 10px 0 16px;
     background: var(--demo-glass-bg);
-    backdrop-filter: blur(18px);
+    backdrop-filter: var(--demo-glass-blur);
+    -webkit-backdrop-filter: var(--demo-glass-blur);
   }
 
   .demo-brand {
@@ -1515,7 +1532,7 @@
   }
 
   .demo-brand-logo-img {
-    height: 65px;
+    height: 60px;
     width: auto;
     max-width: 300px;
     object-fit: contain;
@@ -1553,7 +1570,8 @@
     height: 64px;
     padding: 0 8px 0 12px;
     background: var(--demo-glass-bg);
-    backdrop-filter: blur(18px);
+    backdrop-filter: var(--demo-glass-blur);
+    -webkit-backdrop-filter: var(--demo-glass-blur);
   }
 
   .demo-brand {
@@ -1566,7 +1584,7 @@
   }
 
   .demo-brand-logo-img {
-    height: 65px;
+    height: 60px;
     width: auto;
     max-width: 175px;
     object-fit: contain;

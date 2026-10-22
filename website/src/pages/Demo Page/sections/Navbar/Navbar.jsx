@@ -9,7 +9,8 @@ import {
   Award,
   Sparkles,
   ChevronRight,
-  Clock
+  Clock,
+  Server
 } from 'lucide-react';
 import logoImg from '../../../../assets/NISPL Cloud Tech Logo (2).png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
@@ -264,6 +265,7 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                               const IconComp = 
                                 link.icon === 'Award' ? Award : 
                                 link.icon === 'Sparkles' ? Sparkles : 
+                                link.icon === 'Server' ? Server :
                                 Users;
 
                               return (
