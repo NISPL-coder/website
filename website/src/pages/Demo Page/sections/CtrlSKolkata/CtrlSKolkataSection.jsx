@@ -171,7 +171,7 @@ export default function CtrlSKolkataSection({ onOpenConsultation }) {
               </h2>
 
               <p className="ctrls-main-subtitle">
-                Kolkata, a key digital hub in eastern India, hosts a world-class Rated-4 Datacenter to serve enterprise and hyperscale needs.
+                Kolkata, a key digital hub in eastern India, hosts a world-class Rated-4 Datacenter to serve enterprise and hyperscale needs..
               </p>
 
               <div className="ctrls-hero-quick-specs">
