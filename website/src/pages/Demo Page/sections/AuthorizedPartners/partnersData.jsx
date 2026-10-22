@@ -11,11 +11,13 @@ import hikvisionLogo from '../../../../assets/partners/Hik vision.webp';
 import dlinkLogo from '../../../../assets/partners/D link.webp';
 import canonLogo from '../../../../assets/partners/canon.webp';
 
-const AUTHORIZED_PARTNERS = [
+// ── Direct Partners (Tier-1 Cloud Infrastructure & Business ERP) ──
+const DIRECT_PARTNERS = [
   // 1. CTRLS
   {
     id: 'ctrls',
     name: 'CTRLS',
+    category: 'Direct Partner',
     logo: ctrlsLogo,
     website: 'https://www.ctrls.com/datacenter-kolkata/',
     render: () => (
@@ -24,11 +26,11 @@ const AUTHORIZED_PARTNERS = [
         target="_blank" 
         rel="noopener noreferrer" 
         className="demo-big-logo-item demo-ctrls-partner" 
-        title="CTRLS - Official Website"
+        title="CTRLS - Official Website (Direct Partner)"
       >
         <img 
           src={ctrlsLogo} 
-          alt="CTRLS" 
+          alt="CTRLS - Direct Partner" 
           className="partner-brand-img" 
           width="120"
           height="32"
@@ -43,6 +45,7 @@ const AUTHORIZED_PARTNERS = [
   {
     id: 'tally',
     name: 'Tally',
+    category: 'Direct Partner',
     logo: tallyLogo,
     website: 'https://tallysolutions.com/',
     render: () => (
@@ -51,11 +54,11 @@ const AUTHORIZED_PARTNERS = [
         target="_blank" 
         rel="noopener noreferrer" 
         className="demo-big-logo-item demo-tally-partner" 
-        title="Tally - Official Website"
+        title="Tally - Official Website (Direct Partner)"
       >
         <img 
           src={tallyLogo} 
-          alt="Tally" 
+          alt="Tally - Direct Partner" 
           className="partner-brand-img" 
           width="110"
           height="45"
@@ -64,9 +67,12 @@ const AUTHORIZED_PARTNERS = [
         />
       </a>
     )
-  },
+  }
+];
 
-  // 3. HP
+// ── Authorized Partners (Enterprise Hardware, Computing & Imaging) ──
+const AUTHORIZED_PARTNERS = [
+  // 1. HP
   {
     id: 'hp',
     name: 'HP',
@@ -256,4 +262,4 @@ const AUTHORIZED_PARTNERS = [
   }
 ];
 
-export { AUTHORIZED_PARTNERS };
+export { DIRECT_PARTNERS, AUTHORIZED_PARTNERS };

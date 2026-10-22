@@ -1960,7 +1960,7 @@
   text-align: center;
   max-width: 960px;
   margin: 0 auto 55px auto;
-  padding: 0 16px;
+  padding: 30px 16px;
 }
 
 .demo-unified-title,
@@ -2658,6 +2658,110 @@
 /* ==========================================================================
    AUTHORIZED PARTNERS LOGO SHOWCASE GRID & STYLING
    ========================================================================== */
+/* ── Category Subsections for Direct & Authorized Partners ── */
+.demo-partner-category-group {
+  margin-bottom: 46px;
+}
+
+.demo-partner-category-group:last-child {
+  margin-bottom: 10px;
+}
+
+.demo-partner-category-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.demo-partner-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  font-family: var(--demo-font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.demo-pill-direct {
+  background: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+.demo-pill-authorized {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.demo-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.demo-dot-direct {
+  background: #0284c7;
+  box-shadow: 0 0 6px rgba(2, 132, 199, 0.5);
+}
+
+.demo-dot-authorized {
+  background: #64748b;
+  box-shadow: 0 0 6px rgba(100, 116, 139, 0.4);
+}
+
+.demo-partner-category-desc {
+  font-family: var(--demo-font-body);
+  text-align: center;
+  font-size: 0.95rem;
+  color: #64748b;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Direct Partners Box & Grid */
+.demo-direct-partners-box {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e0f2fe;
+}
+
+.demo-direct-partners-box:hover {
+  border-color: #bae6fd;
+}
+
+.demo-direct-partners-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 380px));
+  gap: 28px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Authorized Partners Grid (Flex-wrap centered for 7 items: 4 on top, 3 centered below) */
+.demo-authorized-partners-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 22px;
+  width: 100%;
+}
+
+.demo-authorized-partners-grid .demo-logo-outer-cell {
+  flex: 0 1 calc(25% - 18px);
+  min-width: 230px;
+  max-width: 290px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .demo-partners-row-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2667,7 +2771,8 @@
   width: 100%;
 }
 
-.demo-partners-row-grid .demo-logo-outer-cell {
+.demo-partners-row-grid .demo-logo-outer-cell,
+.demo-direct-partners-grid .demo-logo-outer-cell {
   width: 100%;
   min-width: 0;
   display: flex;
@@ -2676,7 +2781,9 @@
   box-sizing: border-box;
 }
 
-.demo-partners-row-grid .demo-big-logo-item {
+.demo-partners-row-grid .demo-big-logo-item,
+.demo-direct-partners-grid .demo-big-logo-item,
+.demo-authorized-partners-grid .demo-big-logo-item {
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -2694,7 +2801,9 @@
   text-decoration: none;
 }
 
-.demo-partners-row-grid .demo-big-logo-item:hover {
+.demo-partners-row-grid .demo-big-logo-item:hover,
+.demo-direct-partners-grid .demo-big-logo-item:hover,
+.demo-authorized-partners-grid .demo-big-logo-item:hover {
   transform: translateY(-4px);
 }
 
@@ -2714,7 +2823,9 @@
   max-width: 95px;
 }
 
-.demo-partners-row-grid .demo-big-logo-item:hover .partner-brand-img {
+.demo-partners-row-grid .demo-big-logo-item:hover .partner-brand-img,
+.demo-direct-partners-grid .demo-big-logo-item:hover .partner-brand-img,
+.demo-authorized-partners-grid .demo-big-logo-item:hover .partner-brand-img {
   transform: scale(1.08);
 }
 
@@ -3414,13 +3525,47 @@
     border-width: 1px;
   }
 
-  /* 2-Column Mobile Grid for Authorized Partners */
+  /* 2-Column Mobile Grid for Authorized & Direct Partners */
+  .demo-partner-category-group {
+    margin-bottom: 32px;
+  }
+
+  .demo-partner-category-header {
+    margin-bottom: 16px;
+  }
+
+  .demo-partner-category-pill {
+    font-size: 0.74rem;
+    padding: 5px 14px;
+  }
+
+  .demo-partner-category-desc {
+    font-size: 0.86rem;
+  }
+
+  .demo-direct-partners-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 8px;
+  }
+
+  .demo-authorized-partners-grid {
+    gap: 10px 8px;
+  }
+
+  .demo-authorized-partners-grid .demo-logo-outer-cell {
+    flex: 0 1 calc(50% - 5px);
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .demo-partners-row-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px 8px;
   }
 
-  .demo-partners-row-grid .demo-big-logo-item {
+  .demo-partners-row-grid .demo-big-logo-item,
+  .demo-direct-partners-grid .demo-big-logo-item,
+  .demo-authorized-partners-grid .demo-big-logo-item {
     flex-direction: column;
     justify-content: center;
     align-items: center;
