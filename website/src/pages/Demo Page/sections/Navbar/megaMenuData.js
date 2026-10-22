@@ -8,76 +8,110 @@ export const NAV_ITEMS = [
 ];
 
 export const MEGA_MENU_CONFIG = {
-  // 1. Products (Work in progress)
-  products: {
-    id: 'products',
-    label: 'Products',
-    title: 'Products',
-    isComingSoon: true,
-    message: 'Work in progress...',
-    subMessage: 'Please check back soon.',
-    columns: [],
-    items: []
-  },
-
-  // 2. Industries (Work in progress)
-  industries: {
-    id: 'industries',
-    label: 'Industries',
-    title: 'Industries',
-    isComingSoon: true,
-    message: 'Work in progress...',
-    subMessage: 'Please check back soon.',
-    columns: [],
-    items: []
-  },
-
-  // 3. Services (Work in progress)
-  services: {
-    id: 'services',
-    label: 'Services',
-    title: 'Services',
-    isComingSoon: true,
-    message: 'Work in progress...',
-    subMessage: 'Please check back soon.',
-    columns: [],
-    items: []
-  },
-
-  // 4. Solutions (Work in progress)
-  solutions: {
-    id: 'solutions',
-    label: 'Solutions',
-    title: 'Solutions',
-    isComingSoon: true,
-    message: 'Work in progress...',
-    subMessage: 'Please check back soon.',
-    columns: [],
-    items: []
-  },
-
-  // 5. About Us (Active Work Culture Tree)
+  // 1. About Us (Work Culture & Company)
   about: {
     id: 'about',
     label: 'About Us',
     title: 'Work Culture',
+    subtitle: 'Life, people & values at NISPL',
+    categoryBadge: 'Life at NISPL',
+    headerPath: '/about',
     isComingSoon: false,
-    columns: [
+    links: [
       {
-        id: 'col-about-culture',
-        title: 'Work Culture',
-        path: '/about#work-culture',
-        links: [
-          { label: 'Inside NISPL work culture', path: '/about#casual-office' },
-          { label: 'Workplace Excell Award', path: '/about#conventions-aikyam' },
-          { label: 'Celebration & puja', path: '/about#festive-celebrations' }
-        ]
+        id: 'culture-inside',
+        label: 'Inside NISPL Work Culture',
+        desc: 'Everyday agility, teamwork & open workspace life',
+        path: '/about#casual-office',
+        icon: 'Users',
+        badge: 'Culture'
+      },
+      {
+        id: 'culture-awards',
+        label: 'Workplace Excellence & Awards',
+        desc: 'Industry benchmarking, Aikyam & leadership conclaves',
+        path: '/about#conventions-aikyam',
+        icon: 'Award',
+        badge: 'Honors'
+      },
+      {
+        id: 'culture-festivals',
+        label: 'Celebrations & Traditions',
+        desc: 'Diwali festivities, Puja ceremonies & team bonding',
+        path: '/about#festive-celebrations',
+        icon: 'Sparkles',
+        badge: 'Tradition'
       }
     ],
     items: [
-      { id: 'inside-nispl', label: 'Inside NISPL work culture', path: '/about#casual-office' },
-      { id: 'workplace-award', label: 'workplace Excell Award', path: '/about#conventions-aikyam' },
-      { id: 'celebration-puja', label: 'Celebration & puja', path: '/about#festive-celebrations' }
-    ]
+      { id: 'culture-inside', label: 'Inside NISPL Work Culture', path: '/about#casual-office' },
+      { id: 'culture-awards', label: 'Workplace Excellence & Awards', path: '/about#conventions-aikyam' },
+      { id: 'culture-festivals', label: 'Celebrations & Traditions', path: '/about#festive-celebrations' }
+    ],
+    footer: {
+      text: 'Want to become part of our team?',
+      linkText: 'Explore Careers',
+      path: '/career'
+    }
+  },
+
+  // 2. Products
+  products: {
+    id: 'products',
+    label: 'Products',
+    title: 'Enterprise Products',
+    subtitle: 'Tally Prime, Cloud ERP & IT Hardware Solutions',
+    categoryBadge: 'Product Catalog',
+    isComingSoon: true,
+    message: 'We are assembling our full enterprise catalog including Tally Prime 3-Star certifications, dedicated cloud servers, and partner hardware.',
+    ctaText: 'Inquire About Products',
+    ctaPath: '/contact',
+    links: [],
+    items: []
+  },
+
+  // 3. Industries
+  industries: {
+    id: 'industries',
+    label: 'Industries',
+    title: 'Industries We Empower',
+    subtitle: 'Government, Manufacturing, Healthcare & Retail',
+    categoryBadge: 'Industry Solutions',
+    isComingSoon: true,
+    message: 'Tailored technology architectures for enterprise sectors across Eastern India. Reach out for customized case studies.',
+    ctaText: 'Consult an Expert',
+    ctaPath: '/contact',
+    links: [],
+    items: []
+  },
+
+  // 4. Services
+  services: {
+    id: 'services',
+    label: 'Services',
+    title: 'Managed IT & Cloud Services',
+    subtitle: 'Cloud Hosting, Zero-Trust Defense & 24/7 IT Support',
+    categoryBadge: 'Managed Services',
+    isComingSoon: true,
+    message: 'Explore our 24/7 server monitoring, cloud backup, automated disaster recovery, and cybersecurity infrastructure.',
+    ctaText: 'Explore Services',
+    ctaPath: '/contact',
+    links: [],
+    items: []
+  },
+
+  // 5. Solutions
+  solutions: {
+    id: 'solutions',
+    label: 'Solutions',
+    title: 'Strategic Solutions',
+    subtitle: 'Enterprise Digital Transformation & Compliance',
+    categoryBadge: 'Strategic Solutions',
+    isComingSoon: true,
+    message: 'End-to-end consulting for cloud migration, Tally on cloud, and high-uptime business network deployment.',
+    ctaText: 'Get Solution Architecture',
+    ctaPath: '/contact',
+    links: [],
+    items: []
   }
 };

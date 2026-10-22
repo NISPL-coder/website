@@ -17,10 +17,10 @@ const AUTHORIZED_PARTNERS = [
     id: 'ctrls',
     name: 'CTRLS',
     logo: ctrlsLogo,
-    website: 'https://www.ctrls.com/',
+    website: 'https://www.ctrls.com/datacenter-kolkata/',
     render: () => (
       <a 
-        href="https://www.ctrls.com/" 
+        href="https://www.ctrls.com/datacenter-kolkata/" 
         target="_blank" 
         rel="noopener noreferrer" 
         className="demo-big-logo-item demo-ctrls-partner" 
