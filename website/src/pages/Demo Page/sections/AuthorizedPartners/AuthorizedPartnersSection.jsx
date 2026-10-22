@@ -24,7 +24,6 @@ export default function AuthorizedPartnersSection() {
               Direct Tier-1 enterprise collaboration for cloud datacenter infrastructure & business ERP systems
             </p> */}
           </div>
-
           <div className="demo-logo-showcase-box demo-direct-partners-box">
             <div className="demo-logos-row-grid demo-direct-partners-grid">
               {DIRECT_PARTNERS.map((partner) => (
