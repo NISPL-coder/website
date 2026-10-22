@@ -18,6 +18,7 @@ export default defineConfig({
     }
   },
   build: {
+    target: ['chrome90', 'edge90', 'firefox90', 'safari15'],
     cssCodeSplit: true,
     rollupOptions: {
       output: {
