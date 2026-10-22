@@ -77,7 +77,7 @@ export default function Footer() {
           <div className="footer-nav-col">
             <h3 className="footer-col-title">Our Solutions</h3>
             <div className="footer-wip-box">
-              <span className="footer-wip-text">Work in progress...</span>
+              <span className="footer-wip-text">Work in progress..</span>
               <span className="footer-wip-sub">Please check back soon.</span>
             </div>
           </div>
