@@ -19,11 +19,13 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileExpandedCat, setMobileExpandedCat] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [isPinnedByClick, setIsPinnedByClick] = useState(false);
   const closeTimeoutRef = useRef(null);
   const navbarRef = useRef(null);
+  const mobileDrawerRef = useRef(null);
 
   // Fixed navbar scroll effect for smooth backdrop transitions
   useEffect(() => {
@@ -45,12 +47,22 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
     };
   }, []);
 
-  // Click outside and Escape key to close dropdown
+  // Click outside and Escape key to close dropdown & mobile drawer
   useEffect(() => {
     const handleDocumentClick = (e) => {
-      if (navbarRef.current && !navbarRef.current.contains(e.target)) {
+      const isInsideNavbar = navbarRef.current && navbarRef.current.contains(e.target);
+      const isInsideDrawer = mobileDrawerRef.current && mobileDrawerRef.current.contains(e.target);
+
+      // Close desktop dropdown when clicking outside header
+      if (!isInsideNavbar) {
         setActiveCategory(null);
         setIsPinnedByClick(false);
+      }
+
+      // Close mobile drawer when clicking outside drawer and navbar toggle
+      if (mobileMenuOpen && !isInsideDrawer && !isInsideNavbar) {
+        setMobileMenuOpen(false);
+        setMobileExpandedCat(null);
       }
     };
 
@@ -58,11 +70,13 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
       if (e.key === 'Escape') {
         setActiveCategory(null);
         setIsPinnedByClick(false);
+        setMobileMenuOpen(false);
+        setMobileExpandedCat(null);
       }
     };
 
     document.addEventListener('mousedown', handleDocumentClick);
-    document.addEventListener('touchstart', handleDocumentClick);
+    document.addEventListener('touchstart', handleDocumentClick, { passive: true });
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -73,7 +87,27 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
         clearTimeout(closeTimeoutRef.current);
       }
     };
-  }, []);
+  }, [mobileMenuOpen]);
+
+  // Auto-close drawer and reset state on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setMobileExpandedCat(null);
+    setActiveCategory(null);
+    setIsPinnedByClick(false);
+  }, [location.pathname, location.hash]);
+
+  // Lock body scrolling when mobile drawer is open to prevent background scrolling
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const clearCloseTimeout = () => {
     if (closeTimeoutRef.current) {
@@ -131,18 +165,23 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const handleMenuItemClick = (path) => {
     setActiveCategory(null);
     setIsPinnedByClick(false);
+    setMobileMenuOpen(false);
+    setMobileExpandedCat(null);
     if (!path) return;
 
     if (path.includes('#')) {
       const [targetPath, hash] = path.split('#');
       const isCurrentPage = 
         (targetPath === '' && location.pathname === '/') || 
-        location.pathname === targetPath;
+        location.pathname === targetPath ||
+        (targetPath === '/' && location.pathname === '/');
 
       if (isCurrentPage) {
         const target = document.getElementById(hash) || document.querySelector(`#${hash}`);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth' });
+          const yOffset = -75;
+          const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
           return;
         }
       }
@@ -158,6 +197,8 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
   const handleContactClick = () => {
     setActiveCategory(null);
     setIsPinnedByClick(false);
+    setMobileMenuOpen(false);
+    setMobileExpandedCat(null);
     navigate('/contact');
   };
 
@@ -289,8 +330,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                               );
                             })}
                           </div>
-
-                          
                         </div>
                       )}
                     </div>
@@ -314,8 +353,12 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
             <button 
               type="button" 
               className="demo-mobile-toggle"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+                if (mobileMenuOpen) setMobileExpandedCat(null);
+              }}
               aria-label="Toggle Navigation"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -323,72 +366,119 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
         </nav>
       </header>
 
-      {/* Mobile Drawer Navigation */}
-      <div className={`demo-mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
-        {NAV_ITEMS.map((item) => {
-          const hasDropdown = Boolean(MEGA_MENU_CONFIG[item.id]);
-          const menuData = MEGA_MENU_CONFIG[item.id];
-          return (
-            <div key={item.id} className="demo-mobile-item-wrap">
-              <button
-                type="button"
-                className="demo-mobile-nav-link"
-                onClick={() => {
-                  if (hasDropdown) {
-                    setActiveCategory(activeCategory === item.id ? null : item.id);
-                  } else if (item.path) {
-                    setMobileMenuOpen(false);
-                    navigate(item.path);
-                  }
-                }}
-              >
-                <span>{item.label}</span>
-                {hasDropdown && (
-                  <ChevronDown size={15} className={activeCategory === item.id ? 'rotated' : ''} />
-                )}
-              </button>
-              {hasDropdown && activeCategory === item.id && menuData && (
-                <div className="demo-mobile-sub-list animate-fade-in">
-                  {menuData.isComingSoon ? (
-                    <div className="demo-mobile-cs-box">
-                      <span className="demo-mobile-cs-badge">{menuData.categoryBadge || 'Coming Soon'}</span>
-                      <p className="demo-mobile-cs-text">
-                        {menuData.message || 'Please check back soon.'}
-                      </p>
-                    </div>
-                  ) : (
-                    menuData.links.map((sub) => (
-                      <a
-                        key={sub.id}
-                        href={sub.path}
-                        className="demo-mobile-sub-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setMobileMenuOpen(false);
-                          handleMenuItemClick(sub.path);
-                        }}
-                      >
-                        <span>{sub.label}</span>
-                        <ArrowRight size={13} opacity={0.6} />
-                      </a>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-        <button 
-          type="button" 
-          className="demo-contact-pill-btn"
-          style={{ width: '100%', marginTop: '16px' }}
+      {/* Mobile Drawer Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="demo-mobile-backdrop open"
           onClick={() => {
             setMobileMenuOpen(false);
-            handleContactClick();
+            setMobileExpandedCat(null);
           }}
-        >
-          Contact Us
-        </button>
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer Navigation */}
+      <div 
+        ref={mobileDrawerRef} 
+        className={`demo-mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}
+        role="dialog"
+        aria-label="Mobile Navigation Menu"
+      >
+        <div className="demo-mobile-drawer-inner">
+          {NAV_ITEMS.map((item) => {
+            const hasDropdown = Boolean(MEGA_MENU_CONFIG[item.id]);
+            const isExpanded = mobileExpandedCat === item.id;
+            const menuData = MEGA_MENU_CONFIG[item.id];
+            const isCurrentPage = location.pathname === item.path;
+
+            return (
+              <div key={item.id} className="demo-mobile-item-wrap">
+                <button
+                  type="button"
+                  className={`demo-mobile-nav-link ${isCurrentPage ? 'active-page' : ''} ${isExpanded ? 'expanded' : ''}`}
+                  onClick={() => {
+                    if (hasDropdown) {
+                      setMobileExpandedCat(isExpanded ? null : item.id);
+                    } else if (item.path) {
+                      setMobileMenuOpen(false);
+                      setMobileExpandedCat(null);
+                      navigate(item.path);
+                    }
+                  }}
+                  aria-expanded={hasDropdown ? isExpanded : undefined}
+                >
+                  <span className="demo-mobile-label">{item.label}</span>
+                  {hasDropdown ? (
+                    <ChevronDown size={16} className={`demo-mobile-chevron ${isExpanded ? 'rotated' : ''}`} />
+                  ) : (
+                    <ArrowRight size={14} className="demo-mobile-direct-arrow" />
+                  )}
+                </button>
+
+                {hasDropdown && isExpanded && menuData && (
+                  <div className="demo-mobile-sub-list animate-fade-in">
+                    {menuData.isComingSoon ? (
+                      <div className="demo-mobile-cs-box">
+                        <span className="demo-mobile-cs-badge">{menuData.categoryBadge || 'Coming Soon'}</span>
+                        <p className="demo-mobile-cs-text">
+                          {menuData.message || 'Please check back soon.'}
+                        </p>
+                        <button
+                          type="button"
+                          className="demo-mobile-cs-btn"
+                          onClick={() => handleMenuItemClick(menuData.ctaPath || '/contact')}
+                        >
+                          <span>{menuData.ctaText || 'Inquire With NISPL'}</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Direct Section/Page Overview Link */}
+                        {item.path && (
+                          <button
+                            type="button"
+                            className="demo-mobile-sub-link demo-mobile-sub-overview"
+                            onClick={() => handleMenuItemClick(item.path)}
+                          >
+                            <span className="demo-mobile-sub-title">Overview • All {item.label}</span>
+                            <ArrowRight size={13} />
+                          </button>
+                        )}
+
+                        {menuData.links?.map((sub) => (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            className="demo-mobile-sub-link"
+                            onClick={() => handleMenuItemClick(sub.path)}
+                          >
+                            <div className="demo-mobile-sub-content">
+                              <span className="demo-mobile-sub-title">{sub.label}</span>
+                              {sub.desc && (
+                                <span className="demo-mobile-sub-desc">{sub.desc}</span>
+                              )}
+                            </div>
+                            <ChevronRight size={14} className="demo-mobile-sub-arrow" />
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <button 
+            type="button" 
+            className="demo-contact-pill-btn demo-mobile-contact-btn"
+            onClick={handleContactClick}
+          >
+            Contact Us
+          </button>
+        </div>
       </div>
     </>
   );

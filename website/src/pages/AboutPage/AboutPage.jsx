@@ -196,6 +196,9 @@ export default function AboutPage({ onOpenContact, onOpenConsultation }) {
                   onMouseEnter={() => setHoveredCategory(category.id)}
                   onMouseLeave={() => setHoveredCategory(null)}
                 >
+                  {category.id === 'awareness-program' && (
+                    <span id="conventions-aikyam" style={{ position: 'relative', top: '-80px', display: 'block', visibility: 'hidden' }} />
+                  )}
                   {/* Category Header Bar */}
                   <div className="about-cat-header-strip">
                     <div className="about-cat-header-left">

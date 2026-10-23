@@ -28,25 +28,25 @@ export const MEGA_MENU_CONFIG = {
       },
       {
         id: 'culture-awards',
-        label: 'Workplace Excellence & Awards',
-        desc: 'Industry benchmarking, Aikyam & leadership conclaves',
-        path: '/about#conventions-aikyam',
+        label: 'Awareness Program',
+        desc: 'Conventions, leadership summits & knowledge sharing',
+        path: '/about#awareness-program',
         icon: 'Award',
-        badge: 'Honors'
+        badge: 'Programs'
       },
       {
         id: 'culture-festivals',
-        label: 'Celebrations & Traditions',
-        desc: 'Diwali festivities, Puja ceremonies & team bonding',
+        label: 'Celebrations & Team Bonding',
+        desc: 'Team celebrations, dinner feasts & festive traditions',
         path: '/about#festive-celebrations',
         icon: 'Sparkles',
-        badge: 'Tradition'
+        badge: 'Celebration'
       }
     ],
     items: [
       { id: 'culture-inside', label: 'Inside NISPL Work Culture', path: '/about#casual-office' },
-      { id: 'culture-awards', label: 'Workplace Excellence & Awards', path: '/about#conventions-aikyam' },
-      { id: 'culture-festivals', label: 'Celebrations & Traditions', path: '/about#festive-celebrations' }
+      { id: 'culture-awards', label: 'Awareness Program', path: '/about#awareness-program' },
+      { id: 'culture-festivals', label: 'Celebrations & Team Bonding', path: '/about#festive-celebrations' }
     ],
     footer: {
       text: 'Want to become part of our team?',
@@ -89,47 +89,17 @@ export const MEGA_MENU_CONFIG = {
   services: {
     id: 'services',
     label: 'Services',
-    title: 'Enterprise Datacenter & Cloud',
-    subtitle: 'CtrlS Kolkata Rated-4 Hub, Cloud Infrastructure & Zero-Trust',
-    categoryBadge: 'Enterprise Services',
-    isComingSoon: false,
-    links: [
-      {
-        id: 'service-ctrls',
-        label: 'CtrlS Kolkata Rated-4 Datacenter',
-        desc: '16 MW AI-ready facility at Bengal Silicon Valley, New Town',
-        path: '/#ctrls-kolkata-datacenter',
-        icon: 'Server',
-        badge: 'Premier Hub'
-      },
-      {
-        id: 'service-cloud',
-        label: 'Cloud Server & Hosting',
-        desc: 'Private, public & hybrid cloud hosting with high redundancy',
-        path: '/#strategic-services',
-        icon: 'Sparkles',
-        badge: 'Cloud'
-      },
-      {
-        id: 'service-security',
-        label: 'Cybersecurity & Managed IT',
-        desc: 'Zero-trust perimeter security, automated backups & 24/7 SOC',
-        path: '/#strategic-services',
-        icon: 'Award',
-        badge: 'Security'
-      }
-    ],
-    items: [
-      { id: 'service-ctrls', label: 'CtrlS Kolkata Rated-4 Datacenter', path: '/#ctrls-kolkata-datacenter' },
-      { id: 'service-cloud', label: 'Cloud Server & Hosting', path: '/#strategic-services' },
-      { id: 'service-security', label: 'Cybersecurity & Managed IT', path: '/#strategic-services' }
-    ],
-    footer: {
-      text: 'Need dedicated colocation or cloud architecture?',
-      linkText: 'Inquire Now',
-      path: '/contact'
-    }
+    title: 'Services We Deliver',
+    subtitle: 'Tally Prime, Hardware and IT Services',
+    categoryBadge: 'Industry Solutions',
+    isComingSoon: true,
+    message: 'Leading partner for TallyPrime 3-Star, Gold-Certified solutions, cloud integration, hardware and managed IT across Odisha and Eastern India.',
+    ctaText: 'Contact Us',
+    ctaPath: '/services',
+    links: [],
+    items: []
   },
+
 
   // 5. Solutions
   solutions: {

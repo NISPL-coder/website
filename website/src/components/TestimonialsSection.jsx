@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { REAL_POSITIVE_REVIEWS } from '../services/realGoogleReviews';
 import './TestimonialsSection.css';
@@ -6,6 +6,11 @@ import './TestimonialsSection.css';
 export default function TestimonialsSection() {
   const [isPaused, setIsPaused] = useState(false);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchDeltaX = useRef(0);
+  const isHorizontalSwipe = useRef(null);
 
   const displayList = REAL_POSITIVE_REVIEWS;
   const listLen = displayList.length;
@@ -89,6 +94,46 @@ export default function TestimonialsSection() {
     setCurrentIndex(currentBase + targetOriginalIndex);
   };
 
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchDeltaX.current = 0;
+    isHorizontalSwipe.current = null;
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e) => {
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        isHorizontalSwipe.current = Math.abs(deltaX) > Math.abs(deltaY);
+      }
+    }
+
+    if (isHorizontalSwipe.current) {
+      touchDeltaX.current = deltaX;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isHorizontalSwipe.current) {
+      const deltaX = touchDeltaX.current;
+      const threshold = 35;
+
+      if (deltaX < -threshold) {
+        handleNext();
+      } else if (deltaX > threshold) {
+        handlePrev();
+      }
+    }
+
+    touchDeltaX.current = 0;
+    isHorizontalSwipe.current = null;
+    setTimeout(() => setIsPaused(false), 2500);
+  };
+
   return (
     <section className="cyber-testimonials-section" id="testimonials">
       <div className="cyber-testimonials-container">
@@ -120,7 +165,14 @@ export default function TestimonialsSection() {
               </button>
 
               {/* Viewport Window */}
-              <div className="cyber-testimonials-viewport">
+              <div 
+                className="cyber-testimonials-viewport"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+                style={{ touchAction: 'pan-y' }}
+              >
                 <div
                   className={`cyber-testimonials-track ${transitionEnabled ? 'with-transition' : ''}`}
                   style={{

@@ -23,6 +23,10 @@ import imgSupportHotline from '../../assets/work culture/image copy 4.png';
 import imgVishwakarmaIdol from '../../assets/work culture/image copy 5.png';
 import imgHavanCeremony from '../../assets/work culture/image copy 6.png';
 
+// Team Celebrations & Dinner Party Photographs
+import imgTeamDinner1 from '../../assets/work culture/777.png';
+import imgTeamDinnerLongTable from '../../assets/work culture/7771.png';
+
 export const GALLERY_CATEGORIES = [
   {
     id: 'casual-office',
@@ -33,6 +37,13 @@ export const GALLERY_CATEGORIES = [
     tag: 'Daily Culture',
     badge: 'Open Floor Energy',
     photos: [
+      {
+        id: 'lp-4',
+        image: imgLeadership,
+        title: 'Strategic Planning & Vision Roadmapping',
+        caption: 'Translating high-level technological trends into practical, secure, cost-effective solutions for growing Indian enterprises.',
+        alt: 'Executive strategy office at Net Infotech System'
+      },
       {
         id: 'co-1',
         image: imgWorkspace,
@@ -85,86 +96,74 @@ export const GALLERY_CATEGORIES = [
     ]
   },
   {
-    id: 'conventions-aikyam',
-    title: 'Annual Convention',
-    subtitle: 'Uniting Our Pan-India Ecosystem',
+    id: 'awareness-program',
+    title: 'Awareness Program',
+    subtitle: 'Annual Conventions, Leadership Conclaves & Knowledge Sharing',
     description:
-      'The Annual Convention is a cornerstone of our organizational culture, serving as a premier platform for collaboration, innovation, and growth. It brings together our team members, enterprise partners, and industry stakeholders from across the country to share insights, celebrate achievements, and chart the future course of technology and business excellence.',
-    tag: 'Grand Summits',
-    badge: 'Oneness in Action',
+      'We believe in continuous learning, industry education, and proactive knowledge dissemination. Our awareness programs, annual conventions, and leadership summits bring together enterprise partners, technology visionaries, and community leaders to share deep insights on cloud innovation, digital transformation, cybersecurity, and future-ready business ecosystems.',
+    tag: 'Awareness & Summits',
+    badge: 'Knowledge & Leadership',
     photos: [
       {
-        id: 'ca-1',
-        image: imgAikyam,
-        title: 'AIKYAM — The Rhythm of Oneness',
-        caption: 'Leadership, enterprise partners, and delegates coming together under the banner of AIKYAM to celebrate collective unity.',
-        alt: 'NISPL leadership and partners on the AIKYAM convention stage'
-      },
-      {
-        id: 'ca-2',
-        image: imgSummit,
-        title: 'Premier Technology Conclave Delegation',
-        caption: 'Our delegation engaging with hundreds of tech visionaries, CIOs, and industry stalwarts at premier national IT conventions.',
-        alt: 'NISPL delegation participating in a grand technology conclave'
-      },
-      {
-        id: 'ca-3',
-        image: imgAward,
-        title: 'Inspiring Workplace Excellence Award FY 2024–25',
-        caption: 'Proudly conferred on stage with the prestigious Inspiring Workplace Excellence Award by Tally leadership for employee welfare.',
-        alt: 'Net Infotech receiving Inspiring Workplace Excellence Award on stage'
-      },
-      
-    ]
-  },
-  {
-    id: 'leadership-panels',
-    title: 'AGM, Leadership Keynotes & Panels',
-    subtitle: 'Thought Leadership & Strategic Vision',
-    description:
-      'We believe in proactive knowledge sharing. NISPL leadership regularly shares domain insights on cloud migration, hybrid datacenter security, ERP modernization, and the future of enterprise software at corporate conclaves and panel debates.',
-    tag: 'Thought Leadership',
-    badge: 'Industry Dialogue',
-    photos: [
-      {
-        id: 'lp-1',
+        id: 'ap-1',
         image: imgKeynote,
-        title: 'Keynote Address at Technology Conclave',
-        caption: 'Executive leadership delivering a keynote address on scalable cloud infrastructure, cybersecurity governance, and business speed.',
-        alt: 'NISPL leadership keynote speech at technology partner conclave'
+        title: 'Keynote Address & Technology Awareness',
+        caption: 'Executive leadership delivering educational keynote addresses on scalable cloud infrastructure, cybersecurity governance, and digital enterprise growth.',
+        alt: 'NISPL leadership keynote speech at technology awareness conclave'
       },
       {
-        id: 'lp-2',
+        id: 'ap-2',
         image: imgPanel,
-        title: 'Executive Panel Dialogue on Modern IT Challenges',
-        caption: 'Participating in high-level executive panels alongside regional industry pioneers, exchanging deep insights on digital resilience.',
+        title: 'Executive Panel on Industry Challenges',
+        caption: 'Participating in high-level panel debates alongside industry pioneers to raise awareness on digital resilience and modern IT architectures.',
         alt: 'NISPL leaders in panel discussion at tech summit'
       },
       {
-        id: 'lp-3',
-        image: imgAward,
-        title: 'Recognition for Industry Benchmarking',
-        caption: 'Consistently recognized for pioneering enterprise service delivery standards and fostering trust across thousands of client businesses.',
-        alt: 'Net Infotech leadership receiving honors on stage'
+        id: 'ap-3',
+        image: imgAikyam,
+        title: 'AIKYAM — Annual Convention & Oneness',
+        caption: 'Leadership, enterprise partners, and delegates coming together under the banner of AIKYAM to exchange knowledge and celebrate collective unity.',
+        alt: 'NISPL leadership and partners on the AIKYAM convention stage'
       },
       {
-        id: 'lp-4',
-        image: imgLeadership,
-        title: 'Strategic Planning & Vision Roadmapping',
-        caption: 'Translating high-level technological trends into practical, secure, cost-effective solutions for growing Indian enterprises.',
-        alt: 'Executive strategy office at Net Infotech System'
+        id: 'ap-4',
+        image: imgSummit,
+        title: 'National Technology Conclave Delegation',
+        caption: 'Our delegation engaging with hundreds of tech visionaries, CIOs, and industry stalwarts to promote technology adoption and best practices.',
+        alt: 'NISPL delegation participating in a grand technology conclave'
+      },
+      {
+        id: 'ap-5',
+        image: imgAward,
+        title: 'Inspiring Workplace Excellence Award',
+        caption: 'Proudly conferred on stage with the prestigious Inspiring Workplace Excellence Award by Tally leadership for employee welfare and industry benchmarking.',
+        alt: 'Net Infotech receiving Inspiring Workplace Excellence Award on stage'
       }
     ]
   },
   {
     id: 'festive-celebrations',
-    title: 'Diwali Celebration, Puja & Team Joy',
-    subtitle: 'Cherishing Heritage & Festive Traditions',
+    title: 'Team Celebrations & Festive Traditions',
+    subtitle: 'Team Get-Togethers, Milestones & Festive Joy',
     description:
-      'Technology is what we build, but the bonds of friendship and tradition are what hold us together. Every festival brings our entire NISPL family together for joyous celebrations, traditional pujas, cultural festivities, and unforgettable team memories.',
-    tag: 'Cultural Heritage',
-    badge: 'Festive Traditions',
+      'Technology is what we build, but the bonds of friendship, team dinners, and shared milestones are what hold us together. Every milestone and festival brings our entire NISPL family together for joyous celebrations, traditional pujas, and unforgettable team memories.',
+    tag: 'Team Celebrations',
+    badge: 'Team Bonding & Joy',
     photos: [
+      {
+        id: 'tc-1',
+        image: imgTeamDinner1,
+        title: 'NISPL Team Celebration Dinner',
+        caption: 'Our engineers and leadership team enjoying an energetic dinner evening together, celebrating quarterly milestones and company camaraderie.',
+        alt: 'NISPL team members dining and celebrating milestones together at dinner table'
+      },
+      {
+        id: 'tc-2',
+        image: imgTeamDinnerLongTable,
+        title: 'Grand Team Get-Together & Feast',
+        caption: 'The entire Net Infotech family seated together across banquet tables, sharing stories, laughter, and delicious food during our team party.',
+        alt: 'The entire Net Infotech team enjoying a celebratory banquet dinner together'
+      },
       {
         id: 'fc-1',
         image: imgFestiveGroup,
