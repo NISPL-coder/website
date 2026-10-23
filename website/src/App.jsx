@@ -4,6 +4,7 @@ import DemoHomepage from './pages/Demo Page/Homepage';
 import CookieConsent from './components/CookieConsent/CookieConsent';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
+import SEOManager from './components/SEO/SEOManager';
 import './App.css';
 
 // Code-split secondary routes & heavy modals for instant LCP and minimal initial bundle
@@ -72,6 +73,7 @@ function MainApp() {
 
   return (
     <div className="demo-app-root">
+      <SEOManager />
       <ScrollToTop />
       {/* Universal Interactive Constellation Background */}
       <NetworkBackground />

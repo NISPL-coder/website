@@ -1,24 +1,47 @@
-# Net Infotech System Pvt. Ltd.
+# Net Infotech System Pvt. Ltd. (NISPL)
 
-> Net Infotech System Pvt. Ltd. (NISPL) is Eastern India's premier IT solutions provider and Tally 3-Star Certified Partner. With over 25 years of excellence, NISPL provides enterprise cloud hosting, custom software development, cybersecurity, hardware infrastructure, and managed IT services.
+> Net Infotech System Pvt. Ltd. (NISPL) is Eastern India's premier IT solutions provider and Certified Tally 3-Star Partner. Headquartered at Webel Tower 1, Sector V, Salt Lake City, Kolkata - 700091, NISPL provides enterprise cloud hosting, Tally on Cloud, 24/7 managed IT services, cybersecurity defense, Microsoft licensing, IT infrastructure management, and CtrlS Kolkata Rated-4 datacenter colocation.
 
-## Core Pages
+## Core Navigation Pages
 
-- [Homepage](https://nispl.netlify.app/): Main web portal showcasing enterprise IT services, cloud hosting, certified technology partners, and verified client testimonials.
-- [About Us](https://nispl.netlify.app/about): Company legacy, leadership, corporate milestones, 25+ years of industry track record, and operational values.
-- [Contact & Support](https://nispl.netlify.app/contact): Official contact directory, branch offices in Kolkata, Burdwan, and Durgapur, inquiry form, and enterprise ticketing.
-- [Careers](https://nispl.netlify.app/career): Job openings, engineering and consulting opportunities, work culture, and online application portal.
+- [Homepage](https://nispl.netlify.app/): Main enterprise portal showcasing full IT services, cloud hosting, certified technology partners, and premier client testimonials.
+- [About Us & Work Culture](https://nispl.netlify.app/about): Company legacy, 25+ years of industry track record, awareness programs, leadership summits, and authentic workplace culture.
+- [Contact & Support](https://nispl.netlify.app/contact): Official contact directory, Webel Tower 1 Kolkata headquarters, support helpline (+91 9330113000), and inquiry form.
+- [Careers](https://nispl.netlify.app/career): Job vacancies, cloud engineering roles, Tally consulting positions, and online job application portal.
 
-## Enterprise Services & Solutions
+## Core Services & Solutions
 
-- [Tally Prime Solutions & Cloud Hosting](https://nispl.netlify.app/): Certified Tally implementation, custom TDL module development, multi-user deployment, and high-speed Tally-on-Cloud hosting.
-- [Enterprise Cloud & Hosting (AWS, Azure, CtrlS)](https://nispl.netlify.app/): Cloud migration, scalable virtual machines, data backup, and hybrid cloud management.
-- [Cybersecurity & Threat Defense](https://nispl.netlify.app/): Next-generation firewall implementation, endpoint protection, vulnerability scanning, and disaster recovery.
-- [Managed IT Services & AMC Support](https://nispl.netlify.app/): 24/7 server monitoring, proactive maintenance, network uptime guarantees, and on-site engineering dispatch.
-- [Hardware & Networking Infrastructure](https://nispl.netlify.app/): Authorized enterprise partnerships with HP, Lenovo, Canon, CP PLUS, and D-Link for procurement and SLA maintenance.
+1. **TallyPrime & Tally on Cloud Solutions**
+   - High-speed cloud VPS hosting for TallyPrime with 99.9% uptime.
+   - Anywhere, anytime access from Windows, Mac, iOS, and Android.
+   - Automated hourly encrypted backups, bank-grade 256-bit SSL, and GST compliance e-invoicing.
+   - Certified 3-Star Tally Partner delivering deployment, licensing, and custom module integrations.
 
-## Discoverability & Metadata
+2. **Enterprise Cloud Server & VPS Hosting**
+   - High-availability virtual private servers (VPS), dedicated cloud instances, and elastic storage arrays.
+   - Automated daily snapshots, multi-branch database synchronization, and enterprise DDoS protection.
 
-- [Sitemap](https://nispl.netlify.app/sitemap.xml): Complete machine-readable XML sitemap for search crawlers and AI agents.
-- [Robots Configuration](https://nispl.netlify.app/robots.txt): Web crawler directives and sitemap declaration.
-- [AI Agent Catalog](https://nispl.netlify.app/ai-catalog.json): Machine-readable service and agent catalog specification.
+3. **IT Infrastructure Management**
+   - Enterprise rack server architecture, high-density storage arrays, and carrier-neutral low-latency switching fabrics.
+   - High-throughput corporate Wi-Fi fabrics and multi-office network integration.
+
+4. **24/7 Managed IT Services & IT AMC Support**
+   - Central 24/7 Network Operations Center (NOC) in Kolkata monitoring servers, firewalls, and network switches.
+   - Guaranteed SLA response times (< 15 min triage), scheduled preventive maintenance, and SLA hardware replacement.
+
+5. **Cyber Security Solutions & Zero-Trust Defense**
+   - Multi-layered hardware UTM firewalls, encrypted VPN gateways, and centralized endpoint governance.
+   - Bank-grade 256-bit encryption, phishing defense, real-time intrusion prevention, and ransomware defense.
+
+6. **Microsoft 365 Licensing & Cloud Modernization**
+   - Official Microsoft Solutions Partner providing Microsoft 365, Teams, OneDrive, Exchange, Windows Server, Entra ID, and Intune device fleet management.
+
+7. **CtrlS Kolkata Rated-4 Datacenter Colocation**
+   - 16 MW AI-ready facility at Bengal Silicon Valley, New Town Kolkata with 99.995% uptime SLA and military-grade physical security.
+
+## Company Information
+- **Company Name**: Net Infotech System Pvt. Ltd. (NISPL)
+- **Address**: Webel Tower 1, IT Park, BN Block, Sector V, Salt Lake City, Kolkata, West Bengal, India - 700091
+- **Phone**: +91 9330113000 / 033 - 4004 1899
+- **Email**: info@netinfotechsystem.com / support@netinfotechsystem.com
+- **Website**: https://nispl.netlify.app/

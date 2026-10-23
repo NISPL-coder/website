@@ -1,4 +1,8 @@
+# Net Infotech System Pvt. Ltd. (NISPL) Robots Directives
 User-agent: *
 Allow: /
+Allow: /assets/
+Allow: /public/
 
+# Sitemaps
 Sitemap: https://nispl.netlify.app/sitemap.xml
