@@ -218,3 +218,6 @@ export const CULTURE_PILLARS = [
     icon: 'Heart'
   }
 ];
+
+
+
