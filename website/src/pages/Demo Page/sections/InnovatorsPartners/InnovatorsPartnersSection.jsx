@@ -52,7 +52,7 @@ export default function InnovatorsPartnersSection() {
               We turn technological possibilities into practical business outcomes.
               Through intelligent automation, reliable IT infrastructure, and digital
               innovation, we help businesses simplify complexity, make smarter
-              decisions, and confidently embrace the future.adadawdaw
+              decisions, and confidently embrace the future.
             </p>
           </div>
         </div>
