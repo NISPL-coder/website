@@ -541,7 +541,7 @@ export default function CareerPage() {
                       id="name"
                       name="name"
                       className={`iz-career-input ${fieldErrors.name ? 'iz-input-invalid' : ''}`}
-                      placeholder="e.g. Debasish Ray"
+                      placeholder="Enter Your Name"
                       value={formData.name}
                       onChange={handleChange}
                       disabled={isSubmitting}
@@ -559,7 +559,7 @@ export default function CareerPage() {
                       id="email"
                       name="email"
                       className={`iz-career-input ${fieldErrors.email ? 'iz-input-invalid' : ''}`}
-                      placeholder="e.g. debasish@example.com"
+                      placeholder="Enter Your Email"
                       value={formData.email}
                       onChange={handleChange}
                       disabled={isSubmitting}
@@ -577,7 +577,7 @@ export default function CareerPage() {
                       id="phone"
                       name="phone"
                       className={`iz-career-input ${fieldErrors.phone ? 'iz-input-invalid' : ''}`}
-                      placeholder="e.g. +91 98765 43210"
+                      placeholder="Enter Your Phone"
                       value={formData.phone}
                       onChange={handleChange}
                       disabled={isSubmitting}
