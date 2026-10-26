@@ -39,20 +39,6 @@ import {
 import './LoginPage.css';
 import './CustomerRegister.css';
 
-/* ==========================================================================
-   OFFICIAL NISPL SUBSCRIPTION CATALOG & BASE PRICING (INR)
-   1. Tally Software Service (TSS) — Single User (10% discount on 2-Year plan)
-   2. Tally Software Service (TSS) — Multi User (10% discount on 2-Year plan)
-   3. Tally Software Service (TSS) — Auditors (Multi User) (10% discount on 2-Year plan)
-   4. Tally on Mobile — Biz Analyst (1 Year, 3 Years [2+1 free], 5 Years [3+2 free])
-   5. Tally from WhatsApp (Renewal & Top-ups)
-   6. TallyPrime (Single User & Multi User Lifetime)
-   7. Single User to Multi User Upgrade (Lifetime)
-   * Note: 10% discount applies ONLY to:
-     - TSS 2-Year Single User
-     - TSS 2-Year Multi User
-     - Auditors 2-Year Multi User
-   ========================================================================== */
 export const SUBSCRIPTION_GROUPS = [
   {
     groupId: 'tss-single',
@@ -325,17 +311,8 @@ export const SUBSCRIPTION_GROUPS = [
   }
 ];
 
-// Flat list of all available plan options for rapid lookup
 const ALL_PLAN_OPTIONS = SUBSCRIPTION_GROUPS.flatMap((g) => g.options);
 
-/* ==========================================================================
-   CENTRALIZED PRICE CALCULATION LOGIC
-   Formula:
-   1. discountAmount = basePrice * discountRate
-   2. discountedPrice = basePrice - discountAmount
-   3. gstAmount = discountedPrice * 0.18
-   4. totalPayable = discountedPrice + gstAmount
-   ========================================================================== */
 export function calculatePlanPricing(planOption, customDiscountRate = null) {
   if (!planOption) return null;
   const basePrice = Number(planOption.basePrice) || 0;
@@ -653,7 +630,6 @@ export default function CustomerRegisterPage() {
             <div className="ebolt-step-container">
               <div className="ebolt-section-heading">
                 <span>Customer Details</span>
-                <span className="ebolt-section-badge">Section 01</span>
               </div>
 
               <form onSubmit={handleContinueToSection2} className="ebolt-form" style={{ marginTop: '16px' }}>
@@ -861,70 +837,135 @@ export default function CustomerRegisterPage() {
                           {isExpanded && (
                             <div className="cust-accordion-body animate-fade-in">
                               
-                              {/* Group 1: TSS Table Layout */}
+                              {/* Group 1: TSS Table Layout (Desktop) & Clean Responsive Cards (Mobile) */}
                               {group.isTableLayout ? (
-                                <div className="cust-tss-table-wrap">
-                                  <table className="cust-tss-table">
-                                    <thead>
-                                      <tr>
-                                        <th>Plan / Duration</th>
-                                        <th>Base Price</th>
-                                        <th>Discount</th>
-                                        <th>Discounted Price</th>
-                                        <th>GST (18%)</th>
-                                        <th>Total Payable</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {group.options.map((opt) => {
-                                        const calc = calculatePlanPricing(opt);
-                                        const isSelected = opt.id === selectedPlanId;
+                                <>
+                                  {/* Desktop Table View */}
+                                  <div className="cust-tss-table-wrap cust-desktop-table-view">
+                                    <table className="cust-tss-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Plan / Duration</th>
+                                          <th>Base Price</th>
+                                          <th>Discount</th>
+                                          <th>Discounted Price</th>
+                                          <th>GST (18%)</th>
+                                          <th>Total Payable</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {group.options.map((opt) => {
+                                          const calc = calculatePlanPricing(opt);
+                                          const isSelected = opt.id === selectedPlanId;
 
-                                        return (
-                                          <tr
-                                            key={opt.id}
-                                            className={isSelected ? 'is-selected-row' : ''}
-                                            onClick={() => handleSelectOption(opt)}
-                                          >
-                                            <td>
-                                              <div className="cust-radio-cell">
-                                                <input
-                                                  type="radio"
-                                                  name="subscription_plan"
-                                                  className="cust-radio-input"
-                                                  checked={isSelected}
-                                                  onChange={() => handleSelectOption(opt)}
-                                                />
-                                                <span>{opt.duration}</span>
-                                              </div>
-                                            </td>
-                                            <td>{formatINR(calc.basePrice)}</td>
-                                            <td>
-                                              {calc.discountPercent > 0 ? (
-                                                <span className="cust-discount-tag">
-                                                  {calc.discountPercent}% OFF (−{formatINR(calc.discountAmount)})
+                                          return (
+                                            <tr
+                                              key={opt.id}
+                                              className={isSelected ? 'is-selected-row' : ''}
+                                              onClick={() => handleSelectOption(opt)}
+                                            >
+                                              <td>
+                                                <div className="cust-radio-cell">
+                                                  <input
+                                                    type="radio"
+                                                    name="subscription_plan"
+                                                    className="cust-radio-input"
+                                                    checked={isSelected}
+                                                    onChange={() => handleSelectOption(opt)}
+                                                  />
+                                                  <span>{opt.duration}</span>
+                                                </div>
+                                              </td>
+                                              <td>{formatINR(calc.basePrice)}</td>
+                                              <td>
+                                                {calc.discountPercent > 0 ? (
+                                                  <span className="cust-discount-tag">
+                                                    {calc.discountPercent}% OFF (−{formatINR(calc.discountAmount)})
+                                                  </span>
+                                                ) : (
+                                                  <span style={{ color: '#94a3b8' }}>—</span>
+                                                )}
+                                              </td>
+                                              <td>
+                                                {calc.discountPercent > 0 ? (
+                                                  formatINR(calc.discountedPrice)
+                                                ) : (
+                                                  <span style={{ color: '#94a3b8' }}>—</span>
+                                                )}
+                                              </td>
+                                              <td>{formatINR(calc.gstAmount)}</td>
+                                              <td>
+                                                <span className="cust-final-val">{formatINR(calc.totalPayable)}</span>
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
+                                  </div>
+
+                                  {/* Mobile Card View (Polished Enterprise UI) */}
+                                  <div className="cust-mobile-cards-list cust-mobile-cards-view">
+                                    {group.options.map((opt) => {
+                                      const calc = calculatePlanPricing(opt);
+                                      const isSelected = opt.id === selectedPlanId;
+
+                                      return (
+                                        <div
+                                          key={opt.id}
+                                          className={`cust-mobile-plan-card ${isSelected ? 'is-selected' : ''}`}
+                                          onClick={() => handleSelectOption(opt)}
+                                        >
+                                          <div className="cust-mobile-card-header">
+                                            <div className="cust-radio-cell">
+                                              <input
+                                                type="radio"
+                                                name="subscription_plan_mob"
+                                                className="cust-radio-input"
+                                                checked={isSelected}
+                                                onChange={() => handleSelectOption(opt)}
+                                              />
+                                              <span className="cust-mobile-duration-title">{opt.duration}</span>
+                                            </div>
+                                            {calc.discountPercent > 0 && (
+                                              <span className="cust-badge-discount">
+                                                {calc.discountPercent}% OFF
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="cust-mobile-pricing-rows">
+                                            <div className="cust-mobile-price-row">
+                                              <span className="cust-mobile-row-lbl">Base Price</span>
+                                              <span className="cust-mobile-row-val">{formatINR(calc.basePrice)}</span>
+                                            </div>
+
+                                            {calc.discountPercent > 0 && (
+                                              <div className="cust-mobile-price-row discount-highlight">
+                                                <span className="cust-mobile-row-lbl">Discounted Price</span>
+                                                <span className="cust-mobile-row-val discount-val">
+                                                  {formatINR(calc.discountedPrice)}
                                                 </span>
-                                              ) : (
-                                                <span style={{ color: '#94a3b8' }}>—</span>
-                                              )}
-                                            </td>
-                                            <td>
-                                              {calc.discountPercent > 0 ? (
-                                                formatINR(calc.discountedPrice)
-                                              ) : (
-                                                <span style={{ color: '#94a3b8' }}>—</span>
-                                              )}
-                                            </td>
-                                            <td>{formatINR(calc.gstAmount)}</td>
-                                            <td>
-                                              <span className="cust-final-val">{formatINR(calc.totalPayable)}</span>
-                                            </td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                </div>
+                                              </div>
+                                            )}
+
+                                            <div className="cust-mobile-price-row">
+                                              <span className="cust-mobile-row-lbl">GST (18%)</span>
+                                              <span className="cust-mobile-row-val">{formatINR(calc.gstAmount)}</span>
+                                            </div>
+
+                                            <div className="cust-mobile-price-row total-highlight">
+                                              <span className="cust-mobile-row-lbl">Total Payable</span>
+                                              <span className="cust-mobile-row-val total-val">
+                                                {formatINR(calc.totalPayable)}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </>
                               ) : (
                                 /* Group 2, 3, 4: Card / Row Option Selectors */
                                 <div className="cust-options-grid">

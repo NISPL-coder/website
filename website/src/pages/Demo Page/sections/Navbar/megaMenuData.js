@@ -127,21 +127,24 @@ export const MEGA_MENU_CONFIG = {
         label: 'Admin',
         desc: 'Internal infrastructure & NOC systems administration',
         path: '/login?portal=admin',
-        icon: 'Shield'
+        icon: 'Shield',
+        openInNewTab: true
       },
       {
         id: 'login-partner',
         label: 'Partner',
         desc: 'Authorized Tally channel & reseller distribution portal',
         path: '/partner-dashboard',
-        icon: 'Users'
+        icon: 'Users',
+        openInNewTab: true
       },
       {
         id: 'login-customer',
         label: 'Customer',
         desc: 'Enterprise Tally on Cloud & managed services portal',
         path: '/customer-login',
-        icon: 'Cloud'
+        icon: 'Cloud',
+        openInNewTab: true
       }
     ]
   }
