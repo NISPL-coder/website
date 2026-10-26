@@ -457,83 +457,107 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                   )}
                 </button>
 
-                {hasDropdown && isExpanded && menuData && (
-                  <div className="demo-mobile-sub-list animate-fade-in">
-                    {menuData.isComingSoon ? (
-                      <div className="demo-mobile-cs-box">
-                        <span className="demo-mobile-cs-badge">{menuData.categoryBadge || 'Coming Soon'}</span>
-                        <p className="demo-mobile-cs-text">
-                          {menuData.message || 'Please check back soon.'}
-                        </p>
-                        <button
-                          type="button"
-                          className="demo-mobile-cs-btn"
-                          onClick={() => handleMenuItemClick(menuData.ctaPath || '/contact')}
-                        >
-                          <span>{menuData.ctaText || 'Inquire With NISPL'}</span>
-                          <ArrowRight size={13} />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Direct Section/Page Overview Link */}
-                        {item.path && (
+                 {hasDropdown && isExpanded && menuData && (
+                  <div className="demo-mobile-sub-wrap animate-fade-in">
+                    <div className="demo-mobile-aerokit-dropdown">
+                      {menuData.isComingSoon ? (
+                        <div className="demo-aerokit-cs-content">
+                          <span className="demo-aerokit-cs-badge">{menuData.categoryBadge || 'NISPL Enterprise'}</span>
+                          <h4 className="demo-aerokit-cs-title">{menuData.title}</h4>
+                          {menuData.subtitle && <p className="demo-aerokit-cs-sub">{menuData.subtitle}</p>}
+                          <p className="demo-aerokit-cs-desc">{menuData.message}</p>
                           <button
                             type="button"
-                            className="demo-mobile-sub-link demo-mobile-sub-overview"
-                            onClick={() => handleMenuItemClick(item.path)}
+                            className="demo-aerokit-cs-btn"
+                            onClick={() => handleMenuItemClick(menuData.ctaPath || '/contact')}
                           >
-                            <span className="demo-mobile-sub-title">Overview • All {item.label}</span>
-                            <ArrowRight size={13} />
+                            <span>{menuData.ctaText || 'Inquire With NISPL'}</span>
+                            <ArrowRight size={14} />
                           </button>
-                        )}
+                        </div>
+                      ) : (
+                        <>
+                          {menuData.categoryBadge && (
+                            <div className="demo-aerokit-header">
+                              <span className="demo-aerokit-chip-tag">{menuData.categoryBadge}</span>
+                              <span className="demo-aerokit-header-title">{menuData.title}</span>
+                            </div>
+                          )}
 
-                        {menuData.links?.map((sub) => {
-                          const isNewTab = Boolean(item.id === 'login' || menuData.isLoginMenu || sub.openInNewTab);
+                          <div className="demo-aerokit-list">
+                            {menuData.links?.map((link) => {
+                              const IconComp = 
+                                link.icon === 'Award' ? Award : 
+                                link.icon === 'Sparkles' ? Sparkles : 
+                                link.icon === 'Server' ? Server :
+                                link.icon === 'Shield' ? Shield :
+                                link.icon === 'Lock' ? Lock :
+                                link.icon === 'Cloud' ? Cloud :
+                                Users;
 
-                          if (isNewTab) {
-                            return (
-                              <a
-                                key={sub.id}
-                                href={sub.path}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="demo-mobile-sub-link"
-                                onClick={() => {
-                                  setMobileMenuOpen(false);
-                                  setMobileExpandedCat(null);
-                                }}
+                              const isNewTab = Boolean(item.id === 'login' || menuData.isLoginMenu || link.openInNewTab);
+
+                              if (isNewTab) {
+                                return (
+                                  <a
+                                    key={link.id}
+                                    href={link.path}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="demo-aerokit-item"
+                                    onClick={() => {
+                                      setMobileMenuOpen(false);
+                                      setMobileExpandedCat(null);
+                                    }}
+                                  >
+                                    <div className="demo-aerokit-icon-wrap">
+                                      <IconComp size={18} />
+                                    </div>
+                                    <div className="demo-aerokit-content">
+                                      <span className="demo-aerokit-title">{link.label}</span>
+                                      <span className="demo-aerokit-desc">{link.desc}</span>
+                                    </div>
+                                    <ChevronRight size={15} className="demo-aerokit-arrow" />
+                                  </a>
+                                );
+                              }
+
+                              return (
+                                <button
+                                  key={link.id}
+                                  type="button"
+                                  className="demo-aerokit-item"
+                                  onClick={() => handleMenuItemClick(link.path)}
+                                >
+                                  <div className="demo-aerokit-icon-wrap">
+                                    <IconComp size={18} />
+                                  </div>
+                                  <div className="demo-aerokit-content">
+                                    <span className="demo-aerokit-title">{link.label}</span>
+                                    <span className="demo-aerokit-desc">{link.desc}</span>
+                                  </div>
+                                  <ChevronRight size={15} className="demo-aerokit-arrow" />
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {menuData.footer && (
+                            <div className="demo-aerokit-footer">
+                              <span className="demo-aerokit-footer-text">{menuData.footer.text}</span>
+                              <button
+                                type="button"
+                                className="demo-aerokit-footer-link"
+                                onClick={() => handleMenuItemClick(menuData.footer.path)}
                               >
-                                <div className="demo-mobile-sub-content">
-                                  <span className="demo-mobile-sub-title">{sub.label}</span>
-                                  {sub.desc && (
-                                    <span className="demo-mobile-sub-desc">{sub.desc}</span>
-                                  )}
-                                </div>
-                                <ChevronRight size={14} className="demo-mobile-sub-arrow" />
-                              </a>
-                            );
-                          }
-
-                          return (
-                            <button
-                              key={sub.id}
-                              type="button"
-                              className="demo-mobile-sub-link"
-                              onClick={() => handleMenuItemClick(sub.path)}
-                            >
-                              <div className="demo-mobile-sub-content">
-                                <span className="demo-mobile-sub-title">{sub.label}</span>
-                                {sub.desc && (
-                                  <span className="demo-mobile-sub-desc">{sub.desc}</span>
-                                )}
-                              </div>
-                              <ChevronRight size={14} className="demo-mobile-sub-arrow" />
-                            </button>
-                          );
-                        })}
-                      </>
-                    )}
+                                <span>{menuData.footer.linkText}</span>
+                                <ChevronRight size={13} />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
