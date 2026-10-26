@@ -646,7 +646,7 @@ export default function CustomerRegisterPage() {
                         id="reg-name"
                         type="text"
                         className="ebolt-input"
-                        placeholder="Authorized Signatory Name"
+                        placeholder="Enter Name"
                         value={customerDetails.name}
                         onChange={(e) => handleCustomerChange('name', e.target.value)}
                         required
@@ -667,7 +667,7 @@ export default function CustomerRegisterPage() {
                         id="reg-email"
                         type="email"
                         className="ebolt-input"
-                        placeholder="corporate@company.com"
+                        placeholder="Enter Email"
                         value={customerDetails.email}
                         onChange={(e) => handleCustomerChange('email', e.target.value)}
                         required
@@ -687,7 +687,7 @@ export default function CustomerRegisterPage() {
                         id="reg-mobile"
                         type="tel"
                         className="ebolt-input"
-                        placeholder="10-digit Mobile / WhatsApp"
+                        placeholder="Enter Mobile Number"
                         value={customerDetails.mobile}
                         onChange={(e) => handleCustomerChange('mobile', e.target.value)}
                         required
