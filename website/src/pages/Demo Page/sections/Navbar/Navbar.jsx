@@ -12,7 +12,8 @@ import {
   Clock,
   Server,
   Shield,
-  Lock
+  Lock,
+  Cloud
 } from 'lucide-react';
 import logoImg from '../../../../assets/NISPL Cloud Tech Logo (2).png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
@@ -262,23 +263,23 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                   {/* High-End Enterprise Dropdown Menu (Open with Hover and Click) */}
                   {isOpen && hasDropdown && menuData && (
                     <div 
-                      className={`demo-pro-dropdown-menu ${menuData.isComingSoon ? 'is-coming-soon' : ''}`}
+                      className={`demo-aerokit-dropdown ${item.id === 'login' ? 'align-right' : 'align-center'}`}
                       onMouseEnter={handleMenuEnter}
                       onMouseLeave={handleMenuLeave}
                       role="region"
                       aria-label={`${item.label} submenu`}
                     >
-                      <div className="demo-pro-top-accent" aria-hidden="true" />
-                      <div className="demo-pro-notch" aria-hidden="true" />
+                      <div className="demo-aerokit-notch" aria-hidden="true" />
 
                       {menuData.isComingSoon ? (
-                        <div className="demo-pro-cs-content">
-                          <h4 className="demo-pro-cs-title">{menuData.title}</h4>
-                          <p className="demo-pro-cs-sub">{menuData.subtitle}</p>
-                          <p className="demo-pro-cs-desc">{menuData.message}</p>
+                        <div className="demo-aerokit-cs-content">
+                          <span className="demo-aerokit-cs-badge">{menuData.categoryBadge || 'NISPL Enterprise'}</span>
+                          <h4 className="demo-aerokit-cs-title">{menuData.title}</h4>
+                          <p className="demo-aerokit-cs-sub">{menuData.subtitle}</p>
+                          <p className="demo-aerokit-cs-desc">{menuData.message}</p>
                           <button
                             type="button"
-                            className="demo-pro-cs-btn"
+                            className="demo-aerokit-cs-btn"
                             onClick={() => handleMenuItemClick(menuData.ctaPath || '/contact')}
                           >
                             <span>{menuData.ctaText || 'Contact Us'}</span>
@@ -286,24 +287,15 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                           </button>
                         </div>
                       ) : (
-                        <div className="demo-pro-culture-content">
-                          {/* Header Bar */}
-                          <div className="demo-pro-header">
-                            <div className="demo-pro-header-left">
-                              <div className="demo-pro-icon-chip">
-                                <Users size={16} />
-                              </div>
-                              <div className="demo-pro-header-titles">
-                                <span className="demo-pro-chip-tag">{menuData.categoryBadge}</span>
-                                <h4 className="demo-pro-header-title">{menuData.title}</h4>
-                              </div>
+                        <>
+                          {menuData.categoryBadge && (
+                            <div className="demo-aerokit-header">
+                              <span className="demo-aerokit-chip-tag">{menuData.categoryBadge}</span>
+                              <span className="demo-aerokit-header-title">{menuData.title}</span>
                             </div>
-                          </div>
+                          )}
 
-                          <div className="demo-pro-divider" />
-
-                          {/* Items List */}
-                          <div className="demo-pro-links-list">
+                          <div className="demo-aerokit-list">
                             {menuData.links?.map((link) => {
                               const IconComp = 
                                 link.icon === 'Award' ? Award : 
@@ -311,30 +303,43 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                                 link.icon === 'Server' ? Server :
                                 link.icon === 'Shield' ? Shield :
                                 link.icon === 'Lock' ? Lock :
+                                link.icon === 'Cloud' ? Cloud :
                                 Users;
 
                               return (
                                 <button
                                   key={link.id}
                                   type="button"
-                                  className="demo-pro-link-card"
+                                  className="demo-aerokit-item"
                                   onClick={() => handleMenuItemClick(link.path)}
                                 >
-                                  <div className="demo-pro-link-icon-wrap">
-                                    <IconComp size={17} />
+                                  <div className="demo-aerokit-icon-wrap">
+                                    <IconComp size={18} />
                                   </div>
-                                  <div className="demo-pro-link-info">
-                                    <div className="demo-pro-link-title-row">
-                                      <span className="demo-pro-link-title">{link.label}</span>
-                                    </div>
-                                    <p className="demo-pro-link-desc">{link.desc}</p>
+                                  <div className="demo-aerokit-content">
+                                    <span className="demo-aerokit-title">{link.label}</span>
+                                    <span className="demo-aerokit-desc">{link.desc}</span>
                                   </div>
-                                  <ChevronRight size={15} className="demo-pro-link-arrow" />
+                                  <ChevronRight size={15} className="demo-aerokit-arrow" />
                                 </button>
                               );
                             })}
                           </div>
-                        </div>
+
+                          {menuData.footer && (
+                            <div className="demo-aerokit-footer">
+                              <span className="demo-aerokit-footer-text">{menuData.footer.text}</span>
+                              <button
+                                type="button"
+                                className="demo-aerokit-footer-link"
+                                onClick={() => handleMenuItemClick(menuData.footer.path)}
+                              >
+                                <span>{menuData.footer.linkText}</span>
+                                <ChevronRight size={13} />
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

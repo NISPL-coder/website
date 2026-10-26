@@ -205,24 +205,6 @@ export default function Dashboard({ userSession, onSignOut }) {
               </button>
             </div>
           )}
-
-          {/* Theme & Sign Out Row */}
-          <div className="nx-sidebar-bottom-actions">
-            <div className="nx-mode-pill">
-              <Sun size={15} />
-              <span className="nx-mode-label">Light</span>
-              <ChevronDown size={14} className="nx-mode-arrow" />
-            </div>
-
-            <button 
-              type="button" 
-              className="nx-logout-icon-btn"
-              onClick={handleLogout}
-              title="Sign Out"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
         </div>
       </aside>
 

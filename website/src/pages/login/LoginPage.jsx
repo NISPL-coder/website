@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
-import NetworkBackground from '../../components/background/NetworkBackground';
 import Dashboard from './Dashboard';
+import PartnerDashboard from './PartnerDashboard';
 import { 
   Mail, 
   Lock, 
@@ -22,27 +22,50 @@ import {
 } from 'lucide-react';
 import './LoginPage.css';
 
-export default function LoginPage() {
+export default function LoginPage({ lockedPortal }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const urlPortal = searchParams.get('portal');
+
+  // Portal selection is locked/uneditable if selected from navbar (?portal=admin/customer/partner) or via lockedPortal prop or /customer-login route
+  const isPortalLocked = Boolean(
+    lockedPortal || 
+    urlPortal === 'admin' || 
+    urlPortal === 'partner' || 
+    urlPortal === 'customer' || 
+    location.pathname === '/customer-login' || 
+    searchParams.get('locked') === 'true'
+  );
 
   // Determine active portal: 'admin' | 'partner' | 'customer'
   const getInitialPortal = () => {
+    if (lockedPortal) return lockedPortal;
+    if (location.pathname === '/customer-login') return 'customer';
     if (urlPortal === 'partner') return 'partner';
     if (urlPortal === 'customer') return 'customer';
+    if (urlPortal === 'admin') return 'admin';
     return 'admin';
   };
 
   const [activePortal, setActivePortal] = useState(getInitialPortal);
 
   useEffect(() => {
-    if (urlPortal && ['admin', 'partner', 'customer'].includes(urlPortal)) {
+    if (lockedPortal) {
+      setActivePortal(lockedPortal);
+    } else if (location.pathname === '/customer-login') {
+      setActivePortal('customer');
+    } else if (urlPortal && ['admin', 'partner', 'customer'].includes(urlPortal)) {
       setActivePortal(urlPortal);
     }
-  }, [urlPortal]);
+  }, [lockedPortal, location.pathname, urlPortal]);
 
   const handleSelectPortal = (portalKey) => {
+    if (isPortalLocked) return;
+    if (portalKey === 'partner') {
+      navigate('/partner-dashboard');
+      return;
+    }
     setActivePortal(portalKey);
     setSearchParams({ portal: portalKey });
     setErrorMessage('');
@@ -117,6 +140,18 @@ export default function LoginPage() {
 
   // If authenticated, render full Header + Sidebar Enterprise Dashboard
   if (activeSession) {
+    if (activePortal === 'partner') {
+      return (
+        <PartnerDashboard 
+          userSession={activeSession} 
+          onSignOut={() => {
+            setActiveSession(null);
+            setPassword('');
+            setErrorMessage('');
+          }} 
+        />
+      );
+    }
     return (
       <Dashboard 
         userSession={activeSession} 
@@ -131,9 +166,6 @@ export default function LoginPage() {
 
   return (
     <div className="ebolt-login-viewport">
-      {/* Universal Interactive Constellation Network Background */}
-      <NetworkBackground />
-
       {/* Top Bar: Official Brand Logo & Back Link */}
       <header className="ebolt-top-nav">
         <Link to="/" className="ebolt-brand-link" title="Net Infotech System Pvt. Ltd.">
@@ -165,9 +197,17 @@ export default function LoginPage() {
           </div>
 
           {/* Heading and Description */}
-          <h1 className="ebolt-card-title">Sign in with email</h1>
+          <h1 className="ebolt-card-title">
+            {activePortal === 'customer' || location.pathname === '/customer-login'
+              ? 'Login'
+              : activePortal === 'admin'
+              ? 'NISPL Admin Login'
+              : 'Sign in with email'}
+          </h1>
           <p className="ebolt-card-subtitle">
-            Make a new doc to bring your words, data, and teams together. For free
+            {activePortal === 'customer' || location.pathname === '/customer-login'
+              ? 'Access your cloud instances, remote Tally licenses & support.'
+              : 'Make a new doc to bring your words, data, and teams together. For free'}
           </p>
 
           {/* Error Notice */}
@@ -182,7 +222,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
             
             {/* Selection Dropdown for the 3 Login Sections */}
-            <div className="ebolt-input-wrap ebolt-select-wrap">
+            <div className={`ebolt-input-wrap ebolt-select-wrap ${isPortalLocked ? 'is-locked-wrap' : ''}`}>
               <div className="ebolt-input-icon">
                 {activePortal === 'admin' ? (
                   <ShieldCheck size={16} />
@@ -193,16 +233,18 @@ export default function LoginPage() {
                 )}
               </div>
               <select 
-                className="ebolt-input ebolt-select"
+                className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
                 value={activePortal}
                 onChange={(e) => handleSelectPortal(e.target.value)}
+                disabled={isPortalLocked}
+                title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : activePortal === 'customer' ? 'Customer' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
                 aria-label="Select Login Portal"
               >
                 <option value="admin">NISPL Admin Login</option>
                 <option value="partner">Partners Login</option>
                 <option value="customer">Customer Login</option>
               </select>
-              <ChevronDown size={16} className="ebolt-select-chevron" />
+              {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
             </div>
 
             {/* Email Input */}
@@ -267,6 +309,16 @@ export default function LoginPage() {
                 <span>Get Started</span>
               )}
             </button>
+
+            {/* Create an Account Option (Shown ONLY for Customer Login) */}
+            {activePortal === 'customer' && (
+              <div className="ebolt-create-account-box animate-fade-in">
+                <span className="ebolt-create-account-text">Don't have an account? </span>
+                <Link to="/customer-register" className="ebolt-create-account-link">
+                  Create an account
+                </Link>
+              </div>
+            )}
           </form>
 
         </div>

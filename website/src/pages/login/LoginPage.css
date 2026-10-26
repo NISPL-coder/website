@@ -12,7 +12,16 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  background: transparent;
+  background: 
+    /* Soft cloud illumination at bottom */
+    radial-gradient(ellipse 100% 45% at 50% 100%, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.6) 50%, transparent 80%),
+    /* Concentric circular arc lines matching user reference */
+    radial-gradient(circle 850px at 50% 48%, transparent 848px, rgba(255, 255, 255, 0.5) 849px, rgba(255, 255, 255, 0.5) 851px, transparent 852px),
+    radial-gradient(circle 620px at 50% 48%, transparent 618px, rgba(255, 255, 255, 0.55) 619px, rgba(255, 255, 255, 0.55) 621px, transparent 622px),
+    radial-gradient(circle 420px at 50% 48%, transparent 418px, rgba(255, 255, 255, 0.6) 419px, rgba(255, 255, 255, 0.6) 421px, transparent 422px),
+    /* Sky blue daylight gradient */
+    linear-gradient(180deg, #8dc5f8 0%, #b3dcfa 22%, #d5edfd 50%, #eaf5fe 75%, #ffffff 100%);
+  background-attachment: fixed;
   overflow-x: hidden;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding: 24px 20px;
@@ -692,3 +701,346 @@
     font-size: 1.35rem;
   }
 }
+
+/* Locked Select state when portal is locked based on navbar selection */
+.ebolt-select-locked {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  cursor: not-allowed !important;
+  border-color: #cbd5e1 !important;
+  opacity: 0.95 !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ebolt-select-wrap.is-locked-wrap {
+  cursor: not-allowed !important;
+}
+
+/* Create an Account row below submit button */
+.ebolt-create-account-box {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed #cbd5e1;
+  text-align: center;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ebolt-create-account-text {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.ebolt-create-account-link {
+  color: #0284C7;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.ebolt-create-account-link:hover {
+  color: #0369A1;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   CUSTOMER REGISTRATION CARD (Same Ebolt Aesthetic with Clean Layout)
+   ========================================================================== */
+.ebolt-login-card.ebolt-register-card {
+  max-width: 680px;
+  text-align: left;
+  padding: 36px 36px 32px 36px;
+}
+
+.ebolt-reg-header-center {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.ebolt-section-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 18px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.ebolt-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ebolt-field-lbl {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+/* Top-right Back button when on Section 2 */
+.ebolt-top-right-back-btn {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.ebolt-top-right-back-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  border-color: #94A3B8;
+  transform: translateX(-2px);
+}
+
+.ebolt-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.ebolt-form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 620px) {
+  .ebolt-form-grid-2,
+  .ebolt-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ebolt-col-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 620px) {
+  .ebolt-col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+/* Auto-calculated Expiry Box */
+.ebolt-auto-expiry {
+  width: 100%;
+  height: 48px;
+  background: #E0F2FE;
+  border: 1px solid #7DD3FC;
+  border-radius: 12px;
+  padding: 0 14px 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #0369A1;
+  font-size: 0.92rem;
+  position: relative;
+}
+
+.ebolt-auto-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0369A1;
+  background: #BAE6FD;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Summary Bar */
+.ebolt-summary-bar {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ebolt-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ebolt-summary-label {
+  font-size: 0.7rem;
+  color: #64748B;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ebolt-summary-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.ebolt-terms-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #64748B;
+  line-height: 1.4;
+  margin: 12px 0 18px 0;
+}
+
+.ebolt-terms-wrap input[type="checkbox"] {
+  accent-color: #0284C7;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   STEPPER & TRANSITION ANIMATIONS (Section 1 -> Section 2 Flow)
+   ========================================================================== */
+.ebolt-stepper-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.ebolt-step-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94A3B8;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ebolt-step-node.active {
+  color: #0284C7;
+}
+
+.ebolt-step-node.completed {
+  color: #059669;
+}
+
+.ebolt-step-bubble {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: #E2E8F0;
+  color: #64748B;
+  transition: all 0.2s ease;
+}
+
+.ebolt-step-node.active .ebolt-step-bubble {
+  background: #0284C7;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.ebolt-step-node.completed .ebolt-step-bubble {
+  background: #059669;
+  color: #FFFFFF;
+}
+
+.ebolt-step-line {
+  width: 44px;
+  height: 2px;
+  background: #E2E8F0;
+  transition: background 0.3s ease;
+}
+
+.ebolt-step-line.filled {
+  background: #0284C7;
+}
+
+/* Step Slide Transitions */
+@keyframes stepFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ebolt-step-container {
+  animation: stepFadeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Button Row for Step 2 */
+.ebolt-btn-row-split {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.ebolt-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 20px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ebolt-secondary-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+
+

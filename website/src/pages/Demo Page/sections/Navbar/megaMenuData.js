@@ -114,5 +114,35 @@ export const MEGA_MENU_CONFIG = {
     ctaPath: '/contact',
     links: [],
     items: []
+  },
+
+  // 6. Login Dropdown (Aerokit style with Admin, Partner, Customer)
+  login: {
+    id: 'login',
+    label: 'Login',
+    isLoginMenu: true,
+    links: [
+      {
+        id: 'login-admin',
+        label: 'Admin',
+        desc: 'Internal infrastructure & NOC systems administration',
+        path: '/login?portal=admin',
+        icon: 'Shield'
+      },
+      {
+        id: 'login-partner',
+        label: 'Partner',
+        desc: 'Authorized Tally channel & reseller distribution portal',
+        path: '/partner-dashboard',
+        icon: 'Users'
+      },
+      {
+        id: 'login-customer',
+        label: 'Customer',
+        desc: 'Enterprise Tally on Cloud & managed services portal',
+        path: '/customer-login',
+        icon: 'Cloud'
+      }
+    ]
   }
 };

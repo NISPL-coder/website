@@ -13,6 +13,9 @@ const ContactPage = lazy(() => import('./pages/ContactPage/ContactPage'));
 const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
 const LoginPage = lazy(() => import('./pages/login/LoginPage'));
 const Dashboard = lazy(() => import('./pages/login/Dashboard'));
+const PartnerDashboard = lazy(() => import('./pages/login/PartnerDashboard'));
+const CustomerLoginPage = lazy(() => import('./pages/login/CustomerLoginPage'));
+const CustomerRegisterPage = lazy(() => import('./pages/login/CustomerRegisterPage'));
 const DemoModal = lazy(() => import('./components/modals/DemoModal'));
 const LoginModal = lazy(() => import('./components/modals/LoginModal'));
 const SearchModal = lazy(() => import('./components/modals/SearchModal'));
@@ -53,6 +56,7 @@ function ScrollToTop() {
 }
 
 function MainApp() {
+  const location = useLocation();
   const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [products] = useState(INITIAL_PRODUCTS);
 
@@ -60,6 +64,15 @@ function MainApp() {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Exclude NetworkBackground from login and auth-related pages
+  const isAuthPage = [
+    '/login',
+    '/customer-login',
+    '/customer-register',
+    '/dashboard',
+    '/partner-dashboard'
+  ].some((path) => location.pathname.startsWith(path));
 
   // Keyboard shortcut: Ctrl + K or Cmd + K for global search palette
   useEffect(() => {
@@ -77,8 +90,8 @@ function MainApp() {
     <div className="demo-app-root">
       <SEOManager />
       <ScrollToTop />
-      {/* Universal Interactive Constellation Background */}
-      <NetworkBackground />
+      {/* Universal Interactive Constellation Background (excluded on login/auth routes) */}
+      {!isAuthPage && <NetworkBackground />}
       
       <Suspense fallback={null}>
         <Routes>
@@ -113,6 +126,9 @@ function MainApp() {
           <Route path="/career" element={<CareerPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard onSignOut={() => window.location.href = '/login'} />} />
+          <Route path="/partner-dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
+          <Route path="/customer-login" element={<LoginPage lockedPortal="customer" />} />
+          <Route path="/customer-register" element={<CustomerRegisterPage />} />
           {/* All routes fallback directly to the official Homepage */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

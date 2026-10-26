@@ -1,0 +1,622 @@
+/* ==========================================================================
+   NISPL CUSTOMER PORTAL AUTHENTICATION (Login & Registration)
+   High-end enterprise theme: deep navy glassmorphism, cyan & cobalt accents,
+   crisp form controls, modern calendar pickers, and auto-computed expiry display.
+   ========================================================================== */
+
+.cust-auth-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  background: #030712;
+  color: #F8FAFC;
+  font-family: var(--demo-font-body, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Header Bar */
+.cust-auth-header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(3, 7, 18, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cust-auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.cust-auth-logo-img {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+.cust-auth-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cust-auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #94A3B8;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.6);
+  transition: all 0.2s ease;
+}
+
+.cust-auth-back-link:hover {
+  color: #FFFFFF;
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Main Container */
+.cust-auth-container {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* Login Card Box */
+.cust-login-card-box {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 35px rgba(2, 132, 199, 0.12);
+  animation: custFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes custFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cust-portal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #38BDF8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  margin-bottom: 14px;
+}
+
+.cust-card-title {
+  font-family: var(--demo-font-display, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.cust-card-subtitle {
+  font-size: 0.92rem;
+  color: #94A3B8;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+/* Form Styles */
+.cust-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cust-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cust-field-label {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cust-field-label .required-star {
+  color: #F43F5E;
+}
+
+.cust-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cust-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748B;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.cust-text-input,
+.cust-select-input {
+  width: 100%;
+  background: rgba(10, 15, 30, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px 12px 42px;
+  color: #FFFFFF;
+  font-size: 0.94rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.cust-text-input.no-icon,
+.cust-select-input.no-icon {
+  padding-left: 14px;
+}
+
+.cust-text-input:focus,
+.cust-select-input:focus {
+  border-color: #0284C7;
+  background: rgba(10, 15, 30, 0.95);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.cust-text-input:focus + .cust-input-icon,
+.cust-input-wrapper:focus-within .cust-input-icon {
+  color: #38BDF8;
+}
+
+.cust-password-toggle {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.cust-password-toggle:hover {
+  color: #E2E8F0;
+}
+
+.cust-select-arrow {
+  position: absolute;
+  right: 14px;
+  color: #64748B;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.cust-form-row-remember {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: -4px;
+}
+
+.cust-remember-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #94A3B8;
+}
+
+.cust-remember-wrap input[type="checkbox"] {
+  accent-color: #0284C7;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.cust-forgot-link {
+  color: #38BDF8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.cust-forgot-link:hover {
+  color: #7DD3FC;
+  text-decoration: underline;
+}
+
+/* Primary Submit Button */
+.cust-primary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 10px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cust-primary-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(2, 132, 199, 0.55);
+}
+
+.cust-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Create Account Divider & Banner */
+.cust-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 24px 0;
+  color: #64748B;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cust-auth-divider::before,
+.cust-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cust-create-account-card {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.cust-create-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #F8FAFC;
+  margin: 0;
+}
+
+.cust-create-desc {
+  font-size: 0.82rem;
+  color: #94A3B8;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.cust-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  background: rgba(2, 132, 199, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cust-create-btn:hover {
+  background: rgba(2, 132, 199, 0.28);
+  color: #FFFFFF;
+  border-color: #38BDF8;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   CUSTOMER REGISTRATION FORM (Wide Layout with Customer & Subscription Sections)
+   ========================================================================== */
+
+.cust-register-card-box {
+  width: 100%;
+  max-width: 860px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 24px;
+  padding: 40px 42px;
+  box-shadow: 
+    0 30px 70px -15px rgba(0, 0, 0, 0.75),
+    0 0 40px rgba(2, 132, 199, 0.14);
+  animation: custFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (max-width: 768px) {
+  .cust-register-card-box {
+    padding: 28px 20px;
+  }
+}
+
+.cust-reg-section-card {
+  background: rgba(10, 15, 30, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  padding: 24px 26px;
+  margin-bottom: 24px;
+}
+
+.cust-reg-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cust-reg-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cust-reg-section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38BDF8;
+}
+
+.cust-reg-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.cust-reg-section-subtitle {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  margin: 2px 0 0 0;
+}
+
+/* Multi-column Grid for Fields */
+.cust-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 20px;
+}
+
+.cust-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 18px;
+}
+
+@media (max-width: 768px) {
+  .cust-grid-2,
+  .cust-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cust-col-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .cust-col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+/* Auto-selected Expiry Date Field */
+.cust-auto-expiry-box {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+}
+
+.cust-expiry-value {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cust-auto-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34D399;
+}
+
+/* Date input styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(100%) saturate(200%) hue-rotate(170deg);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Terms Checkbox */
+.cust-terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 24px 0;
+  font-size: 0.86rem;
+  color: #94A3B8;
+  line-height: 1.45;
+}
+
+.cust-terms-row input[type="checkbox"] {
+  accent-color: #0284C7;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.cust-terms-row a {
+  color: #38BDF8;
+  text-decoration: none;
+}
+
+.cust-terms-row a:hover {
+  text-decoration: underline;
+}
+
+/* Registration Summary Card */
+.cust-reg-summary-pill {
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cust-summary-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cust-summary-lbl {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #94A3B8;
+  letter-spacing: 0.04em;
+}
+
+.cust-summary-val {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+/* Success Modal */
+.cust-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cust-success-modal {
+  width: 100%;
+  max-width: 480px;
+  background: #0F172A;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 20px;
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(2, 132, 199, 0.2);
+  animation: custFadeUp 0.3s ease forwards;
+}
+
+.cust-success-icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px auto;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid rgba(16, 185, 129, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #34D399;
+}

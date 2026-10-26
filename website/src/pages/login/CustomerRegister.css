@@ -1,0 +1,882 @@
+/* ==========================================================================
+   NISPL CUSTOMER REGISTRATION & SUBSCRIPTION UI (Step 2 Enterprise Layout)
+   Accurate 18% GST calculation, 10% TSS discounts, expandable catalog & sticky Price Summary.
+   ========================================================================== */
+
+/* Main Container for Step 2 */
+.cust-reg-container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 10px auto 30px auto;
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.cust-reg-container.step-1-compact {
+  max-width: 620px;
+}
+
+/* Card Shell */
+.cust-reg-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid #dbeafe;
+  border-radius: 24px;
+  box-shadow: 
+    0 24px 60px -12px rgba(15, 23, 42, 0.08),
+    0 8px 24px -4px rgba(2, 132, 199, 0.05);
+  padding: 34px 38px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .cust-reg-card {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+}
+
+/* Two-column layout on Desktop */
+.cust-reg-grid {
+  display: grid;
+  grid-template-columns: 66% 34%;
+  gap: 30px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .cust-reg-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+}
+
+/* ==========================================================================
+   LEFT COLUMN: SUBSCRIPTION DETAILS
+   ========================================================================== */
+.cust-reg-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* Numbered Section Header */
+.cust-section-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #f1f5f9;
+  margin-bottom: 14px;
+}
+
+.cust-section-num-bubble {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+
+.cust-section-title {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.cust-section-subtitle {
+  font-size: 0.84rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Plan Groups Accordion List */
+.cust-plan-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Single Expandable Plan Group Accordion */
+.cust-plan-group-accordion {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.cust-plan-group-accordion.has-selected-item {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.08);
+}
+
+.cust-plan-group-accordion.is-expanded {
+  border-color: #bae6fd;
+}
+
+/* Accordion Header */
+.cust-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #fafcfe;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.cust-accordion-header:hover {
+  background: #f0f7ff;
+}
+
+.cust-accordion-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.cust-accordion-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  padding: 4px;
+  transition: all 0.25s ease;
+}
+
+.cust-plan-group-accordion.has-selected-item .cust-accordion-icon-box {
+  border-color: #0284c7;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.18);
+  transform: scale(1.02);
+}
+
+/* Brand Logo Box Container inside Accordion Header */
+.cust-brand-logo-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Authentic Tally Logo Image */
+.cust-tally-img {
+  width: 100%;
+  max-width: 48px;
+  height: auto;
+  max-height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Subtle brand sub-badge below Tally logo */
+.cust-logo-sub-tag {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  margin-top: 3px;
+}
+
+.silver-tag {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.gold-tag {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.auditor-tag {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.biz-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.wa-tag {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.tp-tag {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.upg-tag {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.cust-accordion-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cust-accordion-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cust-accordion-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cust-accordion-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.cust-badge-discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.cust-badge-neutral {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.cust-offer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 7px;
+}
+
+.cust-accordion-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.cust-selected-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cust-chevron-icon {
+  color: #64748b;
+  transition: transform 0.25s ease;
+}
+
+.cust-chevron-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* Accordion Body */
+.cust-accordion-body {
+  padding: 16px 20px 20px 20px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Table Style for TSS */
+.cust-tss-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.cust-tss-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.cust-tss-table thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 14px;
+  border-bottom: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.cust-tss-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cust-tss-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.cust-tss-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.cust-tss-table tbody tr.is-selected-row {
+  background: #f0f9ff;
+}
+
+.cust-tss-table tbody td {
+  padding: 14px 14px;
+  vertical-align: middle;
+  color: #1e293b;
+}
+
+.cust-radio-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.cust-radio-input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.cust-discount-tag {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.cust-final-val {
+  color: #0284c7;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Card / List Options for WhatsApp, TallyPrime, and Upgrade */
+.cust-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cust-option-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 12px;
+}
+
+.cust-option-card:hover {
+  border-color: #cbd5e1;
+  background: #fafcfe;
+}
+
+.cust-option-card.is-selected {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 1px #0284c7;
+}
+
+.cust-option-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.cust-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cust-option-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cust-option-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.cust-option-card-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cust-option-breakdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.cust-option-base {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.cust-option-gst {
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.cust-option-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0284c7;
+}
+
+/* ==========================================================================
+   2. INSTALLATION DATE & 3. BILLING DURATION
+   ========================================================================== */
+.cust-secondary-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 640px) {
+  .cust-secondary-config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cust-config-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fafcfe;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cust-config-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cust-config-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cust-quick-date-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.cust-quick-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cust-quick-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.cust-date-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cust-date-input {
+  width: 100%;
+  height: 44px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 14px 0 40px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #ffffff;
+  font-weight: 500;
+  transition: border-color 0.2s ease;
+}
+
+.cust-date-input:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.cust-date-icon {
+  position: absolute;
+  left: 14px;
+  color: #0284c7;
+  pointer-events: none;
+}
+
+/* Duration Status Box */
+.cust-duration-display-box {
+  min-height: 44px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cust-duration-val {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cust-duration-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* Expiry Date Display Box */
+.cust-expiry-callout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #166534;
+}
+
+.cust-expiry-callout.is-lifetime {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #075985;
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: PRICE SUMMARY (Sticky)
+   ========================================================================== */
+.cust-reg-right-col {
+  position: sticky;
+  top: 24px;
+  z-index: 10;
+}
+
+.cust-summary-card {
+  border: 1.5px solid #bfdbfe;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 
+    0 16px 36px -8px rgba(2, 132, 199, 0.12),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cust-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.cust-summary-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.cust-tax-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #bae6fd;
+}
+
+/* Selected Plan Info Card inside Summary */
+.cust-summary-plan-banner {
+  background: #fafcfe;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cust-summary-plan-name {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.cust-summary-plan-type {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Price Line Items Breakdown */
+.cust-price-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cust-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.cust-breakdown-row.discount-row {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.cust-breakdown-val {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cust-breakdown-val.discount-val {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* Total Payable Box (High contrast blue theme per prompt) */
+.cust-total-payable-card {
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.cust-total-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #1e40af;
+}
+
+.cust-total-amount {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: -0.02em;
+}
+
+.cust-total-caption {
+  font-size: 0.74rem;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* Compact Calculation Details Box */
+.cust-calc-details-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cust-calc-details-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+
+.cust-calc-formula {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.76rem;
+  color: #334155;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+/* Terms Checkbox */
+.cust-terms-checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cust-terms-checkbox-wrap input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #0284c7;
+  cursor: pointer;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Submit Action Button */
+.cust-submit-order-btn {
+  width: 100%;
+  height: 48px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+}
+
+.cust-submit-order-btn:hover:not(:disabled) {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+}
+
+.cust-submit-order-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Security Trust Footer */
+.cust-trust-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: #64748b;
+  text-align: center;
+  padding-top: 4px;
+}
