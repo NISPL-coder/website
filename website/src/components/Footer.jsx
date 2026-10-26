@@ -158,6 +158,8 @@ export default function Footer() {
             <span className="dot-sep">•</span>
             <Link to="/career">Careers</Link>
             <span className="dot-sep">•</span>
+            <Link to="/login">Login</Link>
+            <span className="dot-sep">•</span>
             <Link to="/contact">Contact</Link>
             <span className="dot-sep">•</span>
             <button 

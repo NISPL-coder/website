@@ -4,7 +4,8 @@ export const NAV_ITEMS = [
   { id: 'industries', label: 'Industries', path: '/industries' },
   { id: 'services', label: 'Services', path: '/services' },
   { id: 'solutions', label: 'Solutions', path: '/solutions' },
-  { id: 'career', label: 'Career', path: '/career' }
+  { id: 'career', label: 'Career', path: '/career' },
+  { id: 'login', label: 'Login', path: '/login' }
 ];
 
 export const MEGA_MENU_CONFIG = {
@@ -99,7 +100,6 @@ export const MEGA_MENU_CONFIG = {
     links: [],
     items: []
   },
-
 
   // 5. Solutions
   solutions: {

@@ -150,10 +150,16 @@
 .demo-nav-links {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+@media (max-width: 1240px) and (min-width: 861px) {
+  .demo-nav-links {
+    gap: 10px;
+  }
 }
 
 .demo-nav-item {

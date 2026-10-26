@@ -11,6 +11,8 @@ import './App.css';
 const AboutPage = lazy(() => import('./pages/AboutPage/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage/ContactPage'));
 const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
+const LoginPage = lazy(() => import('./pages/login/LoginPage'));
+const Dashboard = lazy(() => import('./pages/login/Dashboard'));
 const DemoModal = lazy(() => import('./components/modals/DemoModal'));
 const LoginModal = lazy(() => import('./components/modals/LoginModal'));
 const SearchModal = lazy(() => import('./components/modals/SearchModal'));
@@ -109,6 +111,8 @@ function MainApp() {
           />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/career" element={<CareerPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<Dashboard onSignOut={() => window.location.href = '/login'} />} />
           {/* All routes fallback directly to the official Homepage */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

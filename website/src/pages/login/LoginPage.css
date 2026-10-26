@@ -1,0 +1,694 @@
+/* ==========================================================================
+   EBOLT-STYLE MINIMALIST CLOUD LOGIN PAGE
+   Recreation of the user's reference image with ethereal sky & clouds,
+   concentric circular arcs, and floating frosted glass card.
+   ========================================================================== */
+
+.ebolt-login-viewport {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  overflow-x: hidden;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 24px 20px;
+}
+
+/* ==========================================================================
+   2. TOP NAVIGATION BAR (Brand Logo + Back Link)
+   ========================================================================== */
+.ebolt-top-nav {
+  width: 100%;
+  max-width: 1360px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+  padding: 8px 12px;
+}
+
+.ebolt-brand-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ebolt-brand-logo-img {
+  height: 75px;
+  width: auto;
+  max-width: 300px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.ebolt-brand-link:hover .ebolt-brand-logo-img {
+  transform: scale(1.02);
+}
+
+.ebolt-home-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.ebolt-home-pill-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================================================
+   3. FLOATING FROSTED GLASS LOGIN CARD
+   ========================================================================== */
+.ebolt-login-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto 0;
+  padding: 24px 0;
+}
+
+.ebolt-login-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid #d1d5db;
+  border-radius: 28px;
+  box-shadow: 
+    0 24px 60px -12px rgba(15, 23, 42, 0.12),
+    0 8px 24px rgba(15, 23, 42, 0.06);
+  padding: 38px 36px 34px 36px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease;
+  z-index: 10;
+}
+
+/* Top Square Icon Badge: ->] */
+.ebolt-badge-icon-box {
+  width: 52px;
+  height: 52px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  margin: 0 auto 18px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.ebolt-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.48rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.ebolt-card-subtitle {
+  font-size: 0.86rem;
+  color: #6b7280;
+  line-height: 1.48;
+  max-width: 320px;
+  margin: 0 auto 18px auto;
+}
+
+/* ==========================================================================
+   4. THREE SECTION SWITCHER TABS (NISPL Admin, Partners, Customer)
+   ========================================================================== */
+.ebolt-portal-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef3f8;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 3px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.ebolt-tab-pill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.ebolt-tab-pill:hover {
+  color: #0f172a;
+}
+
+.ebolt-tab-pill.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Alert */
+.ebolt-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+/* ==========================================================================
+   5. FORM INPUTS & BUTTONS
+   ========================================================================== */
+.ebolt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ebolt-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ebolt-select-wrap {
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.ebolt-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 42px;
+  background-color: #f1f4f9;
+  border: 1px solid #cbd5e1;
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.92rem;
+  transition: all 0.2s ease;
+}
+
+.ebolt-select:focus {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.ebolt-select-chevron {
+  position: absolute;
+  right: 14px;
+  color: #8c97a7;
+  pointer-events: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.ebolt-select:focus ~ .ebolt-select-chevron {
+  color: #0284c7;
+  transform: rotate(180deg);
+}
+
+.ebolt-select option {
+  background: #ffffff;
+  color: #111827;
+  padding: 12px;
+  font-weight: 500;
+}
+
+.ebolt-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #8c97a7;
+  pointer-events: none;
+  transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ebolt-input {
+  width: 100%;
+  height: 48px;
+  background: #f1f4f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0 40px 0 42px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #111827;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.ebolt-input::placeholder {
+  color: #8c97a7;
+  font-size: 0.9rem;
+}
+
+.ebolt-input:focus {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.ebolt-input:focus ~ .ebolt-input-icon {
+  color: #0284c7;
+}
+
+.ebolt-input.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+}
+
+.ebolt-eye-toggle {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #8c97a7;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.ebolt-eye-toggle:hover {
+  color: #111827;
+}
+
+/* Forgot Password Link */
+.ebolt-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px 0 6px 0;
+}
+
+.ebolt-forgot-btn {
+  background: transparent;
+  border: none;
+  color: #4b5563;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.ebolt-forgot-btn:hover {
+  color: #111827;
+  text-decoration: underline;
+}
+
+/* Primary Action Button: Black / Dark Charcoal */
+.ebolt-submit-btn {
+  width: 100%;
+  height: 48px;
+  background: #191b24;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.96rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px rgba(25, 27, 36, 0.2);
+}
+
+.ebolt-submit-btn:hover:not(:disabled) {
+  background: #252834;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(25, 27, 36, 0.3);
+}
+
+.ebolt-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ebolt-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: ebolt-spin 0.8s linear infinite;
+}
+
+@keyframes ebolt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Divider: ······ Or sign in with ······ */
+.ebolt-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 10px 0;
+}
+
+.ebolt-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.ebolt-divider-text {
+  font-size: 0.78rem;
+  color: #8c97a7;
+  white-space: nowrap;
+}
+
+/* Bottom 3 Pill Buttons (Google, Microsoft, Demo) */
+.ebolt-social-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.ebolt-social-pill {
+  height: 42px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.ebolt-social-pill:hover {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.ebolt-demo-pill {
+  gap: 4px;
+}
+
+.ebolt-zap-icon {
+  color: #d97706;
+}
+
+.ebolt-demo-txt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   6. MODAL DIALOGS (Authenticated & Forgot)
+   ========================================================================== */
+.ebolt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 16px;
+}
+
+.ebolt-dialog-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.ebolt-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ebolt-dialog-check {
+  color: #10b981;
+  margin-right: 10px;
+}
+
+.ebolt-dialog-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ebolt-dialog-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.ebolt-dialog-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.ebolt-dialog-close:hover {
+  color: #0f172a;
+}
+
+.ebolt-dialog-body {
+  padding: 24px;
+}
+
+.ebolt-session-user-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.ebolt-user-icon {
+  font-size: 1.5rem;
+}
+
+.ebolt-user-email {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ebolt-user-role {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.ebolt-session-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.s-lbl {
+  color: #64748b;
+}
+
+.s-val {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.text-blue {
+  color: #0284c7;
+}
+
+.text-green {
+  color: #059669;
+}
+
+.ebolt-dialog-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(2, 132, 199, 0.06);
+  border: 1px solid rgba(2, 132, 199, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  color: #0369a1;
+}
+
+.ebolt-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.ebolt-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ebolt-btn-outline:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.ebolt-btn-solid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  background: #191b24;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ebolt-btn-solid:hover {
+  background: #252834;
+  transform: translateY(-1px);
+}
+
+.reset-sent-state {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.reset-sent-state h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.reset-sent-state p {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   7. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 520px) {
+  .ebolt-login-card {
+    padding: 30px 22px 26px 22px;
+    border-radius: 24px;
+  }
+
+  .ebolt-portal-tabs {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ebolt-tab-pill {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .ebolt-card-title {
+    font-size: 1.35rem;
+  }
+}

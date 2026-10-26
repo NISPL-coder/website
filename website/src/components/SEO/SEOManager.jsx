@@ -35,6 +35,12 @@ const PAGE_SEO = {
     description: 'Join Net Infotech System Pvt. Ltd. (NISPL). Explore career opportunities for Cloud Engineers, Tally Consultants, Network Administrators, and Enterprise IT Sales Executives in Kolkata and Eastern India.',
     keywords: 'Net Infotech Careers, IT Jobs Kolkata, Tally Consultant Jobs, Cloud Engineer Vacancy Kolkata, Network Administrator Jobs Salt Lake Sector V, NISPL Hiring',
     canonical: 'https://nispl.netlify.app/career'
+  },
+  '/login': {
+    title: 'Secure Client, Partner & Admin Login Portals | Net Infotech System (NISPL)',
+    description: 'Unified login access for Net Infotech System (NISPL). Access NISPL Admin Infrastructure, Authorized Tally Partner Hub, and Enterprise Customer Tally on Cloud ERP.',
+    keywords: 'NISPL Login, Net Infotech System Admin Login, Tally Cloud Login, Partner Portal NISPL, Customer Cloud Access Kolkata, IT Support Portal',
+    canonical: 'https://nispl.netlify.app/login'
   }
 };
 
