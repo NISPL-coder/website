@@ -201,8 +201,8 @@ export default function LoginPage({ lockedPortal }) {
             {activePortal === 'customer' || location.pathname === '/customer-login'
               ? 'Login'
               : activePortal === 'admin'
-              ? 'NISPL Admin Login'
-              : 'Sign in with email'}
+              ? 'Login'
+              : 'Login'}
           </h1>
           <p className="ebolt-card-subtitle">
             {activePortal === 'customer' || location.pathname === '/customer-login'

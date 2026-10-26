@@ -73,7 +73,7 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
           </span>
         </div>
 
-        <h3 className="portal-card-title">NISPL Admin Login</h3>
+        <h3 className="portal-card-title">Login</h3>
         <p className="portal-card-subtitle">
           Internal management console for infrastructure engineers, network administrators, and executive leadership.
         </p>
