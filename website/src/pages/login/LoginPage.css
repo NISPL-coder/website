@@ -22,6 +22,7 @@
   overflow-x: hidden;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding: 24px 20px;
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -36,6 +37,8 @@
   position: relative;
   z-index: 10;
   padding: 8px 12px;
+  box-sizing: border-box;
+  gap: 16px;
 }
 
 .ebolt-brand-link {
@@ -44,12 +47,14 @@
   text-decoration: none;
   cursor: pointer;
   user-select: none;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .ebolt-brand-logo-img {
   height: 75px;
   width: auto;
-  max-width: 300px;
+  max-width: 260px;
   object-fit: contain;
   display: block;
   transition: transform 0.2s ease;
@@ -63,10 +68,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   color: #1e293b;
   font-size: 0.85rem;
   font-weight: 600;
@@ -75,12 +80,76 @@
   border-radius: 9999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ebolt-home-pill-btn:hover {
   background: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive Top Header for Mobile & Tablets */
+@media (max-width: 768px) {
+  .ebolt-login-viewport {
+    padding: 16px 14px;
+  }
+
+  .ebolt-top-nav {
+    padding: 4px 6px;
+    gap: 12px;
+  }
+
+  .ebolt-brand-logo-img {
+    height: 60px;
+    max-width: 190px;
+  }
+
+  .ebolt-home-pill-btn {
+    padding: 7px 13px;
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ebolt-login-viewport {
+    padding: 12px 10px;
+  }
+
+  .ebolt-top-nav {
+    padding: 2px 4px;
+    gap: 8px;
+  }
+
+  .ebolt-brand-logo-img {
+    height: 60px;
+    max-width: 155px;
+  }
+
+  .ebolt-home-pill-btn {
+    padding: 6px 11px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
+
+  .ebolt-login-card {
+    padding: 28px 18px 24px 18px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .ebolt-brand-logo-img {
+    height: 60px;
+    max-width: 130px;
+  }
+
+  .ebolt-home-pill-btn {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+  }
 }
 
 /* ==========================================================================
