@@ -41,7 +41,8 @@ import {
   Mail,
   Shield,
   X,
-  User
+  User,
+  Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RemindersPanel from './RemindersPanel';
@@ -279,42 +280,42 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
       </div>
 {/* ── 5. TOP 4 CUSTOMER KPI METRIC CARDS ──────────────────────── */}
       <div className="cliento-kpi-grid">
-        {/* KPI 1: Cluster SLA Uptime */}
+        {/* KPI 1: Tally License & Serial */}
+        <div className="cliento-kpi-card">
+          <div className="cliento-kpi-header">
+            <Key size={16} className="cliento-kpi-icon" />
+            <span className="cliento-kpi-title">Tally Serial & TSS</span>
+          </div>
+          <div className="cliento-kpi-value">762094183</div>
+          <div className="cliento-kpi-footer">
+            <span className="cliento-change-pill positive">TSS Active</span>
+            <span className="cliento-kpi-comp">Release 5.0 Gold</span>
+          </div>
+        </div>
+
+        {/* KPI 2: Active User Workstations */}
+        <div className="cliento-kpi-card">
+          <div className="cliento-kpi-header">
+            <Users size={16} className="cliento-kpi-icon" />
+            <span className="cliento-kpi-title">Active Workstations</span>
+          </div>
+          <div className="cliento-kpi-value">4 / 10 Active</div>
+          <div className="cliento-kpi-footer">
+            <span className="cliento-change-pill positive">6 Free Seats</span>
+            <span className="cliento-kpi-comp">Multi-User Concurrent</span>
+          </div>
+        </div>
+
+        {/* KPI 3: Automated Cloud Backup */}
         <div className="cliento-kpi-card">
           <div className="cliento-kpi-header">
             <ShieldCheck size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Cluster SLA Uptime</span>
+            <span className="cliento-kpi-title">Cloud Data Backup</span>
           </div>
-          <div className="cliento-kpi-value">99.98%</div>
+          <div className="cliento-kpi-value">Today, 02:00 AM</div>
           <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">+0.02%</span>
-            <span className="cliento-kpi-comp">Tier-4 Datacenter SLA</span>
-          </div>
-        </div>
-
-        {/* KPI 2: Dedicated Cloud RAM */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <Activity size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Dedicated RAM Usage</span>
-          </div>
-          <div className="cliento-kpi-value">2.4 / 8 GB</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">30% Load</span>
-            <span className="cliento-kpi-comp">Intel Xeon Dedicated</span>
-          </div>
-        </div>
-
-        {/* KPI 3: NVMe SSD Storage */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <HardDrive size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">NVMe SSD Storage</span>
-          </div>
-          <div className="cliento-kpi-value">14.6 / 100 GB</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">85.4 GB Free</span>
-            <span className="cliento-kpi-comp">Auto Daily Snapshots</span>
+            <span className="cliento-change-pill positive">100% Safe</span>
+            <span className="cliento-kpi-comp">Auto Daily Snapshot</span>
           </div>
         </div>
 
