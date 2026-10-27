@@ -14,6 +14,8 @@ import {
   HelpCircle
 } from 'lucide-react';
 
+import { authApi } from '../../services/authApi';
+
 export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [adminEmail, setAdminEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,15 +25,7 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 1-Click Fast Demo Autofill
-  const handleAutofillDemo = () => {
-    setAdminEmail('admin@netinfotechsystem.in');
-    setPassword('NISPL-Noc$2026!');
-    setTwoFactorPin('749201');
-    setErrorMessage('');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -46,16 +40,25 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({
+        email: adminEmail.trim(),
+        password,
+        portal: 'admin'
+      });
+
       setIsLoading(false);
       onLoginSuccess({
         portal: 'NISPL Admin',
-        role: 'Infrastructure & NOC Systems Administrator',
-        user: adminEmail,
+        role: response.user.tier || 'Infrastructure & NOC Systems Administrator',
+        user: response.user.email || adminEmail,
         accessLevel: 'Tier-1 Root Security Clearance',
         location: 'Salt Lake Sector V, Kolkata NOC'
       });
-    }, 900);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
+    }
   };
 
   return (
@@ -77,17 +80,6 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
         <p className="portal-card-subtitle">
           Internal management console for infrastructure engineers, network administrators, and executive leadership.
         </p>
-
-        {/* Quick Demo Pre-fill Pill */}
-        <button 
-          type="button" 
-          className="portal-demo-autofill-btn"
-          onClick={handleAutofillDemo}
-          title="Click to fill sample credentials for instant testing"
-        >
-          <Zap size={13} />
-          <span>Autofill Demo Admin Credentials</span>
-        </button>
       </div>
 
       {errorMessage && (

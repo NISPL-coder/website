@@ -155,12 +155,6 @@ export default function CustomerFormCard({
           )}
         </button>
 
-        {/* Security Trust Indicator */}
-        <div className="cust-trust-footer" style={{ marginTop: '18px' }}>
-          <ShieldCheck size={15} color="#059669" />
-          <span>Authorized Tally 5-Star Partner • 256-Bit SSL Encrypted</span>
-        </div>
-
         {/* Sign In Alternative Link */}
         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.88rem', color: '#64748b' }}>
           Already have an active account?{' '}

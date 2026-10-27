@@ -1,21 +1,41 @@
 import React, { useState } from 'react';
-import { X, LogIn, Lock, ShieldCheck, UserCheck } from 'lucide-react';
+import { X, LogIn, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
+import { authApi } from '../../services/authApi';
 
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   if (!isOpen) return null;
 
-  const [username, setUsername] = useState('admin@netinfotechsystem.in');
-  const [password, setPassword] = useState('••••••••••••');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    if (!username.trim() || !password) {
+      setErrorMessage('Please enter both your identifier and password.');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      onLoginSuccess("Welcome back, Administrator! Signed into Net Infotech System.");
-      onClose();
+
+    try {
+      const response = await authApi.login({
+        email: username.trim(),
+        password
+      });
+
       setLoading(false);
-    }, 1000);
+      if (onLoginSuccess) {
+        onLoginSuccess(`Welcome back, ${response.user.name}! Signed into Net Infotech System.`);
+      }
+      onClose();
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage(err.message || 'Authentication failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -42,16 +62,30 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
         <form onSubmit={handleLogin}>
           <div className="modal-body-scrollable">
-            <div style={{ background: 'rgba(37, 99, 235, 0.08)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(37, 99, 235, 0.2)', fontSize: '0.8rem', color: 'var(--primary)' }}>
-              <UserCheck size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
-              Demo Access Mode: Click <b>Sign In</b> below to access the ERP workspace.
-            </div>
+            {errorMessage && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#EF4444',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.85rem',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
             <div className="form-group">
               <label>Business Email or Company User ID</label>
               <input
                 type="text"
                 required
+                placeholder="Enter email or NIS-CUST-ID"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="form-input"
@@ -63,6 +97,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               <input
                 type="password"
                 required
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="form-input font-mono"
@@ -73,7 +108,25 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <input type="checkbox" defaultChecked /> Remember company session
               </label>
-              <a href="#reset" onClick={(e) => { e.preventDefault(); alert("Password reset token sent to your registered mobile."); }} style={{ color: 'var(--primary-light)', fontWeight: 600 }}>Forgot?</a>
+              <a 
+                href="#reset" 
+                onClick={async (e) => { 
+                  e.preventDefault(); 
+                  if (!username.trim()) {
+                    alert("Please enter your registered email address first.");
+                    return;
+                  }
+                  try {
+                    await authApi.forgotPassword(username.trim());
+                    alert("Password reset instructions have been dispatched to your email.");
+                  } catch (err) {
+                    alert(err.message);
+                  }
+                }} 
+                style={{ color: 'var(--primary-light)', fontWeight: 600 }}
+              >
+                Forgot?
+              </a>
             </div>
           </div>
 

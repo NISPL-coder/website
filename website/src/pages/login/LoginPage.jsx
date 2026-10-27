@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
 import PartnerDashboard from './PartnerDashboard';
+import { authApi } from '../../services/authApi';
 import { 
   Mail, 
   Lock, 
@@ -83,12 +84,12 @@ export default function LoginPage({ lockedPortal }) {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
     if (!email.trim()) {
-      setErrorMessage('Please enter your email address.');
+      setErrorMessage('Please enter your email or account ID.');
       return;
     }
     if (!password) {
@@ -98,28 +99,14 @@ export default function LoginPage({ lockedPortal }) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({
+        email: email.trim(),
+        password,
+        portal: activePortal
+      });
+
       setIsLoading(false);
-      const portalInfo = {
-        admin: {
-          title: 'NISPL Admin Login',
-          role: 'Infrastructure & NOC Systems Administrator',
-          clearance: 'Tier-1 Root Security Clearance',
-          location: 'CtrlS Kolkata Rated-4 Primary NOC Node'
-        },
-        partner: {
-          title: 'Partners Login',
-          role: 'Authorized Tally & Cloud Solution Partner',
-          clearance: 'Certified Partner Tier-Gold',
-          location: 'Eastern India Channel Hub'
-        },
-        customer: {
-          title: 'Customer Login',
-          role: 'Enterprise Cloud ERP & Tally Prime Subscriber',
-          clearance: 'Dedicated Windows Cloud VPS',
-          location: 'Auto-routed Cloud Cluster #04'
-        }
-      }[activePortal];
 
       if (activePortal === 'customer') {
         navigate('/customer/dashboard');
@@ -127,19 +114,28 @@ export default function LoginPage({ lockedPortal }) {
       }
 
       setActiveSession({
-        portal: portalInfo.title,
-        user: email,
-        role: portalInfo.role,
-        clearance: portalInfo.clearance,
-        location: portalInfo.location
+        portal: activePortal === 'admin' ? 'NISPL Admin Login' : 'Partners Login',
+        user: response.user.email || email,
+        name: response.user.name,
+        role: response.user.tier || 'Authorized User',
+        clearance: activePortal === 'admin' ? 'Tier-1 Root Security Clearance' : 'Certified Partner Tier-Gold',
+        location: activePortal === 'admin' ? 'CtrlS Kolkata Rated-4 Primary NOC Node' : 'Eastern India Channel Hub'
       });
-    }, 850);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
+    }
   };
 
-  const handleSendReset = (e) => {
+  const handleSendReset = async (e) => {
     e.preventDefault();
-    if (!resetEmail) return;
-    setResetSent(true);
+    if (!resetEmail.trim()) return;
+    try {
+      await authApi.forgotPassword(resetEmail.trim());
+      setResetSent(true);
+    } catch (err) {
+      setErrorMessage(err.message || 'Failed to dispatch reset instructions.');
+    }
   };
 
   // If authenticated, render full Header + Sidebar Enterprise Dashboard

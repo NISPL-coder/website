@@ -15,6 +15,7 @@ import {
   Sparkles,
   Server
 } from 'lucide-react';
+import { authApi } from '../../services/authApi';
 import logoImg from '../../assets/NISPL Cloud Tech Logo (2).png';
 import './CustomerAuth.css';
 
@@ -28,7 +29,7 @@ export default function CustomerLoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -43,16 +44,18 @@ export default function CustomerLoginPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      await authApi.login({
+        email: email.trim(),
+        password,
+        portal: 'customer'
+      });
       setIsLoading(false);
       setLoginSuccess(true);
-    }, 800);
-  };
-
-  const handleQuickDemoFill = () => {
-    setEmail('enterprise.client@nisplcloud.com');
-    setPassword('ClientSecure2026!');
-    setErrorMsg('');
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg(err.message || 'Invalid credentials. Please verify and try again.');
+    }
   };
 
   return (
@@ -208,24 +211,6 @@ export default function CustomerLoginPage() {
                   </>
                 )}
               </button>
-
-              {/* Quick test demo helper */}
-              <div style={{ textAlign: 'center', marginTop: '-6px' }}>
-                <button
-                  type="button"
-                  onClick={handleQuickDemoFill}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#64748B',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer',
-                    textDecoration: 'underline'
-                  }}
-                >
-                  Fill demo credentials
-                </button>
-              </div>
 
               {/* Divider */}
               <div className="cust-auth-divider">

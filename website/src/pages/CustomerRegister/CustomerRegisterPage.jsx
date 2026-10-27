@@ -92,7 +92,7 @@ export default function CustomerRegisterPage() {
   };
 
   // Form submission handler
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setGlobalError('');
 
@@ -102,9 +102,8 @@ export default function CustomerRegisterPage() {
 
     setIsSubmitting(true);
 
-    // Simulate swift server-side provisioning & save to service
-    setTimeout(() => {
-      const newCustomer = customerAuthService.createCustomer({
+    try {
+      const newCustomer = await customerAuthService.createCustomer({
         name: formData.name,
         email: formData.email,
         mobile: formData.mobile,
@@ -113,9 +112,12 @@ export default function CustomerRegisterPage() {
         password: formData.password
       });
 
-      setIsSubmitting(false);
       setCreatedCustomer(newCustomer);
-    }, 600);
+    } catch (err) {
+      setGlobalError(err.message || 'Registration failed. Please check your details and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleProceedToDashboard = () => {

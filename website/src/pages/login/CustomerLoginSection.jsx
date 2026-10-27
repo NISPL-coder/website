@@ -15,6 +15,7 @@ import {
   Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { authApi } from '../../services/authApi';
 
 export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [clientEmail, setClientEmail] = useState('');
@@ -25,15 +26,7 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 1-Click Fast Demo Autofill
-  const handleAutofillDemo = () => {
-    setClientEmail('finance@enterprise-client.com');
-    setPassword('ClientCloud#2026');
-    setCloudTenant('NIS-CLOUD-9821');
-    setErrorMessage('');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -48,17 +41,26 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({
+        email: clientEmail.trim(),
+        password,
+        portal: 'customer'
+      });
+
       setIsLoading(false);
       onLoginSuccess({
         portal: 'Customer Login',
-        role: 'Enterprise Cloud ERP & Tally Prime Subscriber',
-        user: clientEmail,
+        role: response.user.tier || 'Enterprise Cloud ERP & Tally Prime Subscriber',
+        user: response.user.email || clientEmail,
         accessLevel: 'Dedicated Cloud VPS Environment',
         location: 'CtrlS Tier-4 Datacenter, Kolkata Host Node #04',
-        tenantId: cloudTenant || 'NIS-CLOUD-AUTO'
+        tenantId: response.user.customerId || cloudTenant || 'NIS-CLOUD-AUTO'
       });
-    }, 900);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
+    }
   };
 
   return (
@@ -80,17 +82,6 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
         <p className="portal-card-subtitle">
           Direct cloud access to your multi-user Tally Prime instance, dedicated VPS hosting, and managed IT services.
         </p>
-
-        {/* Quick Demo Pre-fill Pill */}
-        <button 
-          type="button" 
-          className="portal-demo-autofill-btn"
-          onClick={handleAutofillDemo}
-          title="Click to fill sample credentials for instant testing"
-        >
-          <Zap size={13} />
-          <span>Autofill Demo Customer Credentials</span>
-        </button>
       </div>
 
       {errorMessage && (

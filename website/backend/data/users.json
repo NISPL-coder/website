@@ -1,0 +1,178 @@
+[
+  {
+    "id": "NIS-CUST-728141",
+    "customerId": "NIS-CUST-728141",
+    "name": "Aditi Sen",
+    "email": "aditi.sen.1793104894623@example.com",
+    "mobile": "9831204567",
+    "companyName": "Sen Cloud Systems Pvt Ltd",
+    "gstNo": "19AAACS8051S1Z8",
+    "password": "$2b$10$HjxuAopxA2osb3p2RWa0VOxs.qzpPPdzuFmyYbGxizeowMNYDVVrW",
+    "role": "customer",
+    "accountStatus": "Active",
+    "tier": "Enterprise Cloud Customer",
+    "createdAt": "2026-10-27T12:41:34.926Z",
+    "updatedAt": "2026-10-27T12:41:34.926Z",
+    "createdFormattedDate": "27 Oct 2026",
+    "cloudInstance": {
+      "serverName": "sencloudsystemspvtltd-cloud-node1",
+      "ipAddress": "103.145.59.126",
+      "rdpPort": 3389,
+      "webPort": 8443,
+      "status": "Online",
+      "ram": "8 GB DDR4 Dedicated",
+      "cpu": "4 vCPU (Intel Xeon)",
+      "storage": "100 GB NVMe SSD",
+      "tallyPrimeVersion": "Release 5.0 (Latest 64-Bit)",
+      "tssStatus": "Active"
+    },
+    "stats": {
+      "activeLicenses": 1,
+      "totalUsers": 2,
+      "cloudUptime": "99.98%",
+      "openTickets": 0
+    }
+  },
+  {
+    "id": "NIS-CUST-266028",
+    "customerId": "NIS-CUST-266028",
+    "name": "Priya Sharma",
+    "email": "test.client.1793104032400@example.com",
+    "mobile": "9865648729",
+    "companyName": "Sharma Global Logistics Pvt Ltd",
+    "gstNo": "19AAACS1234S1Z1",
+    "password": "$2b$10$6.YxJSqG/kmYYhfGKtDtW.3cFHhctQ3lGmBEkZVkzcNrKG6U8XaQ.",
+    "role": "customer",
+    "accountStatus": "Active",
+    "tier": "Enterprise Cloud Customer",
+    "createdAt": "2026-10-27T12:27:12.500Z",
+    "updatedAt": "2026-10-27T12:27:12.500Z",
+    "createdFormattedDate": "27 Oct 2026",
+    "cloudInstance": {
+      "serverName": "sharmagloballogisticspvtltd-cloud-node1",
+      "ipAddress": "103.145.26.22",
+      "rdpPort": 3389,
+      "webPort": 8443,
+      "status": "Online",
+      "ram": "8 GB DDR4 Dedicated",
+      "cpu": "4 vCPU (Intel Xeon)",
+      "storage": "100 GB NVMe SSD",
+      "tallyPrimeVersion": "Release 5.0 (Latest 64-Bit)",
+      "tssStatus": "Active"
+    },
+    "stats": {
+      "activeLicenses": 1,
+      "totalUsers": 2,
+      "cloudUptime": "99.98%",
+      "openTickets": 0
+    }
+  },
+  {
+    "id": "NIS-CUST-849201",
+    "customerId": "NIS-CUST-849201",
+    "name": "Debasish Chakraborty",
+    "email": "finance@enterprise-client.com",
+    "mobile": "9830123456",
+    "companyName": "Acme InfoTech Solutions Pvt Ltd",
+    "gstNo": "19AAACA1234A1Z5",
+    "password": "$2b$10$xq.2Sj/VoEWrEfIZjSFT7u5naXgVkI2R1AmHLlrJcWPSrqfWHkKgG",
+    "role": "customer",
+    "accountStatus": "Active",
+    "tier": "Enterprise Cloud Customer",
+    "cloudInstance": {
+      "serverName": "acme-cloud-node1",
+      "ipAddress": "103.145.42.118",
+      "rdpPort": 3389,
+      "webPort": 8443,
+      "status": "Online",
+      "ram": "8 GB DDR4 Dedicated",
+      "cpu": "4 vCPU (Intel Xeon)",
+      "storage": "100 GB NVMe SSD",
+      "tallyPrimeVersion": "Release 5.0 (Latest 64-Bit)",
+      "tssStatus": "Active"
+    },
+    "stats": {
+      "activeLicenses": 1,
+      "totalUsers": 2,
+      "cloudUptime": "99.98%",
+      "openTickets": 0
+    },
+    "createdAt": "2026-10-27T12:27:06.763Z",
+    "updatedAt": "2026-10-27T12:27:06.763Z"
+  },
+  {
+    "id": "NIS-CLOUD-9821",
+    "customerId": "NIS-CLOUD-9821",
+    "name": "Enterprise Client",
+    "email": "enterprise.client@nisplcloud.com",
+    "mobile": "9830998877",
+    "companyName": "NISPL Cloud Enterprise",
+    "gstNo": "19BBBCB5678B2Z6",
+    "password": "$2b$10$xq.2Sj/VoEWrEfIZjSFT7udy6aooSrJglsvZLM8NWYym5S4L35eue",
+    "role": "customer",
+    "accountStatus": "Active",
+    "tier": "Enterprise Cloud Customer",
+    "cloudInstance": {
+      "serverName": "nispl-cloud-node2",
+      "ipAddress": "103.145.42.120",
+      "rdpPort": 3389,
+      "webPort": 8443,
+      "status": "Online",
+      "ram": "16 GB DDR4 Dedicated",
+      "cpu": "8 vCPU (Intel Xeon)",
+      "storage": "250 GB NVMe SSD",
+      "tallyPrimeVersion": "Release 5.0 (Latest 64-Bit)",
+      "tssStatus": "Active"
+    },
+    "stats": {
+      "activeLicenses": 3,
+      "totalUsers": 8,
+      "cloudUptime": "99.99%",
+      "openTickets": 0
+    },
+    "createdAt": "2026-10-27T12:27:06.763Z",
+    "updatedAt": "2026-10-27T12:27:06.763Z"
+  },
+  {
+    "id": "NIS-ADMIN-001",
+    "customerId": "NIS-ADMIN-001",
+    "name": "NOC Systems Administrator",
+    "email": "admin@netinfotechsystem.in",
+    "mobile": "9830000001",
+    "companyName": "Net Infotech System Pvt. Ltd.",
+    "gstNo": "19AAACN1234N1Z9",
+    "password": "$2b$10$xq.2Sj/VoEWrEfIZjSFT7uy1ixuSP/sRDV4Q08jUxyziJC5OehsQ6",
+    "role": "admin",
+    "accountStatus": "Active",
+    "tier": "Infrastructure & NOC Systems Administrator",
+    "stats": {
+      "activeLicenses": 100,
+      "totalUsers": 50,
+      "cloudUptime": "99.99%",
+      "openTickets": 2
+    },
+    "createdAt": "2026-10-27T12:27:06.763Z",
+    "updatedAt": "2026-10-27T12:27:06.763Z"
+  },
+  {
+    "id": "PTR-NISPL-8920",
+    "customerId": "PTR-NISPL-8920",
+    "name": "Authorized Solution Partner",
+    "email": "partner@netinfotechsystem.in",
+    "mobile": "9830000002",
+    "companyName": "Tally Solution Partner Eastern Hub",
+    "gstNo": "19AAACP1234P1Z2",
+    "password": "$2b$10$xq.2Sj/VoEWrEfIZjSFT7uNsgTRCIYARb/zjFvlpdmcIzcslYoyui",
+    "role": "partner",
+    "accountStatus": "Active",
+    "tier": "Certified Partner Tier-Gold",
+    "stats": {
+      "activeLicenses": 25,
+      "totalUsers": 30,
+      "cloudUptime": "99.99%",
+      "openTickets": 1
+    },
+    "createdAt": "2026-10-27T12:27:06.763Z",
+    "updatedAt": "2026-10-27T12:27:06.763Z"
+  }
+]

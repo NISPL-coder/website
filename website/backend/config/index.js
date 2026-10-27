@@ -19,6 +19,13 @@ export const config = {
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
     : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
 
+  // MongoDB Connection
+  mongoUri: process.env.MONGODB_URI || 'mongodb+srv://nispldeveloper_db_user:Lw0pRhHxaUL3v6qy@cluster0.ckh8yxf.mongodb.net/nispl_db?retryWrites=true&w=majority',
+
+  // Authentication & JWT
+  jwtSecret: process.env.JWT_SECRET || 'nispl_cloud_secure_production_secret_key_2026',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+
   // Resume limits
   maxResumeSizeMb: parseInt(process.env.MAX_RESUME_SIZE_MB || '5', 10),
   allowedMimeTypes: [

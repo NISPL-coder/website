@@ -14,6 +14,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { authApi } from '../../services/authApi';
 
 export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [partnerId, setPartnerId] = useState('');
@@ -24,15 +25,7 @@ export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 1-Click Fast Demo Autofill
-  const handleAutofillDemo = () => {
-    setPartnerId('PTR-NISPL-8920');
-    setPassword('TallyPartner$2026');
-    setRegion('kolkata-hq');
-    setErrorMessage('');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -47,16 +40,25 @@ export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({
+        email: partnerId.trim(),
+        password,
+        portal: 'partner'
+      });
+
       setIsLoading(false);
       onLoginSuccess({
         portal: 'Partners Login',
-        role: 'Authorized Tally & Cloud Solutions Channel Partner',
-        user: partnerId,
+        role: response.user.tier || 'Authorized Tally & Cloud Solutions Channel Partner',
+        user: response.user.email || partnerId,
         accessLevel: 'Certified Partner Tier-Gold',
         location: region === 'kolkata-hq' ? 'Kolkata HQ & West Bengal' : 'Odisha & Eastern India Region'
       });
-    }, 900);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
+    }
   };
 
   return (
@@ -78,17 +80,6 @@ export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }
         <p className="portal-card-subtitle">
           Dedicated gateway for certified Tally solution providers, enterprise resellers, and regional IT associates.
         </p>
-
-        {/* Quick Demo Pre-fill Pill */}
-        <button 
-          type="button" 
-          className="portal-demo-autofill-btn"
-          onClick={handleAutofillDemo}
-          title="Click to fill sample credentials for instant testing"
-        >
-          <Zap size={13} />
-          <span>Autofill Demo Partner Credentials</span>
-        </button>
       </div>
 
       {errorMessage && (

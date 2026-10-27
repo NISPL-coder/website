@@ -1,0 +1,165 @@
+{
+  "info": {
+    "_postman_id": "a9314c1e-nispl-auth-api-2026",
+    "name": "NISPL Authentication API (MVC Architecture)",
+    "description": "Production API collection for Net Infotech System Pvt. Ltd. (NISPL) User Registration, Login, Profile & Password Recovery endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "enterprise.client@nisplcloud.com",
+      "type": "string"
+    },
+    {
+      "key": "testPassword",
+      "value": "ClientSecure2026!",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health & Server Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "Returns status of the NISPL API server and active endpoints."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Register Customer Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const jsonData = pm.response.json();",
+              "if (jsonData.success && jsonData.token) {",
+              "    pm.collectionVariables.set('authToken', jsonData.token);",
+              "    pm.collectionVariables.set('testEmail', jsonData.user.email);",
+              "    console.log('Saved token and email to collection variables');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Rajesh Verma\",\n  \"email\": \"rajesh.verma@apexindustries.in\",\n  \"mobile\": \"9830567890\",\n  \"companyName\": \"Apex Industries Pvt Ltd\",\n  \"gstNo\": \"19AAACA5678A1Z2\",\n  \"password\": \"Enterprise#2026\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        },
+        "description": "Registers a new customer account, returns JWT token and customer cloud instance details."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Customer / User Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const jsonData = pm.response.json();",
+              "if (jsonData.success && jsonData.token) {",
+              "    pm.collectionVariables.set('authToken', jsonData.token);",
+              "    console.log('Logged in successfully, updated authToken');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"rajesh.verma@apexindustries.in\",\n  \"password\": \"Enterprise#2026\",\n  \"portal\": \"customer\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        },
+        "description": "Authenticates user credentials against bcrypt hash and returns JWT Bearer token."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Get Current User Profile (Protected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "me"]
+        },
+        "description": "Validates JWT Bearer token via auth middleware and returns the authenticated user profile."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Forgot Password Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"rajesh.verma@apexindustries.in\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/forgot-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "forgot-password"]
+        },
+        "description": "Initiates password reset instructions for registered accounts."
+      },
+      "response": []
+    }
+  ]
+}
