@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
-import Dashboard from './Dashboard';
 import PartnerDashboard from './PartnerDashboard';
 import { 
   Mail, 
@@ -122,6 +121,11 @@ export default function LoginPage({ lockedPortal }) {
         }
       }[activePortal];
 
+      if (activePortal === 'customer') {
+        navigate('/customer/dashboard');
+        return;
+      }
+
       setActiveSession({
         portal: portalInfo.title,
         user: email,
@@ -152,16 +156,6 @@ export default function LoginPage({ lockedPortal }) {
         />
       );
     }
-    return (
-      <Dashboard 
-        userSession={activeSession} 
-        onSignOut={() => {
-          setActiveSession(null);
-          setPassword('');
-          setErrorMessage('');
-        }} 
-      />
-    );
   }
 
   return (

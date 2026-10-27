@@ -102,7 +102,7 @@ export default function CustomerLoginPage() {
               <button 
                 type="button" 
                 className="cust-primary-btn"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/customer/dashboard')}
               >
                 <span>Continue to Cloud Dashboard</span>
                 <ArrowRight size={16} />

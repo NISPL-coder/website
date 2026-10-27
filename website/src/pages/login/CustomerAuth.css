@@ -126,7 +126,7 @@
 }
 
 .cust-card-title {
-  font-family: var(--demo-font-display, 'Outfit', 'Plus Jakarta Sans', sans-serif);
+  font-family: var(--demo-font-display, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
   font-size: 1.75rem;
   font-weight: 700;
   color: #FFFFFF;

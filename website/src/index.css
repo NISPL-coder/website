@@ -81,14 +81,13 @@
   --radius-full: 9999px;
 
   /* ==========================================================================
-     GLOBAL TYPOGRAPHY SYSTEM (Synchronized with Homepage)
-     Display/Headings: Outfit + Inter (Crisp, Executive 400/500 Weight)
-     Body Text: Plus Jakarta Sans + Inter
+     GLOBAL TYPOGRAPHY SYSTEM — UNIFIED ACROSS ALL PAGES
+     Universal font family: 'Inter'
      ========================================================================== */
-  --font-display: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Aliases for Homepage and Page Compatibility */
   --demo-font-display: var(--font-heading);
@@ -115,6 +114,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: var(--font-body);
 }
 
 html {
@@ -136,8 +136,12 @@ body {
   background: #F8FAFC;
 }
 
+button, input, select, textarea {
+  font-family: var(--font-body);
+}
+
 /* ==========================================================================
-   GLOBAL HEADINGS (Exact Homepage Font & Styling)
+   GLOBAL HEADINGS (Unified 'Inter' Typography)
    ========================================================================== */
 h1, h2, h3, h4, h5, h6,
 .heading-display {

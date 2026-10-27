@@ -12,10 +12,10 @@ const AboutPage = lazy(() => import('./pages/AboutPage/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage/ContactPage'));
 const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
 const LoginPage = lazy(() => import('./pages/login/LoginPage'));
-const Dashboard = lazy(() => import('./pages/login/Dashboard'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const PartnerDashboard = lazy(() => import('./pages/login/PartnerDashboard'));
 const CustomerLoginPage = lazy(() => import('./pages/login/CustomerLoginPage'));
-const CustomerRegisterPage = lazy(() => import('./pages/login/CustomerRegisterPage'));
+const CustomerRegisterPage = lazy(() => import('./pages/CustomerRegister'));
 const DemoModal = lazy(() => import('./components/modals/DemoModal'));
 const LoginModal = lazy(() => import('./components/modals/LoginModal'));
 const SearchModal = lazy(() => import('./components/modals/SearchModal'));
@@ -70,6 +70,8 @@ function MainApp() {
     '/login',
     '/customer-login',
     '/customer-register',
+    '/customer_register',
+    '/customer/dashboard',
     '/dashboard',
     '/partner-dashboard'
   ].some((path) => location.pathname.startsWith(path));
@@ -125,10 +127,12 @@ function MainApp() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/career" element={<CareerPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<Dashboard onSignOut={() => window.location.href = '/login'} />} />
+          <Route path="/customer/dashboard" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
+          <Route path="/dashboard" element={<Navigate to="/customer/dashboard" replace />} />
           <Route path="/partner-dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
           <Route path="/customer-login" element={<LoginPage lockedPortal="customer" />} />
           <Route path="/customer-register" element={<CustomerRegisterPage />} />
+          <Route path="/customer_register" element={<CustomerRegisterPage />} />
           {/* All routes fallback directly to the official Homepage */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

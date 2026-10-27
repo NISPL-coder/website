@@ -1,0 +1,363 @@
+/* ==========================================================================
+   CUSTOMER REGISTRATION MODULE CSS
+   Clean, modern, responsive styling with verified inputs & feedback
+   ========================================================================== */
+
+.cust-reg-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 16px auto 40px auto;
+  position: relative;
+  z-index: 10;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.cust-reg-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid #dbeafe;
+  border-radius: 24px;
+  box-shadow: 
+    0 24px 60px -12px rgba(15, 23, 42, 0.08),
+    0 8px 24px -4px rgba(2, 132, 199, 0.05);
+  padding: 36px 40px;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .cust-reg-card {
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+}
+
+/* Badge Icon on top of card */
+.ebolt-badge-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+}
+
+.ebolt-reg-header-center {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ebolt-card-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.ebolt-card-subtitle {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Section Heading */
+.ebolt-section-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Form Grid */
+.ebolt-form {
+  width: 100%;
+}
+
+.ebolt-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 18px;
+}
+
+@media (max-width: 600px) {
+  .ebolt-form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+.ebolt-col-span-2 {
+  grid-column: 1 / -1;
+}
+
+/* Field Group */
+.ebolt-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.ebolt-field-lbl {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+}
+
+/* Input Wrap */
+.ebolt-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.ebolt-input-wrap:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.ebolt-input-wrap.has-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.ebolt-input-wrap.has-success {
+  border-color: #10b981;
+}
+
+.ebolt-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.ebolt-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 14px 12px 42px;
+  font-size: 0.92rem;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.ebolt-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Eye Toggle Button */
+.ebolt-eye-btn {
+  background: none;
+  border: none;
+  padding: 0 14px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.ebolt-eye-btn:hover {
+  color: #0284c7;
+}
+
+/* Error and Hint Messages */
+.ebolt-field-error-msg {
+  font-size: 0.78rem;
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.ebolt-field-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Password Strength Bar */
+.ebolt-pwd-strength-bar-track {
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.ebolt-pwd-strength-bar-fill {
+  height: 100%;
+  transition: width 0.25s ease, background-color 0.25s ease;
+  border-radius: 999px;
+}
+
+/* Alerts */
+.ebolt-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+/* Primary Submit Button */
+.ebolt-submit-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+}
+
+.ebolt-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+}
+
+.ebolt-submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.ebolt-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: eboltSpin 0.7s linear infinite;
+}
+
+@keyframes eboltSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Trust footer */
+.cust-trust-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Dialog / Modal */
+.ebolt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.ebolt-dialog-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+}
+
+.ebolt-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.ebolt-dialog-check {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ebolt-dialog-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ebolt-dialog-sub {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.ebolt-session-user-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
