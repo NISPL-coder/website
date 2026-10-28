@@ -11,7 +11,8 @@ import {
   Package,
   CreditCard,
   ShoppingCart,
-  Receipt
+  Receipt,
+  LifeBuoy
 } from 'lucide-react';
 
 export default function DashboardNavbar({
@@ -34,6 +35,8 @@ export default function DashboardNavbar({
         return { label: 'Cart', icon: ShoppingCart };
       case 'receipt':
         return { label: 'Receipt', icon: Receipt };
+      case 'help':
+        return { label: 'Help Desk & Support', icon: LifeBuoy };
       default:
         return { label: 'Overview', icon: TrendingUp };
     }

@@ -25,6 +25,7 @@ export default function CustomerRegisterPage() {
     email: '',
     mobile: '',
     companyName: '',
+    companyLogo: '',
     gstNo: '',
     password: '',
     retypePassword: ''
@@ -108,6 +109,7 @@ export default function CustomerRegisterPage() {
         email: formData.email,
         mobile: formData.mobile,
         companyName: formData.companyName,
+        companyLogo: formData.companyLogo,
         gstNo: formData.gstNo,
         password: formData.password
       });

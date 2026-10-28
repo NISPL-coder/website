@@ -5,6 +5,8 @@ import { connectDB } from './config/db.js';
 import User from './models/User.js';
 import careerRouter from './routes/careerRoutes.js';
 import authRouter from './routes/authRoutes.js';
+import dashboardRouter from './routes/dashboardRoutes.js';
+import cartRouter from './routes/cartRoutes.js';
 
 const app = express();
 
@@ -37,17 +39,19 @@ app.use(cors({
       callback(new Error(`Origin ${origin} not allowed by CORS policy`));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-session-id'],
   credentials: true
 }));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Mount Routers
 app.use('/api/career', careerRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/cart', cartRouter);
 
 // Root informational endpoint
 app.get('/', (req, res) => {
@@ -60,7 +64,15 @@ app.get('/', (req, res) => {
       authRegister: 'POST /api/auth/register',
       authLogin: 'POST /api/auth/login',
       authProfile: 'GET /api/auth/me (Bearer Token)',
-      authForgotPassword: 'POST /api/auth/forgot-password'
+      authForgotPassword: 'POST /api/auth/forgot-password',
+      dashboardOverview: 'GET /api/dashboard/overview',
+      cart: 'GET /api/cart',
+      cartAdd: 'POST /api/cart/add',
+      cartUpdate: 'POST /api/cart/update-qty',
+      cartRemove: 'POST /api/cart/remove',
+      cartClear: 'POST /api/cart/clear',
+      cartFulfillment: 'POST /api/cart/fulfillment',
+      cartAddons: 'GET /api/cart/addons'
     }
   });
 });

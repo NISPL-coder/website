@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Bell, AlertTriangle, Clock, CheckCircle2, ArrowRight, RefreshCw } from 'lucide-react';
+import { Bell, AlertTriangle, Clock, CheckCircle2, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { PLAN_RENEWALS } from '../data/mockDashboardData';
+import { dashboardApi } from '../../../services/dashboardApi';
 
 /* ─────────────────────────────────────────────────────────────────
    Urgency helpers
@@ -13,45 +14,84 @@ function getUrgency(daysLeft) {
   return               { label: 'Upcoming',      color: '#059669', bg: '#f0fdf4', dot: '#10b981',  icon: 'ok'       };
 }
 
-function UrgencyIcon({ kind, size = 16 }) {
+function UrgencyIcon({ kind, size = 15 }) {
   if (kind === 'critical') return <AlertTriangle size={size} />;
   if (kind === 'warning')  return <Clock size={size} />;
   return <CheckCircle2 size={size} />;
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   Individual toast renderer (custom)
+   Individual toast renderer (Professional Card with Top-Right X)
 ───────────────────────────────────────────────────────────────── */
-function RenewalToastContent({ plan, onNavigate, toastId }) {
+function RenewalToastContent({ plan, onNavigate, toastId, visible }) {
   const urgency = getUrgency(plan.daysLeft);
+  const isCritical = urgency.icon === 'critical';
+
   return (
-    <div className="reminder-toast-body">
-      <div className="reminder-toast-icon" style={{ color: urgency.color }}>
-        <UrgencyIcon kind={urgency.icon} size={18} />
+    <div
+      className={`renewal-pro-toast-card ${isCritical ? 'is-critical' : 'is-warning'} ${visible ? 'toast-show' : 'toast-hide'}`}
+      role="alert"
+    >
+      {/* ── Top Header: Urgency Pill + Top-Right Close "X" Button ── */}
+      <div className="pro-toast-topbar">
+        <div
+          className="pro-toast-status-badge"
+          style={{ color: urgency.color, backgroundColor: urgency.bg }}
+        >
+          <UrgencyIcon kind={urgency.icon} size={13} />
+          <span>{urgency.label.toUpperCase()} &mdash; RENEWAL REQUIRED</span>
+        </div>
+
+        {/* Top-Right Dismiss X Icon Button */}
+        <button
+          type="button"
+          className="pro-toast-x-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            toast.dismiss(toastId);
+          }}
+          aria-label="Dismiss notification"
+          title="Dismiss"
+        >
+          <X size={15} />
+        </button>
       </div>
-      <div className="reminder-toast-text">
-        <span className="reminder-toast-label" style={{ color: urgency.color }}>
-          {urgency.label} — Renewal Required
-        </span>
-        <span className="reminder-toast-plan">{plan.planName}</span>
-        <span className="reminder-toast-meta">
-          Expires: {plan.expiryDate} &nbsp;&middot;&nbsp;
-          {plan.daysLeft < 0
-            ? 'Service has lapsed'
-            : plan.daysLeft === 0
-            ? 'Expires today'
-            : `${plan.daysLeft} day${plan.daysLeft === 1 ? '' : 's'} remaining`}
-        </span>
+
+      {/* ── Main Content Area: Title, Expiry & Renew Action ── */}
+      <div className="pro-toast-body-row">
+        <div className="pro-toast-info-block">
+          <h4 className="pro-toast-plan-name" title={plan.planName}>
+            {plan.planName}
+          </h4>
+          <div className="pro-toast-meta-line">
+            <span className="pro-toast-expiry">Expires: {plan.expiryDate}</span>
+            <span className="pro-toast-dot">&middot;</span>
+            <span
+              className={`pro-toast-countdown ${isCritical ? 'critical-text' : 'warning-text'}`}
+              style={{ color: urgency.color }}
+            >
+              {plan.daysLeft < 0
+                ? 'Service has lapsed'
+                : plan.daysLeft === 0
+                ? 'Expires today'
+                : `${plan.daysLeft} day${plan.daysLeft === 1 ? '' : 's'} remaining`}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="pro-toast-renew-action"
+          onClick={() => {
+            toast.dismiss(toastId);
+            onNavigate && onNavigate('products');
+          }}
+          title="Renew now"
+        >
+          <span>Renew</span>
+          <ArrowRight size={13} className="renew-arrow-icon" />
+        </button>
       </div>
-      <button
-        className="reminder-toast-renew-btn"
-        onClick={() => {
-          toast.dismiss(toastId);
-          onNavigate && onNavigate('products');
-        }}
-      >
-        Renew <ArrowRight size={13} />
-      </button>
     </div>
   );
 }
@@ -66,46 +106,62 @@ export function useRenewalToasts(onNavigate) {
     if (fired.current) return;
     fired.current = true;
 
-    // Only show plans that need attention (within 30 days or expired)
-    const urgent = PLAN_RENEWALS.filter(p => p.daysLeft <= 30);
-    if (!urgent.length) return;
+    async function triggerRenewalToasts() {
+      let plans = PLAN_RENEWALS;
+      try {
+        const data = await dashboardApi.getOverview();
+        const apiPlans = data?.renewal_reminders?.plans || data?.Renewals_Reminders?.plans;
+        if (Array.isArray(apiPlans) && apiPlans.length > 0) {
+          plans = apiPlans;
+        }
+      } catch (err) {
+        console.warn('Notice loading dynamic renewal toasts:', err.message);
+      }
 
-    // Stagger toasts so they don't pile up immediately
-    urgent.forEach((plan, i) => {
-      setTimeout(() => {
-        const urgency = getUrgency(plan.daysLeft);
-        const toastFn = urgency.icon === 'critical' ? toast.error : toast;
+      // Only show plans that need attention (within 30 days or expired)
+      const urgent = plans.filter(p => p.daysLeft <= 30);
+      if (!urgent.length) return;
 
-        const id = `renewal-${plan.id}`;
-        toastFn(
-          (t) => (
-            <RenewalToastContent plan={plan} onNavigate={onNavigate} toastId={t.id} />
-          ),
-          {
-            id,
-            duration: 8000,
-            style: {
-              background: '#fff',
-              color: '#0f172a',
-              border: `1px solid ${urgency.color}40`,
-              boxShadow: `0 4px 24px rgba(0,0,0,0.10)`,
-              borderRadius: '12px',
-              padding: '0',
-              maxWidth: '440px',
-            },
-          }
-        );
-      }, i * 900);
-    });
+      // Stagger toasts so they don't pile up immediately
+      urgent.forEach((plan, i) => {
+        setTimeout(() => {
+          const id = `renewal-${plan.id}`;
+          toast.custom(
+            (t) => (
+              <RenewalToastContent
+                plan={plan}
+                onNavigate={onNavigate}
+                toastId={t.id}
+                visible={t.visible}
+              />
+            ),
+            {
+              id,
+              duration: 9000,
+              position: 'top-right'
+            }
+          );
+        }, i * 900);
+      });
+    }
+
+    triggerRenewalToasts();
   }, [onNavigate]);
 }
 
 /* ─────────────────────────────────────────────────────────────────
    Reminders Panel Widget (embedded in Overview)
 ───────────────────────────────────────────────────────────────── */
-export default function RemindersPanel({ onNavigate }) {
-  const urgentPlans = PLAN_RENEWALS.filter(p => p.daysLeft <= 30);
-  const allPlans = PLAN_RENEWALS;
+export default function RemindersPanel({ onNavigate, remindersData }) {
+  const allPlans = remindersData?.plans || PLAN_RENEWALS;
+  const urgentPlans = allPlans.filter(p => p.daysLeft <= 30);
+  const panelTitle = remindersData?.title || 'Renewal Reminders';
+  const panelSubtitle = remindersData?.subtitle || (
+    urgentPlans.length > 0
+      ? `${urgentPlans.length} plan${urgentPlans.length > 1 ? 's require' : ' requires'} your attention`
+      : 'All plans are up to date'
+  );
+  const urgentBadgeText = remindersData?.badge || (urgentPlans.length > 0 ? `${urgentPlans.length} Urgent` : null);
 
   return (
     <div className="reminder-panel-card cust-section-card">
@@ -116,16 +172,12 @@ export default function RemindersPanel({ onNavigate }) {
             <Bell size={18} />
           </div>
           <div>
-            <h3 className="cust-section-title">Renewal Reminders</h3>
-            <span className="cust-section-desc">
-              {urgentPlans.length > 0
-                ? `${urgentPlans.length} plan${urgentPlans.length > 1 ? 's require' : ' requires'} your attention`
-                : 'All plans are up to date'}
-            </span>
+            <h3 className="cust-section-title">{panelTitle}</h3>
+            <span className="cust-section-desc">{panelSubtitle}</span>
           </div>
         </div>
-        {urgentPlans.length > 0 && (
-          <span className="reminder-urgent-badge">{urgentPlans.length} Urgent</span>
+        {urgentBadgeText && (
+          <span className="reminder-urgent-badge">{urgentBadgeText}</span>
         )}
       </div>
 
@@ -176,7 +228,6 @@ export default function RemindersPanel({ onNavigate }) {
               {plan.daysLeft <= 30 && (
                 <button
                   className="reminder-renew-btn"
-                  style={{ '--btn-color': urgency.color, '--btn-bg': urgency.bg }}
                   onClick={() => onNavigate && onNavigate('products')}
                   title={`Renew ${plan.planName}`}
                 >
@@ -195,7 +246,7 @@ export default function RemindersPanel({ onNavigate }) {
           className="reminder-view-all-btn"
           onClick={() => onNavigate && onNavigate('products')}
         >
-          <span>View all renewal plans</span>
+          <span>{remindersData?.viewAllText || 'View all renewal plans'}</span>
           <ArrowRight size={14} />
         </button>
       </div>

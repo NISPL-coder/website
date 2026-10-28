@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Package,
   ShoppingCart,
@@ -7,447 +7,739 @@ import {
   Smartphone,
   MessageSquare,
   ArrowRight,
+  ArrowLeft,
   Search,
   ShieldCheck,
   Zap,
   Headphones,
   Cpu,
   Layers,
-  Sparkles
+  Sparkles,
+  RotateCw,
+  HardDrive,
+  SlidersHorizontal,
+  LayoutGrid,
+  Table as TableIcon,
+  ChevronRight,
+  ChevronLeft,
+  CheckCircle2,
+  Info,
+  Clock,
+  Filter,
+  Heart,
+  Star
 } from 'lucide-react';
-
-export const CATALOG_PRODUCTS = [
-  {
-    id: 'prod-tss-single',
-    category: 'tss',
-    categoryLabel: 'TSS Renewal',
-    name: 'TSS Single User',
-    fullName: 'Tally Software Service — Single User',
-    badge: 'Popular',
-    badgeVariant: 'badge-blue',
-    desc: 'Annual TSS renewal with automated e-Invoice, e-Way Bill, and statutory updates for a single workstation.',
-    basePrice: 4500,
-    displayPrice: '₹4,500',
-    period: '/ year',
-    taxNote: '+18% GST (₹810)',
-    accentColor: '#2563eb',
-    iconBg: '#eff6ff',
-    iconColor: '#2563eb',
-    icon: Package,
-    specs: ['Single PC', 'e-Invoice API', 'v5.0 Ready'],
-    features: [
-      'Automated e-Invoice & e-Way Bill direct generation',
-      'Connected Banking & Automated Bank Reconciliation',
-      'Continuous statutory & GST compliance updates',
-      'Free software version upgrades for 1 full year'
-    ]
-  },
-  {
-    id: 'prod-tss-multi',
-    category: 'tss',
-    categoryLabel: 'TSS Renewal',
-    name: 'TSS Multi User',
-    fullName: 'Tally Software Service — Multi User',
-    badge: 'Best Value',
-    badgeVariant: 'badge-emerald',
-    desc: 'Unlimited LAN concurrent users with real-time sync, remote browser access, and full statutory compliance.',
-    basePrice: 13500,
-    displayPrice: '₹13,500',
-    period: '/ year',
-    taxNote: '+18% GST (₹2,430)',
-    accentColor: '#059669',
-    iconBg: '#ecfdf5',
-    iconColor: '#059669',
-    icon: Layers,
-    specs: ['Unlimited LAN', 'Remote Access', 'Auditor Edition'],
-    features: [
-      'Unlimited concurrent LAN users on local network',
-      'Anywhere web browser reporting & financial sheets',
-      'Free TallyPrime Auditor Edition license included',
-      'Multi-branch real-time data sync & consolidation'
-    ]
-  },
-  {
-    id: 'prod-cloud-pro',
-    category: 'cloud',
-    categoryLabel: 'Cloud Server',
-    name: 'Cloud VPS — Business',
-    fullName: 'Dedicated Tally Cloud Server — Business',
-    badge: 'Recommended',
-    badgeVariant: 'badge-indigo',
-    desc: 'High-speed dedicated cloud server optimized for small teams with daily automated backups.',
-    basePrice: 2499,
-    displayPrice: '₹2,499',
-    period: '/ month',
-    taxNote: '+18% GST (₹450)',
-    accentColor: '#4f46e5',
-    iconBg: '#eef2ff',
-    iconColor: '#4f46e5',
-    icon: Server,
-    specs: ['4 GB Dedicated RAM', '50 GB NVMe', 'Up to 3 Users'],
-    features: [
-      'Tier-4 Datacenter hosted with 99.98% uptime SLA',
-      'Blazing fast NVMe SSD storage with RAID protection',
-      'Any-device access: Windows, Mac, iPad & Android',
-      'Daily automated cloud backups & disaster recovery'
-    ]
-  },
-  {
-    id: 'prod-cloud-host',
-    category: 'cloud',
-    categoryLabel: 'Cloud Server',
-    name: 'Cloud Server Node',
-    fullName: 'Dedicated Tally Cloud Server — Enterprise',
-    badge: 'High Performance',
-    badgeVariant: 'badge-purple',
-    desc: 'Enterprise-grade Windows Server with dedicated compute, NVMe storage, and priority dedicated bandwidth.',
-    basePrice: 4500,
-    displayPrice: '₹4,500',
-    period: '/ month',
-    taxNote: '+18% GST (₹810)',
-    accentColor: '#7c3aed',
-    iconBg: '#f5f3ff',
-    iconColor: '#7c3aed',
-    icon: Cpu,
-    specs: ['8 GB Dedicated RAM', '100 GB NVMe', 'Unlimited Users'],
-    features: [
-      'Dedicated Intel Xeon compute node with zero lag',
-      'Clientless HTML5 browser terminal & native RDP',
-      'Enterprise firewall, DDoS shield & malware defense',
-      'Hourly automated snapshots with 30-day retention'
-    ]
-  },
-  {
-    id: 'prod-tally-mobile',
-    category: 'addons',
-    categoryLabel: 'Productivity Add-on',
-    name: 'Biz Analyst Mobile',
-    fullName: 'Biz Analyst Tally on Mobile App (1 Year)',
-    badge: 'Mobile App',
-    badgeVariant: 'badge-amber',
-    desc: 'Access your complete Tally business data on iOS and Android with live outstanding and customer analytics.',
-    basePrice: 2124,
-    displayPrice: '₹2,124',
-    period: '/ year',
-    taxNote: '+18% GST (₹382)',
-    accentColor: '#d97706',
-    iconBg: '#fffbeb',
-    iconColor: '#d97706',
-    icon: Smartphone,
-    specs: ['iOS & Android', 'Offline Mode', 'WhatsApp Direct'],
-    features: [
-      'Real-time cashflow, sales, and inventory analytics',
-      'Direct customer payment reminders via WhatsApp',
-      'Create sales orders & receipts offline on phone',
-      'Role-based granular user permissions & data access'
-    ]
-  },
-  {
-    id: 'prod-whatsapp-module',
-    category: 'addons',
-    categoryLabel: 'Productivity Add-on',
-    name: 'WhatsApp Tally Integration',
-    fullName: 'Tally WhatsApp Automated Messaging Module',
-    badge: 'Automation',
-    badgeVariant: 'badge-emerald',
-    desc: 'Send GST invoices, receipts, statements, and payment reminders directly from Tally via official WhatsApp API.',
-    basePrice: 3000,
-    displayPrice: '₹3,000',
-    period: '/ year',
-    taxNote: '+18% GST (₹540)',
-    accentColor: '#059669',
-    iconBg: '#ecfdf5',
-    iconColor: '#059669',
-    icon: MessageSquare,
-    specs: ['Official API', 'Custom Templates', 'Bulk Dispatch'],
-    features: [
-      '1-Click automated PDF invoice dispatch upon voucher save',
-      'Instant payment receipt confirmation to customers',
-      'Bulk ledger statements & overdue payment reminders',
-      'Fully customizable greeting & message templates'
-    ]
-  }
-];
-
-const TABS = [
-  { id: 'all',    label: 'All Products' },
-  { id: 'tss',    label: 'TSS Renewals' },
-  { id: 'cloud',  label: 'Cloud Hosting' },
-  { id: 'addons', label: 'Add-ons' }
-];
-
-function ProductCard({ product, isInCart, isJustAdded, onAdd }) {
-  const Icon = product.icon;
-
-  return (
-    <div className={`cliento-pro-card ${isInCart ? 'in-cart' : ''}`}>
-      {/* Card Header */}
-      <div className="cliento-pro-card-header">
-        <div className="cliento-pro-icon-wrap" style={{ background: product.iconBg, color: product.iconColor }}>
-          <Icon size={20} />
-        </div>
-        <div className="cliento-pro-badges">
-          <span className="cliento-pro-cat-tag">{product.categoryLabel}</span>
-          {product.badge && (
-            <span className={`cliento-pro-status-badge ${product.badgeVariant}`}>
-              {product.badge}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Title & Description */}
-      <div className="cliento-pro-body">
-        <h4 className="cliento-pro-title" title={product.fullName}>
-          {product.fullName}
-        </h4>
-        <p className="cliento-pro-desc">
-          {product.desc}
-        </p>
-
-        {/* Spec Highlights Row */}
-        {product.specs && (
-          <div className="cliento-pro-specs-row">
-            {product.specs.map((spec, si) => (
-              <span key={si} className="cliento-pro-spec-pill">
-                {spec}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Feature List */}
-        <div className="cliento-pro-features-wrap">
-          <span className="cliento-pro-features-title">What's included:</span>
-          <ul className="cliento-pro-features-list">
-            {product.features.map((f, i) => (
-              <li key={i} className="cliento-pro-feature-item">
-                <span className="cliento-pro-check-circle" style={{ color: product.accentColor }}>
-                  <Check size={12} strokeWidth={2.5} />
-                </span>
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Footer / Pricing & Action */}
-      <div className="cliento-pro-footer">
-        <div className="cliento-pro-pricing">
-          <span className="cliento-pro-tax-hint">Starting {product.taxNote}</span>
-          <div className="cliento-pro-price-row">
-            <span className="cliento-pro-amount">{product.displayPrice}</span>
-            <span className="cliento-pro-period">{product.period}</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={`cliento-pro-btn ${isInCart ? 'btn-in-cart' : isJustAdded ? 'btn-added' : ''}`}
-          onClick={() => !isInCart && onAdd(product)}
-        >
-          {isJustAdded ? (
-            <>
-              <Check size={14} strokeWidth={2.5} />
-              <span>Added!</span>
-            </>
-          ) : isInCart ? (
-            <>
-              <Check size={14} strokeWidth={2.5} />
-              <span>In Cart</span>
-            </>
-          ) : (
-            <>
-              <ShoppingCart size={14} />
-              <span>Add to Cart</span>
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
+import toast from 'react-hot-toast';
+import tallyLogo from '../../../assets/partners/tally.png';
+import SolutionCategorySelection from './SolutionCategorySelection';
+import CloudProviderSelection from './CloudProviderSelection';
+import CloudPlansPricingView from './CloudPlansPricingView';
+import TallyPrimePlansView from './TallyPrimePlansView';
+import ProductDetailsModal from './ProductDetailsModal';
+import {
+  TALLY_CATEGORIES,
+  TALLY_PRODUCTS,
+  CLOUD_CATEGORIES,
+  CLOUD_PRODUCTS,
+  hydrateCatalogWithPricing
+} from '../data/productsData';
+import { formatINR } from '../utils/pricingUtils';
 
 export default function ProductsSection({
   onAddToCart,
   onGoToCart,
   cartItemIds = []
 }) {
-  const [activeTab, setActiveTab] = useState('all');
+  // Navigation State: null = initial 2-card screen; 'tally' = Tally catalog; 'cloud' = Cloud flow
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCloudProvider, setSelectedCloudProvider] = useState(null); // 'tally-on-cloud' | 'ctrls-cloud' | 'azure-cloud' | null
+
+  // Filter & Search State
+  const [activeSubCategory, setActiveSubCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState('all');
+  const [selectedSort, setSelectedSort] = useState('recommended');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+
+  // Showcase Slider & Wishlist State (Matching User's Collection Design)
+  const [activeCardIndex, setActiveCardIndex] = useState(1);
+  const [wishlist, setWishlist] = useState({});
+  const cardsTrackRef = useRef(null);
+
+  // Modal State
+  const [detailProduct, setDetailProduct] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Success Feedback
   const [justAddedId, setJustAddedId] = useState(null);
 
+  // Active dataset with hydrated pricing
+  const currentCatalog = useMemo(() => {
+    if (selectedCategory === 'tally') {
+      return hydrateCatalogWithPricing(TALLY_PRODUCTS);
+    }
+    if (selectedCategory === 'cloud') {
+      return hydrateCatalogWithPricing(CLOUD_PRODUCTS);
+    }
+    return [];
+  }, [selectedCategory]);
+
+  const currentCategories = useMemo(() => {
+    if (selectedCategory === 'tally') return TALLY_CATEGORIES;
+    if (selectedCategory === 'cloud') return CLOUD_CATEGORIES;
+    return [];
+  }, [selectedCategory]);
+
+  // Filter & Sort Logic
   const filteredProducts = useMemo(() => {
-    return CATALOG_PRODUCTS.filter(p => {
-      const matchesTab = activeTab === 'all' || p.category === activeTab;
+    if (!currentCatalog.length) return [];
+
+    let list = currentCatalog.filter((item) => {
+      // 1. Subcategory filter
+      const matchesSubCat = activeSubCategory === 'all' || item.category === activeSubCategory;
+
+      // 2. Duration / Billing filter
+      let matchesDuration = true;
+      if (selectedDuration !== 'all') {
+        const d = (item.duration || item.billingCycle || '').toLowerCase();
+        if (selectedDuration === 'monthly') matchesDuration = d.includes('month');
+        else if (selectedDuration === 'annual') matchesDuration = d.includes('year') || d.includes('annual');
+        else if (selectedDuration === 'perpetual') matchesDuration = d.includes('perpetual') || d.includes('lifetime');
+      }
+
+      // 3. Search query filter
       const q = searchQuery.toLowerCase().trim();
-      if (!q) return matchesTab;
+      let matchesSearch = true;
+      if (q) {
+        matchesSearch =
+          (item.fullName && item.fullName.toLowerCase().includes(q)) ||
+          (item.shortDesc && item.shortDesc.toLowerCase().includes(q)) ||
+          (item.categoryLabel && item.categoryLabel.toLowerCase().includes(q)) ||
+          (item.planName && item.planName.toLowerCase().includes(q)) ||
+          (item.features && item.features.some((f) => f.toLowerCase().includes(q))) ||
+          (item.specs && item.specs.some((s) => (s.value || s).toLowerCase().includes(q)));
+      }
 
-      const matchesSearch =
-        p.fullName.toLowerCase().includes(q) ||
-        p.desc.toLowerCase().includes(q) ||
-        p.categoryLabel.toLowerCase().includes(q) ||
-        p.features.some(f => f.toLowerCase().includes(q)) ||
-        (p.specs && p.specs.some(s => s.toLowerCase().includes(q)));
-
-      return matchesTab && matchesSearch;
+      return matchesSubCat && matchesDuration && matchesSearch;
     });
-  }, [activeTab, searchQuery]);
+
+    // Sorting
+    if (selectedSort === 'price-low') {
+      list.sort((a, b) => a.pricing.finalPrice - b.pricing.finalPrice);
+    } else if (selectedSort === 'price-high') {
+      list.sort((a, b) => b.pricing.finalPrice - a.pricing.finalPrice);
+    }
+
+    return list;
+  }, [currentCatalog, activeSubCategory, selectedDuration, searchQuery, selectedSort]);
+
+  // Reset category filters when switching between Tally and Cloud
+  const handleSelectCategory = (catId) => {
+    setSelectedCategory(catId);
+    setSelectedCloudProvider(null);
+    setActiveSubCategory('all');
+    setSelectedDuration('all');
+    setSearchQuery('');
+    setSelectedSort('recommended');
+  };
+
+  const handleResetFilters = () => {
+    setActiveSubCategory('all');
+    setSelectedDuration('all');
+    setSearchQuery('');
+    setSelectedSort('recommended');
+  };
 
   const handleAdd = (product) => {
-    onAddToCart(product);
+    onAddToCart({
+      id: product.id,
+      name: product.fullName || product.name,
+      basePrice: product.pricing.discountedPrice || product.basePrice,
+      originalBasePrice: product.basePrice,
+      finalPrice: product.pricing.finalPrice,
+      category: product.categoryLabel,
+      billingCycle: product.billingCycle || product.duration,
+      quantity: 1
+    });
+
     setJustAddedId(product.id);
+    toast.success(`Added ${product.name} to Cart!`, {
+      id: `cart-${product.id}`,
+      icon: '🛒'
+    });
     setTimeout(() => setJustAddedId(null), 1800);
   };
 
-  const getTabCount = (tabId) => {
-    if (tabId === 'all') return CATALOG_PRODUCTS.length;
-    return CATALOG_PRODUCTS.filter(p => p.category === tabId).length;
+  const toggleWishlist = (id) => {
+    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  return (
-    <div className="cliento-products-container animate-fade-in">
-      {/* ── 1. Top Controls Bar: Tabs + Search + Cart CTA ──── */}
-      <div className="cliento-card cliento-products-controls-bar">
-        {/* Left: Category Filter Pills */}
-        <div className="cliento-products-tabs-row" role="tablist">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              className={`cliento-pro-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span>{tab.label}</span>
-              <span className="cliento-pro-tab-count">{getTabCount(tab.id)}</span>
-            </button>
-          ))}
-        </div>
+  const scrollToCard = (idx) => {
+    if (!cardsTrackRef.current) return;
+    const container = cardsTrackRef.current;
+    const card = container.querySelector(`[data-index="${idx}"]`);
+    if (card) {
+      const containerWidth = container.offsetWidth;
+      const cardLeft = card.offsetLeft;
+      const cardWidth = card.offsetWidth;
+      const targetScroll = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+      container.scrollTo({
+        left: Math.max(0, targetScroll),
+        behavior: 'smooth'
+      });
+    }
+  };
 
-        {/* Right: Quick Search Box & Cart Button */}
-        <div className="cliento-products-controls-right">
-          <div className="cliento-products-search-box">
-            <Search size={14} className="cliento-products-search-icon" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search solutions or specs..."
-              className="cliento-products-search-input"
-            />
-            {searchQuery && (
+  const handlePrevCard = () => {
+    const nextIdx = activeCardIndex > 0 ? activeCardIndex - 1 : Math.max(0, filteredProducts.length - 1);
+    setActiveCardIndex(nextIdx);
+    scrollToCard(nextIdx);
+  };
+
+  const handleNextCard = () => {
+    const nextIdx = activeCardIndex < filteredProducts.length - 1 ? activeCardIndex + 1 : 0;
+    setActiveCardIndex(nextIdx);
+    scrollToCard(nextIdx);
+  };
+
+  const handleCardClick = (idx) => {
+    setActiveCardIndex(idx);
+    scrollToCard(idx);
+  };
+
+  // Scroll listener to update active index when user swipes or drags
+  const scrollTimeoutRef = useRef(null);
+  const handleTrackScroll = () => {
+    if (!cardsTrackRef.current) return;
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      const container = cardsTrackRef.current;
+      if (!container) return;
+      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
+      const cards = container.querySelectorAll('.showcase-product-card');
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      cards.forEach((card, index) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const distance = Math.abs(containerCenter - cardCenter);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIdx = index;
+        }
+      });
+
+      if (closestIdx !== activeCardIndex && closestIdx < filteredProducts.length) {
+        setActiveCardIndex(closestIdx);
+      }
+    }, 50);
+  };
+
+  // Mouse drag-to-scroll for desktop
+  const isMouseDown = useRef(false);
+  const startX = useRef(0);
+  const startScrollLeft = useRef(0);
+  const hasDragged = useRef(false);
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    isMouseDown.current = true;
+    hasDragged.current = false;
+    startX.current = e.pageX - cardsTrackRef.current.offsetLeft;
+    startScrollLeft.current = cardsTrackRef.current.scrollLeft;
+    cardsTrackRef.current.classList.add('is-dragging');
+  };
+
+  const handleMouseLeaveOrUp = () => {
+    if (isMouseDown.current) {
+      isMouseDown.current = false;
+      if (cardsTrackRef.current) {
+        cardsTrackRef.current.classList.remove('is-dragging');
+      }
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isMouseDown.current || !cardsTrackRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - cardsTrackRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.3;
+    if (Math.abs(walk) > 6) {
+      hasDragged.current = true;
+    }
+    cardsTrackRef.current.scrollLeft = startScrollLeft.current - walk;
+  };
+
+  // Adjust activeCardIndex if list length changes
+  useEffect(() => {
+    if (filteredProducts.length > 0 && activeCardIndex >= filteredProducts.length) {
+      setActiveCardIndex(0);
+    }
+  }, [filteredProducts.length, activeCardIndex]);
+
+  // Center active card when category/subcategory changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToCard(activeCardIndex);
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [selectedCategory, activeSubCategory]);
+
+  const handleOpenDetails = (product) => {
+    setDetailProduct(product);
+    setIsDetailModalOpen(true);
+  };
+
+  // Helper for Product Card Icons
+  const renderProductIcon = (iconName, fallbackTheme) => {
+    switch (iconName) {
+      case 'Layers':
+        return <Layers size={20} />;
+      case 'RotateCw':
+        return <RotateCw size={20} />;
+      case 'ShieldCheck':
+        return <ShieldCheck size={20} />;
+      case 'Server':
+        return <Server size={20} />;
+      case 'Cpu':
+        return <Cpu size={20} />;
+      case 'HardDrive':
+        return <HardDrive size={20} />;
+      case 'MessageSquare':
+        return <MessageSquare size={20} />;
+      case 'Zap':
+        return <Zap size={20} />;
+      case 'Smartphone':
+        return <Smartphone size={20} />;
+      default:
+        return <Package size={20} />;
+    }
+  };
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     VIEW 1: INITIAL TWO LARGE HORIZONTAL CARDS SCREEN
+  ───────────────────────────────────────────────────────────────────────── */
+  if (!selectedCategory) {
+    return (
+      <SolutionCategorySelection
+        onSelectCategory={handleSelectCategory}
+      />
+    );
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     VIEW 2: CLOUD SOLUTIONS FLOW (3 PROVIDER BOXES -> 4 PACK TIERS)
+  ───────────────────────────────────────────────────────────────────────── */
+  if (selectedCategory === 'cloud') {
+    if (!selectedCloudProvider) {
+      return (
+        <CloudProviderSelection
+          onSelectProvider={(provId) => setSelectedCloudProvider(provId)}
+          onBack={() => {
+            setSelectedCategory(null);
+            setSelectedCloudProvider(null);
+          }}
+        />
+      );
+    }
+
+    return (
+      <CloudPlansPricingView
+        providerId={selectedCloudProvider}
+        onBack={() => setSelectedCloudProvider(null)}
+        onAddToCart={handleAdd}
+        cartItemIds={cartItemIds}
+      />
+    );
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     VIEW 3: TALLY PRIME & CUSTOMIZATION PLANS (SILVER, GOLD, CUSTOMIZATION)
+  ───────────────────────────────────────────────────────────────────────── */
+  if (selectedCategory === 'tally') {
+    return (
+      <TallyPrimePlansView
+        onBack={() => {
+          setSelectedCategory(null);
+          setSelectedCloudProvider(null);
+        }}
+        onAddToCart={handleAdd}
+        cartItemIds={cartItemIds}
+      />
+    );
+  }
+
+  const isTally = false;
+  const themeClass = 'tally-theme-listing';
+
+  return (
+    <div className={`cliento-products-container animate-fade-in ${themeClass}`}>
+
+      {/* ── Products Display (Grid View or Comparison Table) ────── */}
+      {filteredProducts.length > 0 ? (
+        viewMode === 'grid' ? (
+          /* 1. FEATURED PRODUCTS SHOWCASE (MATCHING USER COLLECTION DESIGN) */
+          <div className="featured-collection-section">
+            {/* ── Top Right Corner Back Section ────────────────── */}
+            <div className="showcase-top-right-nav">
+             
               <button
                 type="button"
-                className="cliento-products-search-clear"
-                onClick={() => setSearchQuery('')}
-                title="Clear search"
+                className="showcase-corner-back-btn"
+                onClick={() => setSelectedCategory(null)}
+                title="Back to Solutions"
+                aria-label="Back to Solutions"
               >
-                ×
+                <ArrowLeft size={16} className="back-arrow-icon" />
+                <span>Back to Solutions</span>
               </button>
+            </div>
+
+            <div className="featured-collection-header">
+              <span className="featured-collection-overline">
+                OUR COLLECTION
+              </span>
+              <h2 className="featured-collection-title">Featured Products</h2>
+              <p className="featured-collection-subtitle">
+                Explore our most popular items loved by customers
+              </p>
+            </div>
+
+            <div className="showcase-slider-wrapper">
+              {/* Left Navigation Arrow */}
+              {filteredProducts.length > 1 && (
+                <button
+                  type="button"
+                  className="showcase-nav-arrow prev"
+                  onClick={handlePrevCard}
+                  aria-label="Previous product"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+              )}
+
+              {/* Cards Horizontal Showcase Row with Touch & Drag Rolling */}
+              <div
+                className="showcase-cards-row"
+                ref={cardsTrackRef}
+                onScroll={handleTrackScroll}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeaveOrUp}
+                onMouseUp={handleMouseLeaveOrUp}
+                onMouseMove={handleMouseMove}
+              >
+                {filteredProducts.map((product, idx) => {
+                  const isActive = idx === activeCardIndex;
+                  const inCart = cartItemIds.includes(product.id);
+                  const isAdded = justAddedId === product.id;
+                  const isWishlisted = !!wishlist[product.id];
+                  const pricing = product.pricing;
+
+                  return (
+                    <div
+                      key={product.id}
+                      data-index={idx}
+                      className={`showcase-product-card ${isActive ? 'is-active-center' : ''} ${inCart ? 'is-in-cart' : ''}`}
+                      onClick={() => {
+                        if (!hasDragged.current) {
+                          handleCardClick(idx);
+                        }
+                      }}
+                    >
+                      {/* Top Bar: Pill Badge + Wishlist Heart */}
+                      <div className="showcase-card-topbar">
+                        <span className="showcase-badge-pill">
+                          {product.badge || 'POPULAR'}
+                        </span>
+                        <button
+                          type="button"
+                          className={`showcase-wishlist-btn ${isWishlisted ? 'is-active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleWishlist(product.id);
+                          }}
+                          aria-label="Toggle wishlist"
+                          title="Save to wishlist"
+                        >
+                          <Heart
+                            size={16}
+                            fill={isWishlisted ? '#e11d48' : 'none'}
+                            color={isWishlisted ? '#e11d48' : '#a8988b'}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Product Visual Area */}
+                      <div
+                        className="showcase-image-box"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDetails(product);
+                        }}
+                        title="Click to view details"
+                      >
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="showcase-img"
+                          />
+                        ) : (
+                          <div className="showcase-fallback-icon">
+                            {renderProductIcon(product.iconName, isTally)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3 mini dots below image */}
+                      <div className="showcase-img-dots" aria-hidden="true">
+                        <span className={`showcase-img-dot ${isActive ? 'active' : ''}`} />
+                        <span className="showcase-img-dot" />
+                        <span className="showcase-img-dot" />
+                      </div>
+
+                      {/* Card Content: Concise Title, 1-Line Description & Rating */}
+                      <div className="showcase-card-body">
+                        <h4
+                          className="showcase-card-title"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDetails(product);
+                          }}
+                          title="Click to view details"
+                        >
+                          {product.name}
+                        </h4>
+
+                        <p className="showcase-card-desc" title={product.shortDesc}>
+                          {product.conciseDesc || product.shortDesc}
+                        </p>
+
+                        {/* Star Rating Line */}
+                        <div className="showcase-rating-row">
+                          <Star size={13} fill="#d97706" color="#d97706" className="showcase-star-icon" />
+                          <span>{product.rating || 4.8}</span>
+                          <span className="showcase-review-count">
+                            ({product.reviewsCount || 89})
+                          </span>
+                        </div>
+
+                        {/* Bottom Bar: Price & Action Button */}
+                        <div className="showcase-card-footer">
+                          <span className="showcase-price-val">
+                            {pricing.formattedFinalPrice}
+                          </span>
+
+                          {isActive ? (
+                            /* Expanded Pill Button on Active Center Card */
+                            <button
+                              type="button"
+                              className={`showcase-pill-cart-btn ${isAdded ? 'added' : inCart ? 'in-cart' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!inCart) handleAdd(product);
+                              }}
+                              title={inCart ? 'Already in Cart' : 'Add to Cart'}
+                            >
+                              {isAdded ? (
+                                <>
+                                  <Check size={14} />
+                                  <span>Added</span>
+                                </>
+                              ) : inCart ? (
+                                <>
+                                  <Check size={14} />
+                                  <span>In Cart</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShoppingCart size={14} />
+                                  <span>Add to Cart</span>
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            /* Circular Cart Button on Non-Active Cards */
+                            <button
+                              type="button"
+                              className={`showcase-circle-cart-btn ${inCart ? 'in-cart' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!inCart) handleAdd(product);
+                              }}
+                              title={inCart ? 'Already in cart' : 'Add to cart'}
+                            >
+                              {inCart || isAdded ? (
+                                <Check size={14} color="#059669" />
+                              ) : (
+                                <ShoppingCart size={14} />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right Navigation Arrow */}
+              {filteredProducts.length > 1 && (
+                <button
+                  type="button"
+                  className="showcase-nav-arrow next"
+                  onClick={handleNextCard}
+                  aria-label="Next product"
+                >
+                  <ChevronRight size={22} />
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Pagination Indicator Dots */}
+            {filteredProducts.length > 1 && (
+              <div className="showcase-pagination-dots" role="tablist">
+                {filteredProducts.map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    type="button"
+                    className={`showcase-page-dot ${dotIdx === activeCardIndex ? 'active' : ''}`}
+                    onClick={() => handleCardClick(dotIdx)}
+                    aria-label={`Go to slide ${dotIdx + 1}`}
+                  />
+                ))}
+              </div>
             )}
           </div>
+        ) : (
+          /* 2. COMPARISON TABLE VIEW (DESKTOP READABILITY) */
+          <div className="cliento-card product-comparison-table-wrap">
+            <table className="product-comparison-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '32%' }}>Solution & Plan Details</th>
+                  <th style={{ width: '22%' }}>Specifications & Capacity</th>
+                  <th style={{ width: '18%' }}>Base & Discount</th>
+                  <th style={{ width: '16%' }}>Final Price (18% GST)</th>
+                  <th style={{ width: '12%', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((product) => {
+                  const inCart = cartItemIds.includes(product.id);
+                  const pricing = product.pricing;
 
-          {cartItemIds.length > 0 && (
-            <button
-              type="button"
-              className="cliento-products-cart-btn"
-              onClick={onGoToCart}
-              title="Proceed to Cart"
-            >
-              <ShoppingCart size={14} />
-              <span>Cart ({cartItemIds.length})</span>
-              <ArrowRight size={13} />
-            </button>
-          )}
-        </div>
-      </div>
+                  return (
+                    <tr key={product.id} className={inCart ? 'row-in-cart' : ''}>
+                      <td>
+                        <div className="table-plan-cell">
+                          <div
+                            className="table-cell-icon"
+                            style={{ background: isTally ? '#fef2f2' : '#eff6ff', color: isTally ? '#dc2626' : '#2563eb' }}
+                          >
+                            {renderProductIcon(product.iconName, isTally)}
+                          </div>
+                          <div>
+                            <span className="table-plan-name">{product.fullName || product.name}</span>
+                            <span className="table-plan-desc">{product.shortDesc}</span>
+                          </div>
+                        </div>
+                      </td>
 
-      {/* ── 2. Information & Trust Sub-Header ──────────────── */}
-      <div className="cliento-products-substrip">
-        <div className="cliento-substrip-left">
-          <span>
-            Showing <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'solution' : 'solutions'}
-            {activeTab !== 'all' && (
-              <> in <strong>{TABS.find(t => t.id === activeTab)?.label}</strong></>
-            )}
-            {searchQuery && (
-              <> matching "<em>{searchQuery}</em>"</>
-            )}
-          </span>
-        </div>
+                      <td>
+                        <div className="table-specs-cell">
+                          {product.licenseType && (
+                            <span className="table-spec-tag">{product.licenseType}</span>
+                          )}
+                          {product.userType && (
+                            <span className="table-spec-tag">{product.userType}</span>
+                          )}
+                          {product.cpu && (
+                            <span className="table-spec-tag">{product.cpu} &middot; {product.ram}</span>
+                          )}
+                          {product.storage && (
+                            <span className="table-spec-tag">{product.storage}</span>
+                          )}
+                        </div>
+                      </td>
 
-        <div className="cliento-substrip-right">
-          <ShieldCheck size={14} color="#059669" />
-          <span>Official Tally Certified Partner • Instant Digital Activation</span>
-        </div>
-      </div>
+                      <td>
+                        <div className="table-price-breakdown">
+                          <span className="table-base-val font-mono">{pricing.formattedBasePrice}</span>
+                          {pricing.discountAmount > 0 && (
+                            <span className="table-discount-pill text-emerald">
+                              Save {pricing.discountPercent}%
+                            </span>
+                          )}
+                        </div>
+                      </td>
 
-      {/* ── 3. Unified Product Grid (Proper 3-Column Symmetrical Alignment) ── */}
-      {filteredProducts.length > 0 ? (
-        <div className="cliento-products-unified-grid">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              isInCart={cartItemIds.includes(product.id)}
-              isJustAdded={justAddedId === product.id}
-              onAdd={handleAdd}
-            />
-          ))}
-        </div>
+                      <td>
+                        <div className="table-final-price-box">
+                          <span className="table-final-amt font-outfit" style={{ color: isTally ? '#dc2626' : '#2563eb' }}>
+                            {pricing.formattedFinalPrice}
+                          </span>
+                          <span className="table-tax-included-note">
+                            {product.billingCycle === 'Monthly' ? 'Monthly (incl. GST)' : 'Annual (incl. GST)'}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="table-actions-cell">
+                          <button
+                            type="button"
+                            className="table-view-btn"
+                            onClick={() => handleOpenDetails(product)}
+                            title="View Full Specifications"
+                          >
+                            Details
+                          </button>
+                          <button
+                            type="button"
+                            className={`table-add-btn ${inCart ? 'in-cart' : ''} ${isTally ? 'tally-btn' : 'cloud-btn'}`}
+                            onClick={() => !inCart && handleAdd(product)}
+                            title={inCart ? 'In Cart' : 'Select Plan'}
+                          >
+                            {inCart ? 'In Cart' : 'Select'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
       ) : (
         /* Empty State */
-        <div className="cliento-card cliento-products-empty-card">
-          <div className="cliento-empty-icon-ring">
+        <div className="cliento-card product-empty-state-box">
+          <div className="empty-icon-circle">
             <Package size={28} color="#94a3b8" />
           </div>
           <h4>No matching solutions found</h4>
-          <p>We couldn't find any products matching "{searchQuery}". Try searching with different terms or reset filters.</p>
+          <p>We couldn't find any plans matching your current filter selection or search query.</p>
           <button
             type="button"
-            className="cliento-empty-reset-btn"
-            onClick={() => { setSearchQuery(''); setActiveTab('all'); }}
+            className="empty-reset-action-btn"
+            onClick={handleResetFilters}
           >
-            Clear Filters
+            Clear Filters & View All
           </button>
         </div>
       )}
 
-      {/* ── 4. Enterprise Trust & Assurance Pillars ────────── */}
-      <div className="cliento-products-trust-row">
-        <div className="cliento-card cliento-trust-box">
-          <div className="cliento-trust-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
-            <ShieldCheck size={20} />
-          </div>
-          <div className="cliento-trust-text">
-            <h5>100% Genuine Licenses</h5>
-            <p>Direct authentic Tally licenses with valid account keys & automatic compliance updates.</p>
-          </div>
-        </div>
-
-        <div className="cliento-card cliento-trust-box">
-          <div className="cliento-trust-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
-            <Zap size={20} />
-          </div>
-          <div className="cliento-trust-text">
-            <h5>Instant Provisioning</h5>
-            <p>Dedicated Tier-4 CtrlS datacenter servers provisioned with high-speed NVMe storage.</p>
-          </div>
-        </div>
-
-        <div className="cliento-card cliento-trust-box">
-          <div className="cliento-trust-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
-            <Headphones size={20} />
-          </div>
-          <div className="cliento-trust-text">
-            <h5>Priority Remote Support</h5>
-            <p>Dedicated certified engineers on WhatsApp, phone & AnyDesk remote support.</p>
-          </div>
-        </div>
-      </div>
+      {/* ── Product Specifications Modal ───────────────────────── */}
+      <ProductDetailsModal
+        product={detailProduct}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onAddToCart={handleAdd}
+        onGoToCart={onGoToCart}
+        isInCart={detailProduct ? cartItemIds.includes(detailProduct.id) : false}
+      />
     </div>
   );
 }

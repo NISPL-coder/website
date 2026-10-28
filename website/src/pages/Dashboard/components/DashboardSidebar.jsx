@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -7,9 +7,9 @@ import {
   ShoppingCart,
   Receipt,
   ChevronRight,
-  ChevronsUpDown
+  ChevronsUpDown,
+  LifeBuoy
 } from 'lucide-react';
-import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -19,6 +19,23 @@ const NAV_ITEMS = [
   { id: 'receipt',  label: 'Receipt',  icon: Receipt }
 ];
 
+/**
+ * Extract clean 2-letter company initials (filtering out common legal suffixes)
+ */
+function getCompanyInitials(companyName, customerName) {
+  const target = (companyName || customerName || 'NISPL').trim();
+  const words = target
+    .split(/\s+/)
+    .filter((w) => !/^(pvt|ltd|pvt\.|ltd\.|inc|llc|corp|co|private|limited)$/i.test(w));
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  if (words.length === 1 && words[0].length >= 2) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+  return target.slice(0, 2).toUpperCase() || 'CP';
+}
+
 export default function DashboardSidebar({
   isCollapsed,
   onToggleCollapse,
@@ -26,23 +43,62 @@ export default function DashboardSidebar({
   onSelectNav,
   onSignOut,
   customer,
-  cartCount = 0
+  cartCount = 0,
+  isMobileOpen = false,
+  onCloseMobile
 }) {
+  const navigate = useNavigate();
   const customerName = customer?.name || 'Debasish Ghosh';
   const customerEmail = customer?.email || 'debasish@acme-cloud.in';
   const customerInitial = customerName.charAt(0).toUpperCase();
 
+  const [logoError, setLogoError] = useState(false);
+  const companyLogo = customer?.companyLogo || customer?.logo || null;
+  const companyName = customer?.companyName || 'Acme InfoTech Solutions Pvt Ltd';
+  const companyInitials = useMemo(() => {
+    return getCompanyInitials(customer?.companyName, customer?.name);
+  }, [customer?.companyName, customer?.name]);
+
+  // Reset logo error on customer profile update
+  useEffect(() => {
+    setLogoError(false);
+  }, [companyLogo]);
+
+  const hasValidLogo = companyLogo && !logoError;
+
   return (
-    <aside className={`cliento-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* ── Top Highlighted Section: Only Company Logo ───────── */}
+    <aside className={`cliento-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+      {/* ── Top Highlighted Section: Centered Logo with Company Name Below ── */}
       <div className="cliento-sidebar-brand-section">
-        <Link to="/" className="cliento-sidebar-brand-link" title="Net Infotech System Pvt. Ltd.">
-          <img
-            src={logoImg}
-            alt="NISPL Cloud Tech"
-            className="cliento-sidebar-brand-logo"
-          />
-        </Link>
+        <div
+          className={`cliento-sidebar-brand-container centered-brand ${hasValidLogo ? 'has-logo-img' : 'has-initials'}`}
+          title={companyName}
+          onClick={() => onSelectNav && onSelectNav('overview')}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="cliento-sidebar-logo-box">
+            {hasValidLogo ? (
+              <img
+                src={companyLogo}
+                alt={companyName}
+                className="cliento-sidebar-brand-logo company-logo-img"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="cliento-sidebar-initials-badge" aria-label={companyName}>
+                <span className="cliento-initials-text">{companyInitials}</span>
+              </div>
+            )}
+          </div>
+
+          {!isCollapsed && (
+            <div className="cliento-sidebar-company-meta">
+              <span className="cliento-sidebar-company-title" title={companyName}>
+                {companyName}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Main Navigation ─────────────────────────────────── */}
@@ -57,7 +113,10 @@ export default function DashboardSidebar({
               key={item.id}
               type="button"
               className={`cliento-nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectNav(item.id)}
+              onClick={() => {
+                onSelectNav(item.id);
+                if (onCloseMobile) onCloseMobile();
+              }}
               title={isCollapsed ? item.label : undefined}
             >
               <div className="cliento-nav-item-left">
@@ -77,6 +136,31 @@ export default function DashboardSidebar({
           );
         })}
       </nav>
+
+      {/* ── Highlighted Section: Help Center Option (Navigates to /customer/help) ── */}
+      <div className="cliento-sidebar-help-section">
+        <button
+          type="button"
+          className={`cliento-nav-item cliento-help-nav-item ${activeNav === 'help' ? 'active' : ''}`}
+          onClick={() => {
+            onSelectNav('help');
+            if (onCloseMobile) onCloseMobile();
+          }}
+          title={isCollapsed ? 'Help Center' : undefined}
+          aria-label="Open Help Center"
+        >
+          <div className="cliento-nav-item-left">
+            <LifeBuoy size={18} className="cliento-nav-icon cliento-help-icon" />
+            {!isCollapsed && <span className="cliento-nav-label">Help Center</span>}
+          </div>
+          {!isCollapsed && (
+            <div className="cliento-nav-item-right">
+              <span className="cliento-help-pill">24/7</span>
+              <ChevronRight size={14} className="cliento-nav-arrow" />
+            </div>
+          )}
+        </button>
+      </div>
 
       {/* ── Bottom Section (Profile) ────────────────────────── */}
       <div className="cliento-sidebar-footer">

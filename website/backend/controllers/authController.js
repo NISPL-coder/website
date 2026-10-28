@@ -24,7 +24,7 @@ const generateToken = (user) => {
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, mobile, companyName, gstNo, password, role } = req.body;
+    const { name, email, mobile, companyName, companyLogo, gstNo, password, role } = req.body;
 
     // Create user via Mongoose User model static
     const createdUser = await User.createUser({
@@ -32,6 +32,7 @@ export const register = async (req, res, next) => {
       email,
       mobile,
       companyName,
+      companyLogo,
       gstNo,
       password,
       role: role || 'customer'

@@ -14,7 +14,8 @@ export const customerAuthService = {
       email: details.email.trim().toLowerCase(),
       mobile: details.mobile.trim(),
       companyName: details.companyName.trim(),
-      gstNo: details.gstNo.trim().toUpperCase(),
+      companyLogo: (details.companyLogo || '').trim(),
+      gstNo: (details.gstNo || '').trim().toUpperCase(),
       password: details.password
     });
 

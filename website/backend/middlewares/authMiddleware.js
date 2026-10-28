@@ -85,3 +85,41 @@ export const authorizeRole = (...roles) => {
     next();
   };
 };
+
+/**
+ * Optional Authentication Middleware:
+ * If Authorization Bearer token is provided and valid, attaches req.user.
+ * Otherwise proceeds with req.user = null without throwing a 401 error.
+ */
+export const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      req.user = null;
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, config.jwtSecret);
+      const user = await User.findById(decoded.id);
+      if (user && user.accountStatus !== 'Suspended') {
+        req.user = User.sanitize(user);
+      } else {
+        req.user = null;
+      }
+    } catch {
+      req.user = null;
+    }
+    next();
+  } catch (error) {
+    req.user = null;
+    next();
+  }
+};
+

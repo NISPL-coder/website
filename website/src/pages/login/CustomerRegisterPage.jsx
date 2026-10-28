@@ -24,7 +24,9 @@ import {
   Check,
   Users,
   Briefcase,
-  Smartphone
+  Smartphone,
+  Image as ImageIcon,
+  Upload
 } from 'lucide-react';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
 import {
@@ -382,6 +384,7 @@ export default function CustomerRegisterPage() {
     email: '',
     mobile: '',
     companyName: '',
+    companyLogo: '',
     gstNo: ''
   });
 
@@ -716,7 +719,7 @@ export default function CustomerRegisterPage() {
                   </div>
 
                   {/* 5. GST No */}
-                  <div className="ebolt-field-group ebolt-col-span-2">
+                  <div className="ebolt-field-group">
                     <label className="ebolt-field-lbl" htmlFor="reg-gst">
                       <span>GST No</span>
                       <span style={{ color: '#ef4444' }}>*</span>
@@ -732,6 +735,88 @@ export default function CustomerRegisterPage() {
                         onChange={(e) => handleCustomerChange('gstNo', e.target.value.toUpperCase())}
                         maxLength={15}
                         required
+                      />
+                    </div>
+                  </div>
+
+                  {/* 6. Company Logo (non mandatory) */}
+                  <div className="ebolt-field-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label className="ebolt-field-lbl" htmlFor="reg-logo">
+                        <span>Company logo</span>
+                      </label>
+                      {customerDetails.companyLogo && (
+                        <button
+                          type="button"
+                          onClick={() => handleCustomerChange('companyLogo', '')}
+                          style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.74rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
+                          title="Remove logo"
+                        >
+                          <X size={12} /> Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="ebolt-input-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      {customerDetails.companyLogo ? (
+                        <img
+                          src={customerDetails.companyLogo}
+                          alt="Logo preview"
+                          style={{ width: '22px', height: '22px', objectFit: 'contain', marginLeft: '12px', borderRadius: '4px' }}
+                        />
+                      ) : (
+                        <ImageIcon size={16} className="ebolt-input-icon" />
+                      )}
+                      <input
+                        id="reg-logo"
+                        type="text"
+                        className="ebolt-input"
+                        placeholder="Logo URL or click Upload"
+                        value={customerDetails.companyLogo}
+                        onChange={(e) => handleCustomerChange('companyLogo', e.target.value)}
+                        style={{ paddingRight: '82px' }}
+                        autoComplete="off"
+                      />
+                      <label
+                        htmlFor="reg-logo-file-alt"
+                        style={{
+                          position: 'absolute',
+                          right: '6px',
+                          background: '#f1f5f9',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          color: '#334155',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title="Upload image from device"
+                      >
+                        <Upload size={12} />
+                        <span>Upload</span>
+                      </label>
+                      <input
+                        id="reg-logo-file-alt"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Logo file size must be less than 2MB.');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleCustomerChange('companyLogo', reader.result);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
                       />
                     </div>
                   </div>

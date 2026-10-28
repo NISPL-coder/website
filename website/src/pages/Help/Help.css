@@ -1,0 +1,811 @@
+/* ==========================================================================
+   NET INFOTECH SYSTEM (NISPL) - HELP CENTER & SUPPORT DESK
+   Clean White Theme with Modern Blue & Cyan Accent Styling
+   ========================================================================== */
+
+:root {
+  --help-font-display: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --help-font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --help-blue-primary: #0284c7;
+  --help-blue-dark: #0369a1;
+  --help-cyan-primary: #00d2d3;
+  --help-text-title: #0f172a;
+  --help-text-body: #475569;
+  --help-text-muted: #64748b;
+  --help-card-border: #e2e8f0;
+}
+
+.help-page-root {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: var(--help-text-title);
+  font-family: var(--help-font-body);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.help-page-root *,
+.help-page-root *::before,
+.help-page-root *::after {
+  box-sizing: border-box;
+}
+
+.help-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+/* ── Top Header Navigation Bar ─────────────────────────────────────────── */
+.help-top-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--help-card-border);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+.help-nav-container {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.help-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.help-brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* Strictly constrain logo size so it never renders giant */
+.help-brand-logo {
+  height: 38px !important;
+  max-height: 38px !important;
+  width: auto !important;
+  max-width: 220px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.help-portal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.help-portal-badge .badge-icon {
+  color: #2563eb;
+}
+
+.help-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.help-back-dashboard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.help-back-dashboard-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+  transform: translateX(-2px);
+}
+
+.help-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #25d366;
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+}
+
+.help-whatsapp-btn:hover {
+  background: #1eb956;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35);
+}
+
+/* ── Hero Section ──────────────────────────────────────────────────────── */
+
+.help-hero-content {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.help-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.help-hero-title {
+  font-size: clamp(2rem, 3.8vw, 2.9rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin: 0 0 16px;
+  font-family: var(--help-font-display);
+}
+
+.help-hero-subtitle {
+  font-size: 1.05rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 36px;
+}
+
+.help-hero-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--help-card-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.05);
+}
+
+.help-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2563eb;
+  font-family: var(--help-font-display);
+}
+
+.stat-lbl {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── 4 Quick Channels Grid ─────────────────────────────────────────────── */
+
+.help-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.help-channel-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.help-channel-card:hover {
+  transform: translateY(-6px);
+  border-color: #bfdbfe;
+  box-shadow: 0 16px 32px -6px rgba(37, 99, 235, 0.12);
+}
+
+.channel-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.blue-circle   { background: #eff6ff; color: #2563eb; }
+.green-circle  { background: #ecfdf5; color: #059669; }
+.cyan-circle   { background: #ecfeff; color: #0891b2; }
+.purple-circle { background: #f5f3ff; color: #7c3aed; }
+
+.channel-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+  font-family: var(--help-font-display);
+}
+
+.channel-desc {
+  font-size: 0.86rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  flex: 1;
+}
+
+.channel-action-box {
+  margin-top: auto;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.channel-phone-link {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.channel-phone-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.channel-timing {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.channel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.green-btn {
+  background: #25d366;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
+}
+
+.green-btn:hover {
+  background: #1eb956;
+  transform: translateY(-1px);
+}
+
+.cyan-btn {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.cyan-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* ── Business Associates Section (Identical to ContactPage) ─────────────── */
+.help-associates-wrap {
+  background: #ffffff;
+  padding: 70px 0 85px;
+  border-top: 1px solid var(--help-card-border);
+  border-bottom: 1px solid var(--help-card-border);
+}
+
+.help-section-badge {
+  display: inline-block;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.iz-associates-header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 45px auto;
+}
+
+.iz-associates-title {
+  font-family: var(--help-font-display);
+  font-size: clamp(2rem, 3.2vw, 2.5rem);
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 0 0 12px 0;
+  font-weight: 400;
+}
+
+.iz-associates-sub {
+  font-size: 0.96rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.iz-associates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+  align-items: stretch;
+}
+
+.iz-associate-card {
+  background: #ffffff;
+  border: 1px solid var(--help-card-border);
+  border-radius: 24px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 6px 24px -4px rgba(15, 23, 42, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.iz-associate-card:hover {
+  transform: translateY(-4px);
+  border-color: #bae6fd;
+  box-shadow: 0 14px 32px -4px rgba(2, 132, 199, 0.16);
+}
+
+.iz-card-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.iz-associate-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 2px solid #ffffff;
+}
+
+.iz-card-top-meta {
+  display: flex;
+  align-items: center;
+}
+
+.iz-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.iz-associate-name {
+  font-family: var(--help-font-display);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.iz-associate-role {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0 0 20px 0;
+  line-height: 1.45;
+  min-height: 38px;
+}
+
+.iz-card-contact-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+.iz-card-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: #475569;
+}
+
+.iz-card-line svg {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.iz-card-line a {
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.18s ease;
+  word-break: break-all;
+}
+
+.iz-card-line a:hover {
+  color: #0284c7;
+  text-decoration: underline;
+}
+
+.iz-card-line span {
+  line-height: 1.4;
+}
+
+/* ── Support Ticket Submission Section ─────────────────────────────────── */
+.help-ticket-section {
+  padding: 70px 0;
+  background: #f8fafc;
+}
+
+.help-ticket-card {
+  background: #ffffff;
+  border: 1px solid var(--help-card-border);
+  border-radius: 24px;
+  padding: 44px 38px;
+  max-width: 820px;
+  margin: 0 auto;
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glowing top accent line */
+.help-ticket-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #00d2d3, #2563eb);
+}
+
+.help-ticket-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.help-ticket-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px;
+  font-family: var(--help-font-display);
+}
+
+.help-ticket-desc {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.help-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.help-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.help-form-group .req {
+  color: #ef4444;
+}
+
+.help-form-group input,
+.help-form-group select,
+.help-form-group textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 0.92rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.help-form-group input:focus,
+.help-form-group select:focus,
+.help-form-group textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.help-form-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.help-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.help-submit-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
+}
+
+.help-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success Ticket Box */
+.ticket-success-box {
+  text-align: center;
+  padding: 30px 10px;
+}
+
+.ticket-success-icon {
+  color: #10b981;
+  margin-bottom: 14px;
+}
+
+.ticket-success-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.ticket-success-id {
+  font-size: 1.05rem;
+  color: #2563eb;
+  margin: 0 0 10px;
+}
+
+.ticket-success-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  max-width: 500px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}
+
+.ticket-new-btn {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ticket-new-btn:hover {
+  background: #1e293b;
+}
+
+/* ── FAQ Section ───────────────────────────────────────────────────────── */
+.help-faq-section {
+  padding: 65px 0 85px;
+  background: #ffffff;
+  border-top: 1px solid var(--help-card-border);
+}
+
+.help-faq-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.help-faq-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px;
+  font-family: var(--help-font-display);
+}
+
+.help-faq-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.help-faq-list {
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.help-faq-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 22px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+}
+
+.help-faq-card:hover {
+  border-color: #cbd5e1;
+  background: #fcfdfe;
+}
+
+.help-faq-card.open {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.help-faq-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.help-faq-question {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.faq-chevron {
+  color: #64748b;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.help-faq-card.open .faq-chevron {
+  transform: rotate(180deg);
+  color: #2563eb;
+}
+
+.help-faq-answer-block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0edff;
+}
+
+.help-faq-answer-block p {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Responsive Media Queries ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .help-channels-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .iz-associates-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .help-nav-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .help-nav-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .help-channels-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .iz-associates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .help-hero-stats-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .help-ticket-card {
+    padding: 30px 20px;
+  }
+}

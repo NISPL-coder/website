@@ -41,11 +41,11 @@ import {
   Mail,
   Shield,
   X,
-  User,
   Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RemindersPanel from './RemindersPanel';
+import { dashboardApi } from '../../../services/dashboardApi';
 
 const CURRENT_PLAN_DETAILS = {
   planName: 'Enterprise Tally Cloud + TSS Gold Multi-User',
@@ -196,10 +196,90 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
-  const companyName = customer?.companyName || 'Acme InfoTech Solutions Pvt Ltd';
-  const customerName = customer?.name || 'Debasish Chakraborty';
-  const customerEmail = customer?.email || 'debasish@acme-cloud.in';
-  const customerId = customer?.customerId || 'NIS-CUST-849201';
+  // Dynamic Overview Section state from API
+  const [overviewData, setOverviewData] = useState(null);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDashboardOverview() {
+      try {
+        setIsLoadingOverview(true);
+        const data = await dashboardApi.getOverview();
+        if (isMounted && data) {
+          setOverviewData(data);
+        }
+      } catch (err) {
+        console.warn('Dashboard Overview API notice:', err.message);
+      } finally {
+        if (isMounted) {
+          setIsLoadingOverview(false);
+        }
+      }
+    }
+    loadDashboardOverview();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Dynamic Objects extracted from API response
+  const overviewCards = overviewData?.overview_cards || [
+    {
+      id: 'tally_serial',
+      title: 'Tally Serial & TSS',
+      value: '762094183',
+      badge: 'TSS Active',
+      badgeType: 'positive',
+      subText: 'Release 5.0 Gold',
+      icon: 'Key'
+    },
+    {
+      id: 'active_workstations',
+      title: 'Active Workstations',
+      value: '4 / 10 Active',
+      badge: '6 Free Seats',
+      badgeType: 'positive',
+      subText: 'Multi-User Concurrent',
+      icon: 'Users'
+    },
+    {
+      id: 'cloud_backup',
+      title: 'Cloud Data Backup',
+      value: 'Today, 02:00 AM',
+      badge: '100% Safe',
+      badgeType: 'positive',
+      subText: 'Auto Daily Snapshot',
+      icon: 'ShieldCheck'
+    },
+    {
+      id: 'next_renewal',
+      title: 'Next Plan Renewal',
+      value: '28 Days',
+      badge: 'Active Node',
+      badgeType: 'positive',
+      subText: 'Due 24 Nov 2026',
+      icon: 'Clock'
+    }
+  ];
+
+  const dynamicReminders = overviewData?.renewal_reminders || overviewData?.Renewals_Reminders;
+  const dynamicServiceInfra = overviewData?.service_and_infrastructure || overviewData?.Service_and_Infrastructure;
+  const currentPlan = overviewData?.current_plan || overviewData?.Current_Plan || CURRENT_PLAN_DETAILS;
+  const accountDetails = overviewData?.account_details || overviewData?.Account_Details || ACCOUNT_DETAILS;
+
+  const renderKpiIcon = (iconName) => {
+    const key = (iconName || '').toLowerCase();
+    if (key.includes('key') || key.includes('serial')) return <Key size={16} className="cliento-kpi-icon" />;
+    if (key.includes('user') || key.includes('workstation')) return <Users size={16} className="cliento-kpi-icon" />;
+    if (key.includes('shield') || key.includes('backup')) return <ShieldCheck size={16} className="cliento-kpi-icon" />;
+    return <Clock size={16} className="cliento-kpi-icon" />;
+  };
+
+  const companyName = customer?.companyName || accountDetails?.companyName || 'NISPL';
+  const customerName = customer?.name || accountDetails?.authorizedAdmin || 'NISPL Developer';
+  const customerEmail = customer?.email || accountDetails?.officialEmail || 'nispldeveloper@gmail.com';
+  const customerId = customer?.customerId || accountDetails?.customerId || 'NIS-CUST-625875';
 
   const cloudIp = '103.145.54.18';
   const rdpPort = 3389;
@@ -280,116 +360,64 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
       </div>
 {/* ── 5. TOP 4 CUSTOMER KPI METRIC CARDS ──────────────────────── */}
       <div className="cliento-kpi-grid">
-        {/* KPI 1: Tally License & Serial */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <Key size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Tally Serial & TSS</span>
+        {overviewCards.map((card) => (
+          <div key={card.id || card.title} className="cliento-kpi-card">
+            <div className="cliento-kpi-header">
+              {renderKpiIcon(card.icon || card.id)}
+              <span className="cliento-kpi-title">{card.title}</span>
+            </div>
+            <div className="cliento-kpi-value">{card.value}</div>
+            <div className="cliento-kpi-footer">
+              <span className={`cliento-change-pill ${card.badgeType || 'positive'}`}>
+                {card.badge}
+              </span>
+              <span className="cliento-kpi-comp">{card.subText}</span>
+            </div>
           </div>
-          <div className="cliento-kpi-value">762094183</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">TSS Active</span>
-            <span className="cliento-kpi-comp">Release 5.0 Gold</span>
-          </div>
-        </div>
-
-        {/* KPI 2: Active User Workstations */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <Users size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Active Workstations</span>
-          </div>
-          <div className="cliento-kpi-value">4 / 10 Active</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">6 Free Seats</span>
-            <span className="cliento-kpi-comp">Multi-User Concurrent</span>
-          </div>
-        </div>
-
-        {/* KPI 3: Automated Cloud Backup */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <ShieldCheck size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Cloud Data Backup</span>
-          </div>
-          <div className="cliento-kpi-value">Today, 02:00 AM</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">100% Safe</span>
-            <span className="cliento-kpi-comp">Auto Daily Snapshot</span>
-          </div>
-        </div>
-
-        {/* KPI 4: TSS & Cloud Expiry */}
-        <div className="cliento-kpi-card">
-          <div className="cliento-kpi-header">
-            <Clock size={16} className="cliento-kpi-icon" />
-            <span className="cliento-kpi-title">Next Plan Renewal</span>
-          </div>
-          <div className="cliento-kpi-value">28 Days</div>
-          <div className="cliento-kpi-footer">
-            <span className="cliento-change-pill positive">Active Node</span>
-            <span className="cliento-kpi-comp">Due 24 Nov 2026</span>
-          </div>
-        </div>
+        ))}
       </div>
+
       {/* ── 2. AT FIRST: RENEWAL REMINDERS SECTION ──────────────────── */}
-      {/* The reminders section is prominently placed first per user request */}
+      {/* Dynamic renewals reminders loaded from /api/dashboard/overview */}
       <section className="cliento-overview-reminders-section" aria-label="Renewal Reminders">
-        <RemindersPanel onNavigate={onNavigateTab} />
+        <RemindersPanel onNavigate={onNavigateTab} remindersData={dynamicReminders} />
       </section>
       
-   {/* ── 6. CLOUD TELEMETRY CHART + SERVICES BREAKDOWN ───────────── */}
+      {/* ── 6. CLOUD TELEMETRY CHART + SERVICES BREAKDOWN ───────────── */}
       <div className="cliento-middle-grid">
         {/* Right: Active Services & Infrastructure Breakdown */}
         <div className="cliento-card cliento-status-breakdown-card">
           <div className="cliento-card-head">
             <div className="cliento-card-title-group">
               <Layers size={18} className="cliento-card-icon" />
-              <h3 className="cliento-card-title">Services & Infrastructure</h3>
+              <h3 className="cliento-card-title">{dynamicServiceInfra?.title || 'Services & Infrastructure'}</h3>
             </div>
           </div>
 
           <div className="cliento-breakdown-body">
             <div className="cliento-breakdown-total-row">
-              <span className="cliento-breakdown-big-num">4 Active</span>
-              <span className="cliento-change-pill positive">Healthy 99.9%</span>
+              <span className="cliento-breakdown-big-num">{dynamicServiceInfra?.totalActive || '4 Active'}</span>
+              <span className="cliento-change-pill positive">{dynamicServiceInfra?.healthBadge || 'Healthy 99.9%'}</span>
             </div>
 
             <div className="cliento-status-bars-list">
-              <div className="cliento-bar-item">
-                <span className="cliento-bar-label">Tally Prime 5.0</span>
-                <div className="cliento-bar-track">
-                  <div className="cliento-bar-fill bar-blue-1" style={{ width: '100%' }} />
+              {(dynamicServiceInfra?.services || [
+                { name: 'Tally Prime 5.0', percentage: 100, colorVariant: 'bar-blue-1' },
+                { name: 'Cloud VPS Node', percentage: 92, colorVariant: 'bar-blue-2' },
+                { name: 'HTML5 Terminal', percentage: 85, colorVariant: 'bar-purple-1' },
+                { name: 'Backup Sync', percentage: 80, colorVariant: 'bar-purple-2' },
+                { name: 'e-Invoice API', percentage: 65, colorVariant: 'bar-violet' }
+              ]).map((svc, idx) => (
+                <div key={idx} className="cliento-bar-item">
+                  <span className="cliento-bar-label">{svc.name}</span>
+                  <div className="cliento-bar-track">
+                    <div
+                      className={`cliento-bar-fill ${svc.colorVariant || 'bar-blue-1'}`}
+                      style={{ width: `${svc.percentage}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="cliento-bar-item">
-                <span className="cliento-bar-label">Cloud VPS Node</span>
-                <div className="cliento-bar-track">
-                  <div className="cliento-bar-fill bar-blue-2" style={{ width: '92%' }} />
-                </div>
-              </div>
-
-              <div className="cliento-bar-item">
-                <span className="cliento-bar-label">HTML5 Terminal</span>
-                <div className="cliento-bar-track">
-                  <div className="cliento-bar-fill bar-purple-1" style={{ width: '85%' }} />
-                </div>
-              </div>
-
-              <div className="cliento-bar-item">
-                <span className="cliento-bar-label">Backup Sync</span>
-                <div className="cliento-bar-track">
-                  <div className="cliento-bar-fill bar-purple-2" style={{ width: '80%' }} />
-                </div>
-              </div>
-
-              <div className="cliento-bar-item">
-                <span className="cliento-bar-label">e-Invoice API</span>
-                <div className="cliento-bar-track">
-                  <div className="cliento-bar-fill bar-violet" style={{ width: '65%' }} />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -424,34 +452,34 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
           <div className="cliento-plan-card-body">
             <div className="cliento-plan-highlight-banner">
               <div className="cliento-plan-banner-info">
-                <span className="cliento-plan-code-tag">{CURRENT_PLAN_DETAILS.planCode}</span>
-                <h4 className="cliento-plan-name-text">{CURRENT_PLAN_DETAILS.planName}</h4>
+                <span className="cliento-plan-code-tag">{currentPlan.planCode}</span>
+                <h4 className="cliento-plan-name-text">{currentPlan.planName}</h4>
               </div>
               <span className="cliento-plan-status-pill">
-                <CheckCircle2 size={12} /> {CURRENT_PLAN_DETAILS.status}
+                <CheckCircle2 size={12} /> {currentPlan.status}
               </span>
             </div>
 
             <div className="cliento-plan-quick-grid">
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">Billing Frequency</span>
-                <span className="cliento-quick-val">{CURRENT_PLAN_DETAILS.billingFrequency}</span>
+                <span className="cliento-quick-val">{currentPlan.billingFrequency}</span>
               </div>
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">Next Renewal Due</span>
                 <span className="cliento-quick-val" style={{ color: '#d97706', fontWeight: 600 }}>
-                  {CURRENT_PLAN_DETAILS.renewalDate} ({CURRENT_PLAN_DETAILS.daysRemaining} days left)
+                  {currentPlan.nextRenewalDue || `${currentPlan.renewalDate} (${currentPlan.daysRemaining} days left)`}
                 </span>
               </div>
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">Total Plan Rate</span>
                 <span className="cliento-quick-val font-outfit" style={{ fontSize: '1.05rem', color: '#0f172a' }}>
-                  {CURRENT_PLAN_DETAILS.totalAmount}
+                  {currentPlan.totalAmount}
                 </span>
               </div>
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">Primary Entitlement</span>
-                <span className="cliento-quick-val">Tally Gold + 8 GB RAM VPS</span>
+                <span className="cliento-quick-val">{currentPlan.primaryEntitlement || 'Tally Gold + 8 GB RAM VPS'}</span>
               </div>
             </div>
           </div>
@@ -465,8 +493,8 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 <Building2 size={18} />
               </div>
               <div>
-                <h3 className="cliento-card-title">Account Details</h3>
-                <span className="cliento-plan-card-sub">Verified Customer Entity & Tax Profile</span>
+                <h3 className="cliento-card-title">{accountDetails?.title || 'Account Details'}</h3>
+                <span className="cliento-plan-card-sub">{accountDetails?.subtitle || 'Verified Customer Entity & Tax Profile'}</span>
               </div>
             </div>
 
@@ -489,7 +517,7 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 <h4 className="cliento-account-name-text">{companyName}</h4>
               </div>
               <span className="cliento-account-tier-pill">
-                <ShieldCheck size={12} /> Tier-Gold Client
+                <ShieldCheck size={12} /> {accountDetails?.tierBadge || 'Tier-Gold Client'}
               </span>
             </div>
 
@@ -504,13 +532,13 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               </div>
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">GSTIN (West Bengal)</span>
-                <span className="cliento-quick-val font-mono">{ACCOUNT_DETAILS.gstin}</span>
+                <span className="cliento-quick-val font-mono">{accountDetails?.gstin || '19AAACA1234A1Z5'}</span>
               </div>
               <div className="cliento-plan-quick-item">
                 <span className="cliento-quick-lbl">Security 2FA</span>
                 <span className="cliento-quick-val text-emerald">
                   <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4 }} />
-                  {ACCOUNT_DETAILS.security2FA}
+                  {accountDetails?.security2fa || accountDetails?.security2FA || 'Enabled (SMS OTP & Google Authenticator)'}
                 </span>
               </div>
             </div>
@@ -549,15 +577,15 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               {/* Highlight Bar */}
               <div className="cliento-modal-hero-bar">
                 <div>
-                  <span className="cliento-modal-tag">{CURRENT_PLAN_DETAILS.planCode}</span>
-                  <h4 className="cliento-modal-plan-title">{CURRENT_PLAN_DETAILS.planName}</h4>
+                  <span className="cliento-modal-tag">{currentPlan.planCode}</span>
+                  <h4 className="cliento-modal-plan-title">{currentPlan.planName}</h4>
                   <span className="cliento-modal-plan-meta">
-                    Billing: {CURRENT_PLAN_DETAILS.billingFrequency} &middot; Started: {CURRENT_PLAN_DETAILS.startDate}
+                    Billing: {currentPlan.billingFrequency} &middot; Started: {currentPlan.startDate}
                   </span>
                 </div>
                 <div className="cliento-modal-hero-right">
-                  <span className="cliento-modal-price">{CURRENT_PLAN_DETAILS.totalAmount}</span>
-                  <span className="cliento-modal-tax-note">Includes 18% GST ({CURRENT_PLAN_DETAILS.taxAmount})</span>
+                  <span className="cliento-modal-price">{currentPlan.totalAmount}</span>
+                  <span className="cliento-modal-tax-note">Includes 18% GST ({currentPlan.taxAmount})</span>
                 </div>
               </div>
 
@@ -565,14 +593,14 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               <div className="cliento-modal-alert-box">
                 <Clock size={16} color="#d97706" />
                 <span>
-                  Next Plan Renewal is due on <strong>{CURRENT_PLAN_DETAILS.renewalDate}</strong> ({CURRENT_PLAN_DETAILS.daysRemaining} days remaining). Auto-debit via Corporate NetBanking is active.
+                  Next Plan Renewal is due on <strong>{currentPlan.renewalDate}</strong> ({currentPlan.daysRemaining} days remaining). Auto-debit via Corporate NetBanking is active.
                 </span>
               </div>
 
               {/* Resource Quotas Grid */}
               <h5 className="cliento-modal-section-heading">Resource Quotas & Allocations</h5>
               <div className="cliento-modal-quotas-grid">
-                {CURRENT_PLAN_DETAILS.quotas.map((q, qi) => (
+                {(currentPlan.quotas || []).map((q, qi) => (
                   <div key={qi} className="cliento-modal-quota-item">
                     <span className="cliento-quota-label">{q.label}</span>
                     <span className="cliento-quota-used">{q.used}</span>
@@ -584,7 +612,7 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               {/* Included Modules & Entitlements List */}
               <h5 className="cliento-modal-section-heading" style={{ marginTop: 18 }}>Included Modules & Services</h5>
               <div className="cliento-modal-modules-list">
-                {CURRENT_PLAN_DETAILS.modulesIncluded.map((m, mi) => (
+                {(currentPlan.modulesIncluded || []).map((m, mi) => (
                   <div key={mi} className="cliento-modal-module-item">
                     <div className="cliento-module-check">
                       <Check size={13} strokeWidth={2.5} />
@@ -601,11 +629,11 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               <div className="cliento-modal-billing-footer">
                 <div className="cliento-billing-ref-item">
                   <span className="cliento-spec-name">Last Billed Invoice</span>
-                  <span className="cliento-spec-data font-mono">{CURRENT_PLAN_DETAILS.lastInvoiceNo}</span>
+                  <span className="cliento-spec-data font-mono">{currentPlan.lastInvoiceNo}</span>
                 </div>
                 <div className="cliento-billing-ref-item">
                   <span className="cliento-spec-name">Payment Method</span>
-                  <span className="cliento-spec-data">{CURRENT_PLAN_DETAILS.paymentMethod}</span>
+                  <span className="cliento-spec-data">{currentPlan.paymentMethod}</span>
                 </div>
               </div>
             </div>
@@ -675,12 +703,12 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                   </span>
                   <h4 className="cliento-modal-plan-title">{companyName}</h4>
                   <span className="cliento-modal-plan-meta">
-                    {ACCOUNT_DETAILS.legalEntity}
+                    {accountDetails?.legalEntity}
                   </span>
                 </div>
                 <div className="cliento-modal-hero-right">
                   <span className="cliento-account-tier-pill" style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}>
-                    <ShieldCheck size={14} /> Tier-Gold Enterprise
+                    <ShieldCheck size={14} /> {accountDetails?.tierBadge || 'Tier-Gold Enterprise'}
                   </span>
                 </div>
               </div>
@@ -691,11 +719,11 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Goods & Services Tax ID (GSTIN)</span>
                   <div className="cliento-prop-val-row">
-                    <span className="cliento-prop-val font-mono">{ACCOUNT_DETAILS.gstin}</span>
+                    <span className="cliento-prop-val font-mono">{accountDetails?.gstin}</span>
                     <button
                       type="button"
                       className="cliento-prop-copy-btn"
-                      onClick={() => copyToClipboard(ACCOUNT_DETAILS.gstin, 'GSTIN')}
+                      onClick={() => copyToClipboard(accountDetails?.gstin, 'GSTIN')}
                       title="Copy GSTIN"
                     >
                       <Copy size={12} />
@@ -705,17 +733,17 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Permanent Account Number (PAN)</span>
-                  <span className="cliento-prop-val font-mono">{ACCOUNT_DETAILS.pan}</span>
+                  <span className="cliento-prop-val font-mono">{accountDetails?.pan}</span>
                 </div>
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Jurisdiction & State</span>
-                  <span className="cliento-prop-val">{ACCOUNT_DETAILS.stateCode}</span>
+                  <span className="cliento-prop-val">{accountDetails?.stateCode}</span>
                 </div>
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Primary Datacenter Node</span>
-                  <span className="cliento-prop-val">{ACCOUNT_DETAILS.primaryNodeCluster}</span>
+                  <span className="cliento-prop-val">{accountDetails?.primaryNodeCluster}</span>
                 </div>
               </div>
 
@@ -725,28 +753,28 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Primary Admin</span>
                   <span className="cliento-prop-val">{customerName}</span>
-                  <span className="cliento-prop-sub">{ACCOUNT_DETAILS.designation}</span>
+                  <span className="cliento-prop-sub">{accountDetails?.designation || 'Managing Director & IT Systems Head'}</span>
                 </div>
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Admin Email</span>
                   <span className="cliento-prop-val">{customerEmail}</span>
-                  <span className="cliento-prop-sub">Billing Email: {ACCOUNT_DETAILS.billingEmail}</span>
+                  <span className="cliento-prop-sub">Billing Email: {accountDetails?.billingEmail || customerEmail}</span>
                 </div>
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Phone & WhatsApp</span>
-                  <span className="cliento-prop-val">{ACCOUNT_DETAILS.contactPhone}</span>
-                  <span className="cliento-prop-sub">Landline: {ACCOUNT_DETAILS.landline}</span>
+                  <span className="cliento-prop-val">{accountDetails?.contactPhone}</span>
+                  <span className="cliento-prop-sub">Landline: {accountDetails?.landline}</span>
                 </div>
 
                 <div className="cliento-prop-card">
                   <span className="cliento-prop-name">Security Status</span>
                   <span className="cliento-prop-val text-emerald">
                     <CheckCircle2 size={13} style={{ display: 'inline', marginRight: 4 }} />
-                    {ACCOUNT_DETAILS.security2FA}
+                    {accountDetails?.security2fa || accountDetails?.security2FA}
                   </span>
-                  <span className="cliento-prop-sub">Whitelisted: {ACCOUNT_DETAILS.whitelistedSubnet}</span>
+                  <span className="cliento-prop-sub">Whitelisted: {accountDetails?.whitelistedSubnet}</span>
                 </div>
               </div>
 
@@ -755,7 +783,7 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 <MapPin size={16} className="cliento-address-icon" />
                 <div className="cliento-address-info">
                   <span className="cliento-spec-name">Registered Business & Invoicing Address</span>
-                  <span className="cliento-address-text">{ACCOUNT_DETAILS.registeredAddress}</span>
+                  <span className="cliento-address-text">{accountDetails?.registeredAddress}</span>
                 </div>
               </div>
 
@@ -766,9 +794,9 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 </div>
                 <div className="cliento-manager-info">
                   <span className="cliento-manager-tag">Assigned Account Manager</span>
-                  <h6 className="cliento-manager-name">{ACCOUNT_DETAILS.accountManager}</h6>
+                  <h6 className="cliento-manager-name">{accountDetails?.accountManager}</h6>
                   <span className="cliento-manager-contact">
-                    {ACCOUNT_DETAILS.accountManagerEmail} &middot; {ACCOUNT_DETAILS.accountManagerPhone}
+                    {accountDetails?.accountManagerEmail} &middot; {accountDetails?.accountManagerPhone}
                   </span>
                 </div>
               </div>
@@ -778,7 +806,7 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
               <button
                 type="button"
                 className="cliento-modal-secondary-btn"
-                onClick={() => copyToClipboard(`Company: ${companyName}\nCustomer ID: ${customerId}\nGSTIN: ${ACCOUNT_DETAILS.gstin}\nAdmin: ${customerName} (${customerEmail})`, 'Account Summary')}
+                onClick={() => copyToClipboard(`Company: ${companyName}\nCustomer ID: ${customerId}\nGSTIN: ${accountDetails?.gstin}\nAdmin: ${customerName} (${customerEmail})`, 'Account Summary')}
               >
                 <Copy size={14} />
                 <span>Copy Summary</span>

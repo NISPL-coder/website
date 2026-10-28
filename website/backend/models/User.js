@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Company name is required'],
       trim: true
     },
+    companyLogo: {
+      type: String,
+      default: '',
+      trim: true
+    },
     gstNo: {
       type: String,
       trim: true,
@@ -210,6 +215,7 @@ userSchema.statics.createUser = async function (userData) {
     email: cleanEmail,
     mobile: userData.mobile.trim(),
     companyName: userData.companyName ? userData.companyName.trim() : '',
+    companyLogo: userData.companyLogo ? userData.companyLogo.trim() : '',
     gstNo: userData.gstNo ? userData.gstNo.trim().toUpperCase() : '',
     password: userData.password,
     role: userData.role || 'customer',
@@ -245,6 +251,22 @@ userSchema.statics.createUser = async function (userData) {
   });
 
   await user.save();
+
+  // Also persist to users.json so local JSON database is kept in sync
+  try {
+    const dataFile = path.resolve(__dirname, '../data/users.json');
+    if (fs.existsSync(dataFile)) {
+      const raw = fs.readFileSync(dataFile, 'utf-8');
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        list.push(user.toJSON());
+        fs.writeFileSync(dataFile, JSON.stringify(list, null, 2), 'utf-8');
+      }
+    }
+  } catch (fsErr) {
+    console.warn('[User] Error syncing to users.json:', fsErr.message);
+  }
+
   return user.toJSON();
 };
 
