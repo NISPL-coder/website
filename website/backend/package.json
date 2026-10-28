@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "build": "npm install",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test tests/**/*.test.js"
