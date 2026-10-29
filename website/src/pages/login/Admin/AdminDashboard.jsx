@@ -106,13 +106,7 @@ export default function AdminDashboard({ userSession, onSignOut }) {
 
           <Link to="/admin/overview" className="adm-brand-link" title="Net Infotech System">
             <img src={logoImg} alt="NISPL Cloud Tech" className="adm-brand-logo" />
-            {!isCollapsed && (
-              <div className="adm-brand-divider">
-                <span className="adm-brand-portal-title">NISPL Admin</span>
-                <span className="adm-brand-portal-sub">Billing &amp; Portal</span>
-              </div>
-            )}
-          </Link>
+            </Link>
         </div>
 
         {/* Header Main Bar — Starts at 260px, perfectly aligned with the main content below */}
@@ -130,10 +124,6 @@ export default function AdminDashboard({ userSession, onSignOut }) {
               />
             </div>
 
-            <div className="adm-noc-live-pill" title="Live System Telemetry Active">
-              <span className="adm-pulse-dot" />
-              <span>CtrlS Kolkata • Live</span>
-            </div>
           </div>
 
           {/* Right Actions */}

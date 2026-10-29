@@ -37,17 +37,6 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
             Live incoming corporate subscription payments, bank transfers, invoice references, and gateway logs.
           </p>
         </div>
-
-        <div className="adm-card-header-action">
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={() => setIsRecordPaymentModalOpen(true)}
-          >
-            <Plus size={16} />
-            <span>Record Payment</span>
-          </button>
-        </div>
       </div>
 
       {/* 2. Filter / Search Toolbar */}
@@ -155,84 +144,6 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
           Total Settled: {payments.filter(p => p.status === 'paid').length} Transactions
         </span>
       </div>
-
-      {/* RECORD PAYMENT MODAL */}
-      {isRecordPaymentModalOpen && (
-        <div className="adm-modal-backdrop" onClick={() => setIsRecordPaymentModalOpen(false)}>
-          <div className="adm-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Record Incoming Payment</h3>
-              <button
-                type="button"
-                className="adm-modal-close-btn"
-                onClick={() => setIsRecordPaymentModalOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success('Payment transaction recorded and receipt staged.');
-                setIsRecordPaymentModalOpen(false);
-              }}
-            >
-              <div className="adm-modal-body">
-                <div className="adm-form-grid">
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Customer Organization</label>
-                    <select className="adm-form-input">
-                      {contracts && contracts.length > 0 ? (
-                        contracts.map((c) => (
-                          <option key={c.id} value={c.company}>
-                            {c.company} ({c.customer})
-                          </option>
-                        ))
-                      ) : (
-                        <option>FlowMail Agency Pvt Ltd</option>
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Payment Amount (INR)</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. ₹24,000"
-                      required
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Payment Channel</label>
-                    <select className="adm-form-input">
-                      <option>NEFT / RTGS Bank Transfer</option>
-                      <option>Corporate NetBanking (HDFC/ICICI)</option>
-                      <option>Razorpay UPI / QR</option>
-                      <option>Cheque Deposit</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="adm-modal-footer">
-                <button
-                  type="button"
-                  className="adm-btn-secondary"
-                  onClick={() => setIsRecordPaymentModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="adm-btn-primary">
-                  Save Payment Record
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -51,20 +51,6 @@ export default function AdminSidebar({
         isMobileOpen ? 'mobile-open' : ''
       }`}
     >
-      {/* ── Top Header Section: Title & Collapse Button ── */}
-      <div className="adm-sidebar-top-actions">
-        <span className="adm-sidebar-heading">Admin Navigation</span>
-        <button
-          type="button"
-          className="adm-collapse-btn"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          aria-label="Toggle Sidebar Collapse"
-        >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-      </div>
-
       {/* Nav Hierarchy */}
       <nav className="adm-sidebar-nav" aria-label="Admin Navigation Hierarchy">
         {/* 1. OVERVIEW */}
@@ -154,29 +140,6 @@ export default function AdminSidebar({
           </div>
         </button>
       </nav>
-
-      {/* ── Bottom Footer Section: Administrator Card & Sign Out ── */}
-      <div className="adm-sidebar-footer">
-        <div className="adm-sidebar-user-card" title={adminEmail}>
-          <div className="adm-user-avatar">
-            {adminName.charAt(0).toUpperCase()}
-          </div>
-          <div className="adm-user-meta">
-            <span className="adm-user-name">{adminName}</span>
-            <span className="adm-user-role">Administrator</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="adm-sidebar-logout-btn"
-          onClick={onSignOut}
-          title="Sign out of Admin Session"
-        >
-          <LogOut size={15} />
-          <span>Sign Out</span>
-        </button>
-      </div>
     </aside>
   );
 }

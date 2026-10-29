@@ -7,20 +7,37 @@ import NetworkBackground from './components/background/NetworkBackground';
 import SEOManager from './components/SEO/SEOManager';
 import './App.css';
 
+// Safe lazy-loader that gracefully reloads if a stale chunk hash fails after a new deployment
+function lazyWithRetry(componentImport) {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      const pageHasRefreshed = sessionStorage.getItem('chunk_retry_refreshed');
+      if (!pageHasRefreshed) {
+        sessionStorage.setItem('chunk_retry_refreshed', 'true');
+        window.location.reload();
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+}
+
 // Code-split secondary routes & heavy modals for instant LCP and minimal initial bundle
-const AboutPage = lazy(() => import('./pages/AboutPage/AboutPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage/ContactPage'));
-const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
-const HelpPage = lazy(() => import('./pages/Help/Help'));
-const LoginPage = lazy(() => import('./pages/login/LoginPage'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const PartnerDashboard = lazy(() => import('./pages/login/partner/PartnerDashboard'));
-const AdminDashboard = lazy(() => import('./pages/login/Admin/AdminDashboard'));
-const CustomerLoginPage = lazy(() => import('./pages/login/customer/CustomerLoginPage'));
-const CustomerRegisterPage = lazy(() => import('./pages/CustomerRegister'));
-const DemoModal = lazy(() => import('./components/modals/DemoModal'));
-const LoginModal = lazy(() => import('./components/modals/LoginModal'));
-const SearchModal = lazy(() => import('./components/modals/SearchModal'));
+const AboutPage = lazyWithRetry(() => import('./pages/AboutPage/AboutPage'));
+const ContactPage = lazyWithRetry(() => import('./pages/ContactPage/ContactPage'));
+const CareerPage = lazyWithRetry(() => import('./pages/CareerPage/CareerPage'));
+const HelpPage = lazyWithRetry(() => import('./pages/Help/Help'));
+const LoginPage = lazyWithRetry(() => import('./pages/login/LoginPage'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const PartnerDashboard = lazyWithRetry(() => import('./pages/login/partner/PartnerDashboard'));
+const AdminDashboard = lazyWithRetry(() => import('./pages/login/Admin/AdminDashboard'));
+const CustomerLoginPage = lazyWithRetry(() => import('./pages/login/customer/CustomerLoginPage'));
+const CustomerRegisterPage = lazyWithRetry(() => import('./pages/CustomerRegister'));
+const DemoModal = lazyWithRetry(() => import('./components/modals/DemoModal'));
+const LoginModal = lazyWithRetry(() => import('./components/modals/LoginModal'));
+const SearchModal = lazyWithRetry(() => import('./components/modals/SearchModal'));
 
 // Smooth scroll to top on route change or handle hash anchors
 function ScrollToTop() {

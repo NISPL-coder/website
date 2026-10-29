@@ -142,15 +142,6 @@
   flex-shrink: 0;
 }
 
-.adm-brand-divider {
-  display: flex;
-  flex-direction: column;
-  border-left: 1.5px solid var(--adm-border-input);
-  padding-left: 10px;
-  min-width: 0;
-  overflow: hidden;
-}
-
 .adm-brand-portal-title {
   font-size: 0.88rem;
   font-weight: 700;
@@ -217,19 +208,6 @@
   background: #ffffff;
   border-color: var(--adm-purple);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-}
-
-.adm-noc-live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--adm-emerald-soft);
-  color: var(--adm-emerald);
-  border: 1px solid var(--adm-emerald-border);
-  padding: 5px 12px;
-  border-radius: var(--adm-radius-pill);
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 
 .adm-pulse-dot {
