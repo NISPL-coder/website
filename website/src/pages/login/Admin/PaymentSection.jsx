@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, CheckCircle2, CreditCard, X, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
   const [isRecordPaymentModalOpen, setIsRecordPaymentModalOpen] = useState(false);
@@ -24,6 +25,13 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       return matchesSearch && matchesStatus;
     });
   }, [payments, searchQuery, statusFilter]);
+
+  // Multi-column Ascending/Descending Sorting Hook
+  const { sortedItems: sortedPayments, sortConfig, requestSort } = useTableSort(
+    filteredPayments,
+    'date',
+    'desc'
+  );
 
   return (
     <div className="adm-table-card">
@@ -75,19 +83,54 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         <table className="adm-table" style={{ minWidth: '1000px' }}>
           <thead>
             <tr>
-              <th>Transaction ID</th>
-              <th>Customer &amp; Firm</th>
-              <th>Amount Received</th>
-              <th>Payment Channel</th>
-              <th>Payment Timestamp</th>
-              <th>Invoice Reference</th>
-              <th>Settlement Status</th>
+              <SortableTh
+                label="Transaction ID"
+                sortKey="id"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Customer & Firm"
+                sortKey="company"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Amount Received"
+                sortKey="amount"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Payment Channel"
+                sortKey="method"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Payment Timestamp"
+                sortKey="date"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Invoice Reference"
+                sortKey="invoiceRef"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Settlement Status"
+                sortKey="status"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPayments.length > 0 ? (
-              filteredPayments.map((p) => (
+            {sortedPayments.length > 0 ? (
+              sortedPayments.map((p) => (
                 <tr key={p.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.id}</td>
                   <td>

@@ -17,6 +17,7 @@ import {
   Download
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function CustomerSection({ customers, setCustomers }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +55,13 @@ export default function CustomerSection({ customers, setCustomers }) {
       return matchesSearch && matchesStatus;
     });
   }, [customers, searchQuery, statusFilter]);
+
+  // Multi-column Ascending/Descending Sorting Hook
+  const { sortedItems: sortedCustomers, sortConfig, requestSort } = useTableSort(
+    filteredCustomers,
+    'id',
+    'asc'
+  );
 
   // Handle Create Customer Submit
   const handleCreateCustomerSubmit = (e) => {
@@ -172,20 +180,60 @@ export default function CustomerSection({ customers, setCustomers }) {
         <table className="adm-table" style={{ minWidth: '1050px' }}>
           <thead>
             <tr>
-              <th>Customer ID</th>
-              <th>Organization &amp; Client</th>
-              <th>Contact Details</th>
-              <th>Subscribed Plan</th>
-              <th>Server Node</th>
-              <th>Monthly (MRR)</th>
-              <th>Status</th>
-              <th>Registered</th>
+              <SortableTh
+                label="Customer ID"
+                sortKey="id"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Organization & Client"
+                sortKey="company"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Contact Details"
+                sortKey="email"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Subscribed Plan"
+                sortKey="plan"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Server Node"
+                sortKey="serverNode"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Monthly (MRR)"
+                sortKey="mrr"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Status"
+                sortKey="status"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Registered"
+                sortKey="registered"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCustomers.length > 0 ? (
-              filteredCustomers.map((cust) => (
+            {sortedCustomers.length > 0 ? (
+              sortedCustomers.map((cust) => (
                 <tr key={cust.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
                     {cust.id}

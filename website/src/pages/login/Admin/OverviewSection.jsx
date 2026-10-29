@@ -13,6 +13,7 @@ import {
   Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function OverviewSection({
   adminName,
@@ -23,6 +24,13 @@ export default function OverviewSection({
   setIsAddContractModalOpen
 }) {
   const navigate = useNavigate();
+
+  // Multi-column sorting for recent commitments
+  const { sortedItems: sortedRecentContracts, sortConfig, requestSort } = useTableSort(
+    contracts,
+    'expiryDate',
+    'asc'
+  );
 
   return (
     <>
@@ -158,17 +166,47 @@ export default function OverviewSection({
           <table className="adm-table" style={{ minWidth: '950px' }}>
             <thead>
               <tr>
-                <th>Contract No</th>
-                <th>Customer / Company</th>
-                <th>Service SLA</th>
-                <th>Annual Value</th>
-                <th>Expiry Date</th>
-                <th>Status</th>
+                <SortableTh
+                  label="Contract No"
+                  sortKey="id"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
+                <SortableTh
+                  label="Customer / Company"
+                  sortKey="company"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
+                <SortableTh
+                  label="Service SLA"
+                  sortKey="service"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
+                <SortableTh
+                  label="Annual Value"
+                  sortKey="value"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
+                <SortableTh
+                  label="Expiry Date"
+                  sortKey="expiryDate"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
+                <SortableTh
+                  label="Status"
+                  sortKey="status"
+                  currentSort={sortConfig}
+                  onSort={requestSort}
+                />
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {contracts.slice(0, 3).map((c) => (
+              {sortedRecentContracts.slice(0, 5).map((c) => (
                 <tr key={c.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{c.id}</td>
                   <td>

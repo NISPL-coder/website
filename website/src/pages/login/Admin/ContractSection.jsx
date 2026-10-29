@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Download, X, CheckCircle2, FileText, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function ContractSection({ contracts, setContracts }) {
   const [isAddContractModalOpen, setIsAddContractModalOpen] = useState(false);
@@ -33,6 +34,13 @@ export default function ContractSection({ contracts, setContracts }) {
       return matchesSearch && matchesStatus;
     });
   }, [contracts, searchQuery, statusFilter]);
+
+  // Multi-column Ascending/Descending Sorting Hook
+  const { sortedItems: sortedContracts, sortConfig, requestSort } = useTableSort(
+    filteredContracts,
+    'id',
+    'asc'
+  );
 
   const handleAddContract = (e) => {
     e.preventDefault();
@@ -118,20 +126,60 @@ export default function ContractSection({ contracts, setContracts }) {
         <table className="adm-table" style={{ minWidth: '1100px' }}>
           <thead>
             <tr>
-              <th>Contract Code</th>
-              <th>Client Organization</th>
-              <th>Authorized Representative</th>
-              <th>Service Scope &amp; Tier</th>
-              <th>Contract Value</th>
-              <th>Start Date</th>
-              <th>Expiry Date</th>
-              <th>Status</th>
+              <SortableTh
+                label="Contract Code"
+                sortKey="id"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Client Organization"
+                sortKey="company"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Authorized Representative"
+                sortKey="customer"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Service Scope & Tier"
+                sortKey="service"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Contract Value"
+                sortKey="value"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Start Date"
+                sortKey="startDate"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Expiry Date"
+                sortKey="expiryDate"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Status"
+                sortKey="status"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredContracts.length > 0 ? (
-              filteredContracts.map((c) => (
+            {sortedContracts.length > 0 ? (
+              sortedContracts.map((c) => (
                 <tr key={c.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
                     {c.id}

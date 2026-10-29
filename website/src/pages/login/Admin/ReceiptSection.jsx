@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Download, Check, ReceiptText, X, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function ReceiptSection({ receipts, setReceipts, payments }) {
   const [isGenerateReceiptModalOpen, setIsGenerateReceiptModalOpen] = useState(false);
@@ -23,6 +24,13 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
       return matchesSearch && matchesStatus;
     });
   }, [receipts, searchQuery, statusFilter]);
+
+  // Multi-column Ascending/Descending Sorting Hook
+  const { sortedItems: sortedReceipts, sortConfig, requestSort } = useTableSort(
+    filteredReceipts,
+    'id',
+    'asc'
+  );
 
   return (
     <div className="adm-table-card">
@@ -85,20 +93,60 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
         <table className="adm-table" style={{ minWidth: '1050px' }}>
           <thead>
             <tr>
-              <th>Receipt No</th>
-              <th>Billed Organization</th>
-              <th>Taxable Base</th>
-              <th>18% GST</th>
-              <th>Total Paid</th>
-              <th>Issue Date</th>
-              <th>Payment Channel</th>
-              <th>Dispatch Status</th>
+              <SortableTh
+                label="Receipt No"
+                sortKey="id"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Billed Organization"
+                sortKey="company"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Taxable Base"
+                sortKey="baseAmount"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="18% GST"
+                sortKey="taxAmount"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Total Paid"
+                sortKey="amount"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Issue Date"
+                sortKey="date"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Payment Channel"
+                sortKey="mode"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
+              <SortableTh
+                label="Dispatch Status"
+                sortKey="status"
+                currentSort={sortConfig}
+                onSort={requestSort}
+              />
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredReceipts.length > 0 ? (
-              filteredReceipts.map((r) => (
+            {sortedReceipts.length > 0 ? (
+              sortedReceipts.map((r) => (
                 <tr key={r.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
                     {r.id}

@@ -918,6 +918,58 @@
   white-space: nowrap;
 }
 
+/* Sortable Column Headers */
+.adm-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.adm-table th.sortable:hover {
+  background: #f1f5f9;
+  color: var(--adm-purple);
+}
+
+.adm-table th.sortable.active-sort {
+  color: var(--adm-purple);
+  background: #f3f0ff;
+}
+
+.adm-th-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.adm-sort-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-sort-icon {
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.18s ease;
+}
+
+.adm-sort-icon.inactive {
+  opacity: 0.35;
+  color: var(--adm-text-light);
+}
+
+.adm-table th.sortable:hover .adm-sort-icon.inactive {
+  opacity: 0.85;
+  color: var(--adm-purple);
+}
+
+.adm-sort-icon.active {
+  opacity: 1;
+  color: var(--adm-purple);
+  filter: drop-shadow(0 1px 2px rgba(99, 102, 241, 0.3));
+}
+
 .adm-table td {
   padding: 14px 20px;
   font-size: 0.84rem;
@@ -1209,6 +1261,164 @@ input:checked + .adm-slider:before {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* =========================================================================
+   7. SOLUTION HERO CARDS (TALLY PRIME & CLOUD SELECTION)
+   ========================================================================= */
+.solutions-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.solution-hero-card {
+  position: relative;
+  background: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.85);
+  border-radius: 20px;
+  padding: 40px 30px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.22s ease;
+  overflow: hidden;
+  box-shadow: var(--adm-shadow-card);
+  min-height: 280px;
+}
+
+.solution-hero-card:hover {
+  transform: translateY(-6px);
+}
+
+.solution-hero-card.tally-theme {
+  border-color: #fce7e7;
+  background: linear-gradient(180deg, #ffffff 0%, #fffbfb 100%);
+}
+
+.solution-hero-card.tally-theme:hover {
+  border-color: #f87171;
+  box-shadow: 0 18px 40px -8px rgba(220, 38, 38, 0.18);
+}
+
+.solution-hero-card.cloud-theme {
+  border-color: #e0edff;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+}
+
+.solution-hero-card.cloud-theme:hover {
+  border-color: #818cf8;
+  box-shadow: 0 18px 40px -8px rgba(99, 102, 241, 0.2);
+}
+
+.solution-center-logo-box {
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  border-radius: 20px;
+  transition: transform 0.25s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.solution-center-logo-box.tally-logo-center {
+  background: #fff5f5;
+  border: 1px solid #fee2e2;
+  padding: 14px;
+}
+
+.solution-center-logo-box.cloud-logo-center {
+  background: #f5f3ff;
+  border: 1px solid #ede9fe;
+  color: var(--adm-purple);
+}
+
+.solution-hero-card:hover .solution-center-logo-box {
+  transform: scale(1.08) translateY(-3px);
+}
+
+.solution-center-logo-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.solution-center-info {
+  margin-bottom: 22px;
+  position: relative;
+  z-index: 2;
+}
+
+.solution-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.015em;
+}
+
+.solution-title.tally-title {
+  color: #b91c1c;
+}
+
+.solution-title.cloud-title {
+  color: #4338ca;
+}
+
+.solution-one-line-desc {
+  font-size: 0.9rem;
+  color: var(--adm-text-muted);
+  margin: 0;
+  line-height: 1.45;
+  max-width: 320px;
+}
+
+.solution-explore-row {
+  margin-top: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.solution-explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: var(--adm-radius-pill);
+  transition: all 0.2s ease;
+}
+
+.solution-explore-btn.tally-btn {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.solution-hero-card.tally-theme:hover .solution-explore-btn.tally-btn {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.solution-explore-btn.cloud-btn {
+  background: #ede9fe;
+  color: #4f46e5;
+  border: 1px solid #ddd6fe;
+}
+
+.solution-hero-card.cloud-theme:hover .solution-explore-btn.cloud-btn {
+  background: #6366f1;
+  color: #ffffff;
+  border-color: #6366f1;
 }
 
 /* Animations */
