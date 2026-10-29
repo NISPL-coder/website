@@ -193,6 +193,8 @@ export default function AdminDashboard({ userSession, onSignOut }) {
               payments={payments}
               products={products}
               receipts={receipts}
+              customers={customers}
+              setCustomers={setCustomers}
             />
           )}
 

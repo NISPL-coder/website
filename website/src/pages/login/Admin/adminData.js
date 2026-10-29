@@ -1,4 +1,4 @@
-// Mock Initial Datasets for NISPL Admin Portal
+// Mock Datasets & Analytics Telemetry for NISPL Admin Portal
 
 export const INITIAL_CUSTOMERS = [
   {
@@ -41,19 +41,6 @@ export const INITIAL_CUSTOMERS = [
     mrr: '₹22,500'
   },
   {
-    id: 'CUST-8824',
-    name: 'Dr. Suniti Mukherjee',
-    company: 'Kolkata Health Diagnostics',
-    email: 'admin@khdlabs.org',
-    phone: '+91 98315 77120',
-    city: 'Kolkata, Gariahat',
-    plan: 'Tally Prime Single User Silver',
-    serverNode: 'CtrlS-KOL-NODE-03',
-    status: 'pending',
-    registered: '2026-10-28',
-    mrr: '₹6,500'
-  },
-  {
     id: 'CUST-8825',
     name: 'Vikram Burman',
     company: 'Eastern Metal Refineries',
@@ -65,6 +52,73 @@ export const INITIAL_CUSTOMERS = [
     status: 'active',
     registered: '2026-10-12',
     mrr: '₹34,000'
+  },
+  // DEMO / TRIAL ACCOUNTS
+  {
+    id: 'CUST-8826',
+    name: 'Rohan Roy',
+    company: 'NexGen AI Solutions',
+    email: 'rohan.roy@nexgenai.tech',
+    phone: '+91 98305 11840',
+    city: 'Kolkata, Sector V',
+    plan: '14-Day Cloud VPS Sandbox Trial',
+    serverNode: 'CtrlS-KOL-NODE-03',
+    status: 'demo',
+    registered: '2026-10-27',
+    mrr: '₹0 (Trial)'
+  },
+  {
+    id: 'CUST-8827',
+    name: 'Moumita Das',
+    company: 'Horizon BioPharma Labs',
+    email: 'moumita@horizonbio.in',
+    phone: '+91 98314 22930',
+    city: 'Kolkata, New Town Action Area II',
+    plan: 'Tally Prime Cloud Trial Demo',
+    serverNode: 'CtrlS-KOL-NODE-01',
+    status: 'demo',
+    registered: '2026-10-28',
+    mrr: '₹0 (Trial)'
+  },
+  {
+    id: 'CUST-8828',
+    name: 'Anirban Ghosh',
+    company: 'Pinnacle Retail Ventures',
+    email: 'anirban@pinnacleretail.co',
+    phone: '+91 98322 77410',
+    city: 'Howrah Commercial Zone',
+    plan: 'Multi-User ERP Sandbox Node',
+    serverNode: 'CtrlS-KOL-NODE-02',
+    status: 'demo',
+    registered: '2026-10-29',
+    mrr: '₹0 (Trial)'
+  },
+  // INACTIVE / SUSPENDED ACCOUNTS
+  {
+    id: 'CUST-8829',
+    name: 'Subrata Mukherjee',
+    company: 'Heritage Tea & Spice Exporters',
+    email: 'subrata@heritagetea.com',
+    phone: '+91 98311 66320',
+    city: 'Siliguri Commercial Hub',
+    plan: 'Tally Single User Silver (Paused)',
+    serverNode: 'CtrlS-KOL-NODE-02',
+    status: 'inactive',
+    registered: '2026-08-10',
+    mrr: '₹6,500'
+  },
+  {
+    id: 'CUST-8830',
+    name: 'Pradip Sen',
+    company: 'Eastern Freight Movers',
+    email: 'pradip@easternfreight.in',
+    phone: '+91 98309 88470',
+    city: 'Kolkata, Port Area',
+    plan: 'Cloud VPS Standard Node (Expired)',
+    serverNode: 'CtrlS-KOL-NODE-03',
+    status: 'inactive',
+    registered: '2026-07-15',
+    mrr: '₹14,000'
   }
 ];
 
@@ -180,6 +234,26 @@ export const INITIAL_PAYMENTS = [
     method: 'RTGS Bank Transfer',
     date: '2026-10-24 16:30',
     invoiceRef: 'INV-2026-1045',
+    status: 'pending'
+  },
+  {
+    id: 'TXN-994096',
+    customer: 'Subrata Mukherjee',
+    company: 'Heritage Tea & Spice Exporters',
+    amount: '₹6,500',
+    method: 'NEFT Bank Transfer',
+    date: '2026-10-21 11:15',
+    invoiceRef: 'INV-2026-1044',
+    status: 'pending'
+  },
+  {
+    id: 'TXN-994095',
+    customer: 'Pradip Sen',
+    company: 'Eastern Freight Movers',
+    amount: '₹14,000',
+    method: 'Cheque Clearance',
+    date: '2026-10-18 15:45',
+    invoiceRef: 'INV-2026-1043',
     status: 'pending'
   }
 ];
@@ -305,3 +379,70 @@ export const INITIAL_RECEIPTS = [
   }
 ];
 
+// Telemetry & Financial Analytics Constants
+export const FINANCIAL_METRICS = {
+  totalReceived: '₹28,65,000',
+  totalDue: '₹4,82,000',
+  totalBilled: '₹33,47,000',
+  collectionRate: '85.6%',
+  activeMRR: '₹99,000',
+  arrValue: '₹1.84 Cr'
+};
+
+// Monthly Total Sales Data for Graph (6 Months)
+export const MONTHLY_SALES_DATA = [
+  { month: 'May', sales: 1480000, label: '₹14.8 L', growth: '+11.2%' },
+  { month: 'Jun', sales: 1720000, label: '₹17.2 L', growth: '+16.2%' },
+  { month: 'Jul', sales: 1950000, label: '₹19.5 L', growth: '+13.4%' },
+  { month: 'Aug', sales: 2210000, label: '₹22.1 L', growth: '+13.3%' },
+  { month: 'Sep', sales: 2540000, label: '₹25.4 L', growth: '+14.9%' },
+  { month: 'Oct', sales: 2865000, label: '₹28.65 L', growth: '+12.8%' }
+];
+
+// Yearly Total Sales Data for Graph (12 Months)
+export const YEARLY_SALES_DATA = [
+  { month: 'Nov', sales: 1120000, label: '₹11.2 L', growth: '+8.4%' },
+  { month: 'Dec', sales: 1250000, label: '₹12.5 L', growth: '+11.6%' },
+  { month: 'Jan', sales: 1310000, label: '₹13.1 L', growth: '+4.8%' },
+  { month: 'Feb', sales: 1380000, label: '₹13.8 L', growth: '+5.3%' },
+  { month: 'Mar', sales: 1620000, label: '₹16.2 L', growth: '+17.4%' },
+  { month: 'Apr', sales: 1420000, label: '₹14.2 L', growth: '-12.3%' },
+  { month: 'May', sales: 1480000, label: '₹14.8 L', growth: '+4.2%' },
+  { month: 'Jun', sales: 1720000, label: '₹17.2 L', growth: '+16.2%' },
+  { month: 'Jul', sales: 1950000, label: '₹19.5 L', growth: '+13.4%' },
+  { month: 'Aug', sales: 2210000, label: '₹22.1 L', growth: '+13.3%' },
+  { month: 'Sep', sales: 2540000, label: '₹25.4 L', growth: '+14.9%' },
+  { month: 'Oct', sales: 2865000, label: '₹28.65 L', growth: '+12.8%' }
+];
+
+// Revenue Breakdown by Product Category for Donut / Pie Chart
+export const CATEGORY_REVENUE_PIE = [
+  {
+    name: 'Tally Prime & Customization',
+    percentage: 42,
+    amount: '₹12,03,300',
+    color: '#6366f1',
+    lightColor: '#e0e7ff'
+  },
+  {
+    name: 'Dedicated Cloud VPS',
+    percentage: 33,
+    amount: '₹9,45,450',
+    color: '#0ea5e9',
+    lightColor: '#e0f2fe'
+  },
+  {
+    name: 'Managed IT & Security',
+    percentage: 15,
+    amount: '₹4,29,750',
+    color: '#10b981',
+    lightColor: '#d1fae5'
+  },
+  {
+    name: 'WhatsApp & Add-on Tools',
+    percentage: 10,
+    amount: '₹2,86,500',
+    color: '#f59e0b',
+    lightColor: '#fef3c7'
+  }
+];

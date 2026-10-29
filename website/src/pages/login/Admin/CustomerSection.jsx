@@ -14,14 +14,18 @@ import {
   Trash2,
   UserCheck,
   Shield,
-  Download
+  Download,
+  Sparkles,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTableSort, SortableTh } from './tableSortUtils';
+import { CountUp } from '../../Dashboard/utils/useCountUp';
 
 export default function CustomerSection({ customers, setCustomers }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Form State for creating a new customer
@@ -37,6 +41,26 @@ export default function CustomerSection({ customers, setCustomers }) {
     mrr: '₹15,000'
   });
 
+  // Calculate live counts for filter buttons
+  const counts = useMemo(() => {
+    return {
+      all: customers.length,
+      active: customers.filter((c) => c.status?.toLowerCase() === 'active').length,
+      demo: customers.filter((c) => c.status?.toLowerCase() === 'demo').length,
+      inactive: customers.filter(
+        (c) => c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'suspended'
+      ).length
+    };
+  }, [customers]);
+
+  // Total active MRR calculation
+  const totalActiveMRR = useMemo(() => {
+    return customers
+      .filter((c) => c.status?.toLowerCase() === 'active')
+      .reduce((acc, c) => acc + (parseInt(c.mrr?.replace(/[^0-9]/g, '')) || 0), 0)
+      .toLocaleString('en-IN');
+  }, [customers]);
+
   // Filtered customer listing
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
@@ -47,10 +71,18 @@ export default function CustomerSection({ customers, setCustomers }) {
         c.company.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q) ||
         c.id.toLowerCase().includes(q) ||
-        (c.phone && c.phone.includes(q));
+        (c.phone && c.phone.includes(q)) ||
+        (c.plan && c.plan.toLowerCase().includes(q));
 
-      const matchesStatus =
-        statusFilter === 'all' || c.status.toLowerCase() === statusFilter.toLowerCase();
+      const custStatus = c.status?.toLowerCase();
+      let matchesStatus = true;
+      if (statusFilter === 'active') {
+        matchesStatus = custStatus === 'active';
+      } else if (statusFilter === 'demo') {
+        matchesStatus = custStatus === 'demo';
+      } else if (statusFilter === 'inactive') {
+        matchesStatus = custStatus === 'inactive' || custStatus === 'suspended';
+      }
 
       return matchesSearch && matchesStatus;
     });
@@ -71,6 +103,11 @@ export default function CustomerSection({ customers, setCustomers }) {
       return;
     }
 
+    const isDemo = formState.status === 'demo';
+    const computedMrr = isDemo
+      ? '₹0 (Trial)'
+      : formState.mrr || (formState.status === 'inactive' ? '₹0' : '₹15,000');
+
     const newCustomer = {
       id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
       name: formState.name.trim(),
@@ -82,7 +119,7 @@ export default function CustomerSection({ customers, setCustomers }) {
       serverNode: formState.serverNode,
       status: formState.status,
       registered: new Date().toISOString().split('T')[0],
-      mrr: formState.mrr || '₹15,000'
+      mrr: computedMrr
     };
 
     setCustomers([newCustomer, ...customers]);
@@ -99,7 +136,7 @@ export default function CustomerSection({ customers, setCustomers }) {
       mrr: '₹15,000'
     });
 
-    toast.success(`Customer ${newCustomer.company} created successfully!`, {
+    toast.success(`Customer "${newCustomer.company}" registered as ${newCustomer.status.toUpperCase()}!`, {
       style: {
         borderRadius: '12px',
         background: '#0f172a',
@@ -118,7 +155,7 @@ export default function CustomerSection({ customers, setCustomers }) {
   };
 
   return (
-    <div className="adm-table-card">
+    <div className="adm-table-card animate-fade-in">
       {/* 1. Card Header with Title on Left and Primary Action Button on Right */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
@@ -126,7 +163,7 @@ export default function CustomerSection({ customers, setCustomers }) {
             Customer Directory &amp; Accounts
           </h1>
           <p className="adm-section-sub">
-            Browse active customers, provisioned cloud VPS nodes, ERP license editions, and create new client profiles.
+            Filter, inspect, and manage active clients, live demo trials, and inactive accounts hosted at CtrlS Kolkata Tier-4 datacenter.
           </p>
         </div>
 
@@ -142,11 +179,77 @@ export default function CustomerSection({ customers, setCustomers }) {
         </div>
       </div>
 
-      {/* 2. Filter / Search Toolbar */}
+      {/* 2. Customer Quick Stat Cards (Total, Active, Demo, Inactive with CountUp) */}
+      <div className="adm-customer-summary-grid">
+        <div
+          className={`adm-cust-stat-card ${statusFilter === 'all' ? 'selected' : ''}`}
+          onClick={() => setStatusFilter('all')}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label">Total Accounts</span>
+            <Users size={18} className="adm-cust-stat-icon purple" />
+          </div>
+          <span className="adm-cust-stat-val">
+            <CountUp end={counts.all} duration={1200} />
+          </span>
+          <span className="adm-cust-stat-desc">All customer records</span>
+        </div>
+
+        <div
+          className={`adm-cust-stat-card ${statusFilter === 'active' ? 'selected' : ''}`}
+          onClick={() => setStatusFilter('active')}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label">Active Clients</span>
+            <CheckCircle2 size={18} className="adm-cust-stat-icon emerald" />
+          </div>
+          <span className="adm-cust-stat-val" style={{ color: '#059669' }}>
+            <CountUp end={counts.active} duration={1200} />
+          </span>
+          <span className="adm-cust-stat-desc">
+            Monthly MRR: ₹
+            <CountUp
+              end={parseInt(totalActiveMRR.replace(/[^0-9]/g, '')) || 99000}
+              useIndianFormat={true}
+              duration={1400}
+            />
+          </span>
+        </div>
+
+        <div
+          className={`adm-cust-stat-card ${statusFilter === 'demo' ? 'selected' : ''}`}
+          onClick={() => setStatusFilter('demo')}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label">Demo / Trials</span>
+            <Clock size={18} className="adm-cust-stat-icon amber" />
+          </div>
+          <span className="adm-cust-stat-val" style={{ color: '#d97706' }}>
+            <CountUp end={counts.demo} duration={1200} />
+          </span>
+          <span className="adm-cust-stat-desc">14-Day sandbox trials</span>
+        </div>
+
+        <div
+          className={`adm-cust-stat-card ${statusFilter === 'inactive' ? 'selected' : ''}`}
+          onClick={() => setStatusFilter('inactive')}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label">Inactive / Paused</span>
+            <XCircle size={18} className="adm-cust-stat-icon slate" />
+          </div>
+          <span className="adm-cust-stat-val" style={{ color: '#64748b' }}>
+            <CountUp end={counts.inactive} duration={1200} />
+          </span>
+          <span className="adm-cust-stat-desc">Expired / pending renewals</span>
+        </div>
+      </div>
+
+      {/* 3. Filter Section of Demo, Active, and Inactive + Search */}
       <div className="adm-table-toolbar">
-        <div className="adm-table-filters">
+        <div className="adm-table-filters" style={{ flexWrap: 'wrap', gap: '12px' }}>
           {/* Search Box */}
-          <div className="adm-search-box" style={{ width: '280px' }}>
+          <div className="adm-search-box" style={{ width: '270px' }}>
             <Search size={15} className="adm-search-icon" />
             <input
               type="text"
@@ -158,15 +261,17 @@ export default function CustomerSection({ customers, setCustomers }) {
             />
           </div>
 
-          {/* Status Filter */}
+          {/* Fallback Select Filter */}
           <select
             className="adm-select-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter Customers by Status"
           >
-            <option value="all">All Statuses ({customers.length})</option>
-            <option value="active">Active Only</option>
-            <option value="pending">Pending Setup</option>
+            <option value="all">All Statuses ({counts.all})</option>
+            <option value="active">Active Only ({counts.active})</option>
+            <option value="demo">Demo / Trials ({counts.demo})</option>
+            <option value="inactive">Inactive / Suspended ({counts.inactive})</option>
           </select>
         </div>
 
@@ -175,9 +280,9 @@ export default function CustomerSection({ customers, setCustomers }) {
         </div>
       </div>
 
-      {/* 3. Customer Listing Table with Vertical & Horizontal Scrolling */}
+      {/* 4. Customer Listing Table with Vertical & Horizontal Scrolling */}
       <div className="adm-table-responsive">
-        <table className="adm-table" style={{ minWidth: '1050px' }}>
+        <table className="adm-table" style={{ minWidth: '1080px' }}>
           <thead>
             <tr>
               <SortableTh
@@ -233,65 +338,78 @@ export default function CustomerSection({ customers, setCustomers }) {
           </thead>
           <tbody>
             {sortedCustomers.length > 0 ? (
-              sortedCustomers.map((cust) => (
-                <tr key={cust.id}>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
-                    {cust.id}
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
-                  </td>
-                  <td>
-                    <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
-                  </td>
-                  <td>
-                    <span className="adm-status-pill info">{cust.plan}</span>
-                  </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
-                    {cust.serverNode}
-                  </td>
-                  <td style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</td>
-                  <td>
-                    <span
-                      className={`adm-status-pill ${
-                        cust.status === 'active' ? 'active' : 'pending'
-                      }`}
-                    >
-                      <CheckCircle2 size={12} />
-                      <span style={{ textTransform: 'capitalize' }}>{cust.status}</span>
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '0.78rem', color: '#64748b' }}>{cust.registered}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <button
-                        type="button"
-                        className="adm-action-pill"
-                        onClick={() =>
-                          toast.success(`Account details for ${cust.company} opened.`)
-                        }
-                      >
-                        Inspect
-                      </button>
-                      <button
-                        type="button"
-                        className="adm-action-pill"
-                        style={{ color: '#dc2626', borderColor: '#fecaca' }}
-                        onClick={() => handleDeleteCustomer(cust.id, cust.company)}
-                        title="Delete customer"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              sortedCustomers.map((cust) => {
+                const s = cust.status?.toLowerCase();
+                return (
+                  <tr key={cust.id}>
+                    <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
+                      {cust.id}
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
+                    </td>
+                    <td>
+                      <span className="adm-status-pill info">{cust.plan}</span>
+                    </td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
+                      {cust.serverNode}
+                    </td>
+                    <td style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</td>
+                    <td>
+                      {s === 'active' && (
+                        <span className="adm-status-pill active">
+                          <CheckCircle2 size={12} />
+                          <span>Active</span>
+                        </span>
+                      )}
+                      {s === 'demo' && (
+                        <span className="adm-status-pill demo">
+                          <Clock size={12} />
+                          <span>Demo Trial</span>
+                        </span>
+                      )}
+                      {(s === 'inactive' || s === 'suspended') && (
+                        <span className="adm-status-pill inactive">
+                          <XCircle size={12} />
+                          <span>Inactive</span>
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ fontSize: '0.78rem', color: '#64748b' }}>{cust.registered}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="adm-action-pill"
+                          onClick={() =>
+                            toast.success(`Account details for ${cust.company} (${cust.status.toUpperCase()}) inspected.`)
+                          }
+                        >
+                          Inspect
+                        </button>
+                        <button
+                          type="button"
+                          className="adm-action-pill"
+                          style={{ color: '#dc2626', borderColor: '#fecaca' }}
+                          onClick={() => handleDeleteCustomer(cust.id, cust.company)}
+                          title="Delete customer"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="9" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
-                  No customer records found matching your search.
+                  No customer records found matching "{statusFilter !== 'all' ? statusFilter : searchQuery}".
                 </td>
               </tr>
             )}
@@ -299,11 +417,17 @@ export default function CustomerSection({ customers, setCustomers }) {
         </table>
       </div>
 
-      {/* 4. Table Footer */}
+      {/* 5. Table Footer */}
       <div className="adm-table-footer">
-        <span>Active enterprise cloud nodes &amp; dedicated Tally Prime deployments</span>
+        <span>Active enterprise cloud nodes &amp; dedicated Tally Prime deployments at CtrlS Kolkata</span>
         <span style={{ fontWeight: 600, color: '#0f172a' }}>
-          Total Active MRR: ₹{customers.filter(c => c.status === 'active').reduce((acc, c) => acc + (parseInt(c.mrr?.replace(/[^0-9]/g, '')) || 0), 0).toLocaleString('en-IN')}
+          Active MRR: ₹
+          <CountUp
+            end={parseInt(totalActiveMRR.replace(/[^0-9]/g, '')) || 99000}
+            useIndianFormat={true}
+            duration={1500}
+          />{' '}
+          • Demo Accounts: <CountUp end={counts.demo} duration={1200} />
         </span>
       </div>
 
@@ -352,6 +476,19 @@ export default function CustomerSection({ customers, setCustomers }) {
                   </div>
 
                   <div className="adm-form-field">
+                    <label className="adm-form-label">Account Status *</label>
+                    <select
+                      className="adm-form-input"
+                      value={formState.status}
+                      onChange={(e) => setFormState({ ...formState, status: e.target.value })}
+                    >
+                      <option value="active">Active (Production Client)</option>
+                      <option value="demo">Demo (14-Day Sandbox Trial)</option>
+                      <option value="inactive">Inactive / Paused</option>
+                    </select>
+                  </div>
+
+                  <div className="adm-form-field">
                     <label className="adm-form-label">Corporate Email Address *</label>
                     <input
                       type="email"
@@ -397,6 +534,8 @@ export default function CustomerSection({ customers, setCustomers }) {
                       <option>Tally Multi-User Cloud + TSS</option>
                       <option>Tally Prime Single User Silver</option>
                       <option>High-Mem Cloud VPS Node</option>
+                      <option>14-Day Cloud VPS Sandbox Trial</option>
+                      <option>Tally Prime Cloud Trial Demo</option>
                     </select>
                   </div>
 
@@ -409,9 +548,22 @@ export default function CustomerSection({ customers, setCustomers }) {
                     >
                       <option>CtrlS-KOL-NODE-01 (Primary Cluster)</option>
                       <option>CtrlS-KOL-NODE-02 (Enterprise Hypervisor)</option>
-                      <option>CtrlS-KOL-NODE-03 (Backup Vault)</option>
+                      <option>CtrlS-KOL-NODE-03 (Backup & Sandbox Vault)</option>
                     </select>
                   </div>
+
+                  {formState.status === 'active' && (
+                    <div className="adm-form-field">
+                      <label className="adm-form-label">Monthly MRR Value</label>
+                      <input
+                        type="text"
+                        className="adm-form-input"
+                        placeholder="e.g. ₹15,000"
+                        value={formState.mrr}
+                        onChange={(e) => setFormState({ ...formState, mrr: e.target.value })}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -434,4 +586,3 @@ export default function CustomerSection({ customers, setCustomers }) {
     </div>
   );
 }
-

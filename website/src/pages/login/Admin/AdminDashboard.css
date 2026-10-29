@@ -593,21 +593,6 @@
   max-width: 1600px;
 }
 
-/* Hero / Header Section */
-.adm-hero-banner {
-  background: #ffffff;
-  border: 1px solid var(--adm-border);
-  border-radius: var(--adm-radius-xl);
-  padding: 24px 28px;
-  box-shadow: var(--adm-shadow-card);
-  margin-bottom: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
 .adm-hero-title {
   font-size: 1.45rem;
   font-weight: 700;
@@ -1016,10 +1001,12 @@
   font-weight: 600;
 }
 
-.adm-status-pill.active { background: var(--adm-emerald-soft); color: var(--adm-emerald); }
-.adm-status-pill.pending { background: var(--adm-amber-soft); color: var(--adm-amber); }
-.adm-status-pill.suspended, .adm-status-pill.expiring { background: var(--adm-rose-soft); color: var(--adm-rose); }
-.adm-status-pill.info { background: var(--adm-purple-light); color: var(--adm-purple); }
+.adm-status-pill.active { background: var(--adm-emerald-soft); color: var(--adm-emerald); border: 1px solid rgba(5, 150, 105, 0.2); }
+.adm-status-pill.demo { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.adm-status-pill.inactive { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+.adm-status-pill.pending { background: var(--adm-amber-soft); color: var(--adm-amber); border: 1px solid rgba(217, 119, 6, 0.2); }
+.adm-status-pill.suspended, .adm-status-pill.expiring { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid rgba(225, 29, 72, 0.2); }
+.adm-status-pill.info { background: var(--adm-purple-light); color: var(--adm-purple); border: 1px solid rgba(99, 102, 241, 0.15); }
 
 .adm-action-pill {
   background: #ffffff;
@@ -1470,10 +1457,6 @@ input:checked + .adm-slider:before {
   .adm-products-grid {
     grid-template-columns: 1fr;
   }
-  .adm-hero-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
   .adm-hero-actions {
     width: 100%;
     flex-direction: column;
@@ -1481,5 +1464,779 @@ input:checked + .adm-slider:before {
   .adm-btn-primary, .adm-btn-secondary {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* =========================================================================
+   FINANCIAL HIGHLIGHT CARDS (PAYMENT RECEIVED & PAYMENT DUE) — 2X2 GRID
+   ========================================================================= */
+.adm-finance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-bottom: 30px;
+}
+
+.adm-finance-card {
+  background: #ffffff;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-xl);
+  padding: 24px 28px;
+  box-shadow: var(--adm-shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.adm-finance-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+}
+
+.adm-finance-card.payment-received::after {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.adm-finance-card.payment-due::after {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.adm-finance-card.mrr-arr::after {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.adm-finance-card.customer-ratio::after {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.adm-finance-card:hover {
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.adm-finance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.adm-finance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--adm-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.adm-finance-badge.emerald {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.adm-finance-badge.amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.adm-finance-badge.purple {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.adm-finance-badge.blue {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.adm-finance-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.adm-finance-trend.up {
+  color: #059669;
+}
+
+.adm-finance-trend.due-tag {
+  color: #d97706;
+  background: #fffbeb;
+  padding: 2px 7px;
+  border-radius: var(--adm-radius-pill);
+  border: 1px solid #fde68a;
+}
+
+.adm-finance-trend.neutral {
+  color: #64748b;
+}
+
+.adm-finance-content {
+  margin-bottom: 18px;
+}
+
+.adm-finance-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.adm-finance-value {
+  font-size: 2.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 2px 0 8px 0;
+}
+
+.adm-finance-value.emerald-val {
+  color: #065f46;
+}
+
+.adm-finance-value.amber-val {
+  color: #b45309;
+}
+
+.adm-finance-value.purple-val {
+  color: #4338ca;
+}
+
+.adm-finance-value.blue-val {
+  color: #0369a1;
+}
+
+.adm-finance-caption {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.adm-finance-footer {
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px solid var(--adm-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+}
+
+.adm-finance-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.adm-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.adm-dot.emerald { background-color: #10b981; }
+.adm-dot.amber { background-color: #f59e0b; }
+.adm-dot.purple { background-color: #6366f1; }
+.adm-dot.blue { background-color: #0ea5e9; }
+
+/* Interactive Bottom-Right Action Button */
+.adm-finance-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--adm-radius-pill);
+  border: 1px solid transparent;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.adm-finance-link:hover {
+  transform: translateX(2px);
+}
+
+.adm-finance-link.emerald-link {
+  color: #065f46;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.adm-finance-link.emerald-link:hover {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.adm-finance-link.amber-link {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.adm-finance-link.amber-link:hover {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+}
+
+.adm-finance-link.purple-link {
+  color: #4338ca;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.adm-finance-link.purple-link:hover {
+  background: #6366f1;
+  color: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.adm-finance-link.blue-link {
+  color: #0369a1;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.adm-finance-link.blue-link:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+/* =========================================================================
+   CHARTS GRID: TOTAL SALES GRAPH + PIE / DONUT CHART
+   ========================================================================= */
+.adm-charts-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1.3fr;
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.adm-chart-card {
+  background: #ffffff;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-xl);
+  padding: 24px 26px;
+  box-shadow: var(--adm-shadow-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.adm-chart-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.adm-chart-sub {
+  font-size: 0.78rem;
+  color: var(--adm-text-muted);
+  margin: 4px 0 0;
+}
+
+.adm-chart-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-chart-pills {
+  display: inline-flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: var(--adm-radius-pill);
+  gap: 2px;
+}
+
+.adm-chart-pill-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--adm-radius-pill);
+  padding: 5px 12px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-chart-pill-btn.active {
+  background: #ffffff;
+  color: var(--adm-purple);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dynamic Hover Metric Row */
+.adm-sales-metric-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-radius: var(--adm-radius-lg);
+  border: 1px solid var(--adm-border-light);
+  margin-bottom: 16px;
+}
+
+.adm-metric-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-metric-caption {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
+}
+
+.adm-metric-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.adm-metric-growth {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.adm-metric-val-sm {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4338ca;
+}
+
+.adm-svg-chart-wrapper {
+  width: 100%;
+  position: relative;
+  overflow: visible;
+}
+
+.adm-sales-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Donut Chart Layout */
+.adm-donut-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 20px;
+  flex: 1;
+  padding: 10px 0;
+}
+
+.adm-donut-svg-wrap {
+  width: 190px;
+  height: 190px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.adm-donut-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.adm-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.adm-donut-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: var(--adm-radius-md);
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+
+.adm-donut-legend-item:hover,
+.adm-donut-legend-item.hovered {
+  background: #f8fafc;
+  transform: translateX(3px);
+}
+
+.adm-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-legend-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.adm-legend-cat-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: block;
+}
+
+.adm-legend-amount {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.adm-legend-pct {
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.adm-donut-bottom-note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--adm-border-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+/* =========================================================================
+   CUSTOMER QUICK STATS & SEGMENTED FILTER PILLS (CUSTOMER SECTION)
+   ========================================================================= */
+.adm-customer-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0 28px 18px;
+}
+
+.adm-cust-stat-card {
+  background: #f8fafc;
+  border: 1px solid var(--adm-border-light);
+  border-radius: var(--adm-radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.adm-cust-stat-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.adm-cust-stat-card.selected {
+  background: #ffffff;
+  border-color: var(--adm-purple);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.adm-cust-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.adm-cust-stat-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.adm-cust-stat-icon.purple { color: #6366f1; }
+.adm-cust-stat-icon.emerald { color: #10b981; }
+.adm-cust-stat-icon.amber { color: #f59e0b; }
+.adm-cust-stat-icon.slate { color: #94a3b8; }
+
+.adm-cust-stat-val {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.adm-cust-stat-desc {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.adm-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--adm-radius-pill);
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.adm-pill-btn:hover {
+  color: #0f172a;
+}
+
+.adm-pill-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.adm-pill-btn.active.active-tab {
+  color: #065f46;
+  border-left: 2px solid #059669;
+}
+
+.adm-pill-btn.active.demo-tab {
+  color: #92400e;
+  border-left: 2px solid #d97706;
+}
+
+.adm-pill-btn.active.inactive-tab {
+  color: #475569;
+  border-left: 2px solid #64748b;
+}
+
+.adm-filter-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.adm-filter-dot.active-dot { background-color: #10b981; }
+.adm-filter-dot.demo-dot { background-color: #f59e0b; }
+.adm-filter-dot.inactive-dot { background-color: #94a3b8; }
+
+/* Responsive adjustments for financial cards and charts */
+@media (max-width: 1200px) {
+  .adm-finance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .adm-charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .adm-customer-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .adm-finance-grid,
+  .adm-customer-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .adm-sales-metric-row {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .adm-donut-flex {
+    flex-direction: column;
+  }
+}
+
+/* =========================================================================
+   DYNAMIC GRAPH & COUNT-UP MOVEMENT ANIMATIONS (LIKE CUSTOMER OVERVIEW)
+   ========================================================================= */
+
+/* Tabular numbers for fluid count-up rendering */
+.count-up-animated {
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  transition: all 0.15s ease;
+}
+
+/* Sales Area Chart Animated Entrance */
+.adm-chart-stroke-path {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: admStrokeDraw 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes admStrokeDraw {
+  0% {
+    stroke-dashoffset: 1400;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.adm-chart-area-path {
+  opacity: 0;
+  transform-origin: bottom;
+  animation: admAreaRise 1.4s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes admAreaRise {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.75);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Staggered entrance for data points on the spline */
+.adm-chart-point-group {
+  opacity: 0;
+  transform-origin: center;
+  animation: admPointPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes admPointPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.adm-chart-point-circle {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.adm-chart-point-group:hover .adm-chart-point-circle {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.6));
+}
+
+/* Radar pulse wave on active/hovered data point */
+.adm-chart-pulse-radar {
+  animation: admRadarPulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes admRadarPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.adm-chart-guide-line {
+  animation: admFadeInGuide 0.2s ease forwards;
+}
+
+@keyframes admFadeInGuide {
+  from { opacity: 0; }
+  to { opacity: 0.75; }
+}
+
+/* Donut Slice Rotation & Scale Entrance Animation */
+.adm-donut-slice {
+  transform-origin: 110px 110px;
+  animation: admSliceEntrance 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, filter 0.25s ease;
+}
+
+@keyframes admSliceEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-35deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.adm-donut-center-circle {
+  animation: admDonutCenterPulse 3s infinite ease-in-out;
+}
+
+@keyframes admDonutCenterPulse {
+  0% {
+    filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.08));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.25));
+  }
+  100% {
+    filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.08));
+  }
+}
+
+/* Staggered slide-in for Donut Legend Items */
+.adm-donut-legend-item {
+  animation: admLegendSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes admLegendSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }

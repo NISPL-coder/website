@@ -55,6 +55,7 @@ export function CountUp({
   prefix = '',
   suffix = '',
   separator = ',',
+  useIndianFormat = false,
   className = ''
 }) {
   const [displayValue, setDisplayValue] = useState(start);
@@ -90,6 +91,13 @@ export function CountUp({
   }, [end, start, duration]);
 
   const formatNumber = (num) => {
+    if (useIndianFormat) {
+      const rounded = decimals > 0 ? parseFloat(num.toFixed(decimals)) : Math.round(num);
+      return rounded.toLocaleString('en-IN', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
     if (decimals > 0) {
       const fixed = num.toFixed(decimals);
       if (separator) {
