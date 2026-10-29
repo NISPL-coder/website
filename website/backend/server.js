@@ -97,11 +97,15 @@ app.use((err, req, res, next) => {
 
 import url from 'url';
 
-// Start Server if not imported as a test module
-const PORT = config.port;
-const isMain = process.argv[1] && url.pathToFileURL(process.argv[1]).href === import.meta.url;
+// Start Server
+const PORT = process.env.PORT || config.port || 5000;
+let serverInstance = null;
 
-if (isMain && process.env.NODE_ENV !== 'test') {
+export const startServer = (port = PORT) => {
+  if (serverInstance) {
+    return serverInstance;
+  }
+
   // Connect to MongoDB Atlas
   connectDB().then(async (conn) => {
     if (conn) {
@@ -111,15 +115,22 @@ if (isMain && process.env.NODE_ENV !== 'test') {
     console.error('[Server] MongoDB initialization notice:', err.message);
   });
 
-  app.listen(PORT, () => {
+  serverInstance = app.listen(port, '0.0.0.0', () => {
     console.log(`=======================================================`);
-    console.log(`NISPL Backend Server running on port ${PORT}`);
+    console.log(`NISPL Backend Server running on port ${port} (0.0.0.0)`);
     console.log(`Environment: ${config.nodeEnv} | Timezone: ${config.timezone}`);
     console.log(`Database: MongoDB Atlas (${config.mongoUri ? 'Active' : 'Unconfigured'})`);
-    console.log(`Auth Endpoints: http://localhost:${PORT}/api/auth/register & /login`);
-    console.log(`Career API Endpoint: http://localhost:${PORT}/api/career/apply`);
+    console.log(`Auth Endpoints: http://localhost:${port}/api/auth/register & /login`);
+    console.log(`Career API Endpoint: http://localhost:${port}/api/career/apply`);
     console.log(`=======================================================`);
   });
+
+  return serverInstance;
+};
+
+// Start Server automatically when not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
 }
 
 export { app };
