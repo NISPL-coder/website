@@ -108,9 +108,6 @@ export default function DashboardNavbar({
           </div>
         </div>
       </header>
-
-      {/* AI Insight Modal Dialog */}
-      <AiInsightModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
     </>
   );
 }

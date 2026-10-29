@@ -62,15 +62,15 @@
   --ds-text-3:     #64748b;
   --ds-text-4:     #94a3b8;
 
-  /* Brand — NIS sky→blue gradient as the single accent source */
-  --ds-blue:       #2563eb;
-  --ds-blue-deep:  #1d4ed8;
-  --ds-blue-mid:   #dbeafe;
-  --ds-blue-lt:    #eff6ff;
-  --ds-brand-grad: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-  --ds-brand-grad-hover: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
-  --ds-ring:       rgba(37, 99, 235, 0.16);
-  --ds-ring-strong: rgba(37, 99, 235, 0.28);
+  /* Brand — FlowMail Purple→Indigo gradient as the single accent source */
+  --ds-blue:       #6366f1;
+  --ds-blue-deep:  #4f46e5;
+  --ds-blue-mid:   #ddd6fe;
+  --ds-blue-lt:    #f5f3ff;
+  --ds-brand-grad: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  --ds-brand-grad-hover: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
+  --ds-ring:       rgba(99, 102, 241, 0.16);
+  --ds-ring-strong: rgba(99, 102, 241, 0.28);
 
   /* Status */
   --ds-green:      #059669;
@@ -419,10 +419,10 @@
 }
 
 /* Active state recolours nested icons/labels for full contrast */
-.cliento-nav-item.active .cliento-nav-icon,
-.cliento-nav-item.active .cliento-nav-label,
-.cliento-nav-item.active .cliento-nav-arrow,
-.cliento-nav-item.active .cliento-help-icon { color: #ffffff; }
+.cliento-sidebar:not(.flowmail-sidebar) .cliento-nav-item.active .cliento-nav-icon,
+.cliento-sidebar:not(.flowmail-sidebar) .cliento-nav-item.active .cliento-nav-label,
+.cliento-sidebar:not(.flowmail-sidebar) .cliento-nav-item.active .cliento-nav-arrow,
+.cliento-sidebar:not(.flowmail-sidebar) .cliento-nav-item.active .cliento-help-icon { color: #ffffff; }
 
 .cliento-nav-item.active .cliento-nav-badge {
   background: rgba(255, 255, 255, 0.22);
@@ -10664,17 +10664,31 @@
   color: #0f172a !important;
 }
 
-.flowmail-nav-item.active {
+.flowmail-nav-item.active,
+.flowmail-sidebar .cliento-nav-item.active {
   background: #ede9fe !important;
   color: #0f172a !important;
   font-weight: 600 !important;
 }
 
-.flowmail-nav-item.active .cliento-nav-icon {
+.flowmail-nav-item.active .cliento-nav-label,
+.flowmail-sidebar .cliento-nav-item.active .cliento-nav-label {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.flowmail-nav-item.active .cliento-nav-icon,
+.flowmail-sidebar .cliento-nav-item.active .cliento-nav-icon {
   color: #6366f1 !important;
 }
 
-.flowmail-nav-item.active .cliento-nav-arrow {
+.flowmail-nav-item.active .cliento-nav-arrow,
+.flowmail-sidebar .cliento-nav-item.active .cliento-nav-arrow {
+  color: #6366f1 !important;
+}
+
+.flowmail-nav-item.active .cliento-help-icon,
+.flowmail-sidebar .cliento-nav-item.active .cliento-help-icon {
   color: #6366f1 !important;
 }
 
@@ -11733,3 +11747,295 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==========================================================================
+   FLOWMAIL THEME HARMONIZATION: PRODUCTS, CART, RECEIPT, PAYMENT
+   ========================================================================== */
+
+/* Unified Section Wrapper */
+.flowmail-section-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Override legacy cliento-overview-wrapper to guarantee identical theme */
+.cliento-overview-wrapper {
+  max-width: 1480px !important;
+  margin: 0 auto !important;
+  padding: 24px 32px 48px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Monospace Purple ID Badge for Invoices & SKU */
+.flowmail-receipt-id-badge {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  background: #f5f3ff;
+  color: #6366f1;
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-block;
+  letter-spacing: -0.01em;
+}
+
+/* FlowMail Table Theme */
+.flowmail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.flowmail-table thead tr th {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-size: 0.76rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  text-transform: uppercase;
+}
+
+.flowmail-table tbody tr.flowmail-table-row {
+  transition: background 0.15s ease;
+}
+
+.flowmail-table tbody tr.flowmail-table-row:hover td {
+  background: #f8fafc !important;
+}
+
+/* Pill badge variations */
+.flowmail-trend-pill.indigo {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.flowmail-trend-pill.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.flowmail-trend-pill.blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+/* Two Large Hero Selection Boxes (Overview FlowMail Theme) */
+.solution-hero-card {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  border-radius: 24px !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+  background: #ffffff !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.25s ease !important;
+}
+
+.solution-hero-card:hover {
+  transform: translateY(-8px) !important;
+}
+
+.solution-hero-card.tally-theme:hover {
+  border-color: #fca5a5 !important;
+  box-shadow: 0 20px 45px -8px rgba(220, 38, 38, 0.16), 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.solution-hero-card.cloud-theme:hover {
+  border-color: #c4b5fd !important;
+  box-shadow: 0 20px 45px -8px rgba(99, 102, 241, 0.18), 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.solution-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 1.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: #0f172a !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.solution-one-line-desc {
+  font-size: 0.94rem !important;
+  color: #64748b !important;
+  line-height: 1.5 !important;
+}
+
+.solution-center-logo-box.cloud-logo-center {
+  background: #ede9fe !important;
+  border: 1px solid #ddd6fe !important;
+  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.15) !important;
+}
+
+.cloud-center-icon-badge {
+  color: #6366f1 !important;
+}
+
+.solution-explore-btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 10px 22px !important;
+  border-radius: 999px !important;
+}
+
+.solution-explore-btn.tally-btn {
+  color: #dc2626 !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fee2e2 !important;
+}
+
+.solution-hero-card.tally-theme:hover .solution-explore-btn.tally-btn {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3) !important;
+}
+
+.solution-explore-btn.cloud-btn {
+  color: #6366f1 !important;
+  background: #ede9fe !important;
+  border: 1px solid #ddd6fe !important;
+}
+
+.solution-hero-card.cloud-theme:hover .solution-explore-btn.cloud-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+}
+
+
+.flowmail-cart-row:hover {
+  background: #fafbfc;
+}
+
+/* Legacy element harmonization */
+.cliento-btn-filter,
+.cliento-btn-export,
+.cliento-pay-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+
+.cliento-btn-filter:hover,
+.cliento-btn-export:hover,
+.cliento-pay-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+  background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%) !important;
+}
+
+.cliento-pdf-btn {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  transition: all 0.18s ease !important;
+}
+
+.cliento-pdf-btn:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.cliento-page-btn.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+}
+
+/* ==========================================================================
+   RECEIPT & TABLE DUAL-AXIS SCROLL & VIEWPORT BOUNDARY SAFEGUARDS
+   ========================================================================== */
+
+/* Main layout viewport boundaries */
+.cust-dash-main-area {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.flowmail-overview-container {
+  width: 100% !important;
+  max-width: 1480px !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive 4-KPI Grid for Receipts - Guaranteed never to exceed viewport */
+.flowmail-receipt-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1240px) {
+  .flowmail-receipt-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .flowmail-receipt-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Dual-Scrollable Table Container (Horizontal & Vertical) */
+.flowmail-table-scroll {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: 440px !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flowmail-table-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.flowmail-table-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.flowmail-table-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.flowmail-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Sticky Header on Scroll */
+.flowmail-table-scroll thead th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: #f8fafc !important;
+  box-shadow: 0 1px 0 #e2e8f0 !important;
+}
+
+

@@ -705,49 +705,6 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
             </table>
           </div>
         </div>
-
-        {/* Bottom Right: AI Insights Widget */}
-        <div className="flowmail-card flowmail-insights-card">
-          <div className="flowmail-card-header-row">
-            <div>
-              <h3 className="flowmail-card-title">AI Insights</h3>
-            </div>
-          </div>
-
-          <div className="flowmail-insights-items-wrap">
-            {/* Item 1 */}
-            <div className="flowmail-insight-pill-box">
-              <div className="flowmail-insight-icon-box">
-                <Clock size={16} />
-              </div>
-              <div className="flowmail-insight-text">
-                <span className="flowmail-insight-heading">Best Send Time</span>
-                <span className="flowmail-insight-sub">Tuesday at 10 AM shows highest open rates.</span>
-              </div>
-            </div>
-
-            {/* Item 2 */}
-            <div className="flowmail-insight-pill-box">
-              <div className="flowmail-insight-icon-box">
-                <Mail size={16} />
-              </div>
-              <div className="flowmail-insight-text">
-                <span className="flowmail-insight-heading">Subject Line Tip</span>
-                <span className="flowmail-insight-sub">Adding personalization boosts conversions by 22%.</span>
-              </div>
-            </div>
-
-            {/* Open AI Assistant Gradient Button */}
-            <button
-              type="button"
-              className="flowmail-open-assistant-btn"
-              onClick={() => setIsAiModalOpen(true)}
-            >
-              <Sparkles size={16} />
-              <span>Open AI Assistant</span>
-            </button>
-          </div>
-        </div>
       </section>
 
       {/* ── 5. Plan Reminders Section (FlowMail Clean Card Styling) ── */}

@@ -277,7 +277,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
           {/* TAB 2: PRODUCTS */}
           {activeNav === 'products' && (
-            <div className="cliento-overview-wrapper animate-fade-in">
+            <div className="flowmail-overview-container animate-fade-in">
               <ProductsSection
                 onAddToCart={handleAddToCart}
                 onGoToCart={() => handleSelectNav('cart')}
@@ -288,7 +288,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
           {/* TAB 3: PAYMENT */}
           {activeNav === 'payment' && (
-            <div className="cliento-overview-wrapper animate-fade-in">
+            <div className="flowmail-overview-container animate-fade-in">
               <PaymentSection
                 pendingAmount={payableAmount}
                 onPaymentSuccess={handlePaymentSuccess}
@@ -300,7 +300,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
           {/* TAB 4: CART */}
           {activeNav === 'cart' && (
-            <div className="cliento-overview-wrapper animate-fade-in">
+            <div className="flowmail-overview-container animate-fade-in">
               <CartSection
                 cartItems={cartItems}
                 fulfillmentMode={fulfillmentMode}
@@ -316,14 +316,14 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
           {/* TAB 5: RECEIPT */}
           {activeNav === 'receipt' && (
-            <div className="cliento-overview-wrapper animate-fade-in">
+            <div className="flowmail-overview-container animate-fade-in">
               <ReceiptSection receipts={receipts} customer={customer} />
             </div>
           )}
 
           {/* TAB 6: HELP CENTER */}
           {activeNav === 'help' && (
-            <div className="cliento-overview-wrapper animate-fade-in">
+            <div className="flowmail-overview-container animate-fade-in">
               <HelpSection customer={customer} />
             </div>
           )}

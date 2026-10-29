@@ -48,8 +48,8 @@ export default function ProductDetailsModal({
   if (!isOpen || !product) return null;
 
   const isTally = product.category === 'software' || product.category === 'tss' || product.category === 'addons' || (product.fullName && product.fullName.includes('Tally'));
-  const themeAccent = isTally ? '#dc2626' : '#2563eb';
-  const themeBg = isTally ? '#fef2f2' : '#eff6ff';
+  const themeAccent = isTally ? '#dc2626' : '#6366f1';
+  const themeBg = isTally ? '#fef2f2' : '#ede9fe';
 
   const pricing = calculatePricing({
     basePrice: product.basePrice,
@@ -58,181 +58,159 @@ export default function ProductDetailsModal({
   });
 
   const modalContent = (
-    <div className="product-modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="flowmail-ai-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
-        className="product-modal-box animate-scale-up"
+        className="flowmail-ai-modal animate-scale-up"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '640px' }}
       >
         {/* Modal Header */}
-        <div className="product-modal-header" style={{ borderBottomColor: isTally ? '#fee2e2' : '#e0e7ff' }}>
-          <div className="product-modal-title-group">
-            <div className="product-modal-icon-badge" style={{ background: themeBg, color: themeAccent }}>
+        <div className="flowmail-ai-modal-header">
+          <div className="flowmail-ai-modal-title-group">
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: themeBg,
+              color: themeAccent,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
               {isTally ? (
-                <img src={tallyLogo} alt="Tally" className="modal-tally-logo" />
+                <img src={tallyLogo} alt="Tally" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
               ) : (
                 <Server size={22} />
               )}
             </div>
             <div>
-              <div className="product-modal-tag-row">
-                <span className="product-modal-category-tag" style={{ color: themeAccent, background: themeBg }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
                   {product.categoryLabel || (isTally ? 'Tally Solution' : 'Cloud Infrastructure')}
                 </span>
-                {product.badge && (
-                  <span className={`product-modal-pill ${product.badgeVariant || 'badge-blue'}`}>
-                    {product.badge}
-                  </span>
-                )}
-                <span className="product-modal-status">
-                  <CheckCircle2 size={12} color="#059669" /> Certified & Verified
+                <span className="flowmail-trend-pill positive" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                  <CheckCircle2 size={11} /> Certified
                 </span>
               </div>
-              <h3 className="product-modal-title">{product.fullName || product.name}</h3>
+              <h3 className="flowmail-ai-modal-title" style={{ fontSize: '1.12rem' }}>
+                {product.fullName || product.name}
+              </h3>
             </div>
           </div>
 
           <button
             type="button"
-            className="product-modal-close"
+            className="flowmail-modal-close-btn"
             onClick={onClose}
             aria-label="Close product specifications"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="product-modal-body">
+        <div className="flowmail-ai-modal-body" style={{ maxHeight: '68vh', overflowY: 'auto' }}>
           {/* Hero Short Description */}
-          <div className="product-modal-desc-box">
-            <p>{product.shortDesc || product.desc}</p>
+          <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '14px', padding: '14px 16px' }}>
+            <p style={{ margin: 0, fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
+              {product.shortDesc || product.desc}
+            </p>
           </div>
 
           {/* Key Specifications Grid */}
-          <h5 className="modal-section-heading">Plan Specifications & Parameters</h5>
-          <div className="modal-specs-grid">
+          <h5 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', margin: '8px 0 0 0' }}>
+            Plan Specifications &amp; Parameters
+          </h5>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
             {product.licenseType && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">License Model</span>
-                <span className="modal-spec-val">{product.licenseType}</span>
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>License Model</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.licenseType}</span>
               </div>
             )}
             {product.userType && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">User Capacity</span>
-                <span className="modal-spec-val">{product.userType}</span>
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>User Capacity</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.userType}</span>
               </div>
             )}
             {product.cpu && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Processor / Compute</span>
-                <span className="modal-spec-val">{product.cpu}</span>
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Processor / Compute</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.cpu}</span>
               </div>
             )}
             {product.ram && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Dedicated RAM</span>
-                <span className="modal-spec-val">{product.ram}</span>
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Dedicated RAM</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.ram}</span>
               </div>
             )}
             {product.storage && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Storage Drive</span>
-                <span className="modal-spec-val">{product.storage}</span>
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Storage / NVMe</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.storage}</span>
               </div>
             )}
-            {product.os && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Operating System</span>
-                <span className="modal-spec-val">{product.os}</span>
-              </div>
-            )}
-            {product.duration && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Duration</span>
-                <span className="modal-spec-val">{product.duration}</span>
-              </div>
-            )}
-            {product.billingCycle && (
-              <div className="modal-spec-card">
-                <span className="modal-spec-lbl">Billing Cycle</span>
-                <span className="modal-spec-val">{product.billingCycle}</span>
+            {product.sla && (
+              <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>High Availability SLA</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>{product.sla}</span>
               </div>
             )}
           </div>
 
-          {/* Included Features Checklist */}
+          {/* Features Checklist */}
           {product.features && product.features.length > 0 && (
-            <>
-              <h5 className="modal-section-heading" style={{ marginTop: 22 }}>
-                What's Included in this Plan
+            <div style={{ marginTop: '8px' }}>
+              <h5 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', margin: '0 0 10px 0' }}>
+                Included Modules &amp; Capabilities
               </h5>
-              <div className="modal-features-list">
-                {product.features.map((feat, i) => (
-                  <div key={i} className="modal-feature-item">
-                    <div className="modal-feature-check" style={{ color: themeAccent, background: themeBg }}>
-                      <Check size={13} strokeWidth={2.5} />
-                    </div>
-                    <span>{feat}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {product.features.map((feat, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.84rem', color: '#475569' }}>
+                    <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ lineHeight: 1.4 }}>{feat}</span>
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
 
-          {/* Transparent GST & Pricing Breakdown Box */}
-          <h5 className="modal-section-heading" style={{ marginTop: 22 }}>
-            Transparent Pricing & Tax Breakdown
-          </h5>
-          <div className="modal-pricing-box">
-            <div className="modal-price-row">
-              <span className="modal-price-lbl">Base Price</span>
-              <span className="modal-price-val font-mono">{pricing.formattedBasePrice}</span>
+          {/* Pricing Breakdown Card */}
+          <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '16px 18px', marginTop: '10px' }}>
+            <h5 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', margin: '0 0 12px 0' }}>
+              Statutory GST Breakdown
+            </h5>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#64748b', marginBottom: '8px' }}>
+              <span>Base License Fee</span>
+              <span style={{ color: '#0f172a', fontWeight: '600' }}>{pricing.formattedDiscountedPrice}</span>
             </div>
 
-            {pricing.discountAmount > 0 && (
-              <div className="modal-price-row discount-row">
-                <span className="modal-price-lbl">
-                  Promotional Discount ({pricing.discountPercent}%)
-                </span>
-                <span className="modal-price-val text-emerald font-mono">
-                  - {pricing.formattedDiscountAmount}
-                </span>
-              </div>
-            )}
-
-            <div className="modal-price-row subtotal-row">
-              <span className="modal-price-lbl">Net Taxable Amount</span>
-              <span className="modal-price-val font-mono">{pricing.formattedDiscountedPrice}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#64748b', marginBottom: '12px' }}>
+              <span>GST (18% Input Credit Eligible)</span>
+              <span style={{ color: '#0f172a', fontWeight: '600' }}>{pricing.formattedGstAmount}</span>
             </div>
 
-            <div className="modal-price-row">
-              <span className="modal-price-lbl">Goods & Services Tax (18% GST)</span>
-              <span className="modal-price-val font-mono">{pricing.formattedGstAmount}</span>
-            </div>
-
-            <div className="modal-price-divider" />
-
-            <div className="modal-price-row final-row">
+            <div style={{ borderTop: '1px solid #eef2f6', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <div>
-                <span className="modal-final-title">Total Payable Amount</span>
-                <span className="modal-final-sub">Includes 18% Input Tax Credit (ITC) Eligible GST</span>
+                <span style={{ fontSize: '0.94rem', fontWeight: '700', color: '#0f172a' }}>Total Final Amount</span>
+                <span style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8' }}>100% Tax Deductible</span>
               </div>
-              <div className="modal-final-right">
-                <span className="modal-final-amount" style={{ color: themeAccent }}>
-                  {pricing.formattedFinalPrice}
-                </span>
-                <span className="modal-final-cycle">{product.billingCycle === 'Monthly' ? '/ month' : '/ year'}</span>
-              </div>
+              <span style={{ fontSize: '1.35rem', fontWeight: '800', color: '#6366f1' }}>
+                {pricing.formattedFinalPrice}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Modal Footer CTAs */}
-        <div className="product-modal-footer">
+        <div className="flowmail-ai-modal-footer">
           <button
             type="button"
-            className="modal-secondary-btn"
+            className="flowmail-btn-secondary"
             onClick={onClose}
           >
             <span>Close</span>
@@ -241,28 +219,27 @@ export default function ProductDetailsModal({
           {isInCart ? (
             <button
               type="button"
-              className="modal-primary-btn in-cart-btn"
+              className="flowmail-btn-primary"
               onClick={() => {
                 onClose();
                 onGoToCart && onGoToCart();
               }}
             >
               <ShoppingCart size={15} />
-              <span>Already in Cart &middot; View Cart</span>
+              <span>Already in Cart &bull; View Cart</span>
               <ArrowRight size={14} />
             </button>
           ) : (
             <button
               type="button"
-              className="modal-primary-btn"
-              style={{ background: '#0284c7', borderColor: '#0284c7' }}
+              className="flowmail-btn-primary"
               onClick={() => {
                 onAddToCart(product);
                 onClose();
               }}
             >
               <ShoppingCart size={15} />
-              <span>Select Plan & Add to Cart</span>
+              <span>Add to Cart</span>
               <ArrowRight size={14} />
             </button>
           )}

@@ -120,8 +120,19 @@ export default function DashboardSidebar({
               title={isCollapsed ? item.label : undefined}
             >
               <div className="cliento-nav-item-left">
-                <Icon size={18} className="cliento-nav-icon" />
-                {!isCollapsed && <span className="cliento-nav-label">{item.label}</span>}
+                <Icon
+                  size={18}
+                  className="cliento-nav-icon"
+                  style={isActive ? { color: '#6366f1' } : undefined}
+                />
+                {!isCollapsed && (
+                  <span
+                    className="cliento-nav-label"
+                    style={isActive ? { color: '#0f172a', fontWeight: '600' } : undefined}
+                  >
+                    {item.label}
+                  </span>
+                )}
               </div>
 
               {!isCollapsed && (
@@ -129,7 +140,13 @@ export default function DashboardSidebar({
                   {hasBadge && (
                     <span className="cliento-nav-badge flowmail-cart-badge">{cartCount}</span>
                   )}
-                  {isActive && <ChevronRight size={14} className="cliento-nav-arrow" />}
+                  {isActive && (
+                    <ChevronRight
+                      size={14}
+                      className="cliento-nav-arrow"
+                      style={{ color: '#6366f1' }}
+                    />
+                  )}
                 </div>
               )}
             </button>
@@ -150,8 +167,19 @@ export default function DashboardSidebar({
           aria-label="Open Help Center"
         >
           <div className="cliento-nav-item-left">
-            <LifeBuoy size={18} className="cliento-nav-icon cliento-help-icon" />
-            {!isCollapsed && <span className="cliento-nav-label">Help Center</span>}
+            <LifeBuoy
+              size={18}
+              className="cliento-nav-icon cliento-help-icon"
+              style={activeNav === 'help' ? { color: '#6366f1' } : undefined}
+            />
+            {!isCollapsed && (
+              <span
+                className="cliento-nav-label"
+                style={activeNav === 'help' ? { color: '#0f172a', fontWeight: '600' } : undefined}
+              >
+                Help Center
+              </span>
+            )}
           </div>
           {!isCollapsed && (
             <div className="cliento-nav-item-right">

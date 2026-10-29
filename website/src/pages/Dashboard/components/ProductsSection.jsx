@@ -374,38 +374,37 @@ export default function ProductsSection({
   const themeClass = 'tally-theme-listing';
 
   return (
-    <div className={`cliento-products-container animate-fade-in ${themeClass}`}>
+    <div className={`flowmail-section-wrapper animate-fade-in ${themeClass}`} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* ── 1. Top Header Banner (FlowMail Style) ────────────────── */}
+      <section className="flowmail-welcome-banner">
+        <div className="flowmail-welcome-text">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 className="flowmail-welcome-title">Featured Products</h2>
+            <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.74rem' }}>
+              Our Collection
+            </span>
+          </div>
+          <p className="flowmail-welcome-sub">
+            Explore our most popular software licenses, cloud compute packs, and enterprise modules.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="flowmail-btn-secondary"
+          onClick={() => setSelectedCategory(null)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+        >
+          <ArrowLeft size={15} />
+          <span>Back to Solutions</span>
+        </button>
+      </section>
 
       {/* ── Products Display (Grid View or Comparison Table) ────── */}
       {filteredProducts.length > 0 ? (
         viewMode === 'grid' ? (
           /* 1. FEATURED PRODUCTS SHOWCASE (MATCHING USER COLLECTION DESIGN) */
           <div className="featured-collection-section">
-            {/* ── Top Right Corner Back Section ────────────────── */}
-            <div className="showcase-top-right-nav">
-             
-              <button
-                type="button"
-                className="showcase-corner-back-btn"
-                onClick={() => setSelectedCategory(null)}
-                title="Back to Solutions"
-                aria-label="Back to Solutions"
-              >
-                <ArrowLeft size={16} className="back-arrow-icon" />
-                <span>Back to Solutions</span>
-              </button>
-            </div>
-
-            <div className="featured-collection-header">
-              <span className="featured-collection-overline">
-                OUR COLLECTION
-              </span>
-              <h2 className="featured-collection-title">Featured Products</h2>
-              <p className="featured-collection-subtitle">
-                Explore our most popular items loved by customers
-              </p>
-            </div>
-
             <div className="showcase-slider-wrapper">
               {/* Left Navigation Arrow */}
               {filteredProducts.length > 1 && (
