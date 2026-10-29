@@ -14,7 +14,7 @@ import {
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'products', label: 'Products', icon: Package },
-  { id: 'payment',  label: 'Payment',  icon: CreditCard },
+  // { id: 'payment',  label: 'Payment',  icon: CreditCard },
   { id: 'cart',     label: 'Cart',     icon: ShoppingCart },
   { id: 'receipt',  label: 'Receipt',  icon: Receipt }
 ];
@@ -23,7 +23,7 @@ const NAV_ITEMS = [
  * Extract clean 2-letter company initials (filtering out common legal suffixes)
  */
 function getCompanyInitials(companyName, customerName) {
-  const target = (companyName || customerName || 'NISPL').trim();
+  const target = (companyName || customerName || 'Net Infotech System').trim();
   const words = target
     .split(/\s+/)
     .filter((w) => !/^(pvt|ltd|pvt\.|ltd\.|inc|llc|corp|co|private|limited)$/i.test(w));
@@ -33,7 +33,7 @@ function getCompanyInitials(companyName, customerName) {
   if (words.length === 1 && words[0].length >= 2) {
     return words[0].slice(0, 2).toUpperCase();
   }
-  return target.slice(0, 2).toUpperCase() || 'CP';
+  return target.slice(0, 2).toUpperCase() || 'NI';
 }
 
 export default function DashboardSidebar({
@@ -48,13 +48,13 @@ export default function DashboardSidebar({
   onCloseMobile
 }) {
   const navigate = useNavigate();
-  const customerName = customer?.name || 'Debasish Ghosh';
-  const customerEmail = customer?.email || 'debasish@acme-cloud.in';
+  const customerName = customer?.name || 'NISPL Developer';
+  const customerEmail = customer?.email || 'demo1@gmail.com';
   const customerInitial = customerName.charAt(0).toUpperCase();
 
   const [logoError, setLogoError] = useState(false);
   const companyLogo = customer?.companyLogo || customer?.logo || null;
-  const companyName = customer?.companyName || 'Acme InfoTech Solutions Pvt Ltd';
+  const companyName = customer?.companyName || 'Net Infotech System';
   const companyInitials = useMemo(() => {
     return getCompanyInitials(customer?.companyName, customer?.name);
   }, [customer?.companyName, customer?.name]);
@@ -67,7 +67,7 @@ export default function DashboardSidebar({
   const hasValidLogo = companyLogo && !logoError;
 
   return (
-    <aside className={`cliento-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+    <aside className={`cliento-sidebar flowmail-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
       {/* ── Top Highlighted Section: Centered Logo with Company Name Below ── */}
       <div className="cliento-sidebar-brand-section">
         <div
@@ -101,8 +101,8 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      {/* ── Main Navigation ─────────────────────────────────── */}
-      <nav className="cliento-nav-menu" aria-label="Main navigation">
+      {/* ── Main Navigation (Exact Previous Labels & Logic) ────── */}
+      <nav className="cliento-nav-menu flowmail-nav-menu" aria-label="Main navigation">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeNav === item.id;
@@ -112,7 +112,7 @@ export default function DashboardSidebar({
             <button
               key={item.id}
               type="button"
-              className={`cliento-nav-item ${isActive ? 'active' : ''}`}
+              className={`cliento-nav-item flowmail-nav-item ${isActive ? 'active' : ''}`}
               onClick={() => {
                 onSelectNav(item.id);
                 if (onCloseMobile) onCloseMobile();
@@ -127,9 +127,9 @@ export default function DashboardSidebar({
               {!isCollapsed && (
                 <div className="cliento-nav-item-right">
                   {hasBadge && (
-                    <span className="cliento-nav-badge">{cartCount}</span>
+                    <span className="cliento-nav-badge flowmail-cart-badge">{cartCount}</span>
                   )}
-                  {isActive && <ChevronRight size={15} className="cliento-nav-arrow" />}
+                  {isActive && <ChevronRight size={14} className="cliento-nav-arrow" />}
                 </div>
               )}
             </button>
@@ -137,11 +137,11 @@ export default function DashboardSidebar({
         })}
       </nav>
 
-      {/* ── Highlighted Section: Help Center Option (Navigates to /customer/help) ── */}
-      <div className="cliento-sidebar-help-section">
+      {/* ── Help Center Option (Navigates to /customer/help) ── */}
+      <div className="cliento-sidebar-help-section flowmail-help-wrap">
         <button
           type="button"
-          className={`cliento-nav-item cliento-help-nav-item ${activeNav === 'help' ? 'active' : ''}`}
+          className={`cliento-nav-item cliento-help-nav-item flowmail-nav-item ${activeNav === 'help' ? 'active' : ''}`}
           onClick={() => {
             onSelectNav('help');
             if (onCloseMobile) onCloseMobile();
@@ -163,17 +163,16 @@ export default function DashboardSidebar({
       </div>
 
       {/* ── Bottom Section (Profile) ────────────────────────── */}
-      <div className="cliento-sidebar-footer">
-        {/* User Profile Card */}
-        <div className="cliento-user-card" onClick={onSignOut} title="Click to Sign Out">
-          <div className="cliento-user-avatar">
+      <div className="cliento-sidebar-footer flowmail-footer">
+        <div className="cliento-user-card flowmail-user-card" onClick={onSignOut} title="Click to Sign Out">
+          <div className="cliento-user-avatar flowmail-avatar">
             {customerInitial}
           </div>
           {!isCollapsed && (
             <>
               <div className="cliento-user-details">
-                <span className="cliento-user-name">{customerName}</span>
-                <span className="cliento-user-email">{customerEmail}</span>
+                <span className="cliento-user-name flowmail-user-name">{customerName}</span>
+                <span className="cliento-user-email flowmail-user-plan">{customerEmail}</span>
               </div>
               <ChevronsUpDown size={15} className="cliento-user-chevron" />
             </>

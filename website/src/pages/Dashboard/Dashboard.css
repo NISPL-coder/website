@@ -45,42 +45,101 @@
 }
 
 /* ── Design Tokens ───────────────────────────────────────────────────────── */
-/* ── Design Tokens ───────────────────────────────────────────────────────── */
+/* Modern professional theme: cool-slate neutrals, single brand gradient,
+   layered low-alpha elevation and a consistent 4-step radius scale.         */
 :root {
-  --ds-bg:         #f8f9fa;
+  /* Neutrals (cool slate — softer than pure grey, reads "premium") */
+  --ds-bg:         #f2f5fa;
+  --ds-bg-soft:    #eaeff7;
   --ds-surface:    #ffffff;
-  --ds-border:     #eef0f3;
-  --ds-border-md:  #e2e8f0;
+  --ds-surface-2:  #f8fafc;
+  --ds-border:     #e6eaf2;
+  --ds-border-md:  #d8dfeb;
+
+  /* Text hierarchy */
   --ds-text-1:     #0f172a;
   --ds-text-2:     #334155;
   --ds-text-3:     #64748b;
   --ds-text-4:     #94a3b8;
+
+  /* Brand — NIS sky→blue gradient as the single accent source */
   --ds-blue:       #2563eb;
+  --ds-blue-deep:  #1d4ed8;
+  --ds-blue-mid:   #dbeafe;
   --ds-blue-lt:    #eff6ff;
+  --ds-brand-grad: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  --ds-brand-grad-hover: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
+  --ds-ring:       rgba(37, 99, 235, 0.16);
+  --ds-ring-strong: rgba(37, 99, 235, 0.28);
+
+  /* Status */
   --ds-green:      #059669;
   --ds-green-lt:   #ecfdf5;
+  --ds-green-brd:  #a7f3d0;
+  --ds-red:        #dc2626;
+  --ds-red-lt:     #fef2f2;
+  --ds-amber:      #d97706;
+  --ds-amber-lt:   #fffbeb;
   --ds-purple:     #6366f1;
-  --ds-purple-lt:  #f5f3ff;
-  --ds-radius-sm:  8px;
+  --ds-purple-lt:  #eef2ff;
+
+  /* Shape */
+  --ds-radius-sm:  10px;
   --ds-radius:     12px;
-  --ds-radius-lg:  14px;
-  --ds-radius-xl:  20px;
-  --ds-shadow-sm:  0 1px 3px rgba(0,0,0,0.02);
-  --ds-shadow-md:  0 4px 14px rgba(0,0,0,0.04);
-  --ds-shadow-lg:  0 10px 30px rgba(0,0,0,0.06);
+  --ds-radius-lg:  16px;
+  --ds-radius-xl:  22px;
+
+  /* Elevation (low-alpha, dual-layer — modern soft depth) */
+  --ds-shadow-sm:  0 1px 2px rgba(15, 23, 42, 0.05);
+  --ds-shadow-md:  0 6px 18px -8px rgba(15, 23, 42, 0.14), 0 2px 6px -4px rgba(15, 23, 42, 0.06);
+  --ds-shadow-lg:  0 24px 56px -28px rgba(15, 23, 42, 0.30), 0 10px 24px -16px rgba(15, 23, 42, 0.14);
+
   --ds-easing:     cubic-bezier(0.2, 0.8, 0.2, 1);
   --ds-duration:   200ms;
 }
+
+/* ── Global modern polish ────────────────────────────────────────────────── */
+.cust-dash-layout ::selection {
+  background: rgba(37, 99, 235, 0.16);
+  color: var(--ds-text-1);
+}
+
+.cust-dash-layout button:focus-visible,
+.cust-dash-layout a:focus-visible,
+.cust-dash-layout input:focus-visible,
+.cust-dash-layout [tabindex]:focus-visible {
+  outline: 2px solid var(--ds-blue);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-sm);
+}
+
+/* Slim, consistent scrollbars */
+.cust-dash-layout * {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.cust-dash-layout *::-webkit-scrollbar { width: 8px; height: 8px; }
+.cust-dash-layout *::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.cust-dash-layout *::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: content-box; }
 
 /* ── Overall Layout ──────────────────────────────────────────────────────── */
 .cust-dash-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--ds-bg);
+  background:
+    radial-gradient(1200px 480px at 12% -8%, rgba(14, 165, 233, 0.07), transparent 60%),
+    radial-gradient(900px 420px at 92% 0%, rgba(99, 102, 241, 0.06), transparent 55%),
+    var(--ds-bg);
   color: var(--ds-text-1);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .cust-dash-main-area {
@@ -88,7 +147,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--ds-bg);
+  background: transparent;
 }
 
 .cust-dash-content-body {
@@ -98,8 +157,8 @@
 
 /* ── Cliento Sidebar ─────────────────────────────────────────────────────── */
 .cliento-sidebar {
-  width: 260px;
-  background: #ffffff;
+  width: 264px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
   border-right: 1px solid var(--ds-border);
   display: flex;
   flex-direction: column;
@@ -126,9 +185,9 @@
   justify-content: center;
   padding: 14px 14px 12px;
   border-bottom: 1px solid var(--ds-border);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   flex-shrink: 0;
-  background: #ffffff;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -168,21 +227,21 @@
 }
 
 .cliento-sidebar-initials-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--ds-brand-grad);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Outfit', -apple-system, sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.04em;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+  box-shadow: 0 8px 20px -10px rgba(37, 99, 235, 0.75);
   flex-shrink: 0;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   transition: transform 0.2s ease;
 }
 
@@ -244,18 +303,20 @@
 .cliento-workspace-card {
   margin: 6px 14px 10px;
   padding: 8px 10px;
-  background: #ffffff;
+  background: var(--ds-surface-2);
   border: 1px solid var(--ds-border);
-  border-radius: 10px;
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .cliento-workspace-card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--ds-border-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .cliento-workspace-icon {
@@ -293,22 +354,25 @@
   margin: 0 14px 12px;
   padding: 8px 12px;
   background: var(--ds-purple-lt);
-  color: #7c3aed;
-  border-radius: 9px;
+  color: #4f46e5;
+  border: 1px solid #e0e7ff;
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.92rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
 .cliento-ai-pill:hover {
-  background: #ede9fe;
+  background: #e0e7ff;
+  border-color: #c7d2fe;
+  transform: translateY(-1px);
 }
 
 .cliento-ai-icon {
-  color: #7c3aed;
+  color: #4f46e5;
 }
 
 /* Navigation items */
@@ -324,24 +388,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
-  border-radius: 9px;
+  padding: 10px 12px;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--ds-text-3);
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  position: relative;
+  transition: background 0.18s var(--ds-easing), color 0.18s var(--ds-easing),
+    box-shadow 0.18s var(--ds-easing), transform 0.18s var(--ds-easing);
 }
 
 .cliento-nav-item:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--ds-bg-soft);
+  color: var(--ds-text-1);
 }
 
+.cliento-nav-item:active { transform: translateY(1px); }
+
 .cliento-nav-item.active {
-  background: #f1f3f7;
-  color: #0f172a;
+  background: var(--ds-brand-grad);
+  color: #ffffff;
+  box-shadow: 0 8px 18px -10px rgba(37, 99, 235, 0.85);
+}
+
+.cliento-nav-item.active:hover {
+  background: var(--ds-brand-grad-hover);
+  color: #ffffff;
+}
+
+/* Active state recolours nested icons/labels for full contrast */
+.cliento-nav-item.active .cliento-nav-icon,
+.cliento-nav-item.active .cliento-nav-label,
+.cliento-nav-item.active .cliento-nav-arrow,
+.cliento-nav-item.active .cliento-help-icon { color: #ffffff; }
+
+.cliento-nav-item.active .cliento-nav-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 .cliento-nav-item-left {
@@ -365,15 +450,18 @@
 }
 
 .cliento-nav-arrow {
-  color: #64748b;
+  color: currentColor;
+  opacity: 0.75;
 }
 
 .cliento-nav-badge {
   background: #ef4444;
   color: #ffffff;
   font-size: 0.72rem;
+  font-weight: 600;
   padding: 2px 7px;
   border-radius: 999px;
+  box-shadow: 0 4px 10px -4px rgba(239, 68, 68, 0.7);
 }
 
 /* Favorites and Folders */
@@ -389,9 +477,11 @@
 }
 
 .cliento-section-heading {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  color: var(--ds-text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-weight: 500;
 }
 
 .cliento-section-more {
@@ -414,16 +504,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 7px 10px;
-  border-radius: 7px;
-  color: #475569;
+  border-radius: 8px;
+  color: var(--ds-text-2);
   font-size: 0.88rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .cliento-folder-row:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--ds-bg-soft);
+  color: var(--ds-text-1);
 }
 
 .cliento-folder-left {
@@ -450,37 +540,39 @@
 .cliento-sidebar-help-section {
   margin-top: auto;
   padding: 10px 12px 6px;
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px solid var(--ds-border);
 }
 
 .cliento-help-nav-item {
   width: 100%;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-  border-radius: 9px;
-  color: #334155;
-  transition: all 0.2s ease;
+  background: var(--ds-surface-2);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text-2);
+  transition: all 0.2s var(--ds-easing);
 }
 
 .cliento-help-nav-item:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #2563eb;
+  background: var(--ds-blue-lt);
+  border-color: var(--ds-blue-mid);
+  color: var(--ds-blue);
   transform: translateY(-1px);
+  box-shadow: 0 8px 16px -12px rgba(37, 99, 235, 0.7);
 }
 
 .cliento-help-icon {
-  color: #2563eb;
+  color: var(--ds-blue);
 }
 
 .cliento-help-pill {
-  background: #ecfdf5;
-  color: #059669;
+  background: var(--ds-green-lt);
+  color: var(--ds-green);
   font-size: 0.68rem;
-  font-weight: 700;
-  padding: 1px 6px;
+  font-weight: 600;
+  padding: 1px 7px;
   border-radius: 999px;
   letter-spacing: 0.04em;
+  border: 1px solid var(--ds-green-brd);
 }
 
 /* Sidebar Footer */
@@ -515,35 +607,38 @@
 }
 
 .cliento-bottom-nav-btn:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--ds-bg-soft);
+  color: var(--ds-text-1);
 }
 
 .cliento-user-card {
   padding: 8px 10px;
-  border-radius: 9px;
+  border-radius: var(--ds-radius-sm);
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.18s var(--ds-easing), box-shadow 0.18s var(--ds-easing);
 }
 
 .cliento-user-card:hover {
-  background: #f1f3f7;
+  background: var(--ds-bg-soft);
+  box-shadow: inset 0 0 0 1px var(--ds-border);
 }
 
 .cliento-user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--ds-brand-grad);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.88rem;
+  font-weight: 600;
   flex-shrink: 0;
+  box-shadow: 0 6px 14px -8px rgba(37, 99, 235, 0.9);
 }
 
 .cliento-user-details {
@@ -576,13 +671,16 @@
 
 /* ── Cliento Navbar ──────────────────────────────────────────────────────── */
 .cliento-navbar {
-  height: 64px;
-  background: #ffffff;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid var(--ds-border);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 30px;
   position: sticky;
   top: 0;
   z-index: 40;
@@ -609,13 +707,14 @@
 }
 
 .cliento-page-icon {
-  color: #0f172a;
+  color: var(--ds-blue);
 }
 
 .cliento-page-title-text {
-  font-size: 1.28rem;
-  color: #0f172a;
+  font-size: 1.22rem;
+  color: var(--ds-text-1);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .cliento-nav-right {
@@ -625,20 +724,21 @@
 }
 
 .cliento-search-bar {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  padding: 6px 12px;
+  background: var(--ds-surface-2);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  padding: 7px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 250px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 260px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .cliento-search-bar:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: var(--ds-surface);
+  border-color: var(--ds-blue);
+  box-shadow: 0 0 0 4px var(--ds-ring);
 }
 
 .cliento-search-icon {
@@ -655,11 +755,12 @@
 }
 
 .cliento-search-shortcut {
-  background: #f1f3f7;
-  border-radius: 4px;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
   padding: 2px 6px;
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--ds-text-3);
 }
 
 .cliento-notif-wrapper {
@@ -667,65 +768,70 @@
 }
 
 .cliento-icon-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #64748b;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  color: var(--ds-text-3);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   position: relative;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .cliento-icon-btn:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--ds-bg-soft);
+  color: var(--ds-text-1);
+  border-color: var(--ds-border-md);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .cliento-notif-dot {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #ef4444;
+  border: 2px solid var(--ds-surface);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
 }
 
 .cliento-notif-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
-  width: 320px;
-  background: #ffffff;
+  width: 330px;
+  background: var(--ds-surface);
   border: 1px solid var(--ds-border);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   box-shadow: var(--ds-shadow-lg);
   z-index: 100;
   overflow: hidden;
 }
 
 .cliento-notif-head {
-  padding: 12px 16px;
-  background: #f8fafc;
+  padding: 13px 16px;
+  background: var(--ds-surface-2);
   border-bottom: 1px solid var(--ds-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--ds-text-1);
 }
 
 .cliento-notif-badge {
   font-size: 0.75rem;
   padding: 2px 8px;
-  border-radius: 20px;
-  background: #eff6ff;
-  color: #2563eb;
+  border-radius: 999px;
+  background: var(--ds-blue-lt);
+  color: var(--ds-blue);
+  border: 1px solid var(--ds-blue-mid);
 }
 
 .cliento-notif-list {
@@ -735,11 +841,15 @@
 
 .cliento-notif-item {
   padding: 12px 16px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--ds-border);
   display: flex;
   flex-direction: column;
   gap: 3px;
+  transition: background 0.15s;
 }
+
+.cliento-notif-item:last-child { border-bottom: none; }
+.cliento-notif-item:hover { background: var(--ds-surface-2); }
 
 .cliento-notif-item-title {
   font-size: 0.88rem;
@@ -770,10 +880,10 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: all var(--ds-duration);
+  transition: all var(--ds-duration) var(--ds-easing);
 }
 
-.cust-dash-icon-btn:hover { background: var(--ds-bg); color: var(--ds-blue); border-color: var(--ds-blue); }
+.cust-dash-icon-btn:hover { background: var(--ds-blue-lt); color: var(--ds-blue); border-color: var(--ds-blue-mid); box-shadow: 0 0 0 4px var(--ds-ring); }
 
 .cust-dash-badge-dot {
   position: absolute;
@@ -783,7 +893,8 @@
   height: 9px;
   background: var(--ds-red);
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--ds-surface);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
 }
 
 /* Profile pill */
@@ -796,22 +907,23 @@
   border: 1px solid var(--ds-border-md);
   background: var(--ds-surface);
   cursor: pointer;
-  transition: all var(--ds-duration);
+  transition: all var(--ds-duration) var(--ds-easing);
 }
 
-.cust-dash-profile-pill:hover { border-color: #93c5fd; background: #f8faff; }
+.cust-dash-profile-pill:hover { border-color: var(--ds-blue-mid); background: var(--ds-blue-lt); box-shadow: var(--ds-shadow-sm); }
 
 .cust-dash-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #1d4ed8;
+  background: var(--ds-brand-grad);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.95rem;
   flex-shrink: 0;
+  box-shadow: 0 6px 14px -8px rgba(37, 99, 235, 0.9);
 }
 .cust-dash-avatar.lg { width: 46px; height: 46px; font-size: 1.15rem; }
 
@@ -914,22 +1026,31 @@
 
 /* ── Profile Hero Card ───────────────────────────────────────────────────── */
 .cust-profile-hero-card {
-  background: var(--ds-surface);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius-xl);
   padding: 30px 34px;
-  box-shadow: var(--ds-shadow-sm);
+  box-shadow: var(--ds-shadow-md);
   position: relative;
   overflow: hidden;
   animation: pageSlideIn var(--ds-duration) var(--ds-easing) both;
 }
 
+.cust-profile-hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--ds-brand-grad);
+  opacity: 0.9;
+}
+
 .cust-profile-hero-glow {
   position: absolute;
-  top: -50px; right: -50px;
-  width: 220px; height: 220px;
+  top: -60px; right: -60px;
+  width: 260px; height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(29, 78, 216, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.14) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -948,11 +1069,11 @@
 .cust-hero-avatar-box {
   width: 66px; height: 66px;
   border-radius: var(--ds-radius-lg);
-  background: #1d4ed8;
+  background: var(--ds-brand-grad);
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.75rem;
-  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.25);
+  box-shadow: 0 12px 26px -14px rgba(37, 99, 235, 0.95);
   flex-shrink: 0;
 }
 
@@ -963,7 +1084,7 @@
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 12px;
   background: var(--ds-green-lt);
-  color: #15803d;
+  color: #047857;
   font-size: 0.85rem;
   border-radius: 999px;
   border: 1px solid #bbf7d0;
@@ -1053,7 +1174,7 @@
   transition: border-color var(--ds-duration);
 }
 
-.cust-meta-item:hover { border-color: #93c5fd; }
+.cust-meta-item:hover { border-color: #bfdbfe; }
 
 .cust-meta-icon-box {
   width: 38px; height: 38px; border-radius: 10px;
@@ -1082,27 +1203,49 @@
   padding: 22px;
   display: flex; flex-direction: column; gap: 12px;
   box-shadow: var(--ds-shadow-sm);
-  transition: transform var(--ds-duration) var(--ds-easing), box-shadow var(--ds-duration);
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--ds-duration) var(--ds-easing), box-shadow var(--ds-duration),
+    border-color var(--ds-duration);
+}
+
+.cust-stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--ds-brand-grad);
+  opacity: 0;
+  transition: opacity var(--ds-duration);
 }
 
 .cust-stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--ds-shadow-md);
+  border-color: var(--ds-blue-mid);
 }
+
+.cust-stat-card:hover::after { opacity: 1; }
 
 .cust-stat-card-top { display: flex; align-items: center; justify-content: space-between; }
 .cust-stat-title    { font-size: 0.95rem; color: var(--ds-text-3); }
-.cust-stat-icon-wrap { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.cust-stat-icon-wrap {
+  width: 40px; height: 40px;
+  border-radius: var(--ds-radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
 .cust-stat-val-row  { display: flex; align-items: baseline; gap: 10px; }
-.cust-stat-value    { font-size: 1.55rem; color: var(--ds-text-1); }
+.cust-stat-value    { font-size: 1.55rem; color: var(--ds-text-1); letter-spacing: -0.02em; }
 .cust-stat-subtext  { font-size: 0.86rem; color: var(--ds-text-4); line-height: 1.45; }
 
 .cust-badge-live {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 0.82rem;
-  color: #15803d; background: var(--ds-green-lt);
+  color: var(--ds-green); background: var(--ds-green-lt);
   padding: 3px 9px; border-radius: 999px;
-  border: 1px solid #bbf7d0;
+  border: 1px solid var(--ds-green-brd);
+  align-self: center;
 }
 
 /* ── Generic Section Card ────────────────────────────────────────────────── */
@@ -1112,7 +1255,10 @@
   border-radius: var(--ds-radius-xl);
   padding: 28px;
   box-shadow: var(--ds-shadow-sm);
+  transition: box-shadow var(--ds-duration) var(--ds-easing);
 }
+
+.cust-section-card:hover { box-shadow: var(--ds-shadow-md); }
 
 .cust-section-card-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -1231,7 +1377,7 @@
 }
 
 .pro-product-card:hover {
-  border-color: #93c5fd;
+  border-color: #bfdbfe;
   box-shadow: var(--ds-shadow-md);
   transform: translateY(-2px);
 }
@@ -1428,7 +1574,7 @@
   animation: slideUp 200ms var(--ds-easing) both;
 }
 
-.cart-row:hover { border-color: #93c5fd; box-shadow: var(--ds-shadow-sm); }
+.cart-row:hover { border-color: #bfdbfe; box-shadow: var(--ds-shadow-sm); }
 
 .cart-row-icon {
   width: 44px; height: 44px;
@@ -1548,7 +1694,7 @@
   transition: all 200ms var(--ds-easing);
 }
 
-.pay-method-card:hover   { border-color: #93c5fd; background: #fafbff; }
+.pay-method-card:hover   { border-color: #bfdbfe; background: #fafbff; }
 .pay-method-card.selected {
   border-color: var(--ds-blue);
   background: var(--ds-blue-lt);
@@ -1652,7 +1798,7 @@
   animation: slideUp 220ms var(--ds-easing) both;
 }
 
-.receipt-card:hover { border-color: #93c5fd; box-shadow: var(--ds-shadow-sm); }
+.receipt-card:hover { border-color: #bfdbfe; box-shadow: var(--ds-shadow-sm); }
 
 .receipt-card-left { min-width: 0; }
 .receipt-id   { font-size: 0.98rem; color: var(--ds-blue); font-family: ui-monospace, monospace; margin-bottom: 4px; }
@@ -1663,7 +1809,7 @@
   padding: 4px 11px;
   background: var(--ds-green-lt);
   border: 1px solid #bbf7d0;
-  color: #15803d;
+  color: #047857;
   font-size: 0.9rem;
   border-radius: 8px;
   white-space: nowrap;
@@ -1678,50 +1824,64 @@
 /* ── Button System ───────────────────────────────────────────────────────── */
 .cust-btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--ds-blue); color: #fff;
-  padding: 11px 22px; border-radius: var(--ds-radius-sm);
+  background: var(--ds-brand-grad); color: #fff;
+  padding: 12px 24px; border-radius: var(--ds-radius-sm);
   font-size: 1.05rem;
   border: none; cursor: pointer;
-  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.3);
+  box-shadow: 0 10px 22px -12px rgba(37, 99, 235, 0.9);
   transition: all var(--ds-duration) var(--ds-easing);
   text-decoration: none;
 }
-.cust-btn-primary:hover:not(:disabled) { background: #1e40af; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(29, 78, 216, 0.38); }
+.cust-btn-primary:hover:not(:disabled) {
+  background: var(--ds-brand-grad-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px -14px rgba(37, 99, 235, 0.95);
+}
+.cust-btn-primary:active:not(:disabled) { transform: translateY(0); }
 .cust-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .cust-btn-secondary {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--ds-surface); color: var(--ds-text-2);
-  padding: 10px 20px; border-radius: var(--ds-radius-sm);
+  padding: 11px 20px; border-radius: var(--ds-radius-sm);
   font-size: 1.02rem;
   border: 1px solid var(--ds-border-md); cursor: pointer;
-  transition: all var(--ds-duration);
+  transition: all var(--ds-duration) var(--ds-easing);
 }
-.cust-btn-secondary:hover { background: var(--ds-bg); border-color: var(--ds-text-3); }
+.cust-btn-secondary:hover {
+  background: var(--ds-surface-2);
+  border-color: var(--ds-text-4);
+  box-shadow: var(--ds-shadow-sm);
+  transform: translateY(-1px);
+}
 
 .cust-btn-outline {
   display: inline-flex; align-items: center; gap: 8px;
-  background: #fff; color: var(--ds-blue);
-  padding: 10px 20px; border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface); color: var(--ds-blue);
+  padding: 11px 20px; border-radius: var(--ds-radius-sm);
   font-size: 1.02rem;
-  border: 1.5px solid var(--ds-blue); cursor: pointer;
-  text-decoration: none; transition: all var(--ds-duration);
+  border: 1.5px solid var(--ds-blue-mid); cursor: pointer;
+  text-decoration: none; transition: all var(--ds-duration) var(--ds-easing);
 }
-.cust-btn-outline:hover { background: var(--ds-blue-lt); }
+.cust-btn-outline:hover {
+  background: var(--ds-blue-lt);
+  border-color: var(--ds-blue);
+  box-shadow: 0 0 0 4px var(--ds-ring);
+}
 
 .cust-btn-full { width: 100%; justify-content: center; }
 
 .cust-btn-download-inv {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--ds-surface); border: 1px solid var(--ds-border-md);
-  padding: 6px 14px; border-radius: 8px;
+  padding: 7px 14px; border-radius: var(--ds-radius-sm);
   font-size: 0.95rem; color: var(--ds-blue);
-  cursor: pointer; transition: all var(--ds-duration);
+  cursor: pointer; transition: all var(--ds-duration) var(--ds-easing);
 }
-.cust-btn-download-inv:hover { background: var(--ds-blue); color: #fff; border-color: var(--ds-blue); }
+.cust-btn-download-inv:hover { background: var(--ds-brand-grad); color: #fff; border-color: transparent; box-shadow: 0 10px 20px -12px rgba(37, 99, 235, 0.9); }
 
 .cust-status-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 999px; font-size: 0.88rem; }
-.cust-status-pill.success { background: var(--ds-green-lt); color: #15803d; border: 1px solid #bbf7d0; }
+.cust-status-pill.success { background: var(--ds-green-lt); color: var(--ds-green); border: 1px solid var(--ds-green-brd); }
 
 /* Spinner */
 .ebolt-spinner {
@@ -1747,23 +1907,33 @@
 
 /* ── 1. Top Enterprise Banner ────────────────────────────────────────────── */
 .cust-portal-hero-banner {
-  background: linear-gradient(135deg, #0b1528 0%, #172554 50%, #1e1b4b 100%);
+  background:
+    radial-gradient(700px 260px at 88% -20%, rgba(14, 165, 233, 0.30), transparent 60%),
+    linear-gradient(135deg, #070d1c 0%, #10265c 48%, #1c1b4f 100%);
   border-radius: var(--ds-radius-xl);
-  border: 1px solid #1e293b;
-  padding: 30px 36px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  padding: 32px 36px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(11, 21, 40, 0.4);
+  box-shadow: 0 30px 60px -34px rgba(2, 6, 23, 0.9);
+}
+
+.cust-portal-hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 42%);
+  pointer-events: none;
 }
 
 .cust-portal-hero-glow {
   position: absolute;
   top: -40px;
   right: -40px;
-  width: 260px;
-  height: 260px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.26) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -1805,7 +1975,7 @@
 .cust-portal-chip-sub {
   font-family: 'SF Mono', monospace;
   font-size: 0.88rem;
-  color: #93c5fd;
+  color: #bfdbfe;
   background: rgba(30, 58, 138, 0.4);
   padding: 4px 10px;
   border-radius: 6px;
@@ -1826,7 +1996,7 @@
 }
 
 .cust-portal-highlight {
-  color: #93c5fd;
+  color: #bfdbfe;
 }
 
 .cust-portal-hero-actions {
@@ -1883,7 +2053,7 @@
   gap: 6px;
   background: var(--ds-green-lt);
   border: 1px solid #bbf7d0;
-  color: #15803d;
+  color: #047857;
   font-size: 0.88rem;
   padding: 4px 10px;
   border-radius: 999px;
@@ -1958,7 +2128,7 @@
 }
 
 .cust-telemetry-val.status-green {
-  color: #15803d;
+  color: #047857;
 }
 
 .cust-telemetry-meta {
@@ -2183,7 +2353,7 @@
 
 .cust-license-tag {
   font-size: 0.82rem;
-  color: #15803d;
+  color: #047857;
   background: #dcfce7;
   padding: 2px 8px;
   border-radius: 999px;
@@ -2222,7 +2392,7 @@
 }
 
 .cust-lic-val.status-green {
-  color: #15803d;
+  color: #047857;
 }
 
 /* ── 4. Quick Login Table ────────────────────────────────────────────────── */
@@ -2234,7 +2404,7 @@
 }
 
 .cust-portal-table thead tr {
-  background: #4338ca;
+  background: var(--ds-brand-grad);
   color: #ffffff;
 }
 
@@ -2302,6 +2472,7 @@
   border-radius: 8px;
   font-size: 0.92rem;
   text-decoration: none;
+  box-shadow: 0 8px 18px -12px rgba(67, 56, 202, 0.9);
   transition: all var(--ds-duration);
 }
 
@@ -2340,7 +2511,7 @@
 
 .cust-node-status-badge.online {
   background: #dcfce7;
-  color: #15803d;
+  color: #047857;
   border: 1px solid #86efac;
 }
 
@@ -2561,7 +2732,7 @@
 }
 
 .cust-acc-val.status-green {
-  color: #15803d;
+  color: #047857;
 }
 
 /* Activity stream */
@@ -10426,6 +10597,1139 @@
   }
 }
 
+/* ==========================================================================
+   FLOWMAIL DESIGN SYSTEM & PROGRESSIVE GRAPH ANIMATIONS (2026 THEME)
+   ========================================================================== */
 
+/* ── FlowMail Layout Root & Overrides ────────────────────────────────────── */
+.cust-dash-layout {
+  background: #f4f6fa !important;
+}
 
+.cust-dash-main-area {
+  background: #f4f6fa !important;
+}
 
+.flowmail-overview-container {
+  padding: 24px 32px 48px;
+  max-width: 1480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── FlowMail Sidebar Theme ─────────────────────────────────────────────── */
+.flowmail-sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid #eef2f6 !important;
+}
+
+.flowmail-sidebar .cliento-sidebar-brand-section {
+  background: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 18px 14px 14px !important;
+  margin-bottom: 12px !important;
+}
+
+.flowmail-sidebar .cliento-sidebar-initials-badge {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3) !important;
+  border-radius: 12px !important;
+}
+
+.flowmail-sidebar .cliento-sidebar-company-title {
+  color: #0f172a !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.94rem !important;
+  letter-spacing: -0.01em !important;
+  margin-top: 4px;
+}
+
+.flowmail-nav-menu {
+  gap: 4px !important;
+}
+
+.flowmail-nav-item {
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  transition: all 0.18s ease !important;
+}
+
+.flowmail-nav-item:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.flowmail-nav-item.active {
+  background: #ede9fe !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.flowmail-nav-item.active .cliento-nav-icon {
+  color: #6366f1 !important;
+}
+
+.flowmail-nav-item.active .cliento-nav-arrow {
+  color: #6366f1 !important;
+}
+
+.flowmail-cart-badge {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.flowmail-help-wrap {
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 12px !important;
+}
+
+.flowmail-footer {
+  border-top: 1px solid #f1f5f9 !important;
+  padding: 14px 16px !important;
+}
+
+.flowmail-user-card {
+  padding: 8px 10px !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  border: 1px solid #f1f5f9 !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flowmail-user-card:hover {
+  background: #f1f5f9 !important;
+}
+
+.flowmail-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.92rem !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25) !important;
+}
+
+.flowmail-user-name {
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  color: #0f172a !important;
+}
+
+.flowmail-user-plan {
+  font-size: 0.74rem !important;
+  color: #94a3b8 !important;
+}
+
+/* ── FlowMail Navbar Theme ──────────────────────────────────────────────── */
+.cliento-navbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #eef2f6 !important;
+  height: 68px !important;
+  padding: 0 32px !important;
+}
+
+.cliento-page-title-text {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.01em;
+}
+
+.cliento-search-bar {
+  border-radius: 9999px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 8px 16px !important;
+  width: 260px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+.cliento-search-bar:focus-within {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+}
+
+.ai-btn-icon {
+  animation: pulseRotate 3s infinite ease-in-out;
+}
+
+@keyframes pulseRotate {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(15deg); }
+}
+
+/* ── 1. FlowMail Welcome Header Row ─────────────────────────────────────── */
+.flowmail-welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.flowmail-welcome-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.flowmail-welcome-sub {
+  font-size: 0.94rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.flowmail-btn-secondary {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 9px 18px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.flowmail-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.flowmail-btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  border: none;
+  color: #ffffff;
+  padding: 9px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flowmail-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+}
+
+/* ── 2. Top 4 KPI Metric Cards (FlowMail Style) ─────────────────────────── */
+.flowmail-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.flowmail-kpi-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.flowmail-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+}
+
+.flowmail-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.flowmail-kpi-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flowmail-kpi-icon {
+  color: #64748b;
+}
+
+.flowmail-kpi-label {
+  font-size: 0.92rem;
+  font-weight: 500 !important;
+  color: #475569;
+}
+
+.flowmail-dots-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.flowmail-dots-btn:hover {
+  color: #0f172a;
+}
+
+.flowmail-kpi-middle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.flowmail-kpi-number {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.flowmail-trend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+
+.flowmail-trend-pill.positive {
+  background: #e6f9ed;
+  color: #10b981;
+}
+
+.flowmail-trend-pill.negative {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* ── 3. Middle Section: Performance Chart, Donut, Automations ───────────── */
+.flowmail-middle-grid {
+  display: grid;
+  grid-template-columns: 2.2fr 1.1fr 1.3fr;
+  gap: 18px;
+}
+
+.flowmail-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.flowmail-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.flowmail-card-title {
+  font-size: 1.05rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.01em;
+}
+
+.flowmail-card-subtitle {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.flowmail-view-all-link {
+  background: transparent;
+  border: none;
+  color: #6366f1;
+  font-size: 0.84rem;
+  font-weight: 600 !important;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+
+.flowmail-view-all-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* ── Interactive Multi-Line Spline Chart ─────────────────────────────────── */
+.flowmail-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend-dot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-dot.purple { background: #6366f1; }
+.legend-dot.blue   { background: #94a3b8; }
+.legend-dot.orange { background: #f97316; }
+
+.flowmail-chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+.flowmail-spline-svg {
+  width: 100%;
+  height: 190px;
+  overflow: visible;
+}
+
+.flowmail-chart-line {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+}
+
+.flowmail-spline-svg.is-animated .path-purple {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flowmail-spline-svg.is-animated .path-blue {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+}
+
+.flowmail-spline-svg.is-animated .path-orange {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 2.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+}
+
+.flowmail-area-fill {
+  opacity: 0;
+  transition: opacity 1.4s ease-out 0.5s;
+}
+
+.flowmail-spline-svg.is-animated .flowmail-area-fill {
+  opacity: 1;
+}
+
+.chart-axis-text {
+  font-size: 11px;
+  fill: #94a3b8;
+  font-family: inherit;
+  text-anchor: end;
+}
+
+.flowmail-x-axis {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 10px 0 50px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Tooltip on Line Chart */
+.flowmail-chart-tooltip {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+  font-size: 0.78rem;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.tooltip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.tooltip-dot.purple { background: #6366f1; }
+.tooltip-dot.blue   { background: #94a3b8; }
+.tooltip-dot.orange { background: #f97316; }
+
+.tooltip-label { color: #64748b; }
+.tooltip-value { color: #0f172a; margin-left: auto; }
+
+/* ── Donut Chart ─────────────────────────────────────────────────────────── */
+.flowmail-donut-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.flowmail-donut-container {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowmail-donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.flowmail-donut-segment {
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.flowmail-donut-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.donut-center-label {
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.donut-center-percent {
+  font-size: 1.45rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+/* ── Top Automations List ─────────────────────────────────────────────────── */
+.flowmail-automations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+.flowmail-auto-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flowmail-auto-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flowmail-auto-name {
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  color: #1e293b;
+}
+
+.flowmail-auto-rate {
+  font-size: 1.05rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+}
+
+.flowmail-auto-subs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.flowmail-progress-track {
+  width: 100%;
+  height: 7px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.flowmail-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  border-radius: 9999px;
+  transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+/* ── 4. Bottom Section Grid ─────────────────────────────────────────────── */
+.flowmail-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 2.1fr 1.25fr;
+  gap: 18px;
+}
+
+/* Audience Growth Bar Chart */
+.flowmail-bar-chart-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  height: 190px;
+  padding-top: 20px;
+}
+
+.flowmail-bar-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  padding-bottom: 24px;
+}
+
+.flowmail-bars-columns {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+  padding-bottom: 4px;
+}
+
+.flowmail-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 38px;
+}
+
+.flowmail-bar-track {
+  width: 22px;
+  height: 130px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+
+.flowmail-bar-fill {
+  width: 100%;
+  background: #f1f5f9;
+  border-radius: 8px 8px 0 0;
+  transition: height 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flowmail-bar-fill.active-purple {
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  position: relative;
+}
+
+.flowmail-active-badge {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1b4b;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.flowmail-bar-month {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.flowmail-bar-month.active {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Recent Campaigns Table ─────────────────────────────────────────────── */
+.flowmail-table-wrap {
+  overflow-x: auto;
+}
+
+.flowmail-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.flowmail-table th {
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.flowmail-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f8fafc;
+  color: #334155;
+}
+
+.flowmail-status-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.flowmail-status-badge.active {
+  background: #e6f9ed;
+  color: #10b981;
+}
+
+.flowmail-status-badge.scheduled {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.flowmail-status-badge.completed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.flowmail-row-menu {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.flowmail-row-menu:hover {
+  color: #0f172a;
+}
+
+/* ── AI Insights Widget ─────────────────────────────────────────────────── */
+.flowmail-insights-items-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.flowmail-insight-pill-box {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.flowmail-insight-pill-box:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.flowmail-insight-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.flowmail-insight-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flowmail-insight-heading {
+  font-size: 0.86rem;
+  font-weight: 600 !important;
+  color: #0f172a;
+}
+
+.flowmail-insight-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.flowmail-open-assistant-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.22) 0%, rgba(99, 102, 241, 0.35) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #4f46e5;
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flowmail-open-assistant-btn:hover {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.3) 0%, rgba(99, 102, 241, 0.45) 100%);
+  transform: translateY(-1px);
+}
+
+/* ── 5. Plan & Account Details Cards ────────────────────────────────────── */
+.flowmail-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.flowmail-plan-icon-wrap,
+.flowmail-account-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.flowmail-card-details-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600 !important;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.flowmail-card-details-btn:hover {
+  background: #ede9fe;
+  color: #6366f1;
+  border-color: #c4b5fd;
+}
+
+.flowmail-plan-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.flowmail-plan-quick-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flowmail-lbl {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.flowmail-val {
+  font-size: 0.92rem;
+  color: #0f172a;
+  font-weight: 600 !important;
+}
+
+/* ── AI Insight Modal (Glassmorphism Dialog) ────────────────────────────── */
+.flowmail-ai-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.flowmail-ai-modal {
+  width: 100%;
+  max-width: 620px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.flowmail-ai-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flowmail-ai-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flowmail-ai-badge-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a78bfa 0%, #6366f1 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.ai-sparkle-spin {
+  animation: pulseRotate 3s infinite ease-in-out;
+}
+
+.flowmail-ai-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  margin: 0;
+}
+
+.flowmail-ai-modal-subtitle {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.flowmail-modal-close-btn {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.flowmail-modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.flowmail-ai-modal-body {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.flowmail-ai-hero-card {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid #ddd6fe;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.flowmail-ai-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6366f1;
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.flowmail-ai-hero-card h4 {
+  font-size: 0.98rem;
+  font-weight: 700 !important;
+  color: #1e1b4b;
+  margin: 0 0 4px 0;
+}
+
+.flowmail-ai-hero-card p {
+  font-size: 0.84rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.flowmail-ai-insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flowmail-ai-item-card {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.flowmail-ai-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flowmail-ai-item-content h5 {
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.flowmail-ai-item-content p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.flowmail-ai-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flowmail-ai-status-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* ── Responsive FlowMail Overrides ───────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .flowmail-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .flowmail-middle-grid {
+    grid-template-columns: 1fr;
+  }
+  .flowmail-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .flowmail-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .flowmail-overview-container {
+    padding: 16px;
+  }
+  .flowmail-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .flowmail-welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .flowmail-plan-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

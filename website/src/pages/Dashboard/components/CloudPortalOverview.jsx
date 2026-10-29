@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Server,
@@ -41,10 +41,20 @@ import {
   Mail,
   Shield,
   X,
-  Users
+  Users,
+  TrendingUp,
+  TrendingDown,
+  Plus,
+  Play,
+  Share2,
+  MoreVertical,
+  HelpCircle,
+  Bot
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RemindersPanel from './RemindersPanel';
+import { CountUp } from '../utils/useCountUp';
+import AiInsightModal from './AiInsightModal';
 import { dashboardApi } from '../../../services/dashboardApi';
 
 const CURRENT_PLAN_DETAILS = {
@@ -78,13 +88,13 @@ const CURRENT_PLAN_DETAILS = {
 };
 
 const ACCOUNT_DETAILS = {
-  companyName: 'Acme InfoTech Solutions Pvt Ltd',
+  companyName: 'FlowMail Systems Pvt Ltd',
   legalEntity: 'Private Limited Company (Registered under MCA)',
-  customerId: 'NIS-CUST-849201',
+  customerId: 'FM-CUST-849201',
   adminName: 'Debasish Chakraborty',
   designation: 'Managing Director & IT Systems Head',
-  adminEmail: 'debasish@acme-cloud.in',
-  billingEmail: 'accounts@acmeinfotech.in',
+  adminEmail: 'debasish@flowmail.agency',
+  billingEmail: 'accounts@flowmail.agency',
   contactPhone: '+91 98300 12345',
   landline: '+91 (033) 4004-8800',
   gstin: '19AAACA1234A1Z5',
@@ -94,197 +104,33 @@ const ACCOUNT_DETAILS = {
   primaryNodeCluster: 'CtrlS Rated-4 Datacenter (IP: 103.145.54.18)',
   security2FA: 'Enabled (SMS OTP & Google Authenticator)',
   whitelistedSubnet: '103.145.54.0/24 (Corporate Office Subnet)',
-  accountManager: 'Siddharth Roy (Senior Cloud Solutions Architect)',
-  accountManagerEmail: 'siddharth@nisplcloud.com',
+  accountManager: 'Siddharth Roy (Senior Solutions Architect)',
+  accountManagerEmail: 'siddharth@flowmail.agency',
   accountManagerPhone: '+91 (033) 4004-8800 (Ext: 204)'
 };
 
-const PURCHASED_PRODUCTS = {
-  tally: {
-    id: 'tally',
-    name: 'TallyPrime Gold (Multi-User)',
-    tag: 'ERP License & TSS',
-    version: 'Release 5.0 (64-bit)',
-    serialNumber: '762094183',
-    accountEmail: 'debasish@acme-cloud.in',
-    licenseType: 'Multi-User Unlimited LAN Edition',
-    tssExpiry: '24 Nov 2026',
-    tssDaysLeft: 28,
-    status: 'Active',
-    cloudHostNode: 'CtrlS Tier-4 Datacenter (IP: 103.145.54.18)',
-    workstations: 'Unlimited LAN + 10 Cloud Remote Terminals',
-    einvoiceApi: 'Connected & Verified (Auto E-Way Bill)',
-    activationKey: 'TPLY-8849-2041-9920',
-    gatewayPort: '9000 (Encrypted Tunnel)',
-    auditorLicense: 'Enabled (One-click Auditor Remote Access)',
-    renewalPrice: '₹13,500/year (+18% GST)',
-    iconColor: '#2563eb',
-    iconBg: '#eff6ff'
-  },
-  cloud: {
-    id: 'cloud',
-    name: 'Dedicated Tally Cloud Node',
-    tag: 'Cloud Infrastructure',
-    version: 'Windows Server 2022 DC',
-    serialNumber: 'NIS-KOL-NODE-04',
-    accountEmail: 'debasish@acme-cloud.in',
-    licenseType: 'Enterprise Dedicated Compute Node',
-    tssExpiry: '24 Nov 2026',
-    tssDaysLeft: 28,
-    status: 'Online',
-    cloudHostNode: 'CtrlS Datacenter Node #04 (IP: 103.145.54.18:3389)',
-    workstations: '10 Concurrent User Sessions Dedicated',
-    einvoiceApi: 'Dedicated Port 8443 / 3389 RDP',
-    activationKey: 'SRV-ENT-9942-0144-IN',
-    gatewayPort: '3389 (RDP) & 8443 (HTML5 Terminal)',
-    auditorLicense: 'Automated Snapshot (Daily 02:00 AM)',
-    renewalPrice: '₹4,500/month (+18% GST)',
-    iconColor: '#7c3aed',
-    iconBg: '#f5f3ff'
-  },
-  mobile: {
-    id: 'mobile',
-    name: 'Biz Analyst Tally on Mobile',
-    tag: 'Mobile Analytics App',
-    version: 'App Store v4.8 (iOS & Android)',
-    serialNumber: 'BIZ-MOB-99420-IN',
-    accountEmail: 'debasish@acme-cloud.in',
-    licenseType: '1 Year Multi-Device Subscription',
-    tssExpiry: '15 Dec 2026',
-    tssDaysLeft: 49,
-    status: 'Synced',
-    cloudHostNode: 'Cloud Sync Engine (5-min interval)',
-    workstations: '2 Registered Smartphone Devices Active',
-    einvoiceApi: 'Live WhatsApp Outstanding Reminders',
-    activationKey: 'BA-APP-1184-9021-XA',
-    gatewayPort: 'HTTPS 443 Sync API',
-    auditorLicense: 'Offline Data Access & Sales Orders',
-    renewalPrice: '₹2,124/year (+18% GST)',
-    iconColor: '#d97706',
-    iconBg: '#fffbeb'
-  },
-  whatsapp: {
-    id: 'whatsapp',
-    name: 'Tally WhatsApp Automation',
-    tag: 'Communication Add-on',
-    version: 'Meta Cloud API Module v2.4',
-    serialNumber: 'WATP-MOD-5521',
-    accountEmail: 'debasish@acme-cloud.in',
-    licenseType: 'Automated Messaging Add-on',
-    tssExpiry: '28 Jan 2027',
-    tssDaysLeft: 93,
-    status: 'Connected',
-    cloudHostNode: 'Official Meta WhatsApp Business Cloud API',
-    workstations: 'Direct Integration inside Tally Prime Vouchers',
-    einvoiceApi: 'Automated PDF Dispatch on Voucher Save',
-    activationKey: 'WA-MSG-8841-3320-IN',
-    gatewayPort: 'Webhook Port 443',
-    auditorLicense: 'Bulk Ledger & Overdue Reminders',
-    renewalPrice: '₹3,000/year (+18% GST)',
-    iconColor: '#059669',
-    iconBg: '#ecfdf5'
-  }
-};
-
 export default function CloudPortalOverview({ customer, onNavigateTab }) {
-  const [selectedProductKey, setSelectedProductKey] = useState('tally');
-  const [copiedIp, setCopiedIp] = useState(false);
-  const [copiedSerial, setCopiedSerial] = useState(false);
-  const [remoteRequested, setRemoteRequested] = useState(false);
-
-  // Modals state for Plan Details & Account Details
+  // Modal states
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
-  // Dynamic Overview Section state from API
-  const [overviewData, setOverviewData] = useState(null);
-  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  // Chart interactivity state
+  const [activeTooltip, setActiveTooltip] = useState(true);
+  const [animateGraphs, setAnimateGraphs] = useState(false);
 
+  // Trigger progressive animations on mount
   useEffect(() => {
-    let isMounted = true;
-    async function loadDashboardOverview() {
-      try {
-        setIsLoadingOverview(true);
-        const data = await dashboardApi.getOverview();
-        if (isMounted && data) {
-          setOverviewData(data);
-        }
-      } catch (err) {
-        console.warn('Dashboard Overview API notice:', err.message);
-      } finally {
-        if (isMounted) {
-          setIsLoadingOverview(false);
-        }
-      }
-    }
-    loadDashboardOverview();
-    return () => {
-      isMounted = false;
-    };
+    const timer = setTimeout(() => {
+      setAnimateGraphs(true);
+    }, 150);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Dynamic Objects extracted from API response
-  const overviewCards = overviewData?.overview_cards || [
-    {
-      id: 'tally_serial',
-      title: 'Tally Serial & TSS',
-      value: '762094183',
-      badge: 'TSS Active',
-      badgeType: 'positive',
-      subText: 'Release 5.0 Gold',
-      icon: 'Key'
-    },
-    {
-      id: 'active_workstations',
-      title: 'Active Workstations',
-      value: '4 / 10 Active',
-      badge: '6 Free Seats',
-      badgeType: 'positive',
-      subText: 'Multi-User Concurrent',
-      icon: 'Users'
-    },
-    {
-      id: 'cloud_backup',
-      title: 'Cloud Data Backup',
-      value: 'Today, 02:00 AM',
-      badge: '100% Safe',
-      badgeType: 'positive',
-      subText: 'Auto Daily Snapshot',
-      icon: 'ShieldCheck'
-    },
-    {
-      id: 'next_renewal',
-      title: 'Next Plan Renewal',
-      value: '28 Days',
-      badge: 'Active Node',
-      badgeType: 'positive',
-      subText: 'Due 24 Nov 2026',
-      icon: 'Clock'
-    }
-  ];
-
-  const dynamicReminders = overviewData?.renewal_reminders || overviewData?.Renewals_Reminders;
-  const dynamicServiceInfra = overviewData?.service_and_infrastructure || overviewData?.Service_and_Infrastructure;
-  const currentPlan = overviewData?.current_plan || overviewData?.Current_Plan || CURRENT_PLAN_DETAILS;
-  const accountDetails = overviewData?.account_details || overviewData?.Account_Details || ACCOUNT_DETAILS;
-
-  const renderKpiIcon = (iconName) => {
-    const key = (iconName || '').toLowerCase();
-    if (key.includes('key') || key.includes('serial')) return <Key size={16} className="cliento-kpi-icon" />;
-    if (key.includes('user') || key.includes('workstation')) return <Users size={16} className="cliento-kpi-icon" />;
-    if (key.includes('shield') || key.includes('backup')) return <ShieldCheck size={16} className="cliento-kpi-icon" />;
-    return <Clock size={16} className="cliento-kpi-icon" />;
-  };
-
-  const companyName = customer?.companyName || accountDetails?.companyName || 'NISPL';
-  const customerName = customer?.name || accountDetails?.authorizedAdmin || 'NISPL Developer';
-  const customerEmail = customer?.email || accountDetails?.officialEmail || 'nispldeveloper@gmail.com';
-  const customerId = customer?.customerId || accountDetails?.customerId || 'NIS-CUST-625875';
-
-  const cloudIp = '103.145.54.18';
-  const rdpPort = 3389;
-
-  const activeProduct = PURCHASED_PRODUCTS[selectedProductKey] || PURCHASED_PRODUCTS.tally;
+  const customerName = customer?.name || 'Be';
+  const companyName = customer?.companyName || 'FlowMail Agency';
+  const currentPlan = CURRENT_PLAN_DETAILS;
+  const accountDetails = ACCOUNT_DETAILS;
 
   // Escape key closes modals
   useEffect(() => {
@@ -292,155 +138,640 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
       if (e.key === 'Escape') {
         setIsPlanModalOpen(false);
         setIsAccountModalOpen(false);
+        setIsAiModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Lock background scroll when any modal is open
-  useEffect(() => {
-    if (isPlanModalOpen || isAccountModalOpen) {
-      const prevBodyOverflow = document.body.style.overflow;
-      const prevHtmlOverflow = document.documentElement.style.overflow;
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = prevBodyOverflow;
-        document.documentElement.style.overflow = prevHtmlOverflow;
-      };
-    }
-  }, [isPlanModalOpen, isAccountModalOpen]);
-
-  const handleCopyIp = () => {
-    navigator.clipboard.writeText(`${cloudIp}:${rdpPort}`);
-    setCopiedIp(true);
-    toast.success('Dedicated RDP IP copied to clipboard!');
-    setTimeout(() => setCopiedIp(false), 2000);
-  };
-
-  const handleCopySerial = () => {
-    navigator.clipboard.writeText(activeProduct.serialNumber);
-    setCopiedSerial(true);
-    toast.success(`Copied ${activeProduct.name} Serial No: ${activeProduct.serialNumber}`);
-    setTimeout(() => setCopiedSerial(false), 2000);
-  };
-
-  const handleRequestRemote = () => {
-    setRemoteRequested(true);
-    toast.success('Live Remote Support Requested! Engineer Siddharth Roy will connect shortly.');
-    setTimeout(() => setRemoteRequested(false), 4000);
-  };
-
-  const copyToClipboard = (text, label) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`Copied ${label} to clipboard!`);
-  };
-
   return (
-    <div className="cliento-overview-wrapper animate-fade-in">
-      {/* ── 1. Sub-Header Toolbar (Customer Node Info & Quick Connect) ─ */}
-      <div className="cliento-toolbar-row">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-         
+    <div className="flowmail-overview-container animate-fade-in">
+      {/* ── 1. Top Greeting Row with Action Buttons (FlowMail Style) ── */}
+      <section className="flowmail-welcome-banner">
+        <div className="flowmail-welcome-text">
+          <h2 className="flowmail-welcome-title">Welcome back, {customerName}!</h2>
+          <p className="flowmail-welcome-sub">Welcome back! Here's what's happening today.</p>
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-         
-          <a
-            href={`rdp://${cloudIp}:${rdpPort}`}
-            className="cliento-btn-filter"
-            style={{ textDecoration: 'none' }}
-            title="Launch Remote Desktop Connection"
-          >
-            <Monitor size={14} />
-            <span>Remote Login</span>
-          </a>
-        </div>
-      </div>
-{/* ── 5. TOP 4 CUSTOMER KPI METRIC CARDS ──────────────────────── */}
-      <div className="cliento-kpi-grid">
-        {overviewCards.map((card) => (
-          <div key={card.id || card.title} className="cliento-kpi-card">
-            <div className="cliento-kpi-header">
-              {renderKpiIcon(card.icon || card.id)}
-              <span className="cliento-kpi-title">{card.title}</span>
-            </div>
-            <div className="cliento-kpi-value">{card.value}</div>
-            <div className="cliento-kpi-footer">
-              <span className={`cliento-change-pill ${card.badgeType || 'positive'}`}>
-                {card.badge}
-              </span>
-              <span className="cliento-kpi-comp">{card.subText}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── 2. AT FIRST: RENEWAL REMINDERS SECTION ──────────────────── */}
-      {/* Dynamic renewals reminders loaded from /api/dashboard/overview */}
-      <section className="cliento-overview-reminders-section" aria-label="Renewal Reminders">
-        <RemindersPanel onNavigate={onNavigateTab} remindersData={dynamicReminders} />
       </section>
-      
-      {/* ── 6. CLOUD TELEMETRY CHART + SERVICES BREAKDOWN ───────────── */}
-      <div className="cliento-middle-grid">
-        {/* Right: Active Services & Infrastructure Breakdown */}
-        <div className="cliento-card cliento-status-breakdown-card">
-          <div className="cliento-card-head">
-            <div className="cliento-card-title-group">
-              <Layers size={18} className="cliento-card-icon" />
-              <h3 className="cliento-card-title">{dynamicServiceInfra?.title || 'Services & Infrastructure'}</h3>
+
+      {/* ── 2. Top 4 Metric Cards with CountUp Animations from 0 ── */}
+      <section className="flowmail-kpi-grid" aria-label="Key Performance Indicators">
+        {/* Card 1: Total Campaigns */}
+        <div className="flowmail-kpi-card">
+          <div className="flowmail-kpi-top">
+            <div className="flowmail-kpi-label-group">
+              <Mail size={16} className="flowmail-kpi-icon" />
+              <span className="flowmail-kpi-label">Total Campaigns</span>
+            </div>
+            <button type="button" className="flowmail-dots-btn" aria-label="More options">
+              <MoreVertical size={15} />
+            </button>
+          </div>
+
+          <div className="flowmail-kpi-middle">
+            <div className="flowmail-kpi-number">
+              <CountUp end={24} duration={1500} />
+            </div>
+            <div className="flowmail-trend-pill positive">
+              <TrendingUp size={13} />
+              <span>+<CountUp end={12} duration={1400} />%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Active Contacts */}
+        <div className="flowmail-kpi-card">
+          <div className="flowmail-kpi-top">
+            <div className="flowmail-kpi-label-group">
+              <Users size={16} className="flowmail-kpi-icon" />
+              <span className="flowmail-kpi-label">Active Contacts</span>
+            </div>
+            <button type="button" className="flowmail-dots-btn" aria-label="More options">
+              <MoreVertical size={15} />
+            </button>
+          </div>
+
+          <div className="flowmail-kpi-middle">
+            <div className="flowmail-kpi-number">
+              <CountUp end={8429} separator="," duration={1600} />
+            </div>
+            <div className="flowmail-trend-pill positive">
+              <TrendingUp size={13} />
+              <span>+<CountUp end={23} duration={1500} />%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Avg. Open Rate */}
+        <div className="flowmail-kpi-card">
+          <div className="flowmail-kpi-top">
+            <div className="flowmail-kpi-label-group">
+              <Activity size={16} className="flowmail-kpi-icon" />
+              <span className="flowmail-kpi-label">Avg. Open Rate</span>
+            </div>
+            <button type="button" className="flowmail-dots-btn" aria-label="More options">
+              <MoreVertical size={15} />
+            </button>
+          </div>
+
+          <div className="flowmail-kpi-middle">
+            <div className="flowmail-kpi-number">
+              <CountUp end={42.8} decimals={1} duration={1700} suffix="%" />
+            </div>
+            <div className="flowmail-trend-pill positive">
+              <TrendingUp size={13} />
+              <span>+<CountUp end={5.2} decimals={1} duration={1600} />%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Revenue (MTD) */}
+        <div className="flowmail-kpi-card">
+          <div className="flowmail-kpi-top">
+            <div className="flowmail-kpi-label-group">
+              <CreditCard size={16} className="flowmail-kpi-icon" />
+              <span className="flowmail-kpi-label">Revenue (MTD)</span>
+            </div>
+            <button type="button" className="flowmail-dots-btn" aria-label="More options">
+              <MoreVertical size={15} />
+            </button>
+          </div>
+
+          <div className="flowmail-kpi-middle">
+            <div className="flowmail-kpi-number">
+              <CountUp end={12450} prefix="$" separator="," duration={1800} />
+            </div>
+            <div className="flowmail-trend-pill negative">
+              <TrendingDown size={13} />
+              <span>-<CountUp end={2.4} decimals={1} duration={1600} />%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. Middle Section: Performance Chart, Donut Chart, Top Automations ── */}
+      <section className="flowmail-middle-grid">
+        {/* Middle Left: Campaign Performance Spline Chart */}
+        <div className="flowmail-card flowmail-chart-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">Campaign Performance</h3>
+              <p className="flowmail-card-subtitle">Last 30 days overview</p>
+            </div>
+            <div className="flowmail-chart-legend">
+              <span className="legend-dot-item">
+                <span className="legend-dot purple" /> Opens
+              </span>
+              <span className="legend-dot-item">
+                <span className="legend-dot blue" /> Clicks
+              </span>
+              <span className="legend-dot-item">
+                <span className="legend-dot orange" /> Conversions
+              </span>
             </div>
           </div>
 
-          <div className="cliento-breakdown-body">
-            <div className="cliento-breakdown-total-row">
-              <span className="cliento-breakdown-big-num">{dynamicServiceInfra?.totalActive || '4 Active'}</span>
-              <span className="cliento-change-pill positive">{dynamicServiceInfra?.healthBadge || 'Healthy 99.9%'}</span>
+          <div className="flowmail-chart-wrapper">
+            <svg
+              className={`flowmail-spline-svg ${animateGraphs ? 'is-animated' : ''}`}
+              viewBox="0 0 600 240"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.00" />
+                </linearGradient>
+                <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.15" />
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.00" />
+                </linearGradient>
+                <linearGradient id="orangeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.15" />
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.00" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid Lines */}
+              <line x1="50" y1="30" x2="580" y2="30" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="50" y1="80" x2="580" y2="80" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="50" y1="130" x2="580" y2="130" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="50" y1="180" x2="580" y2="180" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="50" y1="210" x2="580" y2="210" stroke="#e2e8f0" strokeWidth="1" />
+
+              {/* Y Axis Labels */}
+              <text x="38" y="34" className="chart-axis-text">3200</text>
+              <text x="38" y="84" className="chart-axis-text">2400</text>
+              <text x="38" y="134" className="chart-axis-text">1600</text>
+              <text x="38" y="184" className="chart-axis-text">800</text>
+              <text x="38" y="214" className="chart-axis-text">0</text>
+
+              {/* Area Fills */}
+              <path
+                d="M 60 170 Q 110 50, 160 55 T 260 110 T 360 80 T 460 110 T 560 110 L 560 210 L 60 210 Z"
+                fill="url(#purpleGradient)"
+                className="flowmail-area-fill"
+              />
+
+              {/* Purple Curve (Opens) */}
+              <path
+                d="M 60 170 Q 110 50, 160 55 T 260 110 T 360 80 T 460 110 T 560 110"
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth="2.8"
+                strokeLinecap="round"
+                className="flowmail-chart-line path-purple"
+              />
+
+              {/* Blue Curve (Clicks) */}
+              <path
+                d="M 60 185 Q 110 115, 160 120 T 260 145 T 360 135 T 460 140 T 560 140"
+                fill="none"
+                stroke="#94a3b8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="flowmail-chart-line path-blue"
+              />
+
+              {/* Orange Curve (Conversions) */}
+              <path
+                d="M 60 195 Q 110 170, 160 170 T 260 180 T 360 175 T 460 165 T 560 165"
+                fill="none"
+                stroke="#f97316"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="flowmail-chart-line path-orange"
+              />
+
+              {/* Dashed Indicator Line for Active Tooltip */}
+              <line
+                x1="260"
+                y1="30"
+                x2="260"
+                y2="210"
+                stroke="#cbd5e1"
+                strokeDasharray="4 4"
+                strokeWidth="1.5"
+                className="flowmail-cursor-line"
+              />
+
+              {/* Dots on Curves */}
+              <circle cx="260" cy="110" r="4.5" fill="#6366f1" stroke="#ffffff" strokeWidth="2" />
+              <circle cx="260" cy="145" r="4" fill="#94a3b8" stroke="#ffffff" strokeWidth="2" />
+              <circle cx="260" cy="180" r="4" fill="#f97316" stroke="#ffffff" strokeWidth="2" />
+            </svg>
+
+            {/* Interactive Tooltip Card Floating on Chart */}
+            <div className="flowmail-chart-tooltip" style={{ left: '43%', top: '35%' }}>
+              <div className="tooltip-title">March</div>
+              <div className="tooltip-row">
+                <span className="tooltip-dot purple" />
+                <span className="tooltip-label">Opens:</span>
+                <span className="tooltip-value font-semibold">
+                  <CountUp end={2600} duration={1400} />
+                </span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-dot blue" />
+                <span className="tooltip-label">Clicks:</span>
+                <span className="tooltip-value font-semibold">
+                  <CountUp end={1200} duration={1500} />
+                </span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-dot orange" />
+                <span className="tooltip-label">Conversions:</span>
+                <span className="tooltip-value font-semibold">
+                  <CountUp end={800} duration={1600} />
+                </span>
+              </div>
             </div>
 
-            <div className="cliento-status-bars-list">
-              {(dynamicServiceInfra?.services || [
-                { name: 'Tally Prime 5.0', percentage: 100, colorVariant: 'bar-blue-1' },
-                { name: 'Cloud VPS Node', percentage: 92, colorVariant: 'bar-blue-2' },
-                { name: 'HTML5 Terminal', percentage: 85, colorVariant: 'bar-purple-1' },
-                { name: 'Backup Sync', percentage: 80, colorVariant: 'bar-purple-2' },
-                { name: 'e-Invoice API', percentage: 65, colorVariant: 'bar-violet' }
-              ]).map((svc, idx) => (
-                <div key={idx} className="cliento-bar-item">
-                  <span className="cliento-bar-label">{svc.name}</span>
-                  <div className="cliento-bar-track">
-                    <div
-                      className={`cliento-bar-fill ${svc.colorVariant || 'bar-blue-1'}`}
-                      style={{ width: `${svc.percentage}%` }}
-                    />
+            {/* X Axis Labels */}
+            <div className="flowmail-x-axis">
+              <span>Mar 1</span>
+              <span>Mar 5</span>
+              <span>Mar 10</span>
+              <span>Mar 15</span>
+              <span>Mar 20</span>
+              <span>Mar 25</span>
+              <span>Mar 31</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Center: Campaign Types Donut Chart */}
+        <div className="flowmail-card flowmail-donut-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">Campaign Types</h3>
+              <p className="flowmail-card-subtitle">Distribution</p>
+            </div>
+          </div>
+
+          <div className="flowmail-donut-body">
+            <div className="flowmail-donut-container">
+              <svg className="flowmail-donut-svg" viewBox="0 0 100 100">
+                {/* Background Ring */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#e2e8f0"
+                  strokeWidth="15"
+                />
+                {/* Animated Primary Violet Segment (35%) */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  stroke="#6366f1"
+                  strokeWidth="15"
+                  strokeDasharray="238.7"
+                  strokeDashoffset={animateGraphs ? '155.15' : '238.7'}
+                  strokeLinecap="round"
+                  transform="rotate(-90 50 50)"
+                  className="flowmail-donut-segment"
+                />
+              </svg>
+
+              <div className="flowmail-donut-center">
+                <span className="donut-center-label">Newsletter</span>
+                <span className="donut-center-percent">
+                  <CountUp end={35} duration={1600} suffix="%" />
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Right: Top Automations */}
+        <div className="flowmail-card flowmail-automations-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">Top Automations</h3>
+              <p className="flowmail-card-subtitle">Best performers</p>
+            </div>
+            <button
+              type="button"
+              className="flowmail-view-all-link"
+              onClick={() => onNavigateTab && onNavigateTab('products')}
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="flowmail-automations-list">
+            {/* Automation Item 1 */}
+            <div className="flowmail-auto-item">
+              <div className="flowmail-auto-meta">
+                <span className="flowmail-auto-name">Welcome Series</span>
+                <span className="flowmail-auto-rate">
+                  <CountUp end={87.1} decimals={1} duration={1600} suffix="%" />
+                </span>
+              </div>
+              <div className="flowmail-auto-subs">
+                <span>342 triggered</span>
+                <span>298 completed</span>
+              </div>
+              <div className="flowmail-progress-track">
+                <div
+                  className="flowmail-progress-bar"
+                  style={{ width: animateGraphs ? '87.1%' : '0%' }}
+                />
+              </div>
+            </div>
+
+            {/* Automation Item 2 */}
+            <div className="flowmail-auto-item">
+              <div className="flowmail-auto-meta">
+                <span className="flowmail-auto-name">Re-engagement Campaign</span>
+                <span className="flowmail-auto-rate">
+                  <CountUp end={57.0} decimals={1} duration={1700} suffix="%" />
+                </span>
+              </div>
+              <div className="flowmail-auto-subs">
+                <span>156 triggered</span>
+                <span>89 completed</span>
+              </div>
+              <div className="flowmail-progress-track">
+                <div
+                  className="flowmail-progress-bar"
+                  style={{ width: animateGraphs ? '57%' : '0%' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. Bottom Section: Audience Growth, Recent Campaigns, AI Insights ── */}
+      <section className="flowmail-bottom-grid">
+        {/* Bottom Left: Audience Growth Bar Chart */}
+        <div className="flowmail-card flowmail-growth-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">Audience Growth</h3>
+            </div>
+          </div>
+
+          <div className="flowmail-bar-chart-body">
+            {/* Y axis numbers */}
+            <div className="flowmail-bar-y-axis">
+              <span>10000</span>
+              <span>7500</span>
+              <span>5000</span>
+              <span>2500</span>
+              <span>0</span>
+            </div>
+
+            {/* Bars wrapper */}
+            <div className="flowmail-bars-columns">
+              {/* Oct */}
+              <div className="flowmail-bar-col">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill"
+                    style={{ height: animateGraphs ? '48%' : '0%' }}
+                  />
+                </div>
+                <span className="flowmail-bar-month">Oct</span>
+              </div>
+
+              {/* Nov */}
+              <div className="flowmail-bar-col">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill"
+                    style={{ height: animateGraphs ? '64%' : '0%' }}
+                  />
+                </div>
+                <span className="flowmail-bar-month">Nov</span>
+              </div>
+
+              {/* Dec (Highlighted Purple with floating Badge 9800) */}
+              <div className="flowmail-bar-col highlight">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill active-purple"
+                    style={{ height: animateGraphs ? '96%' : '0%' }}
+                  >
+                    <span className="flowmail-active-badge">
+                      <CountUp end={9800} duration={1700} />
+                    </span>
                   </div>
                 </div>
-              ))}
+                <span className="flowmail-bar-month active">Dec</span>
+              </div>
+
+              {/* Jan */}
+              <div className="flowmail-bar-col">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill"
+                    style={{ height: animateGraphs ? '52%' : '0%' }}
+                  />
+                </div>
+                <span className="flowmail-bar-month">Jan</span>
+              </div>
+
+              {/* Feb */}
+              <div className="flowmail-bar-col">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill"
+                    style={{ height: animateGraphs ? '70%' : '0%' }}
+                  />
+                </div>
+                <span className="flowmail-bar-month">Feb</span>
+              </div>
+
+              {/* Mar */}
+              <div className="flowmail-bar-col">
+                <div className="flowmail-bar-track">
+                  <div
+                    className="flowmail-bar-fill"
+                    style={{ height: animateGraphs ? '60%' : '0%' }}
+                  />
+                </div>
+                <span className="flowmail-bar-month">Mar</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* ── 3. PLAN DETAILS & ACCOUNT DETAILS CARDS (WITH "DETAILS" ON TOP RIGHT) ── */}
-      <section className="cliento-plans-account-grid" aria-label="Plan and Account Details Overview">
-        {/* Card 1: Plan Details Card */}
-        <div className="cliento-card cliento-plan-overview-card">
-          <div className="cliento-plan-card-header">
-            <div className="cliento-plan-card-title-group">
-              <div className="cliento-plan-card-icon-wrap" style={{ background: '#eff6ff', color: '#2563eb' }}>
+
+        {/* Bottom Center: Recent Campaigns Table */}
+        <div className="flowmail-card flowmail-recent-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">Recent Campaigns</h3>
+            </div>
+            <button
+              type="button"
+              className="flowmail-view-all-link"
+              onClick={() => onNavigateTab && onNavigateTab('products')}
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="flowmail-table-wrap">
+            <table className="flowmail-table">
+              <thead>
+                <tr>
+                  <th>Campaign</th>
+                  <th>Status</th>
+                  <th>Sent</th>
+                  <th>Opens</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="font-medium text-slate-800">Spring Sale Launch</td>
+                  <td>
+                    <span className="flowmail-status-badge active">Active</span>
+                  </td>
+                  <td>
+                    <CountUp end={2450} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <CountUp end={1089} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <button type="button" className="flowmail-row-menu" aria-label="Row options">
+                      <MoreVertical size={14} />
+                    </button>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="font-medium text-slate-800">Weekly Newslett...</td>
+                  <td>
+                    <span className="flowmail-status-badge scheduled">Scheduled</span>
+                  </td>
+                  <td>
+                    <CountUp end={2450} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <CountUp end={1089} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <button type="button" className="flowmail-row-menu" aria-label="Row options">
+                      <MoreVertical size={14} />
+                    </button>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="font-medium text-slate-800">Abandoned Cart...</td>
+                  <td>
+                    <span className="flowmail-status-badge active">Active</span>
+                  </td>
+                  <td>
+                    <CountUp end={2450} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <CountUp end={1089} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <button type="button" className="flowmail-row-menu" aria-label="Row options">
+                      <MoreVertical size={14} />
+                    </button>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="font-medium text-slate-800">Product Update...</td>
+                  <td>
+                    <span className="flowmail-status-badge completed">Completed</span>
+                  </td>
+                  <td>
+                    <CountUp end={2450} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <CountUp end={1089} separator="," duration={1500} />
+                  </td>
+                  <td>
+                    <button type="button" className="flowmail-row-menu" aria-label="Row options">
+                      <MoreVertical size={14} />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Bottom Right: AI Insights Widget */}
+        <div className="flowmail-card flowmail-insights-card">
+          <div className="flowmail-card-header-row">
+            <div>
+              <h3 className="flowmail-card-title">AI Insights</h3>
+            </div>
+          </div>
+
+          <div className="flowmail-insights-items-wrap">
+            {/* Item 1 */}
+            <div className="flowmail-insight-pill-box">
+              <div className="flowmail-insight-icon-box">
+                <Clock size={16} />
+              </div>
+              <div className="flowmail-insight-text">
+                <span className="flowmail-insight-heading">Best Send Time</span>
+                <span className="flowmail-insight-sub">Tuesday at 10 AM shows highest open rates.</span>
+              </div>
+            </div>
+
+            {/* Item 2 */}
+            <div className="flowmail-insight-pill-box">
+              <div className="flowmail-insight-icon-box">
+                <Mail size={16} />
+              </div>
+              <div className="flowmail-insight-text">
+                <span className="flowmail-insight-heading">Subject Line Tip</span>
+                <span className="flowmail-insight-sub">Adding personalization boosts conversions by 22%.</span>
+              </div>
+            </div>
+
+            {/* Open AI Assistant Gradient Button */}
+            <button
+              type="button"
+              className="flowmail-open-assistant-btn"
+              onClick={() => setIsAiModalOpen(true)}
+            >
+              <Sparkles size={16} />
+              <span>Open AI Assistant</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. Plan Reminders Section (FlowMail Clean Card Styling) ── */}
+      <section className="flowmail-reminders-section" aria-label="Renewal Reminders">
+        <RemindersPanel onNavigate={onNavigateTab} />
+      </section>
+
+      {/* ── 6. Plan Details & Account Details Cards ── */}
+      <section className="flowmail-details-grid" aria-label="Plan and Account Overview">
+        {/* Current Plan Details */}
+        <div className="flowmail-card flowmail-plan-box">
+          <div className="flowmail-card-header-row">
+            <div className="flowmail-card-title-group">
+              <div className="flowmail-plan-icon-wrap">
                 <Package size={18} />
               </div>
               <div>
-                <h3 className="cliento-card-title">Current Plan Details</h3>
-                <span className="cliento-plan-card-sub">Active Enterprise Cloud + TSS Subscription</span>
+                <h3 className="flowmail-card-title">Current Plan Details</h3>
+                <span className="flowmail-card-subtitle">{currentPlan.planName}</span>
               </div>
             </div>
-
-            {/* Top Right "Details" button */}
             <button
               type="button"
-              className="cliento-card-details-btn"
+              className="flowmail-card-details-btn"
               onClick={() => setIsPlanModalOpen(true)}
               title="Click to view all plan details"
             >
@@ -449,110 +780,82 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
             </button>
           </div>
 
-          <div className="cliento-plan-card-body">
-            <div className="cliento-plan-highlight-banner">
-              <div className="cliento-plan-banner-info">
-                <span className="cliento-plan-code-tag">{currentPlan.planCode}</span>
-                <h4 className="cliento-plan-name-text">{currentPlan.planName}</h4>
-              </div>
-              <span className="cliento-plan-status-pill">
-                <CheckCircle2 size={12} /> {currentPlan.status}
+          <div className="flowmail-plan-quick-grid">
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Plan Code</span>
+              <span className="flowmail-val">{currentPlan.planCode}</span>
+            </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Renewal Due</span>
+              <span className="flowmail-val text-amber">
+                {currentPlan.renewalDate} (<CountUp end={currentPlan.daysRemaining} /> days left)
               </span>
             </div>
-
-            <div className="cliento-plan-quick-grid">
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Billing Frequency</span>
-                <span className="cliento-quick-val">{currentPlan.billingFrequency}</span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Next Renewal Due</span>
-                <span className="cliento-quick-val" style={{ color: '#d97706', fontWeight: 600 }}>
-                  {currentPlan.nextRenewalDue || `${currentPlan.renewalDate} (${currentPlan.daysRemaining} days left)`}
-                </span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Total Plan Rate</span>
-                <span className="cliento-quick-val font-outfit" style={{ fontSize: '1.05rem', color: '#0f172a' }}>
-                  {currentPlan.totalAmount}
-                </span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Primary Entitlement</span>
-                <span className="cliento-quick-val">{currentPlan.primaryEntitlement || 'Tally Gold + 8 GB RAM VPS'}</span>
-              </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Annual Rate</span>
+              <span className="flowmail-val font-semibold">{currentPlan.totalAmount}</span>
+            </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Status</span>
+              <span className="flowmail-status-badge active">{currentPlan.status}</span>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Account Details Card */}
-        <div className="cliento-card cliento-account-overview-card">
-          <div className="cliento-plan-card-header">
-            <div className="cliento-plan-card-title-group">
-              <div className="cliento-plan-card-icon-wrap" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+        {/* Account Details */}
+        <div className="flowmail-card flowmail-account-box">
+          <div className="flowmail-card-header-row">
+            <div className="flowmail-card-title-group">
+              <div className="flowmail-account-icon-wrap">
                 <Building2 size={18} />
               </div>
               <div>
-                <h3 className="cliento-card-title">{accountDetails?.title || 'Account Details'}</h3>
-                <span className="cliento-plan-card-sub">{accountDetails?.subtitle || 'Verified Customer Entity & Tax Profile'}</span>
+                <h3 className="flowmail-card-title">Account Details</h3>
+                <span className="flowmail-card-subtitle">Verified Profile & Security</span>
               </div>
             </div>
-
-            {/* Top Right "Details" button */}
             <button
               type="button"
-              className="cliento-card-details-btn"
+              className="flowmail-card-details-btn"
               onClick={() => setIsAccountModalOpen(true)}
-              title="Click to view all account details"
+              title="Click to view account details"
             >
               <span>Details</span>
               <ChevronRight size={14} />
             </button>
           </div>
 
-          <div className="cliento-plan-card-body">
-            <div className="cliento-account-highlight-banner">
-              <div className="cliento-account-banner-info">
-                <span className="cliento-account-cust-id">CUSTOMER ID: {customerId}</span>
-                <h4 className="cliento-account-name-text">{companyName}</h4>
-              </div>
-              <span className="cliento-account-tier-pill">
-                <ShieldCheck size={12} /> {accountDetails?.tierBadge || 'Tier-Gold Client'}
-              </span>
+          <div className="flowmail-plan-quick-grid">
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Company</span>
+              <span className="flowmail-val">{companyName}</span>
             </div>
-
-            <div className="cliento-plan-quick-grid">
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Authorized Admin</span>
-                <span className="cliento-quick-val">{customerName}</span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Official Email</span>
-                <span className="cliento-quick-val">{customerEmail}</span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">GSTIN (West Bengal)</span>
-                <span className="cliento-quick-val font-mono">{accountDetails?.gstin || '19AAACA1234A1Z5'}</span>
-              </div>
-              <div className="cliento-plan-quick-item">
-                <span className="cliento-quick-lbl">Security 2FA</span>
-                <span className="cliento-quick-val text-emerald">
-                  <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4 }} />
-                  {accountDetails?.security2fa || accountDetails?.security2FA || 'Enabled (SMS OTP & Google Authenticator)'}
-                </span>
-              </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">Admin Email</span>
+              <span className="flowmail-val">{accountDetails.adminEmail}</span>
+            </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">GSTIN</span>
+              <span className="flowmail-val font-mono">{accountDetails.gstin}</span>
+            </div>
+            <div className="flowmail-plan-quick-item">
+              <span className="flowmail-lbl">2FA Protection</span>
+              <span className="flowmail-val text-emerald">
+                <CheckCircle2 size={13} style={{ display: 'inline', marginRight: 4 }} />
+                Enabled
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── MODAL 1: FULL PLAN DETAILS (TRIGGERED ON CLICKING "DETAILS") ── */}
+      {/* ── MODALS: Plan Details & Account Details ── */}
       {isPlanModalOpen && typeof document !== 'undefined' && createPortal(
         <div className="cliento-modal-backdrop" onClick={() => setIsPlanModalOpen(false)}>
           <div className="cliento-modal-box animate-scale-up" onClick={(e) => e.stopPropagation()}>
             <div className="cliento-modal-header">
               <div className="cliento-modal-title-group">
-                <div className="cliento-modal-icon-wrap" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                <div className="cliento-modal-icon-wrap" style={{ background: '#ede9fe', color: '#6366f1' }}>
                   <Package size={20} />
                 </div>
                 <div>
@@ -562,7 +865,6 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                   </span>
                 </div>
               </div>
-
               <button
                 type="button"
                 className="cliento-modal-close-btn"
@@ -574,7 +876,6 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
             </div>
 
             <div className="cliento-modal-body">
-              {/* Highlight Bar */}
               <div className="cliento-modal-hero-bar">
                 <div>
                   <span className="cliento-modal-tag">{currentPlan.planCode}</span>
@@ -589,101 +890,34 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
                 </div>
               </div>
 
-              {/* Status & Renewal Alert */}
               <div className="cliento-modal-alert-box">
                 <Clock size={16} color="#d97706" />
                 <span>
-                  Next Plan Renewal is due on <strong>{currentPlan.renewalDate}</strong> ({currentPlan.daysRemaining} days remaining). Auto-debit via Corporate NetBanking is active.
+                  Next Plan Renewal is due on <strong>{currentPlan.renewalDate}</strong> (<CountUp end={currentPlan.daysRemaining} /> days remaining).
                 </span>
               </div>
-
-              {/* Resource Quotas Grid */}
-              <h5 className="cliento-modal-section-heading">Resource Quotas & Allocations</h5>
-              <div className="cliento-modal-quotas-grid">
-                {(currentPlan.quotas || []).map((q, qi) => (
-                  <div key={qi} className="cliento-modal-quota-item">
-                    <span className="cliento-quota-label">{q.label}</span>
-                    <span className="cliento-quota-used">{q.used}</span>
-                    <span className="cliento-quota-total">Cap: {q.total}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Included Modules & Entitlements List */}
-              <h5 className="cliento-modal-section-heading" style={{ marginTop: 18 }}>Included Modules & Services</h5>
-              <div className="cliento-modal-modules-list">
-                {(currentPlan.modulesIncluded || []).map((m, mi) => (
-                  <div key={mi} className="cliento-modal-module-item">
-                    <div className="cliento-module-check">
-                      <Check size={13} strokeWidth={2.5} />
-                    </div>
-                    <div className="cliento-module-info">
-                      <span className="cliento-module-title">{m.title}</span>
-                      <span className="cliento-module-desc">{m.desc}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Invoicing & Reference */}
-              <div className="cliento-modal-billing-footer">
-                <div className="cliento-billing-ref-item">
-                  <span className="cliento-spec-name">Last Billed Invoice</span>
-                  <span className="cliento-spec-data font-mono">{currentPlan.lastInvoiceNo}</span>
-                </div>
-                <div className="cliento-billing-ref-item">
-                  <span className="cliento-spec-name">Payment Method</span>
-                  <span className="cliento-spec-data">{currentPlan.paymentMethod}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cliento-modal-footer">
-              <button
-                type="button"
-                className="cliento-modal-secondary-btn"
-                onClick={() => {
-                  setIsPlanModalOpen(false);
-                  onNavigateTab && onNavigateTab('receipt');
-                }}
-              >
-                <FileText size={14} />
-                <span>View Tax Invoices</span>
-              </button>
-              <button
-                type="button"
-                className="cliento-modal-primary-btn"
-                onClick={() => {
-                  setIsPlanModalOpen(false);
-                  onNavigateTab && onNavigateTab('products');
-                }}
-              >
-                <RotateCw size={14} />
-                <span>Renew / Upgrade Plan</span>
-              </button>
             </div>
           </div>
         </div>,
         document.body
       )}
 
-      {/* ── MODAL 2: FULL ACCOUNT DETAILS (TRIGGERED ON CLICKING "DETAILS") ── */}
+      {/* Account Details Modal */}
       {isAccountModalOpen && typeof document !== 'undefined' && createPortal(
         <div className="cliento-modal-backdrop" onClick={() => setIsAccountModalOpen(false)}>
           <div className="cliento-modal-box animate-scale-up" onClick={(e) => e.stopPropagation()}>
             <div className="cliento-modal-header">
               <div className="cliento-modal-title-group">
-                <div className="cliento-modal-icon-wrap" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                <div className="cliento-modal-icon-wrap" style={{ background: '#ede9fe', color: '#6366f1' }}>
                   <Building2 size={20} />
                 </div>
                 <div>
-                  <h3 className="cliento-modal-title">Customer Account & Organization Profile</h3>
+                  <h3 className="cliento-modal-title">Official Customer & Tax Profile</h3>
                   <span className="cliento-modal-subtitle">
-                    Verified entity credentials, statutory GST registration & security status
+                    Corporate entity registration & verified credentials
                   </span>
                 </div>
               </div>
-
               <button
                 type="button"
                 className="cliento-modal-close-btn"
@@ -695,134 +929,40 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
             </div>
 
             <div className="cliento-modal-body">
-              {/* Account Hero Card */}
-              <div className="cliento-modal-hero-bar" style={{ background: 'linear-gradient(135deg, #faf5ff 0%, #f8fafc 100%)', borderColor: '#e9d5ff' }}>
+              <div className="cliento-modal-hero-bar">
                 <div>
-                  <span className="cliento-modal-tag" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
-                    CUSTOMER ID: {customerId}
-                  </span>
-                  <h4 className="cliento-modal-plan-title">{companyName}</h4>
-                  <span className="cliento-modal-plan-meta">
-                    {accountDetails?.legalEntity}
-                  </span>
-                </div>
-                <div className="cliento-modal-hero-right">
-                  <span className="cliento-account-tier-pill" style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}>
-                    <ShieldCheck size={14} /> {accountDetails?.tierBadge || 'Tier-Gold Enterprise'}
-                  </span>
+                  <span className="cliento-modal-tag">ID: {accountDetails.customerId}</span>
+                  <h4 className="cliento-modal-plan-title">{accountDetails.companyName}</h4>
+                  <span className="cliento-modal-plan-meta">{accountDetails.legalEntity}</span>
                 </div>
               </div>
 
-              {/* Account Key Properties Grid */}
-              <h5 className="cliento-modal-section-heading">Tax, Statutory & Identification</h5>
-              <div className="cliento-account-props-grid">
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Goods & Services Tax ID (GSTIN)</span>
-                  <div className="cliento-prop-val-row">
-                    <span className="cliento-prop-val font-mono">{accountDetails?.gstin}</span>
-                    <button
-                      type="button"
-                      className="cliento-prop-copy-btn"
-                      onClick={() => copyToClipboard(accountDetails?.gstin, 'GSTIN')}
-                      title="Copy GSTIN"
-                    >
-                      <Copy size={12} />
-                    </button>
-                  </div>
+              <div className="cliento-modal-specs-grid">
+                <div className="cliento-spec-box">
+                  <span className="cliento-spec-lbl">Primary Admin</span>
+                  <span className="cliento-spec-val">{accountDetails.adminName}</span>
                 </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Permanent Account Number (PAN)</span>
-                  <span className="cliento-prop-val font-mono">{accountDetails?.pan}</span>
+                <div className="cliento-spec-box">
+                  <span className="cliento-spec-lbl">Official Email</span>
+                  <span className="cliento-spec-val">{accountDetails.adminEmail}</span>
                 </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Jurisdiction & State</span>
-                  <span className="cliento-prop-val">{accountDetails?.stateCode}</span>
+                <div className="cliento-spec-box">
+                  <span className="cliento-spec-lbl">GSTIN</span>
+                  <span className="cliento-spec-val font-mono">{accountDetails.gstin}</span>
                 </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Primary Datacenter Node</span>
-                  <span className="cliento-prop-val">{accountDetails?.primaryNodeCluster}</span>
+                <div className="cliento-spec-box">
+                  <span className="cliento-spec-lbl">2FA Status</span>
+                  <span className="cliento-spec-val text-emerald">{accountDetails.security2FA}</span>
                 </div>
               </div>
-
-              {/* Contact & Administration */}
-              <h5 className="cliento-modal-section-heading" style={{ marginTop: 18 }}>Authorized Administrator & Contacts</h5>
-              <div className="cliento-account-props-grid">
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Primary Admin</span>
-                  <span className="cliento-prop-val">{customerName}</span>
-                  <span className="cliento-prop-sub">{accountDetails?.designation || 'Managing Director & IT Systems Head'}</span>
-                </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Admin Email</span>
-                  <span className="cliento-prop-val">{customerEmail}</span>
-                  <span className="cliento-prop-sub">Billing Email: {accountDetails?.billingEmail || customerEmail}</span>
-                </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Phone & WhatsApp</span>
-                  <span className="cliento-prop-val">{accountDetails?.contactPhone}</span>
-                  <span className="cliento-prop-sub">Landline: {accountDetails?.landline}</span>
-                </div>
-
-                <div className="cliento-prop-card">
-                  <span className="cliento-prop-name">Security Status</span>
-                  <span className="cliento-prop-val text-emerald">
-                    <CheckCircle2 size={13} style={{ display: 'inline', marginRight: 4 }} />
-                    {accountDetails?.security2fa || accountDetails?.security2FA}
-                  </span>
-                  <span className="cliento-prop-sub">Whitelisted: {accountDetails?.whitelistedSubnet}</span>
-                </div>
-              </div>
-
-              {/* Registered Address */}
-              <div className="cliento-modal-address-box">
-                <MapPin size={16} className="cliento-address-icon" />
-                <div className="cliento-address-info">
-                  <span className="cliento-spec-name">Registered Business & Invoicing Address</span>
-                  <span className="cliento-address-text">{accountDetails?.registeredAddress}</span>
-                </div>
-              </div>
-
-              {/* Assigned Account Manager */}
-              <div className="cliento-modal-manager-strip">
-                <div className="cliento-manager-avatar">
-                  <span>SR</span>
-                </div>
-                <div className="cliento-manager-info">
-                  <span className="cliento-manager-tag">Assigned Account Manager</span>
-                  <h6 className="cliento-manager-name">{accountDetails?.accountManager}</h6>
-                  <span className="cliento-manager-contact">
-                    {accountDetails?.accountManagerEmail} &middot; {accountDetails?.accountManagerPhone}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cliento-modal-footer">
-              <button
-                type="button"
-                className="cliento-modal-secondary-btn"
-                onClick={() => copyToClipboard(`Company: ${companyName}\nCustomer ID: ${customerId}\nGSTIN: ${accountDetails?.gstin}\nAdmin: ${customerName} (${customerEmail})`, 'Account Summary')}
-              >
-                <Copy size={14} />
-                <span>Copy Summary</span>
-              </button>
-              <button
-                type="button"
-                className="cliento-modal-primary-btn"
-                onClick={() => setIsAccountModalOpen(false)}
-              >
-                <span>Close Details</span>
-              </button>
             </div>
           </div>
         </div>,
         document.body
       )}
+
+      {/* AI Assistant Insight Modal */}
+      <AiInsightModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
     </div>
   );
 }

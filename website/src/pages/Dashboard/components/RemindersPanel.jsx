@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { Bell, AlertTriangle, Clock, CheckCircle2, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { PLAN_RENEWALS } from '../data/mockDashboardData';
 import { dashboardApi } from '../../../services/dashboardApi';
+import { CountUp } from '../utils/useCountUp';
 
 /* ─────────────────────────────────────────────────────────────────
    Urgency helpers
@@ -218,7 +219,7 @@ export default function RemindersPanel({ onNavigate, remindersData }) {
                       ? 'Service lapsed'
                       : plan.daysLeft === 0
                       ? 'Expires today'
-                      : `${plan.daysLeft} day${plan.daysLeft === 1 ? '' : 's'} left`}
+                      : <><span><CountUp end={plan.daysLeft} duration={1400} /></span> {plan.daysLeft === 1 ? 'day' : 'days'} left</>}
                   </span>
                   <span className="reminder-plan-price">{plan.price}</span>
                 </div>
