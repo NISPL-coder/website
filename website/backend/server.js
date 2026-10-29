@@ -20,29 +20,78 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS Configuration
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. server-to-server, curl, tests)
-    if (!origin) return callback(null, true);
-    
-    // Check against configured origins or local development ports
-    const allowed = config.corsOrigin.some(allowedOrigin => {
-      return origin === allowedOrigin || 
-             origin.startsWith('http://localhost:') || 
-             origin.startsWith('http://127.0.0.1:');
-    });
+// Permitted origin validation helper
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow non-browser requests (e.g. server-to-server, curl, tests)
 
-    if (allowed) {
+  // Local development ports
+  if (
+    origin.startsWith('http://localhost:') ||
+    origin.startsWith('http://127.0.0.1:') ||
+    origin.startsWith('https://localhost:')
+  ) {
+    return true;
+  }
+
+  // Allow all Vercel deployments (production, staging, branch previews) & Render subdomains
+  try {
+    const parsed = new URL(origin);
+    const hostname = parsed.hostname.toLowerCase();
+
+    if (
+      hostname === 'vercel.app' ||
+      hostname.endsWith('.vercel.app') ||
+      hostname === 'onrender.com' ||
+      hostname.endsWith('.onrender.com') ||
+      hostname === 'netinfotechsystem.in' ||
+      hostname.endsWith('.netinfotechsystem.in') ||
+      hostname === 'nispl.in' ||
+      hostname.endsWith('.nispl.in')
+    ) {
+      return true;
+    }
+  } catch (e) {
+    // Malformed origin URL, continue to string match
+  }
+
+  // Check against explicit config/environment origins
+  if (Array.isArray(config.corsOrigin)) {
+    return config.corsOrigin.some((allowed) => {
+      if (allowed === '*') return true;
+      return origin === allowed || origin.toLowerCase() === allowed.toLowerCase();
+    });
+  }
+
+  return false;
+};
+
+// Robust CORS Configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+      console.warn(`[CORS] Blocked request from unapproved origin: ${origin}`);
+      // Return null, false to reject cleanly without triggering a 500 internal server error
+      callback(null, false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-session-id'],
-  credentials: true
-}));
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'x-session-id',
+    'Accept',
+    'Origin'
+  ],
+  exposedHeaders: ['Authorization', 'x-session-id'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

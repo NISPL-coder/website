@@ -17,7 +17,13 @@ export const config = {
   timezone: process.env.TIMEZONE || 'Asia/Kolkata',
   corsOrigin: process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    : [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'https://nispldemo.vercel.app',
+        'https://website-homepage-bdjc.onrender.com'
+      ],
 
   // MongoDB Connection
   mongoUri: process.env.MONGODB_URI || 'mongodb+srv://nispldeveloper_db_user:Lw0pRhHxaUL3v6qy@cluster0.ckh8yxf.mongodb.net/nispl_db?retryWrites=true&w=majority',
