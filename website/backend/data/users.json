@@ -244,5 +244,38 @@
     "createdAt": "2026-10-28T13:01:51.629Z",
     "updatedAt": "2026-10-28T13:01:51.629Z",
     "id": "NIS-CUST-342095"
+  },
+  {
+    "customerId": "NIS-CUST-664863",
+    "name": "Speed Test",
+    "email": "speedtest_1793253820855@example.com",
+    "mobile": "9999999999",
+    "companyName": "Test Corp",
+    "companyLogo": "",
+    "gstNo": "",
+    "password": "$2b$10$99e3T8VhqQXLcKEx463LjOcFguJQRoVXvG2.sjw3cTSSZpQ1ZelEu",
+    "role": "customer",
+    "accountStatus": "Active",
+    "tier": "Enterprise Cloud Customer",
+    "createdFormattedDate": "29 Oct 2026",
+    "cloudInstance": {
+      "serverName": "testcorp-cloud-node1",
+      "ipAddress": "103.145.24.188",
+      "rdpPort": 3389,
+      "webPort": 8443,
+      "status": "Online",
+      "ram": "8 GB DDR4 Dedicated",
+      "cpu": "4 vCPU (Intel Xeon)",
+      "storage": "100 GB NVMe SSD",
+      "tallyPrimeVersion": "Release 5.0 (Latest 64-Bit)",
+      "tssStatus": "Active"
+    },
+    "stats": {
+      "activeLicenses": 1,
+      "totalUsers": 2,
+      "cloudUptime": "99.98%",
+      "openTickets": 0
+    },
+    "id": "NIS-CUST-664863"
   }
 ]

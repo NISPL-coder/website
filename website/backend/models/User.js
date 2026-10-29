@@ -6,6 +6,48 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const DATA_FILE = path.resolve(__dirname, '../data/users.json');
+
+// File-backed persistence helpers for offline resilience
+export const getUsersFromFile = () => {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.warn('[User] Error reading users.json:', e.message);
+  }
+  return [];
+};
+
+export const saveUsersToFile = (list) => {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('[User] Error writing to users.json:', e.message);
+  }
+};
+
+const wrapUserObj = (user) => {
+  if (!user) return null;
+  return {
+    ...user,
+    id: user.customerId || user._id,
+    comparePassword: async function (candidate) {
+      if (!candidate || !this.password) return false;
+      return bcrypt.compare(candidate, this.password);
+    },
+    sanitize: function () {
+      const { password, __v, ...safe } = this;
+      return safe;
+    },
+    toJSON: function () {
+      const { password, __v, ...safe } = this;
+      return safe;
+    }
+  };
+};
 
 const userSchema = new mongoose.Schema(
   {
@@ -109,7 +151,6 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
 
-  // If password is already a bcrypt hash (starts with $2a$ or $2b$), don't double hash
   if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) {
     return;
   }
@@ -129,48 +170,97 @@ userSchema.methods.sanitize = function () {
   return this.toJSON();
 };
 
-// Static: Find by Email (case-insensitive)
-userSchema.statics.findByEmail = function (email) {
+// Static: Find by Email (case-insensitive with offline fallback)
+userSchema.statics.findByEmail = async function (email) {
   if (!email) return null;
-  return this.findOne({ email: email.trim().toLowerCase() });
+  const cleanEmail = email.trim().toLowerCase();
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const doc = await this.findOne({ email: cleanEmail });
+      if (doc) return doc;
+    } catch (e) {
+      console.warn('[User.findByEmail] MongoDB read failed, checking local storage:', e.message);
+    }
+  }
+
+  const list = getUsersFromFile();
+  const found = list.find((u) => u.email && u.email.toLowerCase() === cleanEmail);
+  return wrapUserObj(found);
 };
 
-// Static: Find by Customer ID / ID
-userSchema.statics.findByCustomerId = function (customerId) {
+// Static: Find by Customer ID / ID with offline fallback
+userSchema.statics.findByCustomerId = async function (customerId) {
   if (!customerId) return null;
   const cleanId = customerId.trim().toUpperCase();
-  return this.findOne({ customerId: cleanId });
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const doc = await this.findOne({ customerId: cleanId });
+      if (doc) return doc;
+    } catch (e) {
+      console.warn('[User.findByCustomerId] MongoDB read failed, checking local storage:', e.message);
+    }
+  }
+
+  const list = getUsersFromFile();
+  const found = list.find((u) => u.customerId && u.customerId.toUpperCase() === cleanId);
+  return wrapUserObj(found);
 };
 
 // Static: Find by ID (supports MongoDB _id or custom customerId)
-userSchema.statics.findById = function (id) {
+userSchema.statics.findById = async function (id) {
   if (!id) return null;
   const clean = String(id).trim();
-  if (mongoose.Types.ObjectId.isValid(clean)) {
-    return this.findOne({ $or: [{ _id: clean }, { customerId: clean.toUpperCase() }] });
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      if (mongoose.Types.ObjectId.isValid(clean)) {
+        const doc = await this.findOne({ $or: [{ _id: clean }, { customerId: clean.toUpperCase() }] });
+        if (doc) return doc;
+      } else {
+        const doc = await this.findOne({ customerId: clean.toUpperCase() });
+        if (doc) return doc;
+      }
+    } catch (e) {
+      console.warn('[User.findById] MongoDB read failed, checking local storage:', e.message);
+    }
   }
-  return this.findOne({ customerId: clean.toUpperCase() });
+
+  const list = getUsersFromFile();
+  const found = list.find(
+    (u) => (u.customerId && u.customerId.toUpperCase() === clean.toUpperCase()) || u.id === clean || u._id === clean
+  );
+  return wrapUserObj(found);
 };
 
 // Static: Find by Email OR Customer ID
-userSchema.statics.findByEmailOrCustomerId = function (identifier) {
+userSchema.statics.findByEmailOrCustomerId = async function (identifier) {
   if (!identifier) return null;
   const clean = identifier.trim();
   if (clean.includes('@')) {
     return this.findByEmail(clean);
   }
-  return this.findOne({
-    $or: [
-      { customerId: clean.toUpperCase() },
-      { email: clean.toLowerCase() }
-    ]
-  });
+  return this.findByCustomerId(clean);
 };
 
-// Static: Find by GST No
-userSchema.statics.findByGstNo = function (gstNo) {
+// Static: Find by GST No with offline fallback
+userSchema.statics.findByGstNo = async function (gstNo) {
   if (!gstNo) return null;
-  return this.findOne({ gstNo: gstNo.trim().toUpperCase() });
+  const cleanGst = gstNo.trim().toUpperCase();
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const doc = await this.findOne({ gstNo: cleanGst });
+      if (doc) return doc;
+    } catch (e) {
+      console.warn('[User.findByGstNo] MongoDB read failed, checking local storage:', e.message);
+    }
+  }
+
+  const list = getUsersFromFile();
+  const found = list.find((u) => u.gstNo && u.gstNo.toUpperCase() === cleanGst);
+  return wrapUserObj(found);
 };
 
 // Static: Create customer with generated customerId & default cloud specs
@@ -199,17 +289,30 @@ userSchema.statics.createUser = async function (userData) {
   // Generate unique Customer ID
   let customerId;
   let exists = true;
+  const fileUsers = getUsersFromFile();
   while (exists) {
     const rand = Math.floor(100000 + Math.random() * 900000);
     customerId = `NIS-CUST-${rand}`;
-    const found = await this.findOne({ customerId });
-    if (!found) exists = false;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const found = await this.findOne({ customerId });
+        if (!found) exists = false;
+      } catch {
+        exists = fileUsers.some((u) => u.customerId === customerId);
+      }
+    } else {
+      exists = fileUsers.some((u) => u.customerId === customerId);
+    }
   }
 
   const now = new Date();
   const companyClean = (userData.companyName || 'client').trim().replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-  const user = new this({
+  // Hash password with bcryptjs
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(userData.password, salt);
+
+  const newUserData = {
     customerId,
     name: userData.name.trim(),
     email: cleanEmail,
@@ -217,7 +320,7 @@ userSchema.statics.createUser = async function (userData) {
     companyName: userData.companyName ? userData.companyName.trim() : '',
     companyLogo: userData.companyLogo ? userData.companyLogo.trim() : '',
     gstNo: userData.gstNo ? userData.gstNo.trim().toUpperCase() : '',
-    password: userData.password,
+    password: hashedPassword,
     role: userData.role || 'customer',
     accountStatus: 'Active',
     tier: userData.role === 'admin'
@@ -248,26 +351,26 @@ userSchema.statics.createUser = async function (userData) {
       cloudUptime: '99.98%',
       openTickets: 0
     }
-  });
+  };
 
-  await user.save();
-
-  // Also persist to users.json so local JSON database is kept in sync
-  try {
-    const dataFile = path.resolve(__dirname, '../data/users.json');
-    if (fs.existsSync(dataFile)) {
-      const raw = fs.readFileSync(dataFile, 'utf-8');
-      const list = JSON.parse(raw);
-      if (Array.isArray(list)) {
-        list.push(user.toJSON());
-        fs.writeFileSync(dataFile, JSON.stringify(list, null, 2), 'utf-8');
-      }
+  // If MongoDB Atlas is connected, save directly to Atlas
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const userDoc = new this(newUserData);
+      await userDoc.save();
+    } catch (saveErr) {
+      console.warn('[User.createUser] MongoDB save failed, persisting locally:', saveErr.message);
     }
-  } catch (fsErr) {
-    console.warn('[User] Error syncing to users.json:', fsErr.message);
   }
 
-  return user.toJSON();
+  // Always mirror to users.json for instant offline backup & resilience
+  const updatedList = getUsersFromFile();
+  const safeJsonUser = { ...newUserData, id: customerId };
+  updatedList.push(safeJsonUser);
+  saveUsersToFile(updatedList);
+
+  const { password, ...safeResponse } = safeJsonUser;
+  return safeResponse;
 };
 
 // Static helper to sanitize any user object/doc
@@ -283,22 +386,20 @@ userSchema.statics.sanitize = function (user) {
 // Seed initial default users if database collection is empty
 userSchema.statics.seedDefaultUsers = async function () {
   try {
+    if (mongoose.connection.readyState !== 1) return;
+
     const count = await this.countDocuments();
     if (count > 0) return;
 
-    const dataFile = path.resolve(__dirname, '../data/users.json');
-    if (fs.existsSync(dataFile)) {
-      const content = fs.readFileSync(dataFile, 'utf-8');
-      const seedList = JSON.parse(content);
-      if (Array.isArray(seedList) && seedList.length > 0) {
-        console.log(`[MongoDB] Seeding ${seedList.length} initial user records into MongoDB Atlas...`);
-        for (const item of seedList) {
-          const { id, _id, ...userData } = item;
-          const userDoc = new this(userData);
-          await userDoc.save();
-        }
-        console.log('[MongoDB] Seed completed successfully.');
+    const seedList = getUsersFromFile();
+    if (Array.isArray(seedList) && seedList.length > 0) {
+      console.log(`[MongoDB] Seeding ${seedList.length} initial user records into MongoDB Atlas...`);
+      for (const item of seedList) {
+        const { id, _id, ...userData } = item;
+        const userDoc = new this(userData);
+        await userDoc.save();
       }
+      console.log('[MongoDB] Seed completed successfully.');
     }
   } catch (error) {
     console.error('[MongoDB] Error during default users seed:', error.message);
