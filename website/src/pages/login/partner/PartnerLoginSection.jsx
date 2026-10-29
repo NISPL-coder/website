@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
 import { 
-  ShieldCheck, 
+  Users, 
   Lock, 
   Mail, 
   Eye, 
   EyeOff, 
-  KeyRound, 
+  Globe2, 
   ArrowRight, 
   CheckCircle2, 
   AlertCircle, 
-  Fingerprint,
+  Briefcase,
   Zap,
-  HelpCircle
+  ExternalLink
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { authApi } from '../../../services/authApi';
 
-import { authApi } from '../../services/authApi';
-
-export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) {
-  const [adminEmail, setAdminEmail] = useState('');
+export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }) {
+  const [partnerId, setPartnerId] = useState('');
   const [password, setPassword] = useState('');
-  const [twoFactorPin, setTwoFactorPin] = useState('');
+  const [region, setRegion] = useState('odisha-eastern');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberSession, setRememberSession] = useState(true);
+  const [rememberDevice, setRememberDevice] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -29,12 +29,12 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
     e.preventDefault();
     setErrorMessage('');
 
-    if (!adminEmail.trim()) {
-      setErrorMessage('Please enter your administrator email or employee ID.');
+    if (!partnerId.trim()) {
+      setErrorMessage('Please enter your Partner ID or registered corporate email.');
       return;
     }
     if (!password) {
-      setErrorMessage('Please enter your master password.');
+      setErrorMessage('Please enter your Partner password.');
       return;
     }
 
@@ -42,18 +42,18 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
 
     try {
       const response = await authApi.login({
-        email: adminEmail.trim(),
+        email: partnerId.trim(),
         password,
-        portal: 'admin'
+        portal: 'partner'
       });
 
       setIsLoading(false);
       onLoginSuccess({
-        portal: 'NISPL Admin',
-        role: response.user.tier || 'Infrastructure & NOC Systems Administrator',
-        user: response.user.email || adminEmail,
-        accessLevel: 'Tier-1 Root Security Clearance',
-        location: 'Salt Lake Sector V, Kolkata NOC'
+        portal: 'Partners Login',
+        role: response.user.tier || 'Authorized Tally & Cloud Solutions Channel Partner',
+        user: response.user.email || partnerId,
+        accessLevel: 'Certified Partner Tier-Gold',
+        location: region === 'kolkata-hq' ? 'Kolkata HQ & West Bengal' : 'Odisha & Eastern India Region'
       });
     } catch (err) {
       setIsLoading(false);
@@ -62,23 +62,23 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
   };
 
   return (
-    <div className="login-portal-card admin-card animate-fade-in">
+    <div className="login-portal-card partner-card animate-fade-in">
       {/* Top Card Header */}
       <div className="portal-card-header">
         <div className="portal-badge-wrap">
-          <span className="portal-badge admin-badge">
-            <ShieldCheck size={13} />
-            <span>Tier-1 Internal Access</span>
+          <span className="portal-badge partner-badge">
+            <Users size={13} />
+            <span>Authorized Channel Network</span>
           </span>
           <span className="portal-status-dot-wrap">
-            <span className="portal-status-dot" />
-            <span>NOC Live</span>
+            <span className="portal-status-dot partner-dot" />
+            <span>Partner Hub Online</span>
           </span>
         </div>
 
-        <h3 className="portal-card-title">Login</h3>
+        <h3 className="portal-card-title">Partners Login</h3>
         <p className="portal-card-subtitle">
-          Internal management console for infrastructure engineers, network administrators, and executive leadership.
+          Dedicated gateway for certified Tally solution providers, enterprise resellers, and regional IT associates.
         </p>
       </div>
 
@@ -91,21 +91,21 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
 
       {/* Main Authentication Form */}
       <form onSubmit={handleSubmit} className="portal-form" noValidate>
-        {/* Email / ID Field */}
+        {/* Partner ID / Email Field */}
         <div className="portal-form-group">
-          <label htmlFor="admin-email" className="portal-label">
-            <span>Administrator Email / Employee ID</span>
+          <label htmlFor="partner-id" className="portal-label">
+            <span>Partner ID or Business Email</span>
             <span className="portal-required">*</span>
           </label>
           <div className="portal-input-wrapper">
             <Mail size={17} className="portal-input-icon" />
             <input 
-              id="admin-email"
-              type="email"
+              id="partner-id"
+              type="text"
               className="portal-input"
-              placeholder="e.g. admin@netinfotechsystem.in"
-              value={adminEmail}
-              onChange={(e) => setAdminEmail(e.target.value)}
+              placeholder="e.g. PTR-NISPL-8920 or partner@domain.com"
+              value={partnerId}
+              onChange={(e) => setPartnerId(e.target.value)}
               autoComplete="username"
               required
             />
@@ -115,25 +115,25 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
         {/* Master Password Field */}
         <div className="portal-form-group">
           <div className="portal-label-row">
-            <label htmlFor="admin-password" className="portal-label">
-              <span>Master Security Password</span>
+            <label htmlFor="partner-password" className="portal-label">
+              <span>Partner Access Key / Password</span>
               <span className="portal-required">*</span>
             </label>
             <button 
               type="button" 
               className="portal-forgot-link"
-              onClick={() => onForgotPassword('NISPL Admin')}
+              onClick={() => onForgotPassword('Partners')}
             >
-              Reset Key?
+              Forgot Key?
             </button>
           </div>
           <div className="portal-input-wrapper">
             <Lock size={17} className="portal-input-icon" />
             <input 
-              id="admin-password"
+              id="partner-password"
               type={showPassword ? 'text' : 'password'}
               className="portal-input"
-              placeholder="Enter master password"
+              placeholder="Enter partner access key"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
@@ -150,70 +150,72 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
           </div>
         </div>
 
-        {/* Two-Factor Authentication PIN */}
+        {/* Territory / Regional Node Selector */}
         <div className="portal-form-group">
-          <div className="portal-label-row">
-            <label htmlFor="admin-2fa" className="portal-label">
-              <span>2FA Security Token / PIN</span>
-              <span className="portal-badge-mini">Hardware / Authenticator</span>
-            </label>
-          </div>
+          <label htmlFor="partner-region" className="portal-label">
+            <span>Authorized Territory / Zone</span>
+          </label>
           <div className="portal-input-wrapper">
-            <KeyRound size={17} className="portal-input-icon" />
-            <input 
-              id="admin-2fa"
-              type="text"
-              maxLength={6}
-              className="portal-input font-mono"
-              placeholder="6-digit code (e.g. 749201)"
-              value={twoFactorPin}
-              onChange={(e) => setTwoFactorPin(e.target.value.replace(/\D/g, ''))}
-            />
+            <Globe2 size={17} className="portal-input-icon" />
+            <select 
+              id="partner-region"
+              className="portal-input portal-select"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
+              <option value="odisha-eastern">Odisha &amp; Eastern India Hub</option>
+              <option value="kolkata-hq">Kolkata HQ &amp; West Bengal</option>
+              <option value="bihar-jharkhand">Bihar &amp; Jharkhand Circle</option>
+              <option value="pan-india">Pan-India Corporate Accounts</option>
+            </select>
           </div>
         </div>
 
-        {/* Remember Session & Policy */}
+        {/* Remember Session & Policies */}
         <div className="portal-checkbox-row">
           <label className="portal-checkbox-label">
             <input 
               type="checkbox"
-              checked={rememberSession}
-              onChange={(e) => setRememberSession(e.target.checked)}
+              checked={rememberDevice}
+              onChange={(e) => setRememberDevice(e.target.checked)}
               className="portal-checkbox"
             />
-            <span>Keep secure session active for 12 hours</span>
+            <span>Remember this device for 30 days</span>
           </label>
         </div>
 
         {/* Submit Action */}
         <button 
           type="submit" 
-          className="portal-submit-btn admin-submit-btn"
+          className="portal-submit-btn partner-submit-btn"
           disabled={isLoading}
         >
           {isLoading ? (
             <>
               <span className="portal-spinner" />
-              <span>Verifying Clearance &amp; Token...</span>
+              <span>Verifying Partner Credentials...</span>
             </>
           ) : (
             <>
-              <Fingerprint size={18} />
-              <span>Authenticate to Admin Console</span>
+              <Briefcase size={18} />
+              <span>Sign In to Partner Portal</span>
               <ArrowRight size={16} className="btn-arrow" />
             </>
           )}
         </button>
 
-        {/* Security Notice Footer */}
+        {/* Security Notice & Partner Onboarding */}
         <div className="portal-card-footer-notes">
           <div className="portal-note-item">
             <CheckCircle2 size={14} className="portal-note-icon" />
-            <span>Zero-Trust Network Access (ZTNA) enforced</span>
+            <span>Instant access to Tally license quotas &amp; commission margins</span>
           </div>
-          <div className="portal-note-item">
-            <HelpCircle size={14} className="portal-note-icon" />
-            <span>IP address logged for compliance audit</span>
+          <div className="portal-bottom-link-row">
+            <span>Not an enrolled partner yet?</span>
+            <Link to="/contact" className="portal-highlight-link">
+              <span>Apply for Channel Partnership</span>
+              <ExternalLink size={12} />
+            </Link>
           </div>
         </div>
       </form>

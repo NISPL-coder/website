@@ -15,8 +15,8 @@ import {
   Sparkles,
   Server
 } from 'lucide-react';
-import { authApi } from '../../services/authApi';
-import logoImg from '../../assets/NISPL Cloud Tech Logo (2).png';
+import { authApi } from '../../../services/authApi';
+import logoImg from '../../../assets/NISPL Cloud Tech Logo (2).png';
 import './CustomerAuth.css';
 
 export default function CustomerLoginPage() {

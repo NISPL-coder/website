@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
-import PartnerDashboard from './PartnerDashboard';
+import PartnerDashboard from './partner/PartnerDashboard';
+import AdminDashboard from './Admin/AdminDashboard';
 import { authApi } from '../../services/authApi';
 import { 
   Mail, 
@@ -113,6 +114,11 @@ export default function LoginPage({ lockedPortal }) {
         return;
       }
 
+      if (activePortal === 'admin') {
+        navigate('/admin/overview');
+        return;
+      }
+
       setActiveSession({
         portal: activePortal === 'admin' ? 'NISPL Admin Login' : 'Partners Login',
         user: response.user.email || email,
@@ -143,6 +149,18 @@ export default function LoginPage({ lockedPortal }) {
     if (activePortal === 'partner') {
       return (
         <PartnerDashboard 
+          userSession={activeSession} 
+          onSignOut={() => {
+            setActiveSession(null);
+            setPassword('');
+            setErrorMessage('');
+          }} 
+        />
+      );
+    }
+    if (activePortal === 'admin') {
+      return (
+        <AdminDashboard 
           userSession={activeSession} 
           onSignOut={() => {
             setActiveSession(null);

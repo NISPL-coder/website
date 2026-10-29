@@ -861,3 +861,5 @@ export default function CartSection({
     </div>
   );
 }
+
+export { CartSection as Cart, CartSection as cart };

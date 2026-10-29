@@ -19,8 +19,8 @@ import {
   MoreVertical,
   ExternalLink
 } from 'lucide-react';
-import { CountUp } from '../utils/useCountUp';
-import { generateReceiptPdf } from '../utils/generateReceiptPdf';
+import { CountUp } from '../../Dashboard/utils/useCountUp';
+import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
 
 export default function ReceiptSection({ receipts = [], customer }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -505,3 +505,5 @@ export default function ReceiptSection({ receipts = [], customer }) {
     </div>
   );
 }
+
+export { ReceiptSection as Receipt, ReceiptSection as receipt };

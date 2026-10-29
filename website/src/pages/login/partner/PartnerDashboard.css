@@ -1,0 +1,1960 @@
+/* =========================================================================
+   NISPL PARTNER DASHBOARD UI - FLOWMAIL 2026 THEME
+   Unified with Customer Dashboard Design System:
+     - Global Background: #f4f6fa
+     - White Sidebar: #ffffff with Lavender #ede9fe Active State
+     - Accent Purple: #6366f1 & linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)
+     - High-Contrast Text: Headings #0f172a, Muted #64748b
+     - Rounded Glassmorphic Cards: border-radius 20px, subtle borders & shadows
+   ========================================================================= */
+
+:root {
+  --pnd-bg: #f4f6fa;
+  --pnd-card-bg: #ffffff;
+  --pnd-border: rgba(226, 232, 240, 0.85);
+  --pnd-border-light: #f1f5f9;
+  --pnd-border-input: #e2e8f0;
+  
+  --pnd-purple-primary: #6366f1;
+  --pnd-purple-gradient: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  --pnd-purple-soft: #ede9fe;
+  --pnd-purple-light: #f5f3ff;
+  
+  --pnd-emerald: #10b981;
+  --pnd-emerald-soft: #ecfdf5;
+  --pnd-emerald-text: #059669;
+  
+  --pnd-rose: #ef4444;
+  --pnd-rose-soft: #fef2f2;
+  --pnd-rose-text: #dc2626;
+  
+  --pnd-blue: #0284c7;
+  --pnd-blue-soft: #e0f2fe;
+  
+  --pnd-amber: #d97706;
+  --pnd-amber-soft: #fef3c7;
+  
+  --pnd-text-main: #0f172a;
+  --pnd-text-muted: #64748b;
+  --pnd-text-light: #94a3b8;
+  
+  --pnd-radius-sm: 10px;
+  --pnd-radius-md: 14px;
+  --pnd-radius-lg: 20px;
+  --pnd-radius-xl: 24px;
+  --pnd-radius-pill: 999px;
+  
+  --pnd-shadow-sm: 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --pnd-shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  --pnd-shadow-dropdown: 0 20px 45px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.03);
+  
+  --pnd-header-height: 70px;
+  --pnd-sidebar-width: 260px;
+}
+
+/* Base Layout Container */
+.pnd-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--pnd-bg);
+  color: var(--pnd-text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+.pnd-layout *,
+.pnd-layout *::before,
+.pnd-layout *::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================================
+   1. TOP HEADER / NAVBAR (FLOWMAIL CLEAN WHITE THEME)
+   ========================================================================= */
+.pnd-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--pnd-header-height);
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--pnd-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+.pnd-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.pnd-mobile-menu-btn {
+  display: none;
+  background: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-sm);
+  padding: 8px;
+  color: var(--pnd-text-main);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.pnd-mobile-menu-btn:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.pnd-brand-logo {
+  height: 65px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.pnd-brand-titles {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1.5px solid var(--pnd-border-input);
+  padding-left: 14px;
+}
+
+.pnd-company-name {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.pnd-tagline {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--pnd-text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* 2. Header Center: Global Search Bar */
+.pnd-header-center {
+  flex: 1;
+  max-width: 460px;
+  margin: 0 24px;
+}
+
+.pnd-global-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-pill);
+  padding: 0 16px;
+  height: 42px;
+  transition: all 0.2s ease;
+}
+
+.pnd-global-search:focus-within {
+  background-color: #ffffff;
+  border-color: var(--pnd-purple-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.pnd-search-icon {
+  color: var(--pnd-text-light);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.pnd-search-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  color: var(--pnd-text-main);
+  outline: none;
+  font-family: inherit;
+}
+
+.pnd-search-input::placeholder {
+  color: var(--pnd-text-light);
+}
+
+.pnd-search-kbd {
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--pnd-text-muted);
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* 3. Header Right Actions */
+.pnd-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.pnd-node-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--pnd-emerald);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  animation: pndPulseRing 2.4s infinite;
+}
+
+@keyframes pndPulseRing {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.pnd-node-text {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--pnd-emerald-text);
+  letter-spacing: 0.02em;
+}
+
+/* Header Icon Action Button */
+.pnd-header-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--pnd-border-input);
+  background-color: #ffffff;
+  color: var(--pnd-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pnd-header-icon-btn:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-purple-primary);
+  border-color: #cbd5e1;
+}
+
+.pnd-icon-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: var(--pnd-rose);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+/* Partner Portal Badge */
+.pnd-portal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: var(--pnd-purple-soft);
+  border: 1px solid #ddd6fe;
+  padding: 6px 14px;
+  border-radius: var(--pnd-radius-pill);
+}
+
+.pnd-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--pnd-purple-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.pnd-badge-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--pnd-purple-primary);
+  letter-spacing: 0.02em;
+}
+
+/* Profile Dropdown Container */
+.pnd-profile-container {
+  position: relative;
+}
+
+.pnd-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  padding: 5px 14px 5px 6px;
+  border-radius: var(--pnd-radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.pnd-profile-trigger:hover,
+.pnd-profile-trigger.open {
+  border-color: #c4b5fd;
+  background-color: #f8fafc;
+  box-shadow: var(--pnd-shadow-sm);
+}
+
+.pnd-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--pnd-purple-gradient);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.pnd-avatar-circle.sm {
+  width: 38px;
+  height: 38px;
+  font-size: 0.88rem;
+}
+
+.pnd-profile-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.pnd-partner-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+
+.pnd-partner-role-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--pnd-purple-primary);
+  background: var(--pnd-purple-soft);
+  padding: 1px 6px;
+  border-radius: var(--pnd-radius-pill);
+  margin-top: 2px;
+}
+
+.pnd-profile-chevron {
+  color: var(--pnd-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.pnd-profile-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+/* Dropdown popover */
+.pnd-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-lg);
+  box-shadow: var(--pnd-shadow-dropdown);
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.pnd-dropdown-header {
+  padding: 14px 18px 12px;
+}
+
+.pnd-dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pnd-dropdown-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pnd-user-display-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  text-transform: capitalize;
+  line-height: 1.2;
+  display: block;
+}
+
+.pnd-partner-id {
+  font-size: 0.74rem;
+  color: var(--pnd-text-muted);
+  font-weight: 600;
+}
+
+.pnd-user-email {
+  font-size: 0.78rem;
+  color: var(--pnd-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pnd-tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 4px;
+  background-color: var(--pnd-emerald-soft);
+  color: var(--pnd-emerald-text);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--pnd-radius-pill);
+  border: 1px solid #a7f3d0;
+}
+
+.pnd-dropdown-divider {
+  height: 1px;
+  background-color: var(--pnd-border-light);
+  margin: 6px 0;
+}
+
+.pnd-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--pnd-text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pnd-dropdown-item:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-dropdown-item.danger {
+  color: var(--pnd-rose);
+}
+
+.pnd-dropdown-item.danger:hover {
+  background-color: var(--pnd-rose-soft);
+  color: var(--pnd-rose-text);
+}
+
+/* =========================================================================
+   2. APP WORKSPACE (SIDEBAR + MAIN CONTENT)
+   ========================================================================= */
+.pnd-workspace {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - var(--pnd-header-height));
+  position: relative;
+  background-color: var(--pnd-bg);
+}
+
+/* =========================================================================
+   3. LEFT SIDEBAR (FLOWMAIL CLEAN WHITE THEME)
+   ========================================================================= */
+.pnd-sidebar {
+  width: var(--pnd-sidebar-width);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--pnd-border-light);
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--pnd-header-height);
+  height: calc(100vh - var(--pnd-header-height));
+  overflow-y: auto;
+  box-shadow: 1px 0 3px rgba(15, 23, 42, 0.02);
+  z-index: 40;
+}
+
+.pnd-sidebar-nav-container {
+  padding: 24px 16px 16px;
+}
+
+.pnd-nav-section-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--pnd-text-light);
+  text-transform: uppercase;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.pnd-nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pnd-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-radius: var(--pnd-radius-md);
+  background-color: transparent;
+  color: var(--pnd-text-muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  position: relative;
+  font-family: inherit;
+}
+
+.pnd-nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pnd-nav-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnd-nav-icon {
+  color: var(--pnd-text-light);
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pnd-nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pnd-nav-badge {
+  background-color: var(--pnd-purple-soft);
+  color: var(--pnd-purple-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--pnd-radius-pill);
+}
+
+.pnd-nav-badge.badge-new {
+  background-color: var(--pnd-emerald-soft);
+  color: var(--pnd-emerald-text);
+}
+
+.pnd-nav-arrow {
+  color: var(--pnd-purple-primary);
+  flex-shrink: 0;
+}
+
+.pnd-nav-item:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-text-main);
+}
+
+.pnd-nav-item:hover .pnd-nav-icon {
+  color: var(--pnd-purple-primary);
+}
+
+/* Active Navigation Item (Customer Dashboard Lavender Active Theme) */
+.pnd-nav-item.active {
+  background: var(--pnd-purple-soft) !important;
+  color: var(--pnd-text-main) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.pnd-nav-item.active .pnd-nav-icon {
+  color: var(--pnd-purple-primary) !important;
+}
+
+.pnd-nav-item.active .pnd-nav-label {
+  color: var(--pnd-text-main) !important;
+  font-weight: 600 !important;
+}
+
+.pnd-active-indicator {
+  display: none;
+}
+
+/* Sidebar Footer Slogan Card (FlowMail Light Lavender Theme) */
+.pnd-sidebar-footer {
+  padding: 16px 16px 20px;
+  border-top: 1px solid var(--pnd-border-light);
+}
+
+.pnd-slogan-card {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid #ddd6fe;
+  border-radius: var(--pnd-radius-md);
+  padding: 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pnd-slogan-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pnd-slogan-icon {
+  font-size: 1.15rem;
+}
+
+.pnd-partner-tier-chip {
+  background: var(--pnd-amber-soft);
+  color: var(--pnd-amber);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--pnd-radius-pill);
+  border: 1px solid #fde68a;
+  letter-spacing: 0.02em;
+}
+
+.pnd-slogan-text {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  line-height: 1.35;
+}
+
+.pnd-slogan-meta {
+  font-size: 0.74rem;
+  color: var(--pnd-purple-primary);
+  font-weight: 600;
+}
+
+/* =========================================================================
+   4. MAIN CONTENT AREA & PAGE HEADINGS
+   ========================================================================= */
+.pnd-main-content {
+  flex: 1;
+  background-color: var(--pnd-bg);
+  padding: 24px 32px 48px;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.pnd-content-inner {
+  max-width: 1480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Main Page Heading (FlowMail Welcome Banner) */
+.pnd-page-header {
+  background: #ffffff;
+  border: 1px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: var(--pnd-shadow-card);
+}
+
+.pnd-page-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pnd-page-title {
+  margin: 0;
+  font-size: 1.68rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  letter-spacing: -0.02em;
+}
+
+.pnd-page-subtitle {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--pnd-text-muted);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* =========================================================================
+   5. FILTER TOOLBAR (FLOWMAIL CARD THEME)
+   ========================================================================= */
+.pnd-filter-toolbar {
+  background-color: var(--pnd-card-bg);
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 18px 24px;
+  box-shadow: var(--pnd-shadow-card);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.pnd-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.pnd-filter-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--pnd-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pnd-filter-control {
+  width: 100%;
+  height: 42px;
+  background-color: #f8fafc;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-sm);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--pnd-text-main);
+  text-align: left;
+}
+
+.pnd-filter-control:hover,
+.pnd-filter-control.active {
+  border-color: #c4b5fd;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.pnd-filter-val {
+  font-weight: 600;
+  color: var(--pnd-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pnd-filter-val.placeholder {
+  color: var(--pnd-text-light);
+  font-weight: 400;
+}
+
+.pnd-filter-chevron {
+  color: var(--pnd-text-light);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pnd-filter-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+/* Date control specific */
+.pnd-date-control {
+  user-select: none;
+}
+
+.pnd-date-icon {
+  color: var(--pnd-purple-primary);
+  flex-shrink: 0;
+}
+
+.pnd-clear-date-btn {
+  background: none;
+  border: none;
+  color: var(--pnd-text-light);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.pnd-clear-date-btn:hover {
+  background-color: var(--pnd-rose-soft);
+  color: var(--pnd-rose-text);
+}
+
+/* Dropdown Menu Panel */
+.pnd-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-md);
+  box-shadow: var(--pnd-shadow-dropdown);
+  padding: 8px;
+  z-index: 80;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.pnd-option-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--pnd-text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pnd-option-item:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-option-item.selected {
+  background-color: var(--pnd-purple-soft);
+  color: var(--pnd-purple-primary);
+  font-weight: 600;
+}
+
+.pnd-check-icon {
+  color: var(--pnd-purple-primary);
+  flex-shrink: 0;
+}
+
+/* Calendar Popover */
+.pnd-calendar-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 280px;
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: var(--pnd-radius-lg);
+  box-shadow: var(--pnd-shadow-dropdown);
+  padding: 16px;
+  z-index: 80;
+}
+
+.pnd-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pnd-cal-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+}
+
+.pnd-cal-nav {
+  background: #f8fafc;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--pnd-text-main);
+  transition: all 0.15s ease;
+}
+
+.pnd-cal-nav:hover {
+  background-color: var(--pnd-purple-soft);
+  color: var(--pnd-purple-primary);
+  border-color: #ddd6fe;
+}
+
+.pnd-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--pnd-text-light);
+  margin-bottom: 8px;
+}
+
+.pnd-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.pnd-cal-day {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--pnd-text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pnd-cal-day:hover {
+  background-color: #f8fafc;
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-cal-day.selected {
+  background: var(--pnd-purple-gradient);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.pnd-cal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--pnd-border-light);
+}
+
+.pnd-cal-action-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pnd-cal-action-btn.secondary {
+  background: #f8fafc;
+  border: 1px solid var(--pnd-border-input);
+  color: var(--pnd-text-muted);
+}
+
+.pnd-cal-action-btn.secondary:hover {
+  background: #f1f5f9;
+  color: var(--pnd-text-main);
+}
+
+.pnd-cal-action-btn.primary {
+  background: var(--pnd-purple-gradient);
+  border: none;
+  color: #ffffff;
+}
+
+.pnd-cal-action-btn.primary:hover {
+  opacity: 0.95;
+}
+
+/* =========================================================================
+   6. TRIALS OVERVIEW SECTION (FLOWMAIL KPI CARDS)
+   ========================================================================= */
+.pnd-trials-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pnd-section-heading {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  letter-spacing: -0.01em;
+}
+
+.pnd-trials-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.pnd-trial-card {
+  background: #ffffff;
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--pnd-shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.pnd-trial-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08);
+}
+
+.pnd-trial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pnd-trial-title {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  line-height: 1.3;
+}
+
+.pnd-trial-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pnd-trial-icon-wrap.blue {
+  background-color: var(--pnd-purple-soft);
+  color: var(--pnd-purple-primary);
+  border: 1px solid #ddd6fe;
+}
+
+.pnd-trial-icon-wrap.red {
+  background-color: var(--pnd-rose-soft);
+  color: var(--pnd-rose);
+  border: 1px solid #fecaca;
+}
+
+.pnd-trial-icon-wrap.green {
+  background-color: var(--pnd-emerald-soft);
+  color: var(--pnd-emerald-text);
+  border: 1px solid #a7f3d0;
+}
+
+.pnd-trial-icon-wrap.purple {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+  border: 1px solid #ddd6fe;
+}
+
+.pnd-trial-metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 14px 0;
+  background-color: #f8fafc;
+  border: 1px solid var(--pnd-border-light);
+  border-radius: var(--pnd-radius-md);
+}
+
+.pnd-trial-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.pnd-trial-metric-val {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--pnd-text-main);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.pnd-trial-metric-label {
+  margin-top: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--pnd-text-muted);
+}
+
+.pnd-trial-metric-divider {
+  width: 1px;
+  height: 36px;
+  background-color: #e2e8f0;
+}
+
+/* =========================================================================
+   7. SUBSCRIPTION SUMMARY SECTION (2-COLUMN LAYOUT)
+   ========================================================================= */
+.pnd-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Two-column layout: Left ~26%, Right ~74% */
+.pnd-summary-grid {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+/* Left Card: Total Paid Subscription */
+.pnd-paid-card {
+  background: #ffffff;
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 24px 22px;
+  box-shadow: var(--pnd-shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.pnd-paid-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pnd-paid-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  line-height: 1.35;
+}
+
+.pnd-paid-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: var(--pnd-purple-soft);
+  border: 1px solid #ddd6fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pnd-purple-primary);
+  flex-shrink: 0;
+}
+
+.pnd-paid-metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16px 0;
+  background-color: #f8fafc;
+  border: 1px solid var(--pnd-border-light);
+  border-radius: var(--pnd-radius-md);
+  margin-bottom: 16px;
+}
+
+.pnd-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.pnd-metric-number {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--pnd-text-main);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.pnd-metric-label {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pnd-text-muted);
+}
+
+.pnd-metric-divider {
+  width: 1px;
+  height: 44px;
+  background-color: #e2e8f0;
+}
+
+.pnd-paid-card-footer {
+  text-align: center;
+  padding-top: 6px;
+}
+
+.pnd-paid-status-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pnd-purple-primary);
+  background-color: var(--pnd-purple-soft);
+  padding: 5px 12px;
+  border-radius: var(--pnd-radius-pill);
+  border: 1px solid #ddd6fe;
+}
+
+/* =========================================================================
+   8. RIGHT PANEL: RENEWALS DETAILS CARD (~75%)
+   ========================================================================= */
+.pnd-renewals-panel {
+  background-color: #ffffff;
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 24px;
+  box-shadow: var(--pnd-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pnd-renewals-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pnd-renewals-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pnd-renewals-icon {
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-renewals-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+  letter-spacing: -0.01em;
+}
+
+/* 4 Compact Stat Pills in One Row (FlowMail Trend Pill Theme) */
+.pnd-renewals-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.pnd-stat-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: var(--pnd-radius-md);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.pnd-stat-pill.green {
+  background-color: var(--pnd-emerald-soft);
+  color: var(--pnd-emerald-text);
+  border-color: #a7f3d0;
+}
+
+.pnd-stat-pill.blue {
+  background-color: var(--pnd-blue-soft);
+  color: var(--pnd-blue);
+  border-color: #bae6fd;
+}
+
+.pnd-stat-pill.purple {
+  background-color: var(--pnd-purple-soft);
+  color: var(--pnd-purple-primary);
+  border-color: #ddd6fe;
+}
+
+.pnd-stat-pill.red {
+  background-color: var(--pnd-rose-soft);
+  color: var(--pnd-rose-text);
+  border-color: #fecaca;
+}
+
+.pnd-stat-pill.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.pnd-stat-pill.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--pnd-shadow-sm);
+}
+
+.pnd-stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pnd-stat-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pnd-stat-val-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pnd-stat-pill-arrow {
+  display: flex;
+  align-items: center;
+}
+
+/* =========================================================================
+   9. SUBSCRIPTION DETAILS TABLE (FLOWMAIL TABLE STYLING)
+   ========================================================================= */
+.pnd-table-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border-radius: var(--pnd-radius-md);
+  border: 1px solid var(--pnd-border-light);
+}
+
+.pnd-table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.pnd-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.pnd-table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.pnd-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.pnd-table thead tr th {
+  background-color: #f8fafc;
+  color: var(--pnd-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--pnd-border-light);
+}
+
+.pnd-th-name { width: 44%; }
+.pnd-th-sub { width: 18%; text-align: center; }
+.pnd-th-user { width: 18%; text-align: center; }
+.pnd-th-amount { width: 20%; text-align: right; }
+
+.pnd-row {
+  border-bottom: 1px solid var(--pnd-border-light);
+  transition: background 0.15s ease;
+}
+
+.pnd-row:hover {
+  background-color: #f8fafc;
+}
+
+.pnd-td-name,
+.pnd-td-sub,
+.pnd-td-user,
+.pnd-td-amount {
+  padding: 12px 18px;
+  font-size: 0.88rem;
+  color: var(--pnd-text-main);
+}
+
+.pnd-td-sub,
+.pnd-td-user {
+  text-align: center;
+  font-weight: 600;
+}
+
+.pnd-td-amount {
+  text-align: right;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--pnd-purple-primary);
+}
+
+.pnd-name-cell,
+.pnd-expandable-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pnd-row-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: var(--pnd-text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pnd-item-title {
+  font-weight: 600;
+  color: var(--pnd-text-main);
+}
+
+.pnd-expandable-row {
+  cursor: pointer;
+  user-select: none;
+}
+
+.pnd-expand-trigger-icon {
+  color: var(--pnd-purple-primary);
+  display: flex;
+  align-items: center;
+}
+
+/* Child rows */
+.pnd-child-row {
+  background-color: #fafbfc;
+}
+
+.pnd-child-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 28px;
+}
+
+.pnd-tree-line {
+  width: 10px;
+  height: 1px;
+  background-color: #cbd5e1;
+}
+
+.pnd-child-num {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--pnd-text-light);
+}
+
+.pnd-child-title {
+  font-size: 0.84rem;
+  color: var(--pnd-text-muted);
+}
+
+/* =========================================================================
+   10. PERFORMANCE ANALYTICS SECTION (CHARTS & GRAPHS)
+   ========================================================================= */
+.pnd-charts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pnd-charts-dual-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 22px;
+}
+
+.pnd-chart-panel {
+  background-color: #ffffff;
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 24px;
+  box-shadow: var(--pnd-shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pnd-chart-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pnd-chart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnd-chart-icon.text-blue { color: var(--pnd-purple-primary); }
+.pnd-chart-icon.text-purple { color: #8b5cf6; }
+.pnd-chart-icon.text-green { color: var(--pnd-emerald-text); }
+
+.pnd-chart-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+}
+
+.pnd-chart-subtitle {
+  font-size: 0.82rem;
+  color: var(--pnd-text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Timeframe Pill Switch */
+.pnd-timeframe-toggle {
+  display: flex;
+  background-color: #f1f5f9;
+  padding: 3px;
+  border-radius: var(--pnd-radius-pill);
+}
+
+.pnd-tf-btn {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  border-radius: var(--pnd-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pnd-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.pnd-tf-btn.active {
+  background: var(--pnd-purple-gradient);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Spline graph area */
+.pnd-spline-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.pnd-spline-svg {
+  width: 100%;
+  height: 200px;
+  overflow: visible;
+}
+
+.pnd-point-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.pnd-point-group:hover .pnd-graph-dot {
+  transform: scale(1.3);
+}
+
+.pnd-axis-x-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 10px 0;
+}
+
+.pnd-axis-lbl {
+  font-size: 0.74rem;
+  color: var(--pnd-text-light);
+  font-weight: 500;
+}
+
+.pnd-graph-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background-color: #ffffff;
+  border: 1px solid var(--pnd-border-input);
+  border-radius: 10px;
+  box-shadow: var(--pnd-shadow-dropdown);
+  padding: 8px 12px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.tooltip-date {
+  font-size: 0.72rem;
+  color: var(--pnd-text-muted);
+  font-weight: 600;
+  display: block;
+}
+
+.tooltip-metrics {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.tooltip-subs {
+  font-size: 0.8rem;
+  color: var(--pnd-text-main);
+}
+
+.tooltip-rev {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--pnd-purple-primary);
+}
+
+/* Donut chart body */
+.pnd-pie-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pnd-donut-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.pnd-donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.pnd-donut-slice {
+  cursor: pointer;
+  transition: stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+.pnd-donut-slice:hover {
+  opacity: 0.9;
+}
+
+.pnd-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.donut-center-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--pnd-text-main);
+  line-height: 1;
+}
+
+.donut-center-lbl {
+  font-size: 0.72rem;
+  color: var(--pnd-text-muted);
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.pnd-pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.pnd-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.pnd-legend-row:hover,
+.pnd-legend-row.active {
+  background-color: #f8fafc;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  font-size: 0.82rem;
+  color: var(--pnd-text-main);
+  font-weight: 500;
+  flex: 1;
+}
+
+.legend-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+}
+
+.legend-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--pnd-radius-pill);
+}
+
+/* Bar chart body */
+.pnd-bar-chart-body {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 200px;
+  padding-top: 24px;
+}
+
+.pnd-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  flex: 1;
+  cursor: pointer;
+}
+
+.pnd-bar-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--pnd-text-main);
+}
+
+.pnd-bar-track {
+  width: 32px;
+  height: 130px;
+  background-color: #f1f5f9;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.pnd-bar-fill {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+}
+
+.pnd-bar-fill.bar-green { background: linear-gradient(180deg, #10b981 0%, #059669 100%); }
+.pnd-bar-fill.bar-purple { background: linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%); }
+.pnd-bar-fill.bar-blue { background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%); }
+.pnd-bar-fill.bar-amber { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
+.pnd-bar-fill.bar-rose { background: linear-gradient(180deg, #f43f5e 0%, #dc2626 100%); }
+
+.pnd-bar-col:hover .pnd-bar-fill {
+  opacity: 0.85;
+}
+
+.pnd-bar-label {
+  font-size: 0.75rem;
+  color: var(--pnd-text-muted);
+  font-weight: 600;
+}
+
+.pnd-bar-popover {
+  position: absolute;
+  top: -12px;
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.pnd-bar-popover.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================================================================
+   11. EXTRA TAB SECTIONS (SUBSCRIPTIONS, CUSTOMERS, REPORTS, SUPPORT, SETTINGS)
+   ========================================================================= */
+.pnd-tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.pnd-tab-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.pnd-tab-card {
+  background: #ffffff;
+  border: 1.5px solid var(--pnd-border);
+  border-radius: var(--pnd-radius-lg);
+  padding: 24px;
+  box-shadow: var(--pnd-shadow-card);
+}
+
+/* =========================================================================
+   12. RESPONSIVE BREAKPOINTS
+   ========================================================================= */
+@media (max-width: 1240px) {
+  .pnd-trials-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pnd-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .pnd-charts-dual-grid {
+    grid-template-columns: 1fr;
+  }
+  .pnd-tab-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .pnd-filter-toolbar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pnd-header-center {
+    display: none;
+  }
+  .pnd-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    z-index: 100;
+    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pnd-sidebar.mobile-open {
+    left: 0;
+  }
+  .pnd-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 95;
+  }
+  .pnd-mobile-menu-btn {
+    display: inline-flex;
+  }
+  .pnd-main-content {
+    padding: 20px 16px 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pnd-filter-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .pnd-trials-grid {
+    grid-template-columns: 1fr;
+  }
+  .pnd-renewals-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pnd-tab-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .pnd-pie-body {
+    flex-direction: column;
+  }
+  .pnd-header {
+    padding: 0 16px;
+  }
+  .pnd-page-header {
+    padding: 18px 20px;
+  }
+}

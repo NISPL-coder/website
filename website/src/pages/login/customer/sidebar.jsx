@@ -210,3 +210,5 @@ export default function DashboardSidebar({
     </aside>
   );
 }
+
+export { DashboardSidebar as Sidebar, DashboardSidebar as sidebar };

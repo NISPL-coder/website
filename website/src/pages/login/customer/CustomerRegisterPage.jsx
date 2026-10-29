@@ -28,7 +28,7 @@ import {
   Image as ImageIcon,
   Upload
 } from 'lucide-react';
-import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
+import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 import {
   TallySingleLogo,
   TallyMultiLogo,
@@ -37,8 +37,8 @@ import {
   WhatsAppLogo,
   TallyPrimeLogo,
   TallyUpgradeLogo
-} from './SubscriptionLogos';
-import './LoginPage.css';
+} from '../SubscriptionLogos';
+import '../LoginPage.css';
 import './CustomerRegister.css';
 
 export const SUBSCRIPTION_GROUPS = [

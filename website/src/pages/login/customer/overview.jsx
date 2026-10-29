@@ -52,9 +52,9 @@ import {
   Bot
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import RemindersPanel from './RemindersPanel';
-import { CountUp } from '../utils/useCountUp';
-import AiInsightModal from './AiInsightModal';
+import RemindersPanel from '../../Dashboard/components/RemindersPanel';
+import { CountUp } from '../../Dashboard/utils/useCountUp';
+import AiInsightModal from '../../Dashboard/components/AiInsightModal';
 import { dashboardApi } from '../../../services/dashboardApi';
 
 const CURRENT_PLAN_DETAILS = {
@@ -923,3 +923,5 @@ export default function CloudPortalOverview({ customer, onNavigateTab }) {
     </div>
   );
 }
+
+export { CloudPortalOverview as Overview, CloudPortalOverview as overview };

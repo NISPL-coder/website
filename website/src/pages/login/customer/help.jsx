@@ -355,3 +355,5 @@ export default function HelpSection({ customer }) {
     </div>
   );
 }
+
+export { HelpSection as Help, HelpSection as help };

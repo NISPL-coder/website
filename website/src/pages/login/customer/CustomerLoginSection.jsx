@@ -15,7 +15,7 @@ import {
   Download
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { authApi } from '../../services/authApi';
+import { authApi } from '../../../services/authApi';
 
 export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [clientEmail, setClientEmail] = useState('');

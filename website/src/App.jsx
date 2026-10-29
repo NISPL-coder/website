@@ -14,8 +14,9 @@ const CareerPage = lazy(() => import('./pages/CareerPage/CareerPage'));
 const HelpPage = lazy(() => import('./pages/Help/Help'));
 const LoginPage = lazy(() => import('./pages/login/LoginPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-const PartnerDashboard = lazy(() => import('./pages/login/PartnerDashboard'));
-const CustomerLoginPage = lazy(() => import('./pages/login/CustomerLoginPage'));
+const PartnerDashboard = lazy(() => import('./pages/login/partner/PartnerDashboard'));
+const AdminDashboard = lazy(() => import('./pages/login/Admin/AdminDashboard'));
+const CustomerLoginPage = lazy(() => import('./pages/login/customer/CustomerLoginPage'));
 const CustomerRegisterPage = lazy(() => import('./pages/CustomerRegister'));
 const DemoModal = lazy(() => import('./components/modals/DemoModal'));
 const LoginModal = lazy(() => import('./components/modals/LoginModal'));
@@ -75,6 +76,10 @@ function MainApp() {
     '/customer',
     '/dashboard',
     '/partner-dashboard',
+    '/partner_dashboard',
+    '/admin-dashboard',
+    '/admin_dashboard',
+    '/admin',
     '/help'
   ].some((path) => location.pathname.startsWith(path));
 
@@ -145,6 +150,21 @@ function MainApp() {
           <Route path="/dashboard" element={<Navigate to="/customer/overview" replace />} />
           
           <Route path="/partner-dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
+          <Route path="/partner_dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
+          
+          {/* Admin Portal Routes with Sidebar & Header */}
+          <Route path="/admin/overview" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer/contract" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer/payment" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customers" element={<Navigate to="/admin/customer" replace />} />
+          <Route path="/admin/product" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/products" element={<Navigate to="/admin/product" replace />} />
+          <Route path="/admin/receipt" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
+          <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
+          <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/customer-login" element={<LoginPage lockedPortal="customer" />} />
           <Route path="/customer-register" element={<CustomerRegisterPage />} />
           <Route path="/customer_register" element={<CustomerRegisterPage />} />

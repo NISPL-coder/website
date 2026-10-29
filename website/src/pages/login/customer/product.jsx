@@ -31,19 +31,19 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import tallyLogo from '../../../assets/partners/tally.png';
-import SolutionCategorySelection from './SolutionCategorySelection';
-import CloudProviderSelection from './CloudProviderSelection';
-import CloudPlansPricingView from './CloudPlansPricingView';
-import TallyPrimePlansView from './TallyPrimePlansView';
-import ProductDetailsModal from './ProductDetailsModal';
+import SolutionCategorySelection from '../../Dashboard/components/SolutionCategorySelection';
+import CloudProviderSelection from '../../Dashboard/components/CloudProviderSelection';
+import CloudPlansPricingView from '../../Dashboard/components/CloudPlansPricingView';
+import TallyPrimePlansView from '../../Dashboard/components/TallyPrimePlansView';
+import ProductDetailsModal from '../../Dashboard/components/ProductDetailsModal';
 import {
   TALLY_CATEGORIES,
   TALLY_PRODUCTS,
   CLOUD_CATEGORIES,
   CLOUD_PRODUCTS,
   hydrateCatalogWithPricing
-} from '../data/productsData';
-import { formatINR } from '../utils/pricingUtils';
+} from '../../Dashboard/data/productsData';
+import { formatINR } from '../../Dashboard/utils/pricingUtils';
 
 export default function ProductsSection({
   onAddToCart,
@@ -742,3 +742,5 @@ export default function ProductsSection({
     </div>
   );
 }
+
+export { ProductsSection as Product, ProductsSection as product };
