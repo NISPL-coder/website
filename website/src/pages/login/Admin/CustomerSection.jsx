@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   Plus,
@@ -24,22 +25,9 @@ import { useTableSort, SortableTh } from './tableSortUtils';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 
 export default function CustomerSection({ customers, setCustomers }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  // Form State for creating a new customer
-  const [formState, setFormState] = useState({
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
-    city: 'Kolkata, WB',
-    plan: 'Tally Prime Cloud + VPS Gold',
-    serverNode: 'CtrlS-KOL-NODE-01',
-    status: 'active',
-    mrr: '₹15,000'
-  });
 
   // Calculate live counts for filter buttons
   const counts = useMemo(() => {
@@ -95,57 +83,6 @@ export default function CustomerSection({ customers, setCustomers }) {
     'asc'
   );
 
-  // Handle Create Customer Submit
-  const handleCreateCustomerSubmit = (e) => {
-    e.preventDefault();
-    if (!formState.name.trim() || !formState.company.trim() || !formState.email.trim()) {
-      toast.error('Please enter all required fields.');
-      return;
-    }
-
-    const isDemo = formState.status === 'demo';
-    const computedMrr = isDemo
-      ? '₹0 (Trial)'
-      : formState.mrr || (formState.status === 'inactive' ? '₹0' : '₹15,000');
-
-    const newCustomer = {
-      id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: formState.name.trim(),
-      company: formState.company.trim(),
-      email: formState.email.trim(),
-      phone: formState.phone.trim() || '+91 98300 00000',
-      city: formState.city.trim() || 'Eastern India',
-      plan: formState.plan,
-      serverNode: formState.serverNode,
-      status: formState.status,
-      registered: new Date().toISOString().split('T')[0],
-      mrr: computedMrr
-    };
-
-    setCustomers([newCustomer, ...customers]);
-    setIsCreateModalOpen(false);
-    setFormState({
-      name: '',
-      company: '',
-      email: '',
-      phone: '',
-      city: 'Kolkata, WB',
-      plan: 'Tally Prime Cloud + VPS Gold',
-      serverNode: 'CtrlS-KOL-NODE-01',
-      status: 'active',
-      mrr: '₹15,000'
-    });
-
-    toast.success(`Customer "${newCustomer.company}" registered as ${newCustomer.status.toUpperCase()}!`, {
-      style: {
-        borderRadius: '12px',
-        background: '#0f172a',
-        color: '#ffffff',
-        fontSize: '0.85rem'
-      }
-    });
-  };
-
   // Delete Customer
   const handleDeleteCustomer = (customerId, companyName) => {
     if (window.confirm(`Are you sure you want to remove customer "${companyName}"?`)) {
@@ -171,7 +108,7 @@ export default function CustomerSection({ customers, setCustomers }) {
           <button
             type="button"
             className="adm-btn-primary"
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => navigate('/admin/customer/create')}
           >
             <Plus size={16} />
             <span>Create Customer</span>
@@ -431,158 +368,6 @@ export default function CustomerSection({ customers, setCustomers }) {
         </span>
       </div>
 
-      {/* =========================================================================
-         CREATE NEW CUSTOMER MODAL
-         ========================================================================= */}
-      {isCreateModalOpen && (
-        <div className="adm-modal-backdrop" onClick={() => setIsCreateModalOpen(false)}>
-          <div className="adm-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Create New Customer Account</h3>
-              <button
-                type="button"
-                className="adm-modal-close-btn"
-                onClick={() => setIsCreateModalOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCustomerSubmit}>
-              <div className="adm-modal-body">
-                <div className="adm-form-grid">
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Customer Contact Representative *</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. Subhankar Ghosh"
-                      value={formState.name}
-                      onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Company / Firm Organization *</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. Ghosh Textile Mills Pvt Ltd"
-                      value={formState.company}
-                      onChange={(e) => setFormState({ ...formState, company: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Account Status *</label>
-                    <select
-                      className="adm-form-input"
-                      value={formState.status}
-                      onChange={(e) => setFormState({ ...formState, status: e.target.value })}
-                    >
-                      <option value="active">Active (Production Client)</option>
-                      <option value="demo">Demo (14-Day Sandbox Trial)</option>
-                      <option value="inactive">Inactive / Paused</option>
-                    </select>
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Corporate Email Address *</label>
-                    <input
-                      type="email"
-                      className="adm-form-input"
-                      placeholder="e.g. subhankar@ghoshtextile.in"
-                      value={formState.email}
-                      onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Mobile / WhatsApp Number *</label>
-                    <input
-                      type="tel"
-                      className="adm-form-input"
-                      placeholder="e.g. +91 98300 12345"
-                      value={formState.phone}
-                      onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">City / Region</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. Kolkata, Salt Lake Sec V"
-                      value={formState.city}
-                      onChange={(e) => setFormState({ ...formState, city: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Cloud ERP Subscription Tier</label>
-                    <select
-                      className="adm-form-input"
-                      value={formState.plan}
-                      onChange={(e) => setFormState({ ...formState, plan: e.target.value })}
-                    >
-                      <option>Tally Prime Cloud + VPS Gold</option>
-                      <option>Enterprise VPS Dedicated Node</option>
-                      <option>Tally Multi-User Cloud + TSS</option>
-                      <option>Tally Prime Single User Silver</option>
-                      <option>High-Mem Cloud VPS Node</option>
-                      <option>14-Day Cloud VPS Sandbox Trial</option>
-                      <option>Tally Prime Cloud Trial Demo</option>
-                    </select>
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Target CtrlS Host Node</label>
-                    <select
-                      className="adm-form-input"
-                      value={formState.serverNode}
-                      onChange={(e) => setFormState({ ...formState, serverNode: e.target.value })}
-                    >
-                      <option>CtrlS-KOL-NODE-01 (Primary Cluster)</option>
-                      <option>CtrlS-KOL-NODE-02 (Enterprise Hypervisor)</option>
-                      <option>CtrlS-KOL-NODE-03 (Backup & Sandbox Vault)</option>
-                    </select>
-                  </div>
-
-                  {formState.status === 'active' && (
-                    <div className="adm-form-field">
-                      <label className="adm-form-label">Monthly MRR Value</label>
-                      <input
-                        type="text"
-                        className="adm-form-input"
-                        placeholder="e.g. ₹15,000"
-                        value={formState.mrr}
-                        onChange={(e) => setFormState({ ...formState, mrr: e.target.value })}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="adm-modal-footer">
-                <button
-                  type="button"
-                  className="adm-btn-secondary"
-                  onClick={() => setIsCreateModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="adm-btn-primary">
-                  Create Customer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

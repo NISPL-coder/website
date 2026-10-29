@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Package,
-  X,
   Search,
   Filter,
   ArrowRight,
@@ -17,20 +17,11 @@ import tallyLogo from '../../../assets/partners/tally.png';
 import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function ProductSection({ products, setProducts }) {
+  const navigate = useNavigate();
   // Navigation State: null = 2-card Solution selection view; 'tally' | 'cloud' = category catalog
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
-
-  const [newProductForm, setNewProductForm] = useState({
-    name: '',
-    sku: '',
-    category: 'ERP Solutions',
-    price: '₹20,000',
-    frequency: '/ year',
-    description: ''
-  });
 
   // Calculate counts for categories
   const tallyCount = useMemo(() => {
@@ -117,36 +108,6 @@ export default function ProductSection({ products, setProducts }) {
     }
   };
 
-  // Add Product Submit
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!newProductForm.name || !newProductForm.price) {
-      toast.error('Please provide product name and pricing.');
-      return;
-    }
-    const newProd = {
-      id: `PROD-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: newProductForm.name.trim(),
-      sku: newProductForm.sku.trim() || `NIS-SKU-${Math.floor(100 + Math.random() * 900)}`,
-      category: newProductForm.category,
-      price: newProductForm.price.trim(),
-      frequency: newProductForm.frequency,
-      description: newProductForm.description.trim() || 'Enterprise software license / infrastructure tier.',
-      available: true
-    };
-    setProducts([newProd, ...products]);
-    setIsAddProductModalOpen(false);
-    setNewProductForm({
-      name: '',
-      sku: '',
-      category: selectedCategory === 'cloud' ? 'Cloud Infrastructure' : 'ERP Solutions',
-      price: '₹20,000',
-      frequency: '/ year',
-      description: ''
-    });
-    toast.success(`Product "${newProd.name}" added to live catalog!`);
-  };
-
   return (
     <>
       {/* =========================================================================
@@ -173,10 +134,7 @@ export default function ProductSection({ products, setProducts }) {
               <button
                 type="button"
                 className="adm-btn-primary"
-                onClick={() => {
-                  setNewProductForm((prev) => ({ ...prev, category: 'ERP Solutions' }));
-                  setIsAddProductModalOpen(true);
-                }}
+                onClick={() => navigate('/admin/product/create')}
               >
                 <Plus size={16} />
                 <span>Add Product</span>
@@ -324,13 +282,7 @@ export default function ProductSection({ products, setProducts }) {
               <button
                 type="button"
                 className="adm-btn-primary"
-                onClick={() => {
-                  setNewProductForm((prev) => ({
-                    ...prev,
-                    category: selectedCategory === 'tally' ? 'ERP Solutions' : 'Cloud Infrastructure'
-                  }));
-                  setIsAddProductModalOpen(true);
-                }}
+                onClick={() => navigate('/admin/product/create')}
               >
                 <Plus size={16} />
                 <span>
@@ -482,140 +434,6 @@ export default function ProductSection({ products, setProducts }) {
             <span style={{ fontWeight: 600, color: '#0f172a' }}>
               Active Available Products: {currentCategoryProducts.filter((p) => p.available).length}
             </span>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-         ADD PRODUCT MODAL
-         ========================================================================= */}
-      {isAddProductModalOpen && (
-        <div className="adm-modal-backdrop" onClick={() => setIsAddProductModalOpen(false)}>
-          <div className="adm-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="adm-modal-header">
-              <h3 className="adm-modal-title">
-                {selectedCategory === 'tally'
-                  ? 'Add New Tally Prime Edition'
-                  : selectedCategory === 'cloud'
-                  ? 'Add New Cloud Server / Infrastructure Tier'
-                  : 'Add New Product to Catalog'}
-              </h3>
-              <button
-                type="button"
-                className="adm-modal-close-btn"
-                onClick={() => setIsAddProductModalOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddProduct}>
-              <div className="adm-modal-body">
-                <div className="adm-form-grid">
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Product Name *</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. Tally Prime Server Edition or Dedicated 16-Core VPS"
-                      value={newProductForm.name}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">SKU Identifier</label>
-                    <input
-                      type="text"
-                      className="adm-form-input"
-                      placeholder="e.g. NIS-TP-SERVER-2026"
-                      value={newProductForm.sku}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, sku: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Solution Category</label>
-                    <select
-                      className="adm-form-input"
-                      value={newProductForm.category}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, category: e.target.value })
-                      }
-                    >
-                      <option value="ERP Solutions">Tally Prime &amp; Customization (ERP)</option>
-                      <option value="Cloud Infrastructure">Cloud Dedicated VPS Server</option>
-                      <option value="Cloud Hosting">Tally on Cloud Hosting</option>
-                      <option value="Security & Backup">Encrypted Backup &amp; Storage</option>
-                      <option value="Automation">WhatsApp / Meta Automation Add-on</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div className="adm-form-field">
-                      <label className="adm-form-label">Price (INR) *</label>
-                      <input
-                        type="text"
-                        className="adm-form-input"
-                        placeholder="e.g. ₹25,000"
-                        value={newProductForm.price}
-                        onChange={(e) =>
-                          setNewProductForm({ ...newProductForm, price: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div className="adm-form-field">
-                      <label className="adm-form-label">Billing Frequency</label>
-                      <select
-                        className="adm-form-input"
-                        value={newProductForm.frequency}
-                        onChange={(e) =>
-                          setNewProductForm({ ...newProductForm, frequency: e.target.value })
-                        }
-                      >
-                        <option value="/ year">/ year (Annual)</option>
-                        <option value="/ month">/ month (Monthly)</option>
-                        <option value="one-time">One-time / Lifetime</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="adm-form-field">
-                    <label className="adm-form-label">Description / Feature Scope</label>
-                    <textarea
-                      className="adm-form-input"
-                      rows="3"
-                      style={{ height: 'auto', padding: '10px' }}
-                      placeholder="Brief specifications, CPU cores, RAM, concurrent user access..."
-                      value={newProductForm.description}
-                      onChange={(e) =>
-                        setNewProductForm({ ...newProductForm, description: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="adm-modal-footer">
-                <button
-                  type="button"
-                  className="adm-btn-secondary"
-                  onClick={() => setIsAddProductModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="adm-btn-primary">
-                  Save Product to Catalog
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

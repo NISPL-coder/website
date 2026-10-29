@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, CheckCircle2, CreditCard, X, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
-  const [isRecordPaymentModalOpen, setIsRecordPaymentModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -44,6 +45,17 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
           <p className="adm-section-sub">
             Live incoming corporate subscription payments, bank transfers, invoice references, and gateway logs.
           </p>
+        </div>
+
+        <div className="adm-card-header-action">
+          <button
+            type="button"
+            className="adm-btn-primary"
+            onClick={() => navigate('/admin/customer/payment/create')}
+          >
+            <Plus size={16} />
+            <span>Record Payment</span>
+          </button>
         </div>
       </div>
 

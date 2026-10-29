@@ -14,6 +14,13 @@ import PaymentSection from './PaymentSection';
 import ProductSection from './ProductSection';
 import ReceiptSection from './ReceiptSection';
 
+// Dedicated Separate Create Pages (Replacing Modals with /create URLs)
+import CreateCustomerPage from './CreateCustomerPage';
+import CreateContractPage from './CreateContractPage';
+import CreatePaymentPage from './CreatePaymentPage';
+import CreateProductPage from './CreateProductPage';
+import CreateReceiptPage from './CreateReceiptPage';
+
 // Initial Datasets
 import {
   INITIAL_CUSTOMERS,
@@ -128,14 +135,6 @@ export default function AdminDashboard({ userSession, onSignOut }) {
 
           {/* Right Actions */}
           <div className="adm-header-right">
-            <button
-              type="button"
-              className="adm-header-icon-btn"
-              onClick={handleRefresh}
-              title="Refresh System Data"
-            >
-              <RefreshCw size={17} className={isRefreshing ? 'animate-spin' : ''} />
-            </button>
 
             <button type="button" className="adm-header-icon-btn" title="Pending Notifications">
               <Bell size={17} />
@@ -186,54 +185,90 @@ export default function AdminDashboard({ userSession, onSignOut }) {
 
         {/* Main Routed View Container */}
         <main className="adm-main-content">
-          {activeNav === 'overview' && (
-            <OverviewSection
-              adminName={adminName}
-              contracts={contracts}
-              payments={payments}
-              products={products}
-              receipts={receipts}
-              customers={customers}
-              setCustomers={setCustomers}
-            />
+          {/* 1. DEDICATED SEPARATE /CREATE PAGES */}
+          {location.pathname === '/admin/customer/create' && (
+            <CreateCustomerPage customers={customers} setCustomers={setCustomers} />
           )}
 
-          {activeNav === 'customer' && (
-            <CustomerSection
-              customers={customers}
-              setCustomers={setCustomers}
-            />
+          {(location.pathname === '/admin/customer/contract/create' || location.pathname === '/admin/contract/create') && (
+            <CreateContractPage contracts={contracts} setContracts={setContracts} customers={customers} />
           )}
 
-          {activeNav === 'contract' && (
-            <ContractSection
-              contracts={contracts}
-              setContracts={setContracts}
-            />
-          )}
-
-          {activeNav === 'payment' && (
-            <PaymentSection
+          {(location.pathname === '/admin/customer/payment/create' || location.pathname === '/admin/payment/create') && (
+            <CreatePaymentPage
               payments={payments}
               setPayments={setPayments}
+              customers={customers}
               contracts={contracts}
-              onGoToReceipt={() => navigate('/admin/receipt')}
             />
           )}
 
-          {activeNav === 'product' && (
-            <ProductSection
-              products={products}
-              setProducts={setProducts}
-            />
+          {location.pathname === '/admin/product/create' && (
+            <CreateProductPage products={products} setProducts={setProducts} />
           )}
 
-          {activeNav === 'receipt' && (
-            <ReceiptSection
+          {location.pathname === '/admin/receipt/create' && (
+            <CreateReceiptPage
               receipts={receipts}
               setReceipts={setReceipts}
               payments={payments}
+              customers={customers}
             />
+          )}
+
+          {/* 2. REGULAR DIRECTORY & MANAGEMENT VIEWS */}
+          {!location.pathname.endsWith('/create') && (
+            <>
+              {activeNav === 'overview' && (
+                <OverviewSection
+                  adminName={adminName}
+                  contracts={contracts}
+                  payments={payments}
+                  products={products}
+                  receipts={receipts}
+                  customers={customers}
+                  setCustomers={setCustomers}
+                />
+              )}
+
+              {activeNav === 'customer' && (
+                <CustomerSection
+                  customers={customers}
+                  setCustomers={setCustomers}
+                />
+              )}
+
+              {activeNav === 'contract' && (
+                <ContractSection
+                  contracts={contracts}
+                  setContracts={setContracts}
+                />
+              )}
+
+              {activeNav === 'payment' && (
+                <PaymentSection
+                  payments={payments}
+                  setPayments={setPayments}
+                  contracts={contracts}
+                  onGoToReceipt={() => navigate('/admin/receipt')}
+                />
+              )}
+
+              {activeNav === 'product' && (
+                <ProductSection
+                  products={products}
+                  setProducts={setProducts}
+                />
+              )}
+
+              {activeNav === 'receipt' && (
+                <ReceiptSection
+                  receipts={receipts}
+                  setReceipts={setReceipts}
+                  payments={payments}
+                />
+              )}
+            </>
           )}
         </main>
       </div>

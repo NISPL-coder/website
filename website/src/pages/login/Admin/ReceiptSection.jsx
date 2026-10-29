@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Download, Check, ReceiptText, X, Search, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Download, Check, ReceiptText, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTableSort, SortableTh } from './tableSortUtils';
 
 export default function ReceiptSection({ receipts, setReceipts, payments }) {
-  const [isGenerateReceiptModalOpen, setIsGenerateReceiptModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -49,7 +50,7 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
           <button
             type="button"
             className="adm-btn-primary"
-            onClick={() => setIsGenerateReceiptModalOpen(true)}
+            onClick={() => navigate('/admin/receipt/create')}
           >
             <Plus size={16} />
             <span>Generate Receipt</span>
@@ -200,73 +201,6 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
           Total Issued Receipts: {receipts.length}
         </span>
       </div>
-
-      {/* GENERATE RECEIPT MODAL */}
-      {isGenerateReceiptModalOpen && (
-        <div className="adm-modal-backdrop" onClick={() => setIsGenerateReceiptModalOpen(false)}>
-          <div className="adm-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="adm-modal-header">
-              <h3 className="adm-modal-title">Generate Customer Payment Receipt</h3>
-              <button
-                type="button"
-                className="adm-modal-close-btn"
-                onClick={() => setIsGenerateReceiptModalOpen(false)}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="adm-modal-body">
-              <div className="adm-form-grid">
-                <div className="adm-form-field">
-                  <label className="adm-form-label">Select Paid Transaction</label>
-                  <select className="adm-form-input">
-                    {payments && payments.length > 0 ? (
-                      payments.map((p) => (
-                        <option key={p.id}>
-                          {p.id} - {p.company} ({p.amount})
-                        </option>
-                      ))
-                    ) : (
-                      <option>TXN-994101 - FlowMail Agency Pvt Ltd (₹14,500)</option>
-                    )}
-                  </select>
-                </div>
-
-                <div className="adm-form-field">
-                  <label className="adm-form-label">Tax Deduction / GST Rule</label>
-                  <input
-                    type="text"
-                    className="adm-form-input"
-                    defaultValue="Standard 18% Integrated GST (IGST/CGST)"
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="adm-modal-footer">
-              <button
-                type="button"
-                className="adm-btn-secondary"
-                onClick={() => setIsGenerateReceiptModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="adm-btn-primary"
-                onClick={() => {
-                  toast.success('Certified payment receipt generated & dispatched!');
-                  setIsGenerateReceiptModalOpen(false);
-                }}
-              >
-                Dispatch Receipt
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -171,12 +171,17 @@ function MainApp() {
           
           {/* Admin Portal Routes with Sidebar & Header */}
           <Route path="/admin/overview" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer/contract/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/customer/payment/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/customer/contract" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/customer/payment" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/customer" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/customers" element={<Navigate to="/admin/customer" replace />} />
+          <Route path="/admin/product/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/product" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/products" element={<Navigate to="/admin/product" replace />} />
+          <Route path="/admin/receipt/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/receipt" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
