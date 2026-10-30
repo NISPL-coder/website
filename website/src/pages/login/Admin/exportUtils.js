@@ -67,7 +67,10 @@ export function formatCustomersForExport(customers) {
     'City': c.address?.city || c.city || 'Kolkata',
     'Street / Area': [c.address?.street, c.address?.area].filter(Boolean).join(', ') || '—',
     'Postal Code': c.address?.postalCode || c.postalCode || '—',
-    'Member Since': c.since || '—'
+    'Sangam CRM Status': (c.sangamCrm?.status || 'synced').toUpperCase(),
+    'Sangam CRM Record ID': c.sangamCrm?.recordId || '—',
+    'Last Synced At': c.sangamCrm?.lastSyncedAt || '—',
+    'Member Since': c.since || c.registered || '—'
   }));
 }
 

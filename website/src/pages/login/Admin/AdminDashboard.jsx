@@ -28,6 +28,7 @@ import {
   INITIAL_PRODUCTS,
   INITIAL_RECEIPTS
 } from './adminData';
+import { customerApi } from '../../../services/customerApi';
 
 export default function AdminDashboard({ userSession, onSignOut }) {
   const navigate = useNavigate();
@@ -104,15 +105,31 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [receipts, setReceipts] = useState(INITIAL_RECEIPTS);
 
+  // Load live customers & Sangam CRM synchronization status from backend
+  useEffect(() => {
+    let isMounted = true;
+    customerApi.getCustomers().then((data) => {
+      if (isMounted && data && Array.isArray(data) && data.length > 0) {
+        setCustomers(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const adminName = userSession?.name || userSession?.user || 'NISPL Administrator';
   const adminEmail = userSession?.user || 'admin@netinfotechsystem.in';
 
-  // Manual Refresh Telemetry simulation
-  const handleRefresh = () => {
+  // Manual Refresh Telemetry & Sangam CRM Sync
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success('Live administrative records & telemetry synchronized!', {
+    try {
+      const liveData = await customerApi.getCustomers();
+      if (liveData && liveData.length > 0) {
+        setCustomers(liveData);
+      }
+      toast.success('Live administrative records & Sangam CRM telemetry synchronized!', {
         style: {
           borderRadius: '12px',
           background: '#0f172a',
@@ -120,7 +137,11 @@ export default function AdminDashboard({ userSession, onSignOut }) {
           fontSize: '0.85rem'
         }
       });
-    }, 500);
+    } catch (e) {
+      toast.error('Failed to sync live telemetry from server.');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (

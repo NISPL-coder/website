@@ -7,6 +7,7 @@ import careerRouter from './routes/careerRoutes.js';
 import authRouter from './routes/authRoutes.js';
 import dashboardRouter from './routes/dashboardRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
+import customerRouter from './routes/customerRoutes.js';
 
 const app = express();
 
@@ -101,6 +102,7 @@ app.use('/api/career', careerRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/cart', cartRouter);
+app.use('/api/customers', customerRouter);
 
 // Root informational endpoint
 app.get('/', (req, res) => {
@@ -121,7 +123,10 @@ app.get('/', (req, res) => {
       cartRemove: 'POST /api/cart/remove',
       cartClear: 'POST /api/cart/clear',
       cartFulfillment: 'POST /api/cart/fulfillment',
-      cartAddons: 'GET /api/cart/addons'
+      cartAddons: 'GET /api/cart/addons',
+      customersList: 'GET /api/customers',
+      customerCreate: 'POST /api/customers',
+      customerSync: 'POST /api/customers/:id/sync'
     }
   });
 });

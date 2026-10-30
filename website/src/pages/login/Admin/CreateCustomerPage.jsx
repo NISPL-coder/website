@@ -18,6 +18,7 @@ import {
   getCitiesByState
 } from './locationData';
 import { customSelectStyles } from './reactSelectStyles';
+import { customerApi } from '../../../services/customerApi';
 
 const ADDRESS_TYPE_OPTIONS = [
   { value: 'Office / Billing', label: 'Office / Billing Address' },
@@ -109,8 +110,9 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
   const isCustomCity = selectedCity === 'Other';
   const effectiveCity = isCustomCity ? customCityInput.trim() || 'Custom City' : selectedCity;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formState.name.trim()) {
       toast.error('Please enter the customer name.');
@@ -140,34 +142,89 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       selectedCountry
     ].filter(Boolean).join(', ');
 
-    const newCustomer = {
-      id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+    const customerPayload = {
       name: formState.name.trim(),
       company: formState.name.trim(),
       email: formState.email.trim(),
       phone: formState.phone.trim(),
       city: cityLoc,
-      address: addressParts || cityLoc,
-      country: selectedCountry,
-      state: selectedState,
+      address: {
+        street: formState.street || '',
+        area: formState.area || '',
+        city: effectiveCity,
+        state: selectedState,
+        country: selectedCountry,
+        postalCode: formState.postalCode || '',
+        addressType: formState.addressType
+      },
       plan: 'Tally Prime Cloud + VPS Gold',
       serverNode: 'CtrlS-KOL-NODE-01',
       status: 'active',
-      registered: new Date().toISOString().split('T')[0],
-      mrr: '₹15,000'
+      mrr: '₹15,000',
+      accountRelationship: 'Customer'
     };
 
-    setCustomers([newCustomer, ...customers]);
-    toast.success(`Customer "${newCustomer.name}" created successfully!`, {
-      style: {
-        borderRadius: '12px',
-        background: '#0f172a',
-        color: '#ffffff',
-        fontSize: '0.85rem'
-      }
-    });
+    setIsSubmitting(true);
+    const toastId = toast.loading('Saving customer & synchronizing to Sangam CRM...');
 
-    navigate('/admin/customer');
+    try {
+      // 1. Send to backend to save locally & sync with Sangam CRM
+      const res = await customerApi.createCustomer(customerPayload);
+      const createdCustomer = res.customer;
+      const sangamStatus = res.sangamCrm?.status;
+
+      setCustomers((prev) => [createdCustomer, ...prev.filter((c) => c.id !== createdCustomer.id)]);
+
+      if (sangamStatus === 'synced') {
+        toast.success(
+          `Customer created & synced to Sangam CRM Companies (Record ID: ${res.sangamCrm.recordId})!`,
+          { id: toastId, duration: 4500 }
+        );
+      } else {
+        toast.success(
+          `Customer saved locally. Sangam CRM sync pending/retryable (${res.sangamCrm?.syncError || 'queued'}).`,
+          { id: toastId, duration: 4000 }
+        );
+      }
+
+      navigate('/admin/customer');
+    } catch (err) {
+      console.warn('[CreateCustomerPage] Backend sync call failed, falling back to local state:', err.message);
+
+      // Fallback local resilience if backend server is not running
+      const fallbackCustomer = {
+        id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+        customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: formState.name.trim(),
+        company: formState.name.trim(),
+        email: formState.email.trim(),
+        phone: formState.phone.trim(),
+        city: cityLoc,
+        address: addressParts || cityLoc,
+        country: selectedCountry,
+        state: selectedState,
+        plan: 'Tally Prime Cloud + VPS Gold',
+        serverNode: 'CtrlS-KOL-NODE-01',
+        status: 'active',
+        registered: new Date().toISOString().split('T')[0],
+        mrr: '₹15,000',
+        sangamCrm: {
+          status: 'failed',
+          recordId: null,
+          lastSyncedAt: new Date().toISOString(),
+          syncError: err.message
+        }
+      };
+
+      setCustomers((prev) => [fallbackCustomer, ...prev]);
+      toast.error(`Saved locally. Sangam CRM synchronization failed: ${err.message}`, {
+        id: toastId,
+        duration: 4000
+      });
+      navigate('/admin/customer');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -194,6 +251,28 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
               Enter primary contact details and physical address information.
             </p>
           </div>
+        </div>
+
+        {/* Top-Right Action Buttons */}
+        <div className="adm-create-header-action adm-header-actions-group">
+          <button
+            type="button"
+            className="adm-btn-secondary"
+            onClick={() => navigate('/admin/customer')}
+            disabled={isSubmitting}
+          >
+            <X size={15} />
+            <span>Cancel</span>
+          </button>
+          <button
+            type="submit"
+            form="create-customer-form"
+            className="adm-btn-primary"
+            disabled={isSubmitting}
+          >
+            <Check size={15} />
+            <span>{isSubmitting ? 'Syncing...' : 'Save'}</span>
+          </button>
         </div>
       </div>
 
@@ -388,12 +467,13 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
               type="button"
               className="adm-btn-secondary"
               onClick={() => navigate('/admin/customer')}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button type="submit" className="adm-btn-primary">
+            <button type="submit" className="adm-btn-primary" disabled={isSubmitting}>
               <Check size={16} />
-              <span>Save Customer</span>
+              <span>{isSubmitting ? 'Syncing to Sangam CRM...' : 'Save Customer'}</span>
             </button>
           </div>
         </form>

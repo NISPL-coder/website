@@ -18,12 +18,12 @@ export const config = {
   corsOrigin: process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
     : [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'http://127.0.0.1:5173',
-        'https://nispldemo.vercel.app',
-        'https://website-homepage-bdjc.onrender.com'
-      ],
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'https://nispldemo.vercel.app',
+      'https://website-homepage-bdjc.onrender.com'
+    ],
 
   // MongoDB Connection
   mongoUri: process.env.MONGODB_URI || 'mongodb+srv://nispldeveloper_db_user:Lw0pRhHxaUL3v6qy@cluster0.ckh8yxf.mongodb.net/nispl_db?retryWrites=true&w=majority',
@@ -78,5 +78,12 @@ export const config = {
       success: false,
       message: 'Too many application attempts from this network. Please try again after 15 minutes.'
     }
+  },
+
+  // Sangam CRM Official API Integration
+  sangamCrm: {
+    url: process.env.SANGAM_CRM_URL || 'https://nistally.sangamcrm.com/',
+    apiBase: process.env.SANGAM_CRM_API_BASE || 'https://nistally.sangamcrm.com/api/v1/',
+    token: process.env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6'
   }
 };
