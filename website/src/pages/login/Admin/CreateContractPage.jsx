@@ -10,17 +10,17 @@ import {
   CreditCard,
   Building2,
   Clock,
-  Layers
+  Layers,
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
+import { contractApi } from '../../../services/contractApi';
 
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft / Pending' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'expiring', label: 'Expiring Soon' },
-  { value: 'closed', label: 'Closed / Terminated' }
+  { value: 'Active', label: 'Active' },
+  { value: 'NotStarted', label: 'NotStarted' },
+  { value: 'Inactive', label: 'Inactive' }
 ];
 
 const SUBSCRIPTION_PERIOD_OPTIONS = [
@@ -45,10 +45,34 @@ export default function CreateContractPage({ contracts, setContracts, customers 
   nextYear.setFullYear(nextYear.getFullYear() + 1);
   const oneYearFromNow = nextYear.toISOString().split('T')[0];
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Deduplicate account options by unique Customer Name / Company Name
+  const accountOptions = useMemo(() => {
+    const seen = new Set();
+    const uniqueOptions = [];
+
+    for (const c of customers) {
+      const nameKey = (c.company || c.name || '').trim();
+      if (!nameKey) continue;
+      const lowerKey = nameKey.toLowerCase();
+      if (!seen.has(lowerKey)) {
+        seen.add(lowerKey);
+        uniqueOptions.push({
+          value: nameKey,
+          label: nameKey,
+          customer: c
+        });
+      }
+    }
+
+    return uniqueOptions;
+  }, [customers]);
+
   const [formState, setFormState] = useState({
     name: '',
-    accountName: customers[0]?.company || '',
-    status: 'active',
+    accountName: accountOptions[0]?.value || customers[0]?.company || customers[0]?.name || '',
+    status: 'Active',
     startDate: today,
     endDate: oneYearFromNow,
     totalContractValue: '',
@@ -56,12 +80,15 @@ export default function CreateContractPage({ contracts, setContracts, customers 
     contractType: 'Subscription'
   });
 
-  const accountOptions = useMemo(() => {
-    return customers.map((c) => ({
-      value: c.company,
-      label: `${c.company} (${c.name})`
-    }));
-  }, [customers]);
+  // Sync default account name when account options are loaded
+  React.useEffect(() => {
+    if (!formState.accountName && accountOptions.length > 0) {
+      setFormState((prev) => ({
+        ...prev,
+        accountName: accountOptions[0].value
+      }));
+    }
+  }, [accountOptions, formState.accountName]);
 
   // Adjust End Date automatically when Subscription Period changes
   const handlePeriodChange = (selectedPeriod) => {
@@ -82,46 +109,90 @@ export default function CreateContractPage({ contracts, setContracts, customers 
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formState.name.trim() || !formState.totalContractValue.trim()) {
-      toast.error('Please enter the Contract Name and Total Contract Value.');
+    const customerAccountName = (formState.accountName || '').trim();
+    if (!formState.name.trim() || !customerAccountName || !formState.totalContractValue.trim()) {
+      toast.error('Please enter Contract Name, Account Name, and Total Contract Value.');
       return;
     }
 
+    setIsSubmitting(true);
     const cleanVal = formState.totalContractValue.trim();
     const formattedVal = cleanVal.startsWith('₹') ? cleanVal : `₹${cleanVal}`;
 
-    const newContract = {
-      id: `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    // Find if selected customer/account has Sangam CRM recordId
+    const matchedCustomer = customers.find(
+      (c) =>
+        c.name?.toLowerCase() === customerAccountName.toLowerCase() ||
+        c.company?.toLowerCase() === customerAccountName.toLowerCase() ||
+        c.customerId === customerAccountName
+    );
+    const sangamAccountId =
+      matchedCustomer?.sangamCrm?.recordId &&
+      !matchedCustomer.sangamCrm.recordId.startsWith('SGM-ACC-')
+        ? matchedCustomer.sangamCrm.recordId
+        : null;
+
+    const payload = {
       name: formState.name.trim(),
+      accountName: customerAccountName,
+      customer: customerAccountName,
+      company: matchedCustomer?.company || customerAccountName,
       status: formState.status,
       startDate: formState.startDate,
       endDate: formState.endDate,
-      expiryDate: formState.endDate,
       totalContractValue: formattedVal,
       value: formattedVal,
       subscriptionPeriod: formState.subscriptionPeriod,
       contractType: formState.contractType,
-      // Backward compatibility aliases
-      company: formState.accountName || formState.name.trim(),
-      customer: formState.name.trim(),
-      email: 'contracts@nispl.in',
+      accountId: sangamAccountId,
+      email: matchedCustomer?.email || 'contracts@nispl.in',
+      phone: matchedCustomer?.phone || '',
       service: `${formState.contractType} (${formState.subscriptionPeriod})`,
       slaTier: 'Tier-1 Priority NOC 99.99%'
     };
 
-    setContracts([newContract, ...contracts]);
-    toast.success(`Contract "${newContract.name}" created successfully!`, {
-      style: {
-        borderRadius: '12px',
-        background: '#0f172a',
-        color: '#ffffff',
-        fontSize: '0.85rem'
-      }
-    });
+    try {
+      const res = await contractApi.createContract(payload);
+      const createdContract = res.contract || {
+        id: `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        ...payload
+      };
 
-    navigate('/admin/customer/contract');
+      setContracts([createdContract, ...contracts]);
+
+      if (res.sangamCrm?.status === 'synced') {
+        toast.success(
+          `Contract created for ${customerAccountName} and synchronized to Sangam CRM! (Record ID: ${res.sangamCrm.recordId})`,
+          {
+            duration: 6000,
+            style: {
+              borderRadius: '12px',
+              background: '#0f172a',
+              color: '#ffffff',
+              fontSize: '0.85rem'
+            }
+          }
+        );
+      } else {
+        toast.success(`Contract "${createdContract.name}" created successfully!`, {
+          style: {
+            borderRadius: '12px',
+            background: '#0f172a',
+            color: '#ffffff',
+            fontSize: '0.85rem'
+          }
+        });
+      }
+
+      navigate('/admin/customer/contract');
+    } catch (err) {
+      console.error('[CreateContractPage] error:', err);
+      toast.error(err.message || 'Failed to create contract.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -179,7 +250,39 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 />
               </div>
 
-              {/* 2. Status */}
+              {/* 2. Account Name (Customer Name in Sangam CRM) */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Account Name <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={true}
+                  options={accountOptions}
+                  value={
+                    accountOptions.find(
+                      (a) =>
+                        a.value === formState.accountName ||
+                        a.customer?.name === formState.accountName ||
+                        a.customer?.company === formState.accountName
+                    ) || (formState.accountName ? {
+                      value: formState.accountName,
+                      label: formState.accountName
+                    } : null)
+                  }
+                  onChange={(opt) =>
+                    setFormState({
+                      ...formState,
+                      accountName: opt ? opt.value : ''
+                    })
+                  }
+                  placeholder="Select customer account..."
+                  classNamePrefix="react-select"
+                  required
+                />
+              </div>
+
+              {/* 3. Status */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
                   Status <span className="adm-required-star">*</span>
@@ -189,10 +292,10 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                   isSearchable={false}
                   options={STATUS_OPTIONS}
                   value={
-                    STATUS_OPTIONS.find((s) => s.value === formState.status) || STATUS_OPTIONS[0]
+                    STATUS_OPTIONS.find((s) => s.value.toLowerCase() === (formState.status || 'Active').toLowerCase()) || STATUS_OPTIONS[0]
                   }
                   onChange={(opt) =>
-                    setFormState({ ...formState, status: opt ? opt.value : 'active' })
+                    setFormState({ ...formState, status: opt ? opt.value : 'Active' })
                   }
                   placeholder="Select status..."
                   classNamePrefix="react-select"
@@ -332,27 +435,6 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                   />
                 </div>
               </div>
-
-              {/* Optional: Linked Account Name */}
-              {customers && customers.length > 0 && (
-                <div className="adm-form-field">
-                  <label className="adm-form-label">Linked Client / Account Name</label>
-                  <Select
-                    styles={customSelectStyles}
-                    isSearchable={true}
-                    options={accountOptions}
-                    value={accountOptions.find((a) => a.value === formState.accountName)}
-                    onChange={(opt) =>
-                      setFormState({
-                        ...formState,
-                        accountName: opt ? opt.value : ''
-                      })
-                    }
-                    placeholder="Select client account..."
-                    classNamePrefix="react-select"
-                  />
-                </div>
-              )}
             </div>
           </div>
 
@@ -362,13 +444,23 @@ export default function CreateContractPage({ contracts, setContracts, customers 
               type="button"
               className="adm-btn-secondary"
               onClick={() => navigate('/admin/customer/contract')}
+              disabled={isSubmitting}
             >
               <X size={15} />
               <span>Cancel</span>
             </button>
-            <button type="submit" className="adm-btn-primary">
-              <Check size={15} />
-              <span>Save Contract</span>
+            <button type="submit" className="adm-btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <RefreshCw size={15} className="animate-spin" />
+                  <span>Syncing to Sangam CRM...</span>
+                </>
+              ) : (
+                <>
+                  <Check size={15} />
+                  <span>Save Contract</span>
+                </>
+              )}
             </button>
           </div>
         </form>

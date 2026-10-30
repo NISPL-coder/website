@@ -8,6 +8,7 @@ import authRouter from './routes/authRoutes.js';
 import dashboardRouter from './routes/dashboardRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import customerRouter from './routes/customerRoutes.js';
+import contractRouter from './routes/contractRoutes.js';
 
 const app = express();
 
@@ -103,6 +104,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/customers', customerRouter);
+app.use('/api/contracts', contractRouter);
 
 // Root informational endpoint
 app.get('/', (req, res) => {

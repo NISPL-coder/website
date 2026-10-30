@@ -29,6 +29,7 @@ import {
   INITIAL_RECEIPTS
 } from './adminData';
 import { customerApi } from '../../../services/customerApi';
+import { contractApi } from '../../../services/contractApi';
 
 export default function AdminDashboard({ userSession, onSignOut }) {
   const navigate = useNavigate();
@@ -105,12 +106,17 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [receipts, setReceipts] = useState(INITIAL_RECEIPTS);
 
-  // Load live customers & Sangam CRM synchronization status from backend
+  // Load live customers & contracts with Sangam CRM synchronization status from backend
   useEffect(() => {
     let isMounted = true;
     customerApi.getCustomers().then((data) => {
       if (isMounted && data && Array.isArray(data) && data.length > 0) {
         setCustomers(data);
+      }
+    });
+    contractApi.getContracts().then((data) => {
+      if (isMounted && data && Array.isArray(data) && data.length > 0) {
+        setContracts(data);
       }
     });
     return () => {
@@ -125,9 +131,15 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const liveData = await customerApi.getCustomers();
-      if (liveData && liveData.length > 0) {
-        setCustomers(liveData);
+      const [liveCustomers, liveContracts] = await Promise.all([
+        customerApi.getCustomers(),
+        contractApi.getContracts()
+      ]);
+      if (liveCustomers && liveCustomers.length > 0) {
+        setCustomers(liveCustomers);
+      }
+      if (liveContracts && liveContracts.length > 0) {
+        setContracts(liveContracts);
       }
       toast.success('Live administrative records & Sangam CRM telemetry synchronized!', {
         style: {
