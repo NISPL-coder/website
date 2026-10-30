@@ -1,72 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import {
   ArrowLeft,
   FileText,
-  Building2,
   Calendar,
-  ShieldCheck,
-  CheckCircle2,
-  Zap,
-  Award
+  Check,
+  X,
+  CreditCard,
+  Building2,
+  Clock,
+  Layers
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { customSelectStyles } from './reactSelectStyles';
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'draft', label: 'Draft / Pending' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'expiring', label: 'Expiring Soon' },
+  { value: 'closed', label: 'Closed / Terminated' }
+];
+
+const SUBSCRIPTION_PERIOD_OPTIONS = [
+  { value: '1 Month', label: '1 Month' },
+  { value: '3 Months', label: '3 Months' },
+  { value: '6 Months', label: '6 Months' },
+  { value: '1 Year', label: '1 Year' },
+  { value: '2 Years', label: '2 Years' },
+  { value: '3 Years', label: '3 Years' }
+];
+
+const CONTRACT_TYPE_OPTIONS = [
+  { value: 'Subscription', label: 'Subscription' },
+  { value: 'AMC', label: 'AMC' }
+];
 
 export default function CreateContractPage({ contracts, setContracts, customers = [] }) {
   const navigate = useNavigate();
 
   const today = new Date().toISOString().split('T')[0];
-  const nextYearDate = new Date();
-  nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
-  const oneYearFromNow = nextYearDate.toISOString().split('T')[0];
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const oneYearFromNow = nextYear.toISOString().split('T')[0];
 
   const [formState, setFormState] = useState({
-    customer: customers[0]?.name || '',
-    company: customers[0]?.company || '',
-    email: customers[0]?.email || '',
-    service: 'Tally Prime Cloud + VPS Dedicated SLA',
-    value: '₹1,80,000 / yr',
-    startDate: today,
-    expiryDate: oneYearFromNow,
+    name: '',
+    accountName: customers[0]?.company || '',
     status: 'active',
-    slaTier: 'Tier-1 Priority NOC 99.99%'
+    startDate: today,
+    endDate: oneYearFromNow,
+    totalContractValue: '',
+    subscriptionPeriod: '1 Year',
+    contractType: 'Subscription'
   });
 
-  // Pre-fill if customer selected from existing customers
-  const handleSelectCustomer = (companyName) => {
-    const matched = customers.find((c) => c.company === companyName);
-    if (matched) {
-      setFormState((prev) => ({
-        ...prev,
-        customer: matched.name,
-        company: matched.company,
-        email: matched.email
-      }));
-    }
+  const accountOptions = useMemo(() => {
+    return customers.map((c) => ({
+      value: c.company,
+      label: `${c.company} (${c.name})`
+    }));
+  }, [customers]);
+
+  // Adjust End Date automatically when Subscription Period changes
+  const handlePeriodChange = (selectedPeriod) => {
+    const start = new Date(formState.startDate || today);
+    const end = new Date(start);
+
+    if (selectedPeriod === '1 Month') end.setMonth(end.getMonth() + 1);
+    else if (selectedPeriod === '3 Months') end.setMonth(end.getMonth() + 3);
+    else if (selectedPeriod === '6 Months') end.setMonth(end.getMonth() + 6);
+    else if (selectedPeriod === '1 Year') end.setFullYear(end.getFullYear() + 1);
+    else if (selectedPeriod === '2 Years') end.setFullYear(end.getFullYear() + 2);
+    else if (selectedPeriod === '3 Years') end.setFullYear(end.getFullYear() + 3);
+
+    setFormState((prev) => ({
+      ...prev,
+      subscriptionPeriod: selectedPeriod,
+      endDate: end.toISOString().split('T')[0]
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formState.customer.trim() || !formState.company.trim() || !formState.value.trim()) {
-      toast.error('Please enter customer details and contract value.');
+    if (!formState.name.trim() || !formState.totalContractValue.trim()) {
+      toast.error('Please enter the Contract Name and Total Contract Value.');
       return;
     }
 
+    const cleanVal = formState.totalContractValue.trim();
+    const formattedVal = cleanVal.startsWith('₹') ? cleanVal : `₹${cleanVal}`;
+
     const newContract = {
       id: `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      customer: formState.customer.trim(),
-      company: formState.company.trim(),
-      email: formState.email.trim() || 'billing@clientcorp.in',
-      service: formState.service,
-      value: formState.value.trim(),
-      startDate: formState.startDate,
-      expiryDate: formState.expiryDate,
+      name: formState.name.trim(),
       status: formState.status,
-      slaTier: formState.slaTier
+      startDate: formState.startDate,
+      endDate: formState.endDate,
+      expiryDate: formState.endDate,
+      totalContractValue: formattedVal,
+      value: formattedVal,
+      subscriptionPeriod: formState.subscriptionPeriod,
+      contractType: formState.contractType,
+      // Backward compatibility aliases
+      company: formState.accountName || formState.name.trim(),
+      customer: formState.name.trim(),
+      email: 'contracts@nispl.in',
+      service: `${formState.contractType} (${formState.subscriptionPeriod})`,
+      slaTier: 'Tier-1 Priority NOC 99.99%'
     };
 
     setContracts([newContract, ...contracts]);
-    toast.success(`Contract ${newContract.id} created for ${newContract.company}!`, {
+    toast.success(`Contract "${newContract.name}" created successfully!`, {
       style: {
         borderRadius: '12px',
         background: '#0f172a',
@@ -80,197 +126,233 @@ export default function CreateContractPage({ contracts, setContracts, customers 
 
   return (
     <div className="adm-create-page-container animate-fade-in">
-      {/* Top Navigation & Header */}
+      {/* Top Header with Breadcrumbs & Action Buttons */}
       <div className="adm-create-page-header">
         <div className="adm-create-header-left">
           <div className="adm-breadcrumb-row">
-            <span className="adm-breadcrumb-mute">Admin</span>
-            <span className="adm-breadcrumb-sep">/</span>
-            <span
-              className="adm-breadcrumb-link"
-              onClick={() => navigate('/admin/customer')}
-            >
-              Customer
-            </span>
+            <span className="adm-breadcrumb-mute">Contracts</span>
             <span className="adm-breadcrumb-sep">/</span>
             <span
               className="adm-breadcrumb-link"
               onClick={() => navigate('/admin/customer/contract')}
             >
-              Contracts
+              Management
             </span>
             <span className="adm-breadcrumb-sep">/</span>
-            <span className="adm-breadcrumb-active">Create Contract</span>
+            <span className="adm-breadcrumb-active">Create</span>
           </div>
 
           <div className="adm-create-title-group">
-            <h1 className="adm-section-title">Create Customer Service Contract</h1>
+            <h1 className="adm-section-title">Create Contract</h1>
             <p className="adm-section-sub">
-              Establish legal Master Service Agreements (MSA), define SLA performance commitments, and bind cloud resources.
+              Enter contract overview parameters, validity periods, and commercial values.
             </p>
           </div>
-        </div>
-
-        <div className="adm-create-header-action">
-          <button
-            type="button"
-            className="adm-back-btn"
-            onClick={() => navigate('/admin/customer/contract')}
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Contracts</span>
-          </button>
         </div>
       </div>
 
       {/* Main Form Container */}
       <div className="adm-table-card adm-form-card">
-        <form onSubmit={handleSubmit}>
-          {/* Section 1: Client Binding */}
+        <form id="create-contract-form" onSubmit={handleSubmit}>
+          {/* Section: Overview (All Highlighted Fields) */}
           <div className="adm-form-section">
-            <div className="adm-form-section-title">
-              <Building2 size={18} className="adm-form-section-icon purple" />
-              <span>Contracting Client Profile</span>
-            </div>
-
-            {customers && customers.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <label className="adm-form-label">Auto-Fill from Existing Customer Directory</label>
-                <select
-                  className="adm-form-input"
-                  onChange={(e) => handleSelectCustomer(e.target.value)}
-                  defaultValue=""
-                >
-                  <option value="" disabled>-- Select existing customer organization --</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.company}>
-                      {c.company} ({c.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="adm-form-grid">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '20px',
+                marginTop: '16px'
+              }}
+            >
+              {/* 1. Name */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Client Organization / Legal Entity *</label>
+                <label className="adm-form-label">
+                  Name <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
-                  placeholder="Enter your company name"
-                  value={formState.company}
-                  onChange={(e) => setFormState({ ...formState, company: e.target.value })}
+                  placeholder="Enter your contract name"
+                  value={formState.name}
+                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   required
                 />
               </div>
 
+              {/* 2. Status */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Signatory Representative Name *</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  placeholder="Enter your name"
-                  value={formState.customer}
-                  onChange={(e) => setFormState({ ...formState, customer: e.target.value })}
-                  required
+                <label className="adm-form-label">
+                  Status <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={STATUS_OPTIONS}
+                  value={
+                    STATUS_OPTIONS.find((s) => s.value === formState.status) || STATUS_OPTIONS[0]
+                  }
+                  onChange={(opt) =>
+                    setFormState({ ...formState, status: opt ? opt.value : 'active' })
+                  }
+                  placeholder="Select status..."
+                  classNamePrefix="react-select"
                 />
               </div>
 
-              <div className="adm-form-field full-width" style={{ gridColumn: '1 / -1' }}>
-                <label className="adm-form-label">Corporate Email Address</label>
-                <input
-                  type="email"
-                  className="adm-form-input"
-                  placeholder="Enter your email address"
-                  value={formState.email}
-                  onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: SLA & Commitment Scope */}
-          <div className="adm-form-section" style={{ marginTop: '28px' }}>
-            <div className="adm-form-section-title">
-              <ShieldCheck size={18} className="adm-form-section-icon emerald" />
-              <span>Service Scope &amp; Financial Terms</span>
-            </div>
-
-            <div className="adm-form-grid">
+              {/* 3. Start Date */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Service SLA Tier *</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.service}
-                  onChange={(e) => setFormState({ ...formState, service: e.target.value })}
-                >
-                  <option>Tally Prime Cloud + VPS Dedicated SLA</option>
-                  <option>Enterprise Cloud VPS Dedicated 8-Core Node</option>
-                  <option>Tally Multi-User Gold Cloud + TSS Sync</option>
-                  <option>Tally Prime Single User Silver</option>
-                  <option>High-Mem Cloud VPS Node Hypervisor</option>
-                </select>
+                <label className="adm-form-label">
+                  Start Date <span className="adm-required-star">*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="date"
+                    className="adm-form-input"
+                    value={formState.startDate}
+                    onChange={(e) => setFormState({ ...formState, startDate: e.target.value })}
+                    required
+                    style={{ paddingRight: '36px' }}
+                  />
+                  <Calendar
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                </div>
               </div>
 
+              {/* 4. End Date */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Annual Value (ARR / Year) *</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  placeholder="Enter contract annual value"
-                  value={formState.value}
-                  onChange={(e) => setFormState({ ...formState, value: e.target.value })}
-                  required
-                />
+                <label className="adm-form-label">
+                  End Date <span className="adm-required-star">*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="date"
+                    className="adm-form-input"
+                    value={formState.endDate}
+                    onChange={(e) => setFormState({ ...formState, endDate: e.target.value })}
+                    required
+                    style={{ paddingRight: '36px' }}
+                  />
+                  <Calendar
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                </div>
               </div>
 
+              {/* 5. Subscription Period */}
               <div className="adm-form-field">
-                <label className="adm-form-label">SLA Support Grade</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.slaTier}
-                  onChange={(e) => setFormState({ ...formState, slaTier: e.target.value })}
-                >
-                  <option>Tier-1 Priority NOC 99.99%</option>
-                  <option>24/7 Dedicated Support Hotline</option>
-                  <option>Annual Gold Maintenance &amp; Upgrade Pack</option>
-                  <option>Standard Cloud Hosting SLA</option>
-                </select>
-              </div>
-
-              <div className="adm-form-field">
-                <label className="adm-form-label">Contract Effective Start Date *</label>
-                <input
-                  type="date"
-                  className="adm-form-input"
-                  value={formState.startDate}
-                  onChange={(e) => setFormState({ ...formState, startDate: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="adm-form-field">
-                <label className="adm-form-label">Contract Expiry / Renewal Date *</label>
-                <input
-                  type="date"
-                  className="adm-form-input"
-                  value={formState.expiryDate}
-                  onChange={(e) => setFormState({ ...formState, expiryDate: e.target.value })}
-                  required
+                <label className="adm-form-label">
+                  Subscription Period <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={SUBSCRIPTION_PERIOD_OPTIONS}
+                  value={
+                    SUBSCRIPTION_PERIOD_OPTIONS.find(
+                      (p) => p.value === formState.subscriptionPeriod
+                    ) || SUBSCRIPTION_PERIOD_OPTIONS[3]
+                  }
+                  onChange={(opt) => handlePeriodChange(opt ? opt.value : '1 Year')}
+                  placeholder="Select subscription period..."
+                  classNamePrefix="react-select"
                 />
               </div>
 
+              {/* 6. Contract Type */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Contract Initial Status</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.status}
-                  onChange={(e) => setFormState({ ...formState, status: e.target.value })}
-                >
-                  <option value="active">Active (SLA Executed)</option>
-                  <option value="expiring">Expiring Soon (30-Day Window)</option>
-                </select>
+                <label className="adm-form-label">
+                  Contract Type <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={CONTRACT_TYPE_OPTIONS}
+                  value={
+                    CONTRACT_TYPE_OPTIONS.find((t) => t.value === formState.contractType) ||
+                    CONTRACT_TYPE_OPTIONS[0]
+                  }
+                  onChange={(opt) =>
+                    setFormState({
+                      ...formState,
+                      contractType: opt ? opt.value : 'Subscription'
+                    })
+                  }
+                  placeholder="Select contract type..."
+                  classNamePrefix="react-select"
+                />
               </div>
+
+              {/* 7. Total Contract Value */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Total Contract Value <span className="adm-required-star">*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '14px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#6366f1',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <input
+                    type="text"
+                    className="adm-form-input"
+                    placeholder="Enter total contract value"
+                    value={formState.totalContractValue}
+                    onChange={(e) =>
+                      setFormState({ ...formState, totalContractValue: e.target.value })
+                    }
+                    style={{ paddingLeft: '32px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Optional: Linked Account Name */}
+              {customers && customers.length > 0 && (
+                <div className="adm-form-field">
+                  <label className="adm-form-label">Linked Client / Account Name</label>
+                  <Select
+                    styles={customSelectStyles}
+                    isSearchable={true}
+                    options={accountOptions}
+                    value={accountOptions.find((a) => a.value === formState.accountName)}
+                    onChange={(opt) =>
+                      setFormState({
+                        ...formState,
+                        accountName: opt ? opt.value : ''
+                      })
+                    }
+                    placeholder="Select client account..."
+                    classNamePrefix="react-select"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -281,11 +363,12 @@ export default function CreateContractPage({ contracts, setContracts, customers 
               className="adm-btn-secondary"
               onClick={() => navigate('/admin/customer/contract')}
             >
-              Cancel
+              <X size={15} />
+              <span>Cancel</span>
             </button>
             <button type="submit" className="adm-btn-primary">
-              <FileText size={16} />
-              <span>Generate &amp; Execute Contract</span>
+              <Check size={15} />
+              <span>Save Contract</span>
             </button>
           </div>
         </form>

@@ -13,8 +13,10 @@ import {
   Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import tallyLogo from '../../../assets/partners/tally.png';
 import { useTableSort, SortableTh } from './tableSortUtils';
+import { compactSelectStyles } from './reactSelectStyles';
 
 export default function ProductSection({ products, setProducts }) {
   const navigate = useNavigate();
@@ -307,15 +309,28 @@ export default function ProductSection({ products, setProducts }) {
                 />
               </div>
 
-              <select
-                className="adm-select-filter"
-                value={availabilityFilter}
-                onChange={(e) => setAvailabilityFilter(e.target.value)}
-              >
-                <option value="all">All Statuses ({currentCategoryProducts.length})</option>
-                <option value="available">Active &amp; Available Only</option>
-                <option value="disabled">Disabled Only</option>
-              </select>
+              <div style={{ minWidth: '190px' }}>
+                <Select
+                  styles={compactSelectStyles}
+                  isSearchable={false}
+                  options={[
+                    { value: 'all', label: `All Statuses (${currentCategoryProducts.length})` },
+                    { value: 'available', label: 'Active & Available Only' },
+                    { value: 'disabled', label: 'Disabled Only' }
+                  ]}
+                  value={{
+                    value: availabilityFilter,
+                    label:
+                      availabilityFilter === 'all'
+                        ? `All Statuses (${currentCategoryProducts.length})`
+                        : availabilityFilter === 'available'
+                        ? 'Active & Available Only'
+                        : 'Disabled Only'
+                  }}
+                  onChange={(opt) => setAvailabilityFilter(opt ? opt.value : 'all')}
+                  classNamePrefix="react-select"
+                />
+              </div>
             </div>
 
             <div className="adm-table-record-count">

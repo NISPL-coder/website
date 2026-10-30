@@ -21,8 +21,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { useTableSort, SortableTh } from './tableSortUtils';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
+import { compactSelectStyles } from './reactSelectStyles';
+import ExportDropdown from './ExportDropdown';
+import { formatCustomersForExport } from './exportUtils';
 
 export default function CustomerSection({ customers, setCustomers }) {
   const navigate = useNavigate();
@@ -105,6 +109,12 @@ export default function CustomerSection({ customers, setCustomers }) {
         </div>
 
         <div className="adm-card-header-action">
+          <ExportDropdown
+            data={filteredCustomers}
+            formatter={formatCustomersForExport}
+            fileName="NISPL_Customers"
+            itemLabel="customers"
+          />
           <button
             type="button"
             className="adm-btn-primary"
@@ -198,18 +208,32 @@ export default function CustomerSection({ customers, setCustomers }) {
             />
           </div>
 
-          {/* Fallback Select Filter */}
-          <select
-            className="adm-select-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            aria-label="Filter Customers by Status"
-          >
-            <option value="all">All Statuses ({counts.all})</option>
-            <option value="active">Active Only ({counts.active})</option>
-            <option value="demo">Demo / Trials ({counts.demo})</option>
-            <option value="inactive">Inactive / Suspended ({counts.inactive})</option>
-          </select>
+          {/* React Select Filter */}
+          <div style={{ minWidth: '190px' }}>
+            <Select
+              styles={compactSelectStyles}
+              isSearchable={false}
+              options={[
+                { value: 'all', label: `All Statuses (${counts.all})` },
+                { value: 'active', label: `Active Only (${counts.active})` },
+                { value: 'demo', label: `Demo / Trials (${counts.demo})` },
+                { value: 'inactive', label: `Inactive (${counts.inactive})` }
+              ]}
+              value={{
+                value: statusFilter,
+                label:
+                  statusFilter === 'all'
+                    ? `All Statuses (${counts.all})`
+                    : statusFilter === 'active'
+                    ? `Active Only (${counts.active})`
+                    : statusFilter === 'demo'
+                    ? `Demo / Trials (${counts.demo})`
+                    : `Inactive (${counts.inactive})`
+              }}
+              onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
+              classNamePrefix="react-select"
+            />
+          </div>
         </div>
 
         <div className="adm-table-record-count">

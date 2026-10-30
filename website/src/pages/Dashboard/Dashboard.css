@@ -12038,4 +12038,378 @@
   box-shadow: 0 1px 0 #e2e8f0 !important;
 }
 
+/* ==========================================================================
+   CUSTOMER DASHBOARD — COMPREHENSIVE MOBILE RESPONSIVENESS (ALL PAGES)
+   Overview · Products · Payment · Cart · Receipt · Help
+   Appended last so these rules win the cascade over earlier same-
+   specificity rules. `!important` is used only where JSX inline styles
+   (fixed grid columns / widths) must be overridden.
+   ========================================================================== */
+
+/* ── Global mobile polish (≤991px) ───────────────────────────────────────── */
+@media (max-width: 991px) {
+  /* Content body gets safe horizontal padding on its own so every tab
+     (which renders its own wrapper) is consistently inset */
+  .cust-dash-content-body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Notification dropdown never wider than the viewport */
+  .cliento-notif-dropdown {
+    width: min(330px, calc(100vw - 24px));
+  }
+
+  /* Welcome / hero banners: text never clipped, buttons stretch */
+  .flowmail-welcome-banner {
+    padding: 20px 22px;
+  }
+
+  .flowmail-welcome-title {
+    font-size: 1.25rem;
+    word-break: break-word;
+  }
+
+  .flowmail-welcome-sub {
+    word-break: break-word;
+  }
+
+  /* Card header rows (title + action button) wrap cleanly */
+  .flowmail-card-header-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .flowmail-card-title {
+    font-size: 1.05rem;
+    word-break: break-word;
+  }
+
+  /* Overview: charts stay readable; bar chart scrolls if needed */
+  .flowmail-bar-chart-body {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .flowmail-bar-col {
+    flex-shrink: 0;
+  }
+
+  /* Overview table: force horizontal scroll instead of column squish */
+  .flowmail-table-wrap .flowmail-table {
+    min-width: 680px;
+  }
+
+  /* ── Cart: rows with inline 4-column grids become stacked cards ── */
+  .flowmail-cart-head {
+    display: none !important;
+  }
+
+  .flowmail-cart-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 18px 18px !important;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  /* Center the qty stepper and right-align totals inside stacked rows */
+  .flowmail-cart-row > div:nth-child(3) {
+    justify-content: flex-start !important;
+  }
+
+  .flowmail-cart-row > div:nth-child(4) {
+    text-align: left !important;
+  }
+
+  /* ── Payment: 2-column split layout collapses ── */
+  .pay-split-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Product comparison table scrolls rather than squishing */
+  .product-comparison-table {
+    min-width: 680px;
+  }
+}
+
+/* ── Standard phones (≤768px) ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Section wrappers & cards tighten */
+  .flowmail-overview-container {
+    padding: 14px 14px 32px;
+    gap: 16px;
+  }
+
+  .flowmail-section-wrapper {
+    gap: 16px;
+  }
+
+  .flowmail-card {
+    border-radius: 16px;
+  }
+
+  /* KPI cards breathe on small screens */
+  .flowmail-kpi-card {
+    padding: 16px 16px !important;
+  }
+
+  .flowmail-kpi-number {
+    font-size: 1.3rem;
+  }
+
+  .flowmail-kpi-label {
+    font-size: 0.76rem;
+  }
+
+  /* Welcome banner: CTA buttons go full width */
+  .flowmail-welcome-banner .flowmail-btn-primary,
+  .flowmail-welcome-banner .flowmail-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Overview tables */
+  .flowmail-table-scroll {
+    max-height: 420px !important;
+  }
+
+  /* Receipt: search bar has an inline 280px width — override it */
+  .cliento-search-bar {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .cliento-search-input {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .cliento-table-footer-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .cliento-pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Donut + legend stack on overview */
+  .flowmail-donut-body {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Modal (plan details) fits viewport */
+  .cliento-modal-backdrop {
+    padding: 10px;
+  }
+
+  .cliento-modal-box {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+  }
+
+  .cliento-modal-hero-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cliento-modal-specs-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Support ticket modal (ebolt) — if rendered, fit it too */
+  .ebolt-modal-backdrop {
+    padding: 12px;
+  }
+
+  .ebolt-dialog-card {
+    max-width: 100% !important;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── Small phones (≤540px) ──────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  .flowmail-overview-container {
+    padding: 12px 12px 28px;
+    gap: 14px;
+  }
+
+  .flowmail-welcome-banner {
+    padding: 18px 16px;
+  }
+
+  .flowmail-welcome-title {
+    font-size: 1.1rem;
+  }
+
+  .flowmail-card {
+    padding: 18px 16px;
+  }
+
+  .flowmail-kpi-number {
+    font-size: 1.15rem;
+  }
+
+  /* Fulfillment choice grid (cart) becomes single column */
+  .flowmail-fulfill-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Overview bar chart: tighter gaps */
+  .flowmail-bar-chart-body {
+    gap: 8px;
+  }
+
+  .flowmail-donut-container {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Receipt KPI grid already collapses via earlier rules; tighten gap */
+  .flowmail-receipt-kpi-grid {
+    gap: 10px !important;
+  }
+
+  /* Product showcase cards a touch narrower so two peek on screen */
+  .showcase-product-card {
+    flex-basis: 200px;
+    width: 200px;
+  }
+
+  /* Modal specs single column */
+  .cliento-modal-specs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Prevent iOS zoom on input focus across all dashboard inputs */
+  .cliento-search-input,
+  .ebolt-input {
+    font-size: 16px;
+  }
+
+  /* Buttons inside stacked card headers go full width */
+  .flowmail-card-header-row .flowmail-btn-primary,
+  .flowmail-card-header-row .flowmail-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Pagination + footer rows centered */
+  .cliento-table-page-info {
+    font-size: 0.78rem;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   TRACK-SHRINK FIX — prevents wide content (tables/charts) from stretching
+   cards past the viewport. `1fr` tracks behave as minmax(auto, 1fr) and
+   refuse to shrink below their content's min-width, which pushed cards to
+   680-720px on phones where overflow-x:hidden then CLIPPED them ("cut off"
+   graphs). minmax(0,1fr) + min-width:0 let the inner scroll wrappers
+   (overflow-x:auto) do their job instead.
+   ========================================================================== */
+@media (max-width: 991px) {
+  /* Every stacked grid track may shrink to 0; content scrolls internally */
+  .flowmail-kpi-grid,
+  .flowmail-middle-grid,
+  .flowmail-bottom-grid,
+  .flowmail-details-grid,
+  .flowmail-receipt-kpi-grid,
+  .cliento-kpi-grid,
+  .cliento-middle-grid,
+  .cliento-plans-account-grid,
+  .cust-portal-charts-grid,
+  .cust-portal-two-col-grid,
+  .pay-split-layout,
+  .flowmail-cart-row,
+  .flowmail-fulfill-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Flex/block children of the page wrappers may shrink below min-content */
+  .cust-dash-content-body,
+  .flowmail-overview-container,
+  .flowmail-overview-container > *,
+  .flowmail-section-wrapper,
+  .flowmail-section-wrapper > *,
+  .flowmail-card,
+  .flowmail-table-wrap,
+  .flowmail-donut-body,
+  .flowmail-bar-chart-body,
+  .product-comparison-table-wrap,
+  .cart-two-col-layout,
+  .cart-col-main,
+  .cart-col-sidebar {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Safety: cards never exceed their container even if a stray child is wide */
+  .flowmail-card {
+    overflow: hidden;
+  }
+
+  /* Bar chart: let columns shrink so all months fit without scrolling;
+     keep internal scroll only as a last resort */
+  .flowmail-bar-col {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .flowmail-bar-month {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 540px) {
+  /* Bar chart: tighter geometry so 6 bars + y-axis fit a 320-390px screen */
+  .flowmail-bar-chart-body {
+    gap: 6px;
+  }
+
+  .flowmail-bar-col {
+    max-width: 26px;
+  }
+
+  .flowmail-bar-track {
+    width: 16px;
+  }
+
+  .flowmail-bar-y-axis {
+    font-size: 0.62rem;
+  }
+
+  /* Spline chart: hide in-SVG y labels (they distort under
+     preserveAspectRatio=none) — the x-axis months stay readable */
+  .flowmail-spline-svg .chart-axis-text {
+    display: none;
+  }
+
+  .flowmail-x-axis {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 0.62rem;
+  }
+
+  /* Keep only alternating month labels so they never overlap */
+  .flowmail-x-axis span:nth-child(even) {
+    display: none;
+  }
+
+  /* Floating tooltip stays fully inside the chart */
+  .flowmail-chart-tooltip {
+    font-size: 0.7rem;
+    padding: 6px 9px;
+  }
+}
+
 

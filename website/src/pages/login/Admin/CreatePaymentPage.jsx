@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import {
   ArrowLeft,
   CreditCard,
@@ -10,6 +11,20 @@ import {
   FileCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { customSelectStyles } from './reactSelectStyles';
+
+const PAYMENT_METHODS = [
+  { value: 'NEFT / RTGS Wire', label: 'NEFT / RTGS Wire' },
+  { value: 'Razorpay UPI Gateway', label: 'Razorpay UPI Gateway' },
+  { value: 'Corporate NetBanking (HDFC)', label: 'Corporate NetBanking (HDFC)' },
+  { value: 'Corporate Visa Card', label: 'Corporate Visa Card' },
+  { value: 'Cheque Clearance', label: 'Cheque Clearance' }
+];
+
+const SETTLEMENT_STATUSES = [
+  { value: 'paid', label: 'Paid & Cleared (Settled)' },
+  { value: 'pending', label: 'Pending Bank Verification' }
+];
 
 export default function CreatePaymentPage({ payments, setPayments, customers = [], contracts = [] }) {
   const navigate = useNavigate();
@@ -26,6 +41,13 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
     date: formattedNow,
     status: 'paid'
   });
+
+  const customerOptions = useMemo(() => {
+    return customers.map((c) => ({
+      value: c.company,
+      label: `${c.company} (${c.name})`
+    }));
+  }, [customers]);
 
   const handleSelectCustomer = (companyName) => {
     const matched = customers.find((c) => c.company === companyName);
@@ -128,24 +150,22 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
             {customers && customers.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
                 <label className="adm-form-label">Auto-Fill Payer from Customers</label>
-                <select
-                  className="adm-form-input"
-                  onChange={(e) => handleSelectCustomer(e.target.value)}
-                  defaultValue=""
-                >
-                  <option value="" disabled>-- Select paying client account --</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.company}>
-                      {c.company} ({c.name})
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={true}
+                  options={customerOptions}
+                  onChange={(opt) => handleSelectCustomer(opt?.value)}
+                  placeholder="Search and select paying client account..."
+                  classNamePrefix="react-select"
+                />
               </div>
             )}
 
             <div className="adm-form-grid">
               <div className="adm-form-field">
-                <label className="adm-form-label">Paying Organization *</label>
+                <label className="adm-form-label">
+                  Paying Organization <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -168,7 +188,9 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
               </div>
 
               <div className="adm-form-field full-width" style={{ gridColumn: '1 / -1' }}>
-                <label className="adm-form-label">Invoice Number Reference *</label>
+                <label className="adm-form-label">
+                  Invoice Number Reference <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -190,7 +212,9 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
 
             <div className="adm-form-grid">
               <div className="adm-form-field">
-                <label className="adm-form-label">Settled Amount (₹) *</label>
+                <label className="adm-form-label">
+                  Settled Amount (₹) <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -202,30 +226,29 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
               </div>
 
               <div className="adm-form-field">
-                <label className="adm-form-label">Payment Channel / Mode *</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.method}
-                  onChange={(e) => setFormState({ ...formState, method: e.target.value })}
-                >
-                  <option>NEFT / RTGS Wire</option>
-                  <option>Razorpay UPI Gateway</option>
-                  <option>Corporate NetBanking (HDFC)</option>
-                  <option>Corporate Visa Card</option>
-                  <option>Cheque Clearance</option>
-                </select>
+                <label className="adm-form-label">
+                  Payment Channel / Mode <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={PAYMENT_METHODS}
+                  value={PAYMENT_METHODS.find((m) => m.value === formState.method) || PAYMENT_METHODS[0]}
+                  onChange={(opt) => setFormState({ ...formState, method: opt?.value || 'NEFT / RTGS Wire' })}
+                  classNamePrefix="react-select"
+                />
               </div>
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Settlement Status</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.status}
-                  onChange={(e) => setFormState({ ...formState, status: e.target.value })}
-                >
-                  <option value="paid">Paid &amp; Cleared (Settled)</option>
-                  <option value="pending">Pending Bank Verification</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={SETTLEMENT_STATUSES}
+                  value={SETTLEMENT_STATUSES.find((s) => s.value === formState.status) || SETTLEMENT_STATUSES[0]}
+                  onChange={(opt) => setFormState({ ...formState, status: opt?.value || 'paid' })}
+                  classNamePrefix="react-select"
+                />
               </div>
 
               <div className="adm-form-field">

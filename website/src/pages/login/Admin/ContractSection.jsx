@@ -2,7 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Download, X, CheckCircle2, FileText, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { useTableSort, SortableTh } from './tableSortUtils';
+import { compactSelectStyles } from './reactSelectStyles';
+import ExportDropdown from './ExportDropdown';
+import { formatContractsForExport } from './exportUtils';
 
 export default function ContractSection({ contracts, setContracts }) {
   const navigate = useNavigate();
@@ -15,12 +19,14 @@ export default function ContractSection({ contracts, setContracts }) {
       const matchesSearch =
         !q ||
         c.id.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q) ||
-        c.customer.toLowerCase().includes(q) ||
-        c.service.toLowerCase().includes(q);
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        (c.company && c.company.toLowerCase().includes(q)) ||
+        (c.customer && c.customer.toLowerCase().includes(q)) ||
+        (c.contractType && c.contractType.toLowerCase().includes(q)) ||
+        (c.service && c.service.toLowerCase().includes(q));
 
       const matchesStatus =
-        statusFilter === 'all' || c.status.toLowerCase() === statusFilter.toLowerCase();
+        statusFilter === 'all' || (c.status && c.status.toLowerCase() === statusFilter.toLowerCase());
 
       return matchesSearch && matchesStatus;
     });
@@ -47,6 +53,12 @@ export default function ContractSection({ contracts, setContracts }) {
         </div>
 
         <div className="adm-card-header-action">
+          <ExportDropdown
+            data={filteredContracts}
+            formatter={formatContractsForExport}
+            fileName="NISPL_Contracts"
+            itemLabel="contracts"
+          />
           <button
             type="button"
             className="adm-btn-primary"
@@ -73,15 +85,28 @@ export default function ContractSection({ contracts, setContracts }) {
             />
           </div>
 
-          <select
-            className="adm-select-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Statuses ({contracts.length})</option>
-            <option value="active">Active Only</option>
-            <option value="expiring">Expiring Soon</option>
-          </select>
+          <div style={{ minWidth: '180px' }}>
+            <Select
+              styles={compactSelectStyles}
+              isSearchable={false}
+              options={[
+                { value: 'all', label: `All Statuses (${contracts.length})` },
+                { value: 'active', label: 'Active Only' },
+                { value: 'expiring', label: 'Expiring Soon' }
+              ]}
+              value={{
+                value: statusFilter,
+                label:
+                  statusFilter === 'all'
+                    ? `All Statuses (${contracts.length})`
+                    : statusFilter === 'active'
+                    ? 'Active Only'
+                    : 'Expiring Soon'
+              }}
+              onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
+              classNamePrefix="react-select"
+            />
+          </div>
         </div>
 
         <div className="adm-table-record-count">
@@ -152,18 +177,18 @@ export default function ContractSection({ contracts, setContracts }) {
                   <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
                     {c.id}
                   </td>
-                  <td style={{ fontWeight: 600 }}>{c.company}</td>
+                  <td style={{ fontWeight: 600 }}>{c.company || c.name}</td>
                   <td>
-                    <div>{c.customer}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.email}</div>
+                    <div>{c.customer || c.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.email || 'contracts@nispl.in'}</div>
                   </td>
                   <td>
-                    <div style={{ fontWeight: 500 }}>{c.service}</div>
-                    <span style={{ fontSize: '0.7rem', color: '#6366f1' }}>{c.slaTier}</span>
+                    <div style={{ fontWeight: 500 }}>{c.service || `${c.contractType || 'Subscription'} (${c.subscriptionPeriod || '1 Year'})`}</div>
+                    <span style={{ fontSize: '0.7rem', color: '#6366f1' }}>{c.slaTier || c.contractType || 'Subscription SLA'}</span>
                   </td>
-                  <td style={{ fontWeight: 700, color: '#0f172a' }}>{c.value}</td>
+                  <td style={{ fontWeight: 700, color: '#0f172a' }}>{c.totalContractValue || c.value}</td>
                   <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{c.startDate}</td>
-                  <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{c.expiryDate}</td>
+                  <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{c.endDate || c.expiryDate}</td>
                   <td>
                     <span
                       className={`adm-status-pill ${

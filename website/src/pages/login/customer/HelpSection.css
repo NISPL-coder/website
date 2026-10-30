@@ -756,3 +756,83 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   HELP CENTER — MOBILE RESPONSIVENESS (≤540px)
+   ========================================================================== */
+@media (max-width: 540px) {
+  .help-desk-ui-container {
+    gap: 16px;
+  }
+
+  .help-desk-hero-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .hero-main-title {
+    font-size: 1.3rem;
+  }
+
+  .quick-support-channels {
+    gap: 12px;
+  }
+
+  .quick-channel-item {
+    padding: 14px 14px;
+  }
+
+  .faq-card-header {
+    padding: 14px 16px;
+  }
+
+  .faq-item-question-text {
+    font-size: 0.92rem;
+  }
+
+  .faq-item-answer-body {
+    padding: 0 16px 14px;
+    font-size: 0.86rem;
+  }
+
+  /* Help modal fits small screens */
+  .help-modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .help-modal-box {
+    padding: 22px 18px;
+    max-height: 88vh;
+    overflow-y: auto;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .help-modal-title {
+    font-size: 1.1rem;
+  }
+
+  /* Modal action buttons stack full-width (cancel under submit) */
+  .modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modal-actions .modal-done-btn,
+  .modal-actions .modal-cancel-btn,
+  .modal-actions .modal-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Prevent iOS zoom on modal inputs */
+  .modal-field input,
+  .modal-field textarea,
+  .modal-field select {
+    font-size: 16px;
+  }
+
+  .help-desk-bottom-row {
+    gap: 16px;
+  }
+}

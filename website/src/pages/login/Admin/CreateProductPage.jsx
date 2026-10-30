@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import {
   ArrowLeft,
   Package,
@@ -11,6 +12,26 @@ import {
   Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { customSelectStyles } from './reactSelectStyles';
+
+const PRODUCT_CATEGORIES = [
+  { value: 'ERP Solutions', label: 'ERP Solutions' },
+  { value: 'Cloud Hosting', label: 'Cloud Hosting' },
+  { value: 'Infrastructure', label: 'Infrastructure' },
+  { value: 'Automation', label: 'Automation' },
+  { value: 'Security & Backup', label: 'Security & Backup' }
+];
+
+const AVAILABILITY_OPTIONS = [
+  { value: 'active', label: 'Active & Available to Order' },
+  { value: 'disabled', label: 'Disabled / Hidden' }
+];
+
+const FREQUENCY_OPTIONS = [
+  { value: '/ year', label: 'Annual Billing (/ year)' },
+  { value: '/ month', label: 'Monthly Billing (/ month)' },
+  { value: 'one-time', label: 'One-Time Perpetual License' }
+];
 
 export default function CreateProductPage({ products, setProducts }) {
   const navigate = useNavigate();
@@ -106,7 +127,9 @@ export default function CreateProductPage({ products, setProducts }) {
 
             <div className="adm-form-grid">
               <div className="adm-form-field">
-                <label className="adm-form-label">Product / Edition Name *</label>
+                <label className="adm-form-label">
+                  Product / Edition Name <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -118,7 +141,9 @@ export default function CreateProductPage({ products, setProducts }) {
               </div>
 
               <div className="adm-form-field">
-                <label className="adm-form-label">SKU / License Code *</label>
+                <label className="adm-form-label">
+                  SKU / License Code <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -131,29 +156,26 @@ export default function CreateProductPage({ products, setProducts }) {
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Solution Category</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.category}
-                  onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                >
-                  <option>ERP Solutions</option>
-                  <option>Cloud Hosting</option>
-                  <option>Infrastructure</option>
-                  <option>Automation</option>
-                  <option>Security &amp; Backup</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={PRODUCT_CATEGORIES}
+                  value={PRODUCT_CATEGORIES.find((c) => c.value === formState.category) || PRODUCT_CATEGORIES[0]}
+                  onChange={(opt) => setFormState({ ...formState, category: opt?.value || 'ERP Solutions' })}
+                  classNamePrefix="react-select"
+                />
               </div>
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Catalog Availability</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.available ? 'active' : 'disabled'}
-                  onChange={(e) => setFormState({ ...formState, available: e.target.value === 'active' })}
-                >
-                  <option value="active">Active &amp; Available to Order</option>
-                  <option value="disabled">Disabled / Hidden</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={AVAILABILITY_OPTIONS}
+                  value={AVAILABILITY_OPTIONS.find((a) => a.value === (formState.available ? 'active' : 'disabled')) || AVAILABILITY_OPTIONS[0]}
+                  onChange={(opt) => setFormState({ ...formState, available: opt?.value === 'active' })}
+                  classNamePrefix="react-select"
+                />
               </div>
             </div>
           </div>
@@ -167,7 +189,9 @@ export default function CreateProductPage({ products, setProducts }) {
 
             <div className="adm-form-grid">
               <div className="adm-form-field">
-                <label className="adm-form-label">Base Price (₹) *</label>
+                <label className="adm-form-label">
+                  Base Price (₹) <span className="adm-required-star">*</span>
+                </label>
                 <input
                   type="text"
                   className="adm-form-input"
@@ -180,15 +204,14 @@ export default function CreateProductPage({ products, setProducts }) {
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Billing Frequency</label>
-                <select
-                  className="adm-form-input"
-                  value={formState.frequency}
-                  onChange={(e) => setFormState({ ...formState, frequency: e.target.value })}
-                >
-                  <option value="/ year">Annual Billing (/ year)</option>
-                  <option value="/ month">Monthly Billing (/ month)</option>
-                  <option value="one-time">One-Time Perpetual License</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={FREQUENCY_OPTIONS}
+                  value={FREQUENCY_OPTIONS.find((f) => f.value === formState.frequency) || FREQUENCY_OPTIONS[0]}
+                  onChange={(opt) => setFormState({ ...formState, frequency: opt?.value || '/ year' })}
+                  classNamePrefix="react-select"
+                />
               </div>
 
               <div className="adm-form-field full-width" style={{ gridColumn: '1 / -1' }}>

@@ -19,7 +19,6 @@ import CreateCustomerPage from './CreateCustomerPage';
 import CreateContractPage from './CreateContractPage';
 import CreatePaymentPage from './CreatePaymentPage';
 import CreateProductPage from './CreateProductPage';
-import CreateReceiptPage from './CreateReceiptPage';
 
 // Initial Datasets
 import {
@@ -65,6 +64,38 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   // Global search & refresh states
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Close the mobile drawer whenever the route changes
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
+
+  // Handle removed receipt create page redirect
+  useEffect(() => {
+    if (location.pathname === '/admin/receipt/create') {
+      navigate('/admin/receipt', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  // Close the mobile drawer on Escape key press
+  useEffect(() => {
+    if (!isMobileOpen) return undefined;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isMobileOpen]);
+
+  // Prevent background scrolling while the mobile drawer is open
+  useEffect(() => {
+    if (!isMobileOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileOpen]);
 
   // Persistent Datasets in State
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
@@ -183,6 +214,15 @@ export default function AdminDashboard({ userSession, onSignOut }) {
           onSignOut={onSignOut}
         />
 
+        {/* Mobile Drawer Backdrop — closes the off-canvas sidebar on tap */}
+        {isMobileOpen && (
+          <div
+            className="adm-mobile-backdrop"
+            onClick={() => setIsMobileOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Main Routed View Container */}
         <main className="adm-main-content">
           {/* 1. DEDICATED SEPARATE /CREATE PAGES */}
@@ -205,15 +245,6 @@ export default function AdminDashboard({ userSession, onSignOut }) {
 
           {location.pathname === '/admin/product/create' && (
             <CreateProductPage products={products} setProducts={setProducts} />
-          )}
-
-          {location.pathname === '/admin/receipt/create' && (
-            <CreateReceiptPage
-              receipts={receipts}
-              setReceipts={setReceipts}
-              payments={payments}
-              customers={customers}
-            />
           )}
 
           {/* 2. REGULAR DIRECTORY & MANAGEMENT VIEWS */}

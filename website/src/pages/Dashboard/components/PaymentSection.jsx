@@ -179,7 +179,7 @@ export default function PaymentSection({
       </section>
 
       {/* ── 2-Column Payment Grid ─────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) 385px', gap: '24px', alignItems: 'start' }}>
+      <div className="pay-split-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) 385px', gap: '24px', alignItems: 'start' }}>
         {/* ── Left: Method Selection Card ─────────────────────── */}
         <div className="flowmail-card">
           <div className="flowmail-card-header-row" style={{ marginBottom: '18px' }}>

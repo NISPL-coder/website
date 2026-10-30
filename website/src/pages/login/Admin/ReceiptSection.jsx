@@ -1,8 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Download, Check, ReceiptText, Search, Filter } from 'lucide-react';
+import { Download, Check, ReceiptText, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { useTableSort, SortableTh } from './tableSortUtils';
+import { compactSelectStyles } from './reactSelectStyles';
+import ExportDropdown from './ExportDropdown';
+import { formatReceiptsForExport } from './exportUtils';
 
 export default function ReceiptSection({ receipts, setReceipts, payments }) {
   const navigate = useNavigate();
@@ -35,26 +39,24 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
 
   return (
     <div className="adm-table-card">
-      {/* 1. Header with Title on Left and Primary Action Button on Right */}
+      {/* 1. Header with Title on Left and Export Action on Right */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
           <h1 className="adm-section-title">
             Customer Payment Receipts
           </h1>
           <p className="adm-section-sub">
-            View, generate, dispatch via WhatsApp/Email, and download certified GST payment receipts.
+            View, dispatch via WhatsApp/Email, and download certified GST payment receipts.
           </p>
         </div>
 
         <div className="adm-card-header-action">
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={() => navigate('/admin/receipt/create')}
-          >
-            <Plus size={16} />
-            <span>Generate Receipt</span>
-          </button>
+          <ExportDropdown
+            data={filteredReceipts}
+            formatter={formatReceiptsForExport}
+            fileName="NISPL_Receipts"
+            itemLabel="receipts"
+          />
         </div>
       </div>
 
@@ -73,15 +75,28 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
             />
           </div>
 
-          <select
-            className="adm-select-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Dispatches ({receipts.length})</option>
-            <option value="delivered">Delivered to Client</option>
-            <option value="dispatched">Dispatched (Email/WA)</option>
-          </select>
+          <div style={{ minWidth: '190px' }}>
+            <Select
+              styles={compactSelectStyles}
+              isSearchable={false}
+              options={[
+                { value: 'all', label: `All Dispatches (${receipts.length})` },
+                { value: 'delivered', label: 'Delivered to Client' },
+                { value: 'dispatched', label: 'Dispatched (Email/WA)' }
+              ]}
+              value={{
+                value: statusFilter,
+                label:
+                  statusFilter === 'all'
+                    ? `All Dispatches (${receipts.length})`
+                    : statusFilter === 'delivered'
+                    ? 'Delivered to Client'
+                    : 'Dispatched (Email/WA)'
+              }}
+              onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
+              classNamePrefix="react-select"
+            />
+          </div>
         </div>
 
         <div className="adm-table-record-count">

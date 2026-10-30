@@ -275,7 +275,7 @@ export default function CartSection({
               {/* Cart Items Card */}
               <div className="flowmail-card" style={{ padding: '0', overflow: 'hidden' }}>
                 {/* Table Header Bar */}
-                <div style={{
+                <div className="flowmail-cart-head" style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(0, 2.2fr) 110px 110px 110px',
                   padding: '14px 24px',
@@ -455,7 +455,7 @@ export default function CartSection({
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                <div className="flowmail-fulfill-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                   {/* Digital Mode */}
                   <div
                     onClick={() => handleSelectFulfillment('digital')}

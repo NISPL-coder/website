@@ -188,73 +188,143 @@ export const INITIAL_CONTRACTS = [
 export const INITIAL_PAYMENTS = [
   {
     id: 'TXN-994101',
+    name: 'Tally Prime Cloud ERP Monthly License',
+    accountName: 'FlowMail Agency Pvt Ltd',
+    invoiceNumber: 'INV-2026-1049',
+    invoiceDate: '2026-10-15',
+    status: 'paid',
+    receivedAmount: '₹14,500',
+    pendingPayment: '₹0',
+    expectedPaymentDate: '2026-10-25',
+    paymentMethod: 'NEFT / RTGS Wire',
+    paymentReceivedDate: '2026-10-28',
+    // Aliases
     customer: 'Debasish Chakraborty',
     company: 'FlowMail Agency Pvt Ltd',
     amount: '₹14,500',
     method: 'NEFT / RTGS Wire',
     date: '2026-10-28 14:22',
-    invoiceRef: 'INV-2026-1049',
-    status: 'paid'
+    invoiceRef: 'INV-2026-1049'
   },
   {
     id: 'TXN-994100',
+    name: 'Enterprise VPS Dedicated 8-Core Node Renewal',
+    accountName: 'Bengal Logistics Corp',
+    invoiceNumber: 'INV-2026-1048',
+    invoiceDate: '2026-10-14',
+    status: 'paid',
+    receivedAmount: '₹28,000',
+    pendingPayment: '₹0',
+    expectedPaymentDate: '2026-10-24',
+    paymentMethod: 'Corporate NetBanking (HDFC)',
+    paymentReceivedDate: '2026-10-27',
+    // Aliases
     customer: 'Amitabh Sengupta',
     company: 'Bengal Logistics Corp',
     amount: '₹28,000',
     method: 'Corporate NetBanking (HDFC)',
     date: '2026-10-27 11:05',
-    invoiceRef: 'INV-2026-1048',
-    status: 'paid'
+    invoiceRef: 'INV-2026-1048'
   },
   {
     id: 'TXN-994099',
+    name: 'Tally Multi-User Gold Cloud + TSS Sync',
+    accountName: 'SawanSukha Jewellers',
+    invoiceNumber: 'INV-2026-1047',
+    invoiceDate: '2026-10-12',
+    status: 'paid',
+    receivedAmount: '₹22,500',
+    pendingPayment: '₹0',
+    expectedPaymentDate: '2026-10-22',
+    paymentMethod: 'Razorpay UPI Gateway',
+    paymentReceivedDate: '2026-10-26',
+    // Aliases
     customer: 'Rajesh Agrawal',
     company: 'SawanSukha Jewellers',
     amount: '₹22,500',
     method: 'Razorpay UPI Gateway',
     date: '2026-10-26 18:40',
-    invoiceRef: 'INV-2026-1047',
-    status: 'paid'
+    invoiceRef: 'INV-2026-1047'
   },
   {
     id: 'TXN-994098',
+    name: 'Tally Prime Single User Silver License',
+    accountName: 'Kolkata Health Diagnostics',
+    invoiceNumber: 'INV-2026-1046',
+    invoiceDate: '2026-10-10',
+    status: 'paid',
+    receivedAmount: '₹6,500',
+    pendingPayment: '₹0',
+    expectedPaymentDate: '2026-10-20',
+    paymentMethod: 'Corporate Visa Card',
+    paymentReceivedDate: '2026-10-25',
+    // Aliases
     customer: 'Dr. Suniti Mukherjee',
     company: 'Kolkata Health Diagnostics',
     amount: '₹6,500',
     method: 'Corporate Visa Card',
     date: '2026-10-25 09:15',
-    invoiceRef: 'INV-2026-1046',
-    status: 'paid'
+    invoiceRef: 'INV-2026-1046'
   },
   {
     id: 'TXN-994097',
+    name: 'High-Mem Cloud VPS Node Hypervisor Cluster',
+    accountName: 'Eastern Metal Refineries',
+    invoiceNumber: 'INV-2026-1045',
+    invoiceDate: '2026-10-18',
+    status: 'partial',
+    receivedAmount: '₹20,000',
+    pendingPayment: '₹14,000',
+    expectedPaymentDate: '2026-10-31',
+    paymentMethod: 'RTGS Bank Transfer',
+    paymentReceivedDate: '2026-10-24',
+    // Aliases
     customer: 'Vikram Burman',
     company: 'Eastern Metal Refineries',
-    amount: '₹34,000',
+    amount: '₹20,000',
     method: 'RTGS Bank Transfer',
     date: '2026-10-24 16:30',
-    invoiceRef: 'INV-2026-1045',
-    status: 'pending'
+    invoiceRef: 'INV-2026-1045'
   },
   {
     id: 'TXN-994096',
+    name: 'Tally Single User Silver Annual Maintenance Pack',
+    accountName: 'Heritage Tea & Spice Exporters',
+    invoiceNumber: 'INV-2026-1044',
+    invoiceDate: '2026-10-16',
+    status: 'pending',
+    receivedAmount: '₹0',
+    pendingPayment: '₹6,500',
+    expectedPaymentDate: '2026-11-05',
+    paymentMethod: 'NEFT Bank Transfer',
+    paymentReceivedDate: '—',
+    // Aliases
     customer: 'Subrata Mukherjee',
     company: 'Heritage Tea & Spice Exporters',
     amount: '₹6,500',
     method: 'NEFT Bank Transfer',
     date: '2026-10-21 11:15',
-    invoiceRef: 'INV-2026-1044',
-    status: 'pending'
+    invoiceRef: 'INV-2026-1044'
   },
   {
     id: 'TXN-994095',
+    name: 'CtrlS Kolkata Enterprise Cloud Node Q4 Settlement',
+    accountName: 'Eastern Freight Movers',
+    invoiceNumber: 'INV-2026-1043',
+    invoiceDate: '2026-10-11',
+    status: 'pending',
+    receivedAmount: '₹0',
+    pendingPayment: '₹14,000',
+    expectedPaymentDate: '2026-11-02',
+    paymentMethod: 'Cheque Clearance',
+    paymentReceivedDate: '—',
+    // Aliases
     customer: 'Pradip Sen',
     company: 'Eastern Freight Movers',
     amount: '₹14,000',
     method: 'Cheque Clearance',
     date: '2026-10-18 15:45',
-    invoiceRef: 'INV-2026-1043',
-    status: 'pending'
+    invoiceRef: 'INV-2026-1043'
   }
 ];
 

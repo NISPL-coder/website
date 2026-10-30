@@ -21,17 +21,20 @@ import {
   Layers,
   ArrowRight,
   ShieldCheck,
-  Zap
+  Zap,
+  Calendar,
+  Filter
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { useTableSort, SortableTh } from './tableSortUtils';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import {
-  MONTHLY_SALES_DATA,
-  YEARLY_SALES_DATA,
-  CATEGORY_REVENUE_PIE,
-  FINANCIAL_METRICS
-} from './adminData';
+  PERIOD_OPTIONS,
+  FINANCIAL_YEARS,
+  getOverviewFilteredData
+} from './overviewFilterData';
+import { compactSelectStyles } from './reactSelectStyles';
 
 // Geometry helper for Donut Pie Chart slices
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -71,62 +74,51 @@ export default function OverviewSection({
 }) {
   const navigate = useNavigate();
 
+  // Overview Filters: Period (Monthly, Quarterly, Yearly) & Financial Year
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [selectedFY, setSelectedFY] = useState('2026-2027');
+
+  // Consolidated Telemetry Filter Engine
+  const activeOverviewData = useMemo(() => {
+    return getOverviewFilteredData(selectedPeriod, selectedFY, customers, contracts);
+  }, [selectedPeriod, selectedFY, customers, contracts]);
+
   // Overview Customer List Filter and Search
   const [custFilter, setCustFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
   const [custSearch, setCustSearch] = useState('');
 
-  // Active chart timeframe and hover data state
-  const [salesTimeframe, setSalesTimeframe] = useState('6m'); // '6m' | '1y'
-  const currentSalesData = salesTimeframe === '6m' ? MONTHLY_SALES_DATA : YEARLY_SALES_DATA;
-
+  // Active chart hover data state
   const [hoveredSalesPoint, setHoveredSalesPoint] = useState(null);
   const [hoveredPieSlice, setHoveredPieSlice] = useState(null);
   const [chartAnimKey, setChartAnimKey] = useState(0);
 
-  // Sync hovered point when data changes
+  // Sync hovered point whenever active overview dataset changes
   useEffect(() => {
-    setHoveredSalesPoint(currentSalesData[currentSalesData.length - 1]);
-    setChartAnimKey((prev) => prev + 1);
-  }, [salesTimeframe]);
+    if (activeOverviewData.salesChart?.points?.length) {
+      setHoveredSalesPoint(
+        activeOverviewData.salesChart.points[activeOverviewData.salesChart.points.length - 1]
+      );
+      setChartAnimKey((prev) => prev + 1);
+    }
+  }, [activeOverviewData]);
 
-  // Customer status breakdown counts
+  // Customer status breakdown counts for current filtered view
   const customerCounts = useMemo(() => {
-    const total = customers.length;
-    const active = customers.filter((c) => c.status?.toLowerCase() === 'active').length;
-    const demo = customers.filter((c) => c.status?.toLowerCase() === 'demo').length;
-    const inactive = customers.filter(
+    const list = activeOverviewData.filteredCustomers || [];
+    const total = list.length;
+    const active = list.filter((c) => c.status?.toLowerCase() === 'active').length;
+    const demo = list.filter((c) => c.status?.toLowerCase() === 'demo').length;
+    const inactive = list.filter(
       (c) => c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'suspended'
     ).length;
 
     return { total, active, demo, inactive };
-  }, [customers]);
-
-  // Dynamic Financial Calculations from real dataset
-  const financialTotals = useMemo(() => {
-    const settledPaymentsTotal = payments
-      .filter((p) => p.status === 'paid')
-      .reduce((acc, p) => acc + (parseInt(p.amount.replace(/[^0-9]/g, '')) || 0), 0);
-
-    const pendingPaymentsTotal = payments
-      .filter((p) => p.status === 'pending')
-      .reduce((acc, p) => acc + (parseInt(p.amount.replace(/[^0-9]/g, '')) || 0), 0);
-
-    const activeMRRTotal = customers
-      .filter((c) => c.status?.toLowerCase() === 'active')
-      .reduce((acc, c) => acc + (parseInt(c.mrr?.replace(/[^0-9]/g, '')) || 0), 0);
-
-    return {
-      receivedNumeric: 2865000,
-      dueNumeric: 482000,
-      settledCount: payments.filter((p) => p.status === 'paid').length || 4,
-      pendingCount: payments.filter((p) => p.status === 'pending').length || 3,
-      activeMRRNumeric: activeMRRTotal || 99000
-    };
-  }, [payments, customers]);
+  }, [activeOverviewData]);
 
   // Filtered customer list for the Overview Customer Table
   const filteredOverviewCustomers = useMemo(() => {
-    return customers.filter((c) => {
+    const list = activeOverviewData.filteredCustomers || [];
+    return list.filter((c) => {
       const q = custSearch.toLowerCase();
       const matchesSearch =
         !q ||
@@ -144,10 +136,10 @@ export default function OverviewSection({
 
       return matchesSearch && matchesStatus;
     });
-  }, [customers, custSearch, custFilter]);
+  }, [activeOverviewData, custSearch, custFilter]);
 
   // Multi-column sorting for Overview Customer List
-  const { sortedItems: sortedOverviewCustomers, sortConfig: custSortConfig, requestSort: requestCustSort } = useTableSort(
+  const { sortedItems: sortedOverviewCustomers, sortConfig: custSortConfig, requestCustSort: requestCustSortOriginal, requestSort: requestCustSort } = useTableSort(
     filteredOverviewCustomers,
     'id',
     'asc'
@@ -155,7 +147,7 @@ export default function OverviewSection({
 
   // Multi-column sorting for recent commitments
   const { sortedItems: sortedRecentContracts, sortConfig: contractSortConfig, requestSort: requestContractSort } = useTableSort(
-    contracts,
+    activeOverviewData.filteredContracts,
     'expiryDate',
     'asc'
   );
@@ -168,17 +160,31 @@ export default function OverviewSection({
   const chartW = svgWidth - paddingX * 2;
   const chartH = svgHeight - paddingY * 2;
 
-  const minSales = 1000000;
-  const maxSales = 3000000;
+  const currentSalesPoints = activeOverviewData.salesChart?.points || [];
+
+  const { minSales, maxSales } = useMemo(() => {
+    if (!currentSalesPoints.length) return { minSales: 1000000, maxSales: 3000000 };
+    const values = currentSalesPoints.map((d) => d.sales);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const span = maxVal - minVal || 100000;
+    return {
+      minSales: Math.max(0, Math.floor((minVal - span * 0.15) / 100000) * 100000),
+      maxSales: Math.ceil((maxVal + span * 0.15) / 100000) * 100000
+    };
+  }, [currentSalesPoints]);
 
   const points = useMemo(() => {
-    return currentSalesData.map((d, i) => {
-      const x = paddingX + (i / (currentSalesData.length - 1)) * chartW;
-      const normalizedY = (d.sales - minSales) / (maxSales - minSales);
+    if (!currentSalesPoints.length) return [];
+    return currentSalesPoints.map((d, i) => {
+      const divisor = currentSalesPoints.length > 1 ? currentSalesPoints.length - 1 : 1;
+      const x = paddingX + (i / divisor) * chartW;
+      const denom = maxSales - minSales || 1;
+      const normalizedY = (d.sales - minSales) / denom;
       const y = svgHeight - paddingY - normalizedY * chartH;
       return { x, y, ...d };
     });
-  }, [currentSalesData, chartW, chartH, paddingX, paddingY, svgHeight]);
+  }, [currentSalesPoints, chartW, chartH, paddingX, paddingY, svgHeight, minSales, maxSales]);
 
   // Curved line generator
   const linePathD = useMemo(() => {
@@ -210,7 +216,8 @@ export default function OverviewSection({
   const donutInnerR = 56;
   const donutSlices = useMemo(() => {
     let currentAngle = 0;
-    return CATEGORY_REVENUE_PIE.map((cat) => {
+    const categories = activeOverviewData.pieChart?.categories || [];
+    return categories.map((cat) => {
       const angle = (cat.percentage / 100) * 360;
       const startAngle = currentAngle;
       const endAngle = currentAngle + angle;
@@ -222,10 +229,75 @@ export default function OverviewSection({
         pathD: describeDonutSlice(donutCenter, donutCenter, donutInnerR, donutOuterR, startAngle, endAngle)
       };
     });
-  }, []);
+  }, [activeOverviewData]);
+
+  // Helper for dynamic Y-axis label formatting (Lakhs vs Crores)
+  const formatYAxisLabel = (value) => {
+    if (value >= 10000000) {
+      return `₹${(value / 10000000).toFixed(2)} Cr`;
+    }
+    return `₹${(value / 100000).toFixed(1)} L`;
+  };
 
   return (
     <div className="adm-overview-container animate-fade-in">
+      {/* =========================================================================
+         1. TOP-RIGHT OVERVIEW FILTERS TOOLBAR (PERIOD + FINANCIAL YEAR)
+         ========================================================================= */}
+      <div className="adm-overview-header-bar">
+        <div className="adm-overview-header-info">
+          <div className="adm-overview-eyebrow">
+            <Activity size={13} className="adm-eyebrow-icon" />
+            <span>EXECUTIVE TELEMETRY</span>
+          </div>
+          <h1 className="adm-overview-heading">Business Analytics Overview</h1>
+          <p className="adm-overview-subheading">
+            Consolidated enterprise revenue, subscription collections &amp; cloud infrastructure telemetry.
+          </p>
+        </div>
+
+        {/* Filters positioned directly in the top-right highlighted section */}
+        <div className="adm-overview-filters-panel">
+          {/* Cadence Segmented Pills (Monthly, Quarterly, Yearly) */}
+          <div className="adm-cadence-pills">
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                className={`adm-cadence-pill ${selectedPeriod === opt.id ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedPeriod(opt.id);
+                  const fyLabel = FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label || selectedFY;
+                  toast.success(`Overview filtered: ${opt.label} (${fyLabel})`, { id: 'filter-toast' });
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Financial Year Selector with React Select */}
+          <div style={{ minWidth: '190px' }}>
+            <Select
+              styles={compactSelectStyles}
+              isSearchable={false}
+              options={FINANCIAL_YEARS.map((fy) => ({ value: fy.id, label: fy.label }))}
+              value={{
+                value: selectedFY,
+                label: FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label || selectedFY
+              }}
+              onChange={(opt) => {
+                if (opt) {
+                  setSelectedFY(opt.value);
+                  toast.success(`Overview filtered for ${opt.label}`, { id: 'filter-toast' });
+                }
+              }}
+              classNamePrefix="react-select"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* =========================================================================
          2. FINANCIAL HIGHLIGHT CARDS: PAYMENT RECEIVED & PAYMENT DUE SECTION
          (2X2 GRID — ONLY BOTTOM-RIGHT BUTTONS ARE CLICKABLE TO NAVIGATE)
@@ -236,18 +308,18 @@ export default function OverviewSection({
           <div className="adm-finance-header">
             <div className="adm-finance-badge emerald">
               <CheckCircle2 size={16} />
-              <span>99.8% Settled</span>
+              <span>{activeOverviewData.kpi.settledPercentage}</span>
             </div>
             <span className="adm-finance-trend up">
               <TrendingUp size={13} />
-              <span>+18.4%</span>
+              <span>{activeOverviewData.kpi.trendReceived}</span>
             </span>
           </div>
 
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Payment Received</span>
             <div className="adm-finance-value emerald-val">
-              ₹<CountUp end={financialTotals.receivedNumeric} useIndianFormat={true} duration={1600} />
+              ₹<CountUp end={activeOverviewData.kpi.receivedNumeric} useIndianFormat={true} duration={1400} />
             </div>
             <p className="adm-finance-caption">
               Total cleared collections via NEFT/RTGS, UPI, and Corporate NetBanking across active contracts.
@@ -257,7 +329,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot emerald" />
-              <CountUp end={financialTotals.settledCount} duration={1200} /> Invoices Cleared &amp; Dispatched
+              <span>{activeOverviewData.kpi.invoicesClearedText}</span>
             </span>
             <button
               type="button"
@@ -278,13 +350,13 @@ export default function OverviewSection({
               <AlertCircle size={16} />
               <span>Awaiting Clearance</span>
             </div>
-            <span className="adm-finance-trend due-tag">Action Required</span>
+            <span className="adm-finance-trend due-tag">{activeOverviewData.kpi.dueTag}</span>
           </div>
 
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Payment Due</span>
             <div className="adm-finance-value amber-val">
-              ₹<CountUp end={financialTotals.dueNumeric} useIndianFormat={true} duration={1600} />
+              ₹<CountUp end={activeOverviewData.kpi.dueNumeric} useIndianFormat={true} duration={1400} />
             </div>
             <p className="adm-finance-caption">
               Unsettled invoices and renewal invoices currently awaiting client accounts clearance.
@@ -294,7 +366,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot amber" />
-              <CountUp end={financialTotals.pendingCount} duration={1200} /> Invoices Pending Verification
+              <span>{activeOverviewData.kpi.invoicesPendingText}</span>
             </span>
             <button
               type="button"
@@ -315,17 +387,21 @@ export default function OverviewSection({
               <FileText size={16} />
               <span>Contract ARR</span>
             </div>
+            <span className="adm-finance-trend up">
+              <TrendingUp size={13} />
+              <span>+14% YoY</span>
+            </span>
           </div>
 
           <div className="adm-finance-content">
             <span className="adm-finance-label">Active Annual Value (ARR)</span>
             <div className="adm-finance-value purple-val">
-              ₹<CountUp end={1.84} decimals={2} duration={1500} /> Cr
+              ₹<CountUp end={activeOverviewData.kpi.arrValueNumeric} decimals={2} duration={1400} /> Cr
             </div>
             <p className="adm-finance-caption">
-              Monthly Recurring Revenue running at{' '}
+              {activeOverviewData.kpi.mrrLabel}{' '}
               <strong>
-                ₹<CountUp end={financialTotals.activeMRRNumeric} useIndianFormat={true} duration={1400} />
+                ₹<CountUp end={activeOverviewData.kpi.activeMRRNumeric} useIndianFormat={true} duration={1400} />
               </strong>{' '}
               across cloud nodes.
             </p>
@@ -334,7 +410,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot purple" />
-              <CountUp end={contracts.length} duration={1200} /> Enterprise SLAs Active
+              <CountUp end={activeOverviewData.kpi.enterpriseSLACount} duration={1200} /> Enterprise SLAs Active
             </span>
             <button
               type="button"
@@ -355,24 +431,27 @@ export default function OverviewSection({
               <Users size={16} />
               <span>Customer Accounts</span>
             </div>
+            <span className="adm-finance-trend up" style={{ color: '#0284c7' }}>
+              <span>CtrlS Tier-4</span>
+            </span>
           </div>
 
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Accounts Pipeline</span>
             <div className="adm-finance-value blue-val">
-              <CountUp end={customerCounts.total} duration={1200} /> Accounts
+              <CountUp end={activeOverviewData.kpi.totalPipelineCount} duration={1200} /> Accounts
             </div>
             <p className="adm-finance-caption">
               <strong style={{ color: '#059669' }}>
-                <CountUp end={customerCounts.active} duration={1200} /> Active
+                <CountUp end={activeOverviewData.kpi.activeCount} duration={1200} /> Active
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#d97706' }}>
-                <CountUp end={customerCounts.demo} duration={1200} /> Demo Trial
+                <CountUp end={activeOverviewData.kpi.demoCount} duration={1200} /> Demo Trial
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#64748b' }}>
-                <CountUp end={customerCounts.inactive} duration={1200} /> Inactive
+                <CountUp end={activeOverviewData.kpi.inactiveCount} duration={1200} /> Inactive
               </strong>
             </p>
           </div>
@@ -380,7 +459,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot blue" />
-              CtrlS Kolkata 99.99% Uptime
+              {activeOverviewData.kpi.uptime}
             </span>
             <button
               type="button"
@@ -407,27 +486,17 @@ export default function OverviewSection({
                 <h2 className="adm-chart-title">Total Sales &amp; Revenue Progression</h2>
               </div>
               <p className="adm-chart-sub">
-                Interactive sales progression curve showing real-time revenue velocity across business quarters.
+                {activeOverviewData.salesChart.timeframeDescription}
               </p>
             </div>
 
             <div className="adm-chart-actions">
-              <div className="adm-chart-pills">
-                <button
-                  type="button"
-                  className={`adm-chart-pill-btn ${salesTimeframe === '6m' ? 'active' : ''}`}
-                  onClick={() => setSalesTimeframe('6m')}
-                >
-                  Last 6 Months
-                </button>
-                <button
-                  type="button"
-                  className={`adm-chart-pill-btn ${salesTimeframe === '1y' ? 'active' : ''}`}
-                  onClick={() => setSalesTimeframe('1y')}
-                >
-                  1 Year
-                </button>
-              </div>
+              <span className="adm-chart-filter-indicator">
+                <Filter size={12} />
+                <span>
+                  {selectedPeriod.toUpperCase()} • {FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label.replace(' (Current)', '') || selectedFY}
+                </span>
+              </span>
             </div>
           </div>
 
@@ -435,20 +504,22 @@ export default function OverviewSection({
           <div className="adm-sales-metric-row">
             <div className="adm-metric-block">
               <span className="adm-metric-caption">
-                {hoveredSalesPoint ? `${hoveredSalesPoint.month} Verified Sales` : 'Latest Month'}
+                {hoveredSalesPoint ? `${hoveredSalesPoint.month} Verified Sales` : activeOverviewData.salesChart.periodLabel}
               </span>
               <span className="adm-metric-value">
-                {hoveredSalesPoint?.label || '₹28.65 L'}
+                {hoveredSalesPoint?.label || activeOverviewData.salesChart.points[activeOverviewData.salesChart.points.length - 1]?.label}
               </span>
             </div>
             <div className="adm-metric-block">
-              <span className="adm-metric-caption">Month-on-Month Growth</span>
-              <span className="adm-metric-growth">{hoveredSalesPoint?.growth || '+12.8%'}</span>
+              <span className="adm-metric-caption">Growth Velocity</span>
+              <span className="adm-metric-growth">
+                {hoveredSalesPoint?.growth || activeOverviewData.salesChart.growthLabel}
+              </span>
             </div>
             <div className="adm-metric-block">
-              <span className="adm-metric-caption">YTD Cumulative Gross</span>
+              <span className="adm-metric-caption">Cumulative Gross Total</span>
               <span className="adm-metric-val-sm">
-                ₹<CountUp end={1.27} decimals={2} duration={1400} /> Crore
+                ₹<CountUp end={activeOverviewData.salesChart.cumulativeGross} decimals={2} duration={1400} /> Crore
               </span>
             </div>
           </div>
@@ -484,7 +555,8 @@ export default function OverviewSection({
               {/* Horizontal Gridlines */}
               {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
                 const y = paddingY + pct * chartH;
-                const valueLabel = `₹${(30 - pct * 20).toFixed(1)} L`;
+                const value = maxSales - pct * (maxSales - minSales);
+                const valueLabel = formatYAxisLabel(value);
                 return (
                   <g key={idx}>
                     <line
@@ -534,7 +606,7 @@ export default function OverviewSection({
                 const isHovered = hoveredSalesPoint?.month === pt.month;
                 return (
                   <g
-                    key={`${salesTimeframe}-${idx}`}
+                    key={`${selectedPeriod}-${selectedFY}-${idx}`}
                     className="adm-chart-point-group"
                     onMouseEnter={() => setHoveredSalesPoint(pt)}
                     style={{
@@ -609,7 +681,7 @@ export default function OverviewSection({
                 </span>
               </div>
               <p className="adm-chart-sub">
-                Distribution of monthly gross billings across product divisions.
+                Distribution of gross billings across product divisions.
               </p>
             </div>
           </div>
@@ -654,7 +726,7 @@ export default function OverviewSection({
                   fontWeight="600"
                   letterSpacing="0.04em"
                 >
-                  {hoveredPieSlice ? `${hoveredPieSlice.percentage}% SHARE` : 'TOTAL SALES'}
+                  {hoveredPieSlice ? `${hoveredPieSlice.percentage}% SHARE` : 'TOTAL REVENUE'}
                 </text>
                 <text
                   x={donutCenter}
@@ -664,14 +736,14 @@ export default function OverviewSection({
                   fontSize="13.5"
                   fontWeight="800"
                 >
-                  {hoveredPieSlice ? hoveredPieSlice.amount : '₹28.65 L'}
+                  {hoveredPieSlice ? hoveredPieSlice.amount : activeOverviewData.pieChart.total}
                 </text>
               </svg>
             </div>
 
             {/* Legend & Breakdown Details with CountUp */}
             <div className="adm-donut-legend">
-              {CATEGORY_REVENUE_PIE.map((cat, idx) => {
+              {activeOverviewData.pieChart.categories.map((cat, idx) => {
                 const isHovered = hoveredPieSlice?.name === cat.name;
                 return (
                   <div
