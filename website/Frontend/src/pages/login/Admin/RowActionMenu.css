@@ -1,0 +1,118 @@
+/* RowActionMenu.css - Three Dots Dropdown Action Menu */
+
+.adm-action-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-action-dots-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  padding: 0;
+}
+
+.adm-action-dots-btn:hover,
+.adm-action-dots-btn.active {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.adm-action-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 9999;
+  min-width: 155px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.15), 0 4px 10px rgba(0, 0, 0, 0.04);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: admFadeSlideDown 0.15s ease-out;
+}
+
+@keyframes admFadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.adm-action-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+  white-space: nowrap;
+}
+
+.adm-action-dropdown-item:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.adm-action-dropdown-item.danger {
+  color: #dc2626;
+}
+
+.adm-action-dropdown-item.danger:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.adm-action-dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 3px 0;
+}
+
+.adm-action-icon {
+  flex-shrink: 0;
+}
+
+.adm-action-icon.blue {
+  color: #2563eb;
+}
+
+.adm-action-icon.purple {
+  color: #7c3aed;
+}
+
+.adm-action-icon.green {
+  color: #059669;
+}
+
+.adm-action-icon.red {
+  color: #dc2626;
+}
+

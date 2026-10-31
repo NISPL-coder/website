@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "6ae5a312ce99f42fae2a17ca",
+    "contractId": "CTR-2026-5080",
+    "name": "Cloud Dynamics Tally Prime 1-Year SLA",
+    "company": "Cloud Dynamics Systems Pvt Ltd",
+    "customer": "Cloud Dynamics Systems Pvt Ltd",
+    "accountId": "183ae957-4ccc-450d-8ab1-698c871a1799",
+    "email": "admin@clouddynamics.co",
+    "service": "Subscription (1 Year)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Year",
+    "productCategory": "Software",
+    "totalContractValue": "₹?1,80,000",
+    "value": "₹?1,80,000 / 1 year",
+    "startDate": "2026-11-01",
+    "endDate": "2027-10-31",
+    "expiryDate": "2027-10-31",
+    "status": "Active",
+    "slaTier": "Tier-1 Priority NOC 99.99%",
+    "description": "",
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "19da341d-87ef-4e3e-809a-df038a41d32a",
+      "lastSyncedAt": "2026-10-31T08:13:07.687Z",
+      "syncError": null
+    },
+    "createdAt": "2026-10-31T08:13:06.949Z",
+    "updatedAt": "2026-10-31T08:13:07.688Z",
+    "__v": 0
+  }
+]

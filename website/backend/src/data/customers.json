@@ -1,0 +1,74 @@
+[
+  {
+    "customerId": "CUST-9679",
+    "name": "demo",
+    "company": "demo",
+    "email": "demo@gmail.com",
+    "phone": "9876543210",
+    "alternatePhone": "",
+    "website": "",
+    "industry": "Technology",
+    "accountRelationship": "Customer",
+    "plan": "Tally Prime Cloud + VPS Gold",
+    "serverNode": "CtrlS-KOL-NODE-01",
+    "status": "active",
+    "registered": "2026-10-31",
+    "mrr": "₹15,000",
+    "address": {
+      "street": "salt lake",
+      "area": "sector 5",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "country": "India",
+      "postalCode": "",
+      "addressType": "Office / Billing"
+    },
+    "gstNo": "",
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "4576939e-6977-49f2-a05f-31d8f1a8bb75",
+      "lastSyncedAt": "2026-10-31T08:21:43.604Z",
+      "syncError": null
+    },
+    "_id": "6ae5a516a8c3fa4505af6cdc",
+    "createdAt": "2026-10-31T08:21:42.413Z",
+    "updatedAt": "2026-10-31T08:21:42.413Z",
+    "id": "CUST-9679"
+  },
+  {
+    "_id": "6ae5a304ce99f42fae2a17c6",
+    "customerId": "CUST-4695",
+    "name": "Cloud Dynamics Systems",
+    "company": "Cloud Dynamics Systems Pvt Ltd",
+    "email": "admin@clouddynamics.co",
+    "phone": "9830881920",
+    "alternatePhone": "",
+    "website": "https://clouddynamics.co",
+    "industry": "Technology",
+    "accountRelationship": "Customer",
+    "plan": "Tally Prime Cloud + VPS Gold",
+    "serverNode": "CtrlS-KOL-NODE-01",
+    "status": "active",
+    "registered": "2026-10-31",
+    "mrr": "₹15,000",
+    "address": {
+      "street": "Street 101, Electronic Complex",
+      "area": "Sector V",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "country": "India",
+      "postalCode": "700091",
+      "addressType": "Office / Billing"
+    },
+    "gstNo": "",
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "183ae957-4ccc-450d-8ab1-698c871a1799",
+      "lastSyncedAt": "2026-10-31T08:12:53.493Z",
+      "syncError": null
+    },
+    "createdAt": "2026-10-31T08:12:52.559Z",
+    "updatedAt": "2026-10-31T08:12:53.493Z",
+    "__v": 0
+  }
+]

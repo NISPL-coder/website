@@ -1,0 +1,213 @@
+/* ==========================================================================
+   CREATE ADMIN PAGE - SPECIFIC STYLING ENHANCEMENTS
+   Complements LoginPage.css so the layout and typography match 1:1
+   ========================================================================== */
+
+/* Input Validation Error State */
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.admin-field-err {
+  display: block;
+  font-size: 0.78rem;
+  color: #ef4444;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding-left: 6px;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Modal Dialog Card Styling */
+.admin-modal-card {
+  max-width: 440px !important;
+  width: 92%;
+  border-radius: 24px !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.admin-modal-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.admin-modal-title {
+  font-size: 1.32rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px 0;
+}
+
+.admin-modal-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+/* Are You An Admin - Confirmation Buttons */
+.admin-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-choice-btn {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-choice-no {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.admin-choice-no:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.admin-choice-yes {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+}
+
+.admin-choice-yes:hover {
+  background: #1e293b;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+}
+
+/* Form Labels inside Modal */
+.admin-input-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+/* Email Input Row with Send OTP Button */
+.admin-email-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.admin-email-wrap {
+  flex: 1;
+}
+
+.admin-email-input {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-weight: 500;
+  cursor: default;
+}
+
+.admin-send-otp-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  min-width: 105px;
+}
+
+.admin-send-otp-btn:hover:not(:disabled) {
+  background: #0369a1;
+}
+
+.admin-send-otp-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* OTP Input */
+.admin-otp-input {
+  font-family: monospace;
+  font-size: 1.25rem !important;
+  letter-spacing: 8px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Alerts inside Modal */
+.admin-success-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.admin-dev-otp-box {
+  background: #fefce8;
+  border: 1px dashed #facc15;
+  color: #854d0e;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.admin-success-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
