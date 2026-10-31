@@ -250,7 +250,7 @@ export default function OverviewSection({
             <Activity size={13} className="adm-eyebrow-icon" />
             <span>EXECUTIVE TELEMETRY</span>
           </div>
-          <h1 className="adm-overview-heading">Business Analytics Overview</h1>
+          <h1 className="adm-overview-heading">Overview</h1>
           <p className="adm-overview-subheading">
             Consolidated enterprise revenue, subscription collections &amp; cloud infrastructure telemetry.
           </p>
