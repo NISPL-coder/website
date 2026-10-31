@@ -1,0 +1,9 @@
+{
+  "name": "website-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix website/Frontend install && npm --prefix website/Frontend run build",
+    "start": "npm --prefix website/Backend install && npm --prefix website/Backend start"
+  }
+}
