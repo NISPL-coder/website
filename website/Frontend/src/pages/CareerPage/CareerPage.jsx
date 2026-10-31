@@ -244,7 +244,7 @@ export default function CareerPage() {
       const apiEndpoint = import.meta.env.VITE_API_URL 
         ? `${import.meta.env.VITE_API_URL}/api/career/apply`
         : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-          ? 'https://website-homepage-bdjc.onrender.com/api/career/apply'
+          ? 'https://website-ebxf.onrender.com/api/career/apply'
           : '/api/career/apply';
 
       const response = await fetch(apiEndpoint, {

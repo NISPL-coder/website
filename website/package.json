@@ -1,0 +1,9 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix Frontend install && npm --prefix Frontend run build",
+    "start": "npm --prefix Backend install && npm --prefix Backend start"
+  }
+}
