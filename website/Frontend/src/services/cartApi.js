@@ -6,7 +6,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api/cart`
   : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-    ? 'https://website-homepage-bdjc.onrender.com/api/cart'
+    ? 'https://website-ebxf.onrender.com/api/cart'
     : 'http://localhost:5000/api/cart';
 
 const TOKEN_KEY = 'nispl_auth_token';

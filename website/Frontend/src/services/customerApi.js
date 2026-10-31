@@ -9,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
   : typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1'
-  ? 'https://website-homepage-bdjc.onrender.com/api/customers'
+  ? 'https://website-ebxf.onrender.com/api/customers'
   : 'http://localhost:4000/api/customers';
 
 const SANGAM_CRM_BASE_URL = 'https://nistally.sangamcrm.com';
