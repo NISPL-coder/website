@@ -13,6 +13,8 @@ import ContractSection from './ContractSection';
 import PaymentSection from './PaymentSection';
 import ProductSection from './ProductSection';
 import ReceiptSection from './ReceiptSection';
+import UserAccessSection from './UserAccessSection';
+import ActivityLogsSection from './ActivityLogsSection';
 
 // Dedicated Separate Create Pages (Replacing Modals with /create URLs)
 import CreateCustomerPage from './CreateCustomerPage';
@@ -56,6 +58,8 @@ export default function AdminDashboard({ userSession, onSignOut }) {
     if (path.includes('/admin/customer/contract')) return 'contract';
     if (path.includes('/admin/customer/payment')) return 'payment';
     if (path === '/admin/customer' || path.startsWith('/admin/customer')) return 'customer';
+    if (path.includes('/admin/user-access') || path.includes('/admin/staff')) return 'user-access';
+    if (path.includes('/admin/activity-logs') || path.includes('/admin/activity_logs')) return 'activity-logs';
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
     if (path.includes('/admin/profile')) return 'profile';
@@ -510,6 +514,14 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                   adminName={adminName}
                   adminEmail={adminEmail}
                 />
+              )}
+
+              {activeNav === 'user-access' && (
+                <UserAccessSection />
+              )}
+
+              {activeNav === 'activity-logs' && (
+                <ActivityLogsSection />
               )}
             </>
           )}

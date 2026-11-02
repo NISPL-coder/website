@@ -2,6 +2,7 @@ import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { logActivity } from '../utils/activityLogger.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -314,6 +315,25 @@ export const createCustomer = async (req, res) => {
       }
     });
 
+    await logActivity(req, {
+      action: 'CREATE_CUSTOMER',
+      category: 'customer',
+      resource: 'Customer',
+      resourceId: savedCustomer.customerId,
+      details: `Created customer "${savedCustomer.name}" (${savedCustomer.company || savedCustomer.email})`,
+      changes: {
+        customerId: savedCustomer.customerId,
+        name: savedCustomer.name,
+        company: savedCustomer.company,
+        email: savedCustomer.email,
+        phone: savedCustomer.phone,
+        plan: savedCustomer.plan,
+        mrr: savedCustomer.mrr,
+        status: savedCustomer.status,
+        serverNode: savedCustomer.serverNode
+      }
+    });
+
     return res.status(201).json({
       success: true,
       customer: savedCustomer,
@@ -507,6 +527,19 @@ export const updateCustomer = async (req, res) => {
       metadata: { customerId: savedCustomer.customerId }
     });
 
+    await logActivity(req, {
+      action: 'UPDATE_CUSTOMER',
+      category: 'customer',
+      resource: 'Customer',
+      resourceId: savedCustomer.customerId,
+      details: `Updated customer details for "${savedCustomer.name}" (${savedCustomer.customerId})`,
+      changes: {
+        customerId: savedCustomer.customerId,
+        updatedFields: req.body,
+        currentRecord: savedCustomer
+      }
+    });
+
     return res.status(200).json({
       success: true,
       customer: {
@@ -559,6 +592,23 @@ export const deleteCustomer = async (req, res) => {
         name: deletedCustomer?.name || '',
         email: deletedCustomer?.email || '',
         company: deletedCustomer?.company || ''
+      }
+    });
+
+    await logActivity(req, {
+      action: 'DELETE_CUSTOMER',
+      category: 'customer',
+      resource: 'Customer',
+      resourceId: id,
+      details: `Deleted customer account "${deletedCustomer?.name || id}" (${deletedCustomer?.email || ''})`,
+      changes: {
+        deletedCustomer: {
+          id,
+          customerId: deletedCustomer?.customerId || id,
+          name: deletedCustomer?.name,
+          email: deletedCustomer?.email,
+          company: deletedCustomer?.company
+        }
       }
     });
 

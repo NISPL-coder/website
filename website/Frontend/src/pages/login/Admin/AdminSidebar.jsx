@@ -9,6 +9,8 @@ import {
   ReceiptText,
   FileUp,
   RefreshCw,
+  UserCheck,
+  Activity,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -175,8 +177,41 @@ export default function AdminSidebar({
             <span>Sangam Sync</span>
           </div>
         </button>
+
+        {/* ADMINISTRATION & SECURITY */}
+        {!isCollapsed && (
+          <div className="adm-sidebar-divider" aria-hidden="true" />
+        )}
+        {!isCollapsed && (
+          <div className="adm-sidebar-tools-label">Administration</div>
+        )}
+
+        {/* 7. USER ACCESS */}
+        <button
+          type="button"
+          className={`adm-nav-item ${activeNav === 'user-access' || activeNav === 'staff' ? 'active' : ''}`}
+          onClick={() => handleNavClick('/admin/user-access')}
+          title="User Access & Staff Permissions"
+        >
+          <div className="adm-nav-item-left">
+            <UserCheck size={19} />
+            <span>User Access</span>
+          </div>
+        </button>
+
+        {/* 8. ACTIVITY LOGS */}
+        <button
+          type="button"
+          className={`adm-nav-item ${activeNav === 'activity-logs' ? 'active' : ''}`}
+          onClick={() => handleNavClick('/admin/activity-logs')}
+          title="Admin Activity Logs & Audit Trail"
+        >
+          <div className="adm-nav-item-left">
+            <Activity size={19} />
+            <span>Activity Logs</span>
+          </div>
+        </button>
       </nav>
     </aside>
   );
 }
-

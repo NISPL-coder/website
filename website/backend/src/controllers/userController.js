@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import { HttpError } from '../utils/httpError.js';
+import { logActivity } from '../utils/activityLogger.js';
 
 export async function getOwnProfile(req, res) {
   res.json({ success: true, user: req.user.toSafeJSON() });
@@ -58,5 +59,19 @@ export async function changeOwnPassword(req, res) {
   user.password = newPassword;
   await user.save();
   await Session.updateMany({ user: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
+
+  await logActivity(req, {
+    action: 'PASSWORD_UPDATED',
+    category: 'auth',
+    resource: 'UserAccess',
+    resourceId: user.email,
+    details: `${user.name} (${user.role.toUpperCase()}) updated their password`,
+    changes: {
+      adminId: user._id.toString(),
+      email: user.email,
+      timestamp: new Date()
+    }
+  });
+
   res.json({ success: true, message: 'Password updated. Please sign in again.' });
 }

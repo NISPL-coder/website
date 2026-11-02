@@ -193,6 +193,10 @@ function MainApp() {
           <Route path="/admin/import-csv" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/sangam-sync" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/profile" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/user-access" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/staff" element={<Navigate to="/admin/user-access" replace />} />
+          <Route path="/admin/activity-logs" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/activity_logs" element={<Navigate to="/admin/activity-logs" replace />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />

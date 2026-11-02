@@ -10,6 +10,8 @@ import userRoutes from './routes/userRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import contractRoutes from './routes/contractRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import activityLogRoutes from './routes/activityLogRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
@@ -72,6 +74,10 @@ app.use('/api/v1/contracts', contractRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/v1/staff', staffRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/v1/activity-logs', activityLogRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

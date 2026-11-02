@@ -5,6 +5,7 @@ import Session from '../models/Session.js';
 import AdminOtp from '../models/AdminOtp.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { logActivity } from '../utils/activityLogger.js';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/httpError.js';
@@ -46,10 +47,32 @@ export async function login(req, res) {
     throw new HttpError(401, 'Invalid email/account ID or password.');
   }
   if (user.accountStatus !== 'active') throw new HttpError(403, 'Your account is not active. Contact an administrator.');
-  if (user.role !== portal) throw new HttpError(403, `This account is not authorized for the ${portal} portal.`);
+  const isAdminPortalUser = ['admin', 'manager', 'support'].includes(user.role);
+  if (portal === 'admin' ? !isAdminPortalUser : user.role !== portal) {
+    throw new HttpError(403, `This account is not authorized for the ${portal} portal.`);
+  }
 
   user.lastLoginAt = new Date();
   await user.save();
+
+  if (['admin', 'manager', 'support'].includes(user.role)) {
+    await logActivity(req, {
+      action: 'ADMIN_SIGN_IN',
+      category: 'auth',
+      resource: 'UserAccess',
+      resourceId: user.email,
+      details: `${user.name} (${user.role.toUpperCase()}) authenticated via email & password`,
+      changes: {
+        adminId: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        portal,
+        loginTime: user.lastLoginAt
+      },
+      adminOverride: user
+    });
+  }
 
   const accessToken = await issueSession(user, req, res);
   res.json({ success: true, message: 'Login successful.', accessToken, user: user.toSafeJSON() });
