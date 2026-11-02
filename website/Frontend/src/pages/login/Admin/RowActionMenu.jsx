@@ -35,6 +35,21 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
     });
   }, [computePosition]);
 
+  // Tell the surrounding data table to pause its row-hover lift/popup while
+  // this menu is open; closing (or unmounting) the menu restores row hover.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const tableEl = menuRef.current?.closest('.admin-datatable') ?? null;
+    window.dispatchEvent(
+      new CustomEvent('nispl_row_action_menu', { detail: { open: true, table: tableEl } })
+    );
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent('nispl_row_action_menu', { detail: { open: false, table: tableEl } })
+      );
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) {
       setMenuPosition(null);

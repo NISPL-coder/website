@@ -16,7 +16,7 @@ export const env = {
   CLIENT_ORIGINS: (process.env.CLIENT_ORIGINS || 'http://localhost:5173,https://nispldemo.vercel.app').split(',').map(v => v.trim()),
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
-  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '7d',
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   REFRESH_COOKIE_NAME: process.env.REFRESH_COOKIE_NAME || 'nispl_refresh',
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',

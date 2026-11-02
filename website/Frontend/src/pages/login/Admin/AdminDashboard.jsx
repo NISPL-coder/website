@@ -117,6 +117,7 @@ export default function AdminDashboard({ userSession, onSignOut }) {
 
   // Persistent Datasets in State
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
+  const [customerStats, setCustomerStats] = useState(null);
   const [contracts, setContracts] = useState(INITIAL_CONTRACTS);
   const [payments, setPayments] = useState(INITIAL_PAYMENTS);
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
@@ -244,8 +245,11 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   useEffect(() => {
     let isMounted = true;
     customerApi.getCustomers().then((data) => {
-      if (isMounted && data && Array.isArray(data) ) {
+      if (isMounted && data && Array.isArray(data)) {
         setCustomers(data);
+        if (data.stats) {
+          setCustomerStats(data.stats);
+        }
       }
     });
     contractApi.getContracts().then((data) => {
@@ -274,6 +278,9 @@ export default function AdminDashboard({ userSession, onSignOut }) {
       ]);
       if (liveCustomers && Array.isArray(liveCustomers)) {
         setCustomers(liveCustomers);
+        if (liveCustomers.stats) {
+          setCustomerStats(liveCustomers.stats);
+        }
       }
       if (liveContracts && Array.isArray(liveContracts)) {
         setContracts(liveContracts);
@@ -454,6 +461,8 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                 <CustomerSection
                   customers={customers}
                   setCustomers={setCustomers}
+                  customerStats={customerStats}
+                  setCustomerStats={setCustomerStats}
                 />
               )}
 
@@ -500,7 +509,6 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                 <ProfilePage
                   adminName={adminName}
                   adminEmail={adminEmail}
-                  onSignOut={onSignOut}
                 />
               )}
             </>

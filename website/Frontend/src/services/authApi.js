@@ -214,6 +214,120 @@ export const authApi = {
     }
   },
 
+  _handleRefreshedToken(res) {
+    try {
+      const refreshed = res?.headers?.get('x-refreshed-token');
+      if (refreshed) {
+        localStorage.setItem(TOKEN_KEY, refreshed);
+      }
+    } catch {}
+  },
+
+  /**
+   * Fetch the current user's profile from the backend and refresh the stored session.
+   * Returns the safe user object (no password material).
+   */
+  async getProfile() {
+    const token = this.getAuthToken();
+    if (token) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/v1/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        this._handleRefreshedToken(res);
+        const data = await res.json();
+        if (res.ok && data.success && data.user) {
+          const freshToken = res.headers.get('x-refreshed-token') || token;
+          this.setAuthSession(freshToken, data.user);
+          return data.user;
+        }
+      } catch (e) {
+        console.warn('[authApi] /api/v1/users/me call failed, trying fallback:', e.message);
+      }
+
+      // Fallback 1: /api/auth/me
+      try {
+        const resAuth = await fetch(`${API_BASE_URL}/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        this._handleRefreshedToken(resAuth);
+        const dataAuth = await resAuth.json();
+        if (resAuth.ok && dataAuth.success && dataAuth.user) {
+          const freshToken = resAuth.headers.get('x-refreshed-token') || token;
+          this.setAuthSession(freshToken, dataAuth.user);
+          return dataAuth.user;
+        }
+      } catch (e) {
+        console.warn('[authApi] /api/auth/me fallback failed:', e.message);
+      }
+    }
+
+    // Fallback 2: Active cached session from login
+    const cached = this.getCurrentUser();
+    if (cached) {
+      return cached;
+    }
+
+    throw new Error('Authentication required. Please sign in again.');
+  },
+
+  /**
+   * Change the current user's password.
+   * Revokes all active sessions server-side, so the caller must sign the user out afterwards.
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   */
+  async changePassword(currentPassword, newPassword) {
+    const token = this.getAuthToken();
+    const res = await fetch(`${BACKEND_URL}/api/v1/users/me/password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    this._handleRefreshedToken(res);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to change password.');
+    }
+    return data;
+  },
+
+  /**
+   * Update a user profile (admin only endpoint, but admins can update themselves)
+   * @param {string} userId
+   * @param {Object} updates
+   */
+  async updateUser(userId, updates) {
+    const token = this.getAuthToken();
+    const res = await fetch(`${BACKEND_URL}/api/v1/users/${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updates)
+    });
+    this._handleRefreshedToken(res);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to update profile.');
+    }
+    // Refresh stored session user if it's the current user
+    const current = this.getCurrentUser();
+    if (current && (current.id === userId || current._id === userId)) {
+      const freshToken = res.headers.get('x-refreshed-token') || token;
+      this.setAuthSession(freshToken, data.user);
+    }
+    return data.user;
+  },
+
   clearAuthSession() {
     try {
       localStorage.removeItem(TOKEN_KEY);

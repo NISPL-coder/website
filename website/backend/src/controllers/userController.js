@@ -2,6 +2,10 @@ import User from '../models/User.js';
 import Session from '../models/Session.js';
 import { HttpError } from '../utils/httpError.js';
 
+export async function getOwnProfile(req, res) {
+  res.json({ success: true, user: req.user.toSafeJSON() });
+}
+
 export async function listUsers(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
@@ -32,7 +36,7 @@ export async function createUser(req, res) {
 }
 
 export async function updateUser(req, res) {
-  const allowed = ['name', 'tier', 'permissions', 'securityLevel', 'location', 'accountStatus'];
+  const allowed = ['name', 'designation', 'tier', 'permissions', 'securityLevel', 'location', 'accountStatus'];
   const updates = {};
   for (const key of allowed) if (req.body[key] !== undefined) updates[key] = req.body[key];
   if (updates.accountStatus && !['active', 'inactive', 'suspended'].includes(updates.accountStatus)) {

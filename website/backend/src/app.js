@@ -65,6 +65,7 @@ app.get('/api/health', (req, res) => res.json({ success: true, service: 'NISPL A
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/v1/customers', customerRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/v1/contracts', contractRoutes);

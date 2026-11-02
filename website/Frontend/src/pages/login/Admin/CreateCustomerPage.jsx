@@ -41,6 +41,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
   // Contact & Address Details
   const [formState, setFormState] = useState({
     name: '',
+    company: '',
     email: '',
     phone: '',
     addressType: 'Office / Billing',
@@ -119,6 +120,10 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       toast.error('Please enter the customer name.');
       return;
     }
+    if (!formState.company.trim()) {
+      toast.error('Please enter the company name.');
+      return;
+    }
     if (!formState.email.trim()) {
       toast.error('Please enter the email address.');
       return;
@@ -145,7 +150,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
     const customerPayload = {
       name: formState.name.trim(),
-      company: formState.name.trim(),
+      company: formState.company.trim() || formState.name.trim(),
       email: formState.email.trim(),
       phone: formState.phone.trim(),
       city: cityLoc,
@@ -208,6 +213,10 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         );
       }
 
+      customerApi.getCustomers().then((live) => {
+        if (live && Array.isArray(live)) setCustomers(live);
+      });
+
       navigate('/admin/customer');
     } catch (err) {
       console.warn('[CreateCustomerPage] Backend sync call failed, falling back to local state:', err.message);
@@ -260,6 +269,10 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         id: toastId,
         duration: 4000
       });
+      customerApi.getCustomers().then((live) => {
+        if (live && Array.isArray(live)) setCustomers(live);
+      });
+
       navigate('/admin/customer');
     } finally {
       setIsSubmitting(false);
@@ -336,6 +349,20 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
                   placeholder="Enter your name"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="adm-form-field full-width">
+                <label className="adm-form-label">
+                  Company Name <span className="adm-required-star">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  placeholder="Enter company / firm name"
+                  value={formState.company}
+                  onChange={(e) => setFormState({ ...formState, company: e.target.value })}
                   required
                 />
               </div>

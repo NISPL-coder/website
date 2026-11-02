@@ -253,6 +253,16 @@
     0 3px 8px rgba(15, 23, 42, 0.08);
 }
 
+/* While a row action menu is open, the menu owns the interaction: no lift, no popup. */
+.admin-datatable.action-menu-open .rdt_row:hover {
+  z-index: 0;
+  transform: none;
+  background: #f8fafc;
+  border-radius: 0;
+  border-bottom-color: #f1f5f9;
+  box-shadow: none;
+}
+
 .admin-datatable .rdt_TableCell {
   padding-top: 0;
   padding-bottom: 0;

@@ -29,7 +29,12 @@ import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
-export default function CustomerSection({ customers, setCustomers }) {
+export default function CustomerSection({
+  customers,
+  setCustomers,
+  customerStats,
+  setCustomerStats
+}) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
@@ -41,25 +46,57 @@ export default function CustomerSection({ customers, setCustomers }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [syncingIds, setSyncingIds] = useState({});
 
-  // Calculate live counts for filter buttons
-  const counts = useMemo(() => {
-    return {
-      all: customers.length,
-      active: customers.filter((c) => c.status?.toLowerCase() === 'active').length,
-      demo: customers.filter((c) => c.status?.toLowerCase() === 'demo').length,
-      inactive: customers.filter(
-        (c) => c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'suspended'
-      ).length
-    };
-  }, [customers]);
+  // Dynamic card stats from API (with seamless fallback to computed data)
+  const apiStats = customerStats || customers?.stats;
 
-  // Total active MRR calculation
-  const totalActiveMRR = useMemo(() => {
-    return customers
-      .filter((c) => c.status?.toLowerCase() === 'active')
-      .reduce((acc, c) => acc + (parseInt(c.mrr?.replace(/[^0-9]/g, '')) || 0), 0)
-      .toLocaleString('en-IN');
-  }, [customers]);
+  const dynamicCards = useMemo(() => {
+    const total = apiStats?.totalAccounts ?? customers.length;
+    const active =
+      apiStats?.activeClients ??
+      customers.filter((c) => c.status?.toLowerCase() === 'active').length;
+    const demo =
+      apiStats?.demoTrials ??
+      customers.filter((c) => {
+        const s = c.status?.toLowerCase();
+        return s === 'demo' || s === 'trial';
+      }).length;
+    const inactive =
+      apiStats?.inactivePaused ??
+      customers.filter((c) => {
+        const s = c.status?.toLowerCase();
+        return s === 'inactive' || s === 'suspended' || s === 'paused';
+      }).length;
+
+    const mrrNum =
+      typeof apiStats?.monthlyMrr === 'number'
+        ? apiStats.monthlyMrr
+        : customers
+            .filter((c) => c.status?.toLowerCase() === 'active')
+            .reduce((acc, c) => acc + (parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0), 0);
+
+    const formattedMrr = apiStats?.formattedMonthlyMrr || `₹${mrrNum.toLocaleString('en-IN')}`;
+
+    return {
+      total,
+      active,
+      demo,
+      inactive,
+      mrr: mrrNum,
+      formattedMrr,
+      totalDesc: apiStats?.descriptions?.totalAccounts || 'All customer records',
+      activeDesc: apiStats?.descriptions?.activeClients || `Monthly MRR: ${formattedMrr}`,
+      demoDesc: apiStats?.descriptions?.demoTrials || '14-Day sandbox trials',
+      inactiveDesc: apiStats?.descriptions?.inactivePaused || 'Expired / pending renewals'
+    };
+  }, [apiStats, customers]);
+
+  // Backward-compatible counts object for filters
+  const counts = useMemo(() => ({
+    all: dynamicCards.total,
+    active: dynamicCards.active,
+    demo: dynamicCards.demo,
+    inactive: dynamicCards.inactive
+  }), [dynamicCards]);
 
   // Filtered customer listing
   const filteredCustomers = useMemo(() => {
@@ -107,6 +144,12 @@ export default function CustomerSection({ customers, setCustomers }) {
     if (selectedCustomer && (selectedCustomer.id === cId || selectedCustomer.customerId === cId)) {
       setSelectedCustomer(updated);
     }
+    // Re-fetch dynamic stats from customer listing API
+    customerApi.getCustomerListing().then((res) => {
+      if (res?.stats && setCustomerStats) {
+        setCustomerStats(res.stats);
+      }
+    });
   };
 
   const handleConfirmDeleteCustomer = async () => {
@@ -116,6 +159,12 @@ export default function CustomerSection({ customers, setCustomers }) {
     try {
       await customerApi.deleteCustomer(cId);
       setCustomers((prev) => prev.filter((c) => c.id !== cId && c.customerId !== cId));
+      // Re-fetch dynamic stats from customer listing API
+      customerApi.getCustomerListing().then((res) => {
+        if (res?.stats && setCustomerStats) {
+          setCustomerStats(res.stats);
+        }
+      });
       toast.success(`Customer "${deletingCustomer.company || deletingCustomer.name}" deleted successfully.`);
       notificationApi.createNotification({
         type: 'customer_deleted',
@@ -466,9 +515,9 @@ export default function CustomerSection({ customers, setCustomers }) {
             <Users size={18} className="adm-cust-stat-icon purple" />
           </div>
           <span className="adm-cust-stat-val">
-            <CountUp end={counts.all} duration={1200} />
+            <CountUp end={dynamicCards.total} duration={1200} />
           </span>
-          <span className="adm-cust-stat-desc">All customer records</span>
+          <span className="adm-cust-stat-desc">{dynamicCards.totalDesc}</span>
         </div>
 
         <div
@@ -480,12 +529,12 @@ export default function CustomerSection({ customers, setCustomers }) {
             <CheckCircle2 size={18} className="adm-cust-stat-icon emerald" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#059669' }}>
-            <CountUp end={counts.active} duration={1200} />
+            <CountUp end={dynamicCards.active} duration={1200} />
           </span>
           <span className="adm-cust-stat-desc">
             Monthly MRR: ₹
             <CountUp
-              end={parseInt(totalActiveMRR.replace(/[^0-9]/g, '')) || 99000}
+              end={dynamicCards.mrr}
               useIndianFormat={true}
               duration={1400}
             />
@@ -501,9 +550,9 @@ export default function CustomerSection({ customers, setCustomers }) {
             <Clock size={18} className="adm-cust-stat-icon amber" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#d97706' }}>
-            <CountUp end={counts.demo} duration={1200} />
+            <CountUp end={dynamicCards.demo} duration={1200} />
           </span>
-          <span className="adm-cust-stat-desc">14-Day sandbox trials</span>
+          <span className="adm-cust-stat-desc">{dynamicCards.demoDesc}</span>
         </div>
 
         <div
@@ -515,9 +564,9 @@ export default function CustomerSection({ customers, setCustomers }) {
             <XCircle size={18} className="adm-cust-stat-icon slate" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#64748b' }}>
-            <CountUp end={counts.inactive} duration={1200} />
+            <CountUp end={dynamicCards.inactive} duration={1200} />
           </span>
-          <span className="adm-cust-stat-desc">Expired / pending renewals</span>
+          <span className="adm-cust-stat-desc">{dynamicCards.inactiveDesc}</span>
         </div>
       </div>
 

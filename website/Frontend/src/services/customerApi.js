@@ -18,7 +18,7 @@ const SANGAM_CRM_BASE_URL = 'https://nistally.sangamcrm.com';
 
 export const customerApi = {
   /**
-   * Fetch all customers with their live Sangam CRM sync statuses
+   * Fetch all customers with their live Sangam CRM sync statuses and dynamic summary stats
    */
   async getCustomers() {
     try {
@@ -32,10 +32,40 @@ export const customerApi = {
         throw new Error(`Server returned HTTP ${res.status}`);
       }
       const data = await res.json();
-      return data.customers || [];
+      const list = data.customers || [];
+      if (data.stats || data.summary) {
+        list.stats = data.stats || data.summary;
+      }
+      return list;
     } catch (err) {
       console.warn('[customerApi] Could not fetch customers from backend, using local state:', err.message);
       return null;
+    }
+  },
+
+  /**
+   * Fetch full customer directory payload including dynamic card stats
+   */
+  async getCustomerListing() {
+    try {
+      const res = await fetch(API_BASE_URL, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      return {
+        customers: data.customers || [],
+        stats: data.stats || data.summary || null,
+        count: data.count || (data.customers ? data.customers.length : 0)
+      };
+    } catch (err) {
+      console.warn('[customerApi] Could not fetch customer listing:', err.message);
+      return { customers: [], stats: null, count: 0 };
     }
   },
 
@@ -138,5 +168,3 @@ export const customerApi = {
     )}`;
   }
 };
-
-

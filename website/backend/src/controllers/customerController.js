@@ -6,7 +6,47 @@ import mongoose from 'mongoose';
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 /**
- * Get all customer records with their live Sangam CRM sync statuses
+ * Helper to compute dynamic customer summary cards data
+ */
+export const computeCustomerStats = (customerList = []) => {
+  const totalAccounts = customerList.length;
+  const activeClients = customerList.filter(
+    (c) => (c.status || '').toLowerCase() === 'active'
+  ).length;
+  const demoTrials = customerList.filter((c) => {
+    const s = (c.status || '').toLowerCase();
+    return s === 'demo' || s === 'trial';
+  }).length;
+  const inactivePaused = customerList.filter((c) => {
+    const s = (c.status || '').toLowerCase();
+    return s === 'inactive' || s === 'suspended' || s === 'paused';
+  }).length;
+
+  const monthlyMrr = customerList
+    .filter((c) => (c.status || '').toLowerCase() === 'active')
+    .reduce((sum, c) => {
+      const val = parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0;
+      return sum + val;
+    }, 0);
+
+  return {
+    totalAccounts,
+    activeClients,
+    demoTrials,
+    inactivePaused,
+    monthlyMrr,
+    formattedMonthlyMrr: `₹${monthlyMrr.toLocaleString('en-IN')}`,
+    descriptions: {
+      totalAccounts: 'All customer records',
+      activeClients: `Monthly MRR: ₹${monthlyMrr.toLocaleString('en-IN')}`,
+      demoTrials: '14-Day sandbox trials',
+      inactivePaused: 'Expired / pending renewals'
+    }
+  };
+};
+
+/**
+ * Get all customer records with their live Sangam CRM sync statuses and summary stats
  */
 export const getCustomers = async (req, res) => {
   try {
@@ -23,18 +63,30 @@ export const getCustomers = async (req, res) => {
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
     }));
 
+    const stats = computeCustomerStats(formatted);
+
     return res.status(200).json({
       success: true,
       count: formatted.length,
+      stats,
+      summary: stats,
       customers: formatted
     });
   } catch (err) {
     console.error('[CustomerController] getCustomers error:', err.message);
     const fileList = getCustomersFromFile();
+    const formattedFile = fileList.map((c) => ({
+      ...c,
+      id: c.customerId || c._id || c.id,
+      sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
+    }));
+    const stats = computeCustomerStats(formattedFile);
     return res.status(200).json({
       success: true,
-      count: fileList.length,
-      customers: fileList
+      count: formattedFile.length,
+      stats,
+      summary: stats,
+      customers: formattedFile
     });
   }
 };

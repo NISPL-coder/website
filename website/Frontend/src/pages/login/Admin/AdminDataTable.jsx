@@ -1,7 +1,32 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import DataTable from 'react-data-table-component';
 import { ArrowUp, SearchX, Loader2 } from 'lucide-react';
 import './AdminDataTable.css';
+
+const TOOLTIP_MAX_WIDTH = 384;
+const TOOLTIP_HOVER_DELAY = 200;
+const TOOLTIP_EDGE_GAP = 8;
+const TOOLTIP_ROW_GAP = 10;
+
+const isActionColumn = (column) => {
+  const id = String(column.id ?? '').toLowerCase();
+  const name = typeof column.name === 'string' ? column.name.toLowerCase() : '';
+  return column.omit || id.includes('action') || name.includes('action');
+};
+
+const formatTipValue = (value) => {
+  if (value == null || value === '') return '—';
+  if (value instanceof Date) return value.toLocaleString('en-IN');
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+};
 
 const getRowValue = (column, row) => {
   if (typeof column.selector === 'function') {
@@ -40,6 +65,10 @@ const getColumnOptions = (column, data) => {
  * Add `searchType: 'select'` (optionally with `searchOptions`) to a column to
  * render its column search as a dropdown instead of a free-text input.
  * Add `searchable: false` to opt a column out of the filter row.
+ *
+ * Hovering a data row lifts it and opens an anchored popup with the complete
+ * row data. While a row action menu (RowActionMenu) is open, the hover lift
+ * and popup are suppressed until that menu closes.
  */
 export default function AdminDataTable({
   columns,
@@ -66,6 +95,57 @@ export default function AdminDataTable({
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [columnFilters, setColumnFilters] = useState({});
+  const [rowTip, setRowTip] = useState(null); // { row, rowEl }
+  const [tipSize, setTipSize] = useState({ width: 0, height: 0 });
+  const [positionTick, setPositionTick] = useState(0);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const hoverTimerRef = useRef(null);
+  const hoveredRowKeyRef = useRef(null);
+  const tableWrapRef = useRef(null);
+  const tipRef = useRef(null);
+  const actionMenuOpenRef = useRef(false);
+
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    },
+    []
+  );
+
+  const clearRowTip = useCallback(() => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    hoveredRowKeyRef.current = null;
+    setRowTip(null);
+  }, []);
+
+  // RowActionMenu broadcasts its open state; while open, row hover is disabled.
+  useEffect(() => {
+    const handleMenuToggle = (event) => {
+      const detail = event.detail || {};
+      const targetsThisTable = !detail.table || detail.table === tableWrapRef.current;
+      const open = Boolean(detail.open) && targetsThisTable;
+      actionMenuOpenRef.current = open;
+      setActionMenuOpen(open);
+      if (open) clearRowTip();
+    };
+    window.addEventListener('nispl_row_action_menu', handleMenuToggle);
+    return () => window.removeEventListener('nispl_row_action_menu', handleMenuToggle);
+  }, [clearRowTip]);
+
+  // Keep the anchored popup glued to its row while scrolling or resizing.
+  useEffect(() => {
+    if (!rowTip) return undefined;
+    const reposition = () => setPositionTick((tick) => tick + 1);
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [rowTip]);
 
   // Return to the first page whenever the parent search or filters change.
   useEffect(() => {
@@ -114,66 +194,165 @@ export default function AdminDataTable({
     );
   }, [data, columns, activeFilters]);
 
-  const searchableColumns = useMemo(
-    () =>
-      (columns || []).map((column) => {
-        const columnId = String(column.id ?? column.name ?? '');
-        const canSearch =
-          column.searchable !== false && !column.omit && columnId !== 'actions';
+  // Show a full-row detail popup when hovering a data row (body rows have id="row-<keyField>").
+  const handleTableMouseOver = useCallback(
+    (event) => {
+      if (actionMenuOpenRef.current) {
+        clearRowTip();
+        return;
+      }
 
-        if (!canSearch) return column;
+      const rowEl = event.target.closest?.('div[id^="row-"]');
+      if (!rowEl || !tableWrapRef.current?.contains(rowEl)) {
+        clearRowTip();
+        return;
+      }
 
+      const key = rowEl.id.slice('row-'.length);
+      if (hoveredRowKeyRef.current === key) return;
+
+      const row = filteredData.find((item) => String(item[keyField]) === key);
+      if (!row) {
+        clearRowTip();
+        return;
+      }
+
+      hoveredRowKeyRef.current = key;
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = setTimeout(() => {
+        setRowTip({ row, rowEl });
+      }, TOOLTIP_HOVER_DELAY);
+    },
+    [filteredData, keyField, clearRowTip]
+  );
+
+  // Dynamically calculate the minimum width required so columns NEVER overflow/squish
+  const calculatedMinWidth = useMemo(() => {
+    let total = 0;
+    (columns || []).forEach((col) => {
+      if (col.omit) return;
+      const w = col.width || col.minWidth;
+      if (w) {
+        const num = parseFloat(w);
+        total += isNaN(num) ? 140 : num;
+      } else {
+        total += 140;
+      }
+    });
+    return Math.max(total + 80, Number(minWidth) || 1000);
+  }, [columns, minWidth]);
+
+  const tipItems = useMemo(() => {
+    if (!rowTip) return [];
+    return columns
+      .filter((column) => !isActionColumn(column))
+      .map((column) => {
         const label =
           typeof column.name === 'string' || typeof column.name === 'number'
             ? String(column.name)
-            : columnId;
-        const value = columnFilters[columnId] ?? '';
-        const stopPropagation = (event) => event.stopPropagation();
+            : String(column.id ?? '');
+        return { label, value: formatTipValue(getRowValue(column, rowTip.row)) };
+      });
+  }, [rowTip, columns]);
 
-        const control =
-          column.searchType === 'select' ? (
-            <select
-              className="adm-col-search adm-col-search-select"
-              value={value}
-              onChange={(event) => handleColumnFilter(columnId, event.target.value)}
-              onClick={stopPropagation}
-              onMouseDown={stopPropagation}
-              onDoubleClick={stopPropagation}
-              onKeyDown={stopPropagation}
-              aria-label={`Filter ${label}`}
-            >
-              <option value="">All</option>
-              {getColumnOptions(column, data).map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              className="adm-col-search"
-              placeholder="Search..."
-              value={value}
-              onChange={(event) => handleColumnFilter(columnId, event.target.value)}
-              onClick={stopPropagation}
-              onMouseDown={stopPropagation}
-              onDoubleClick={stopPropagation}
-              onKeyDown={stopPropagation}
-              aria-label={`Search ${label}`}
-            />
-          );
+  useLayoutEffect(() => {
+    if (rowTip && tipRef.current) {
+      const rect = tipRef.current.getBoundingClientRect();
+      setTipSize({ width: rect.width, height: rect.height });
+    }
+  }, [rowTip, tipItems, positionTick]);
 
-        return {
-          ...column,
-          name: (
-            <div className="adm-col-head">
-              <span className="adm-col-head-label">{column.name}</span>
-              {control}
-            </div>
-          ),
-        };
-      }),
+  const tipStyle = useMemo(() => {
+    if (!rowTip || !tipItems.length || !rowTip.rowEl) return null;
+    const rect = rowTip.rowEl.getBoundingClientRect();
+    const width = Math.min(TOOLTIP_MAX_WIDTH, Math.max(tipSize.width, 240));
+    const height =
+      tipSize.height || Math.min(tipItems.length * 24 + 52, window.innerHeight * 0.6);
+
+    let left = rect.left + rect.width / 2 - width / 2;
+    left = Math.max(TOOLTIP_EDGE_GAP, Math.min(left, window.innerWidth - width - TOOLTIP_EDGE_GAP));
+
+    let top = rect.top - height - TOOLTIP_ROW_GAP;
+    if (top < TOOLTIP_EDGE_GAP) {
+      top = rect.bottom + TOOLTIP_ROW_GAP;
+    }
+    top = Math.max(TOOLTIP_EDGE_GAP, Math.min(top, window.innerHeight - height - TOOLTIP_EDGE_GAP));
+
+    return { left, top, maxWidth: TOOLTIP_MAX_WIDTH };
+  }, [rowTip, tipItems, tipSize, positionTick]);
+
+  const searchableColumns = useMemo(
+    () => (columns || []).map((column) => {
+      const columnId = String(column.id ?? column.name ?? '');
+      const isActionCol =
+        columnId.toLowerCase().includes('action') ||
+        (typeof column.name === 'string' && column.name.toLowerCase().includes('action'));
+      const canSearch =
+        column.searchable !== false && !column.omit && !isActionCol;
+
+      if (!canSearch) {
+        if (isActionCol) {
+          return {
+            ...column,
+            button: true,
+            allowOverflow: true,
+            searchable: false,
+          };
+        }
+        return column;
+      }
+
+      const label =
+        typeof column.name === 'string' || typeof column.name === 'number'
+          ? String(column.name)
+          : columnId;
+      const value = columnFilters[columnId] ?? '';
+      const stopPropagation = (event) => event.stopPropagation();
+
+      const control =
+        column.searchType === 'select' ? (
+          <select
+            className="adm-col-search adm-col-search-select"
+            value={value}
+            onChange={(event) => handleColumnFilter(columnId, event.target.value)}
+            onClick={stopPropagation}
+            onMouseDown={stopPropagation}
+            onDoubleClick={stopPropagation}
+            onKeyDown={stopPropagation}
+            aria-label={`Filter ${label}`}
+          >
+            <option value="">All</option>
+            {getColumnOptions(column, data).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            className="adm-col-search"
+            placeholder="Search..."
+            value={value}
+            onChange={(event) => handleColumnFilter(columnId, event.target.value)}
+            onClick={stopPropagation}
+            onMouseDown={stopPropagation}
+            onDoubleClick={stopPropagation}
+            onKeyDown={stopPropagation}
+            aria-label={`Search ${label}`}
+          />
+        );
+
+      return {
+        ...column,
+        name: (
+          <div className="adm-col-head">
+            <span className="adm-col-head-label">{column.name}</span>
+            {control}
+          </div>
+        ),
+      };
+    }),
     [columns, columnFilters, data, handleColumnFilter]
   );
 
@@ -195,7 +374,13 @@ export default function AdminDataTable({
   );
 
   return (
-    <div className="admin-datatable" style={{ '--admin-datatable-min-width': `${minWidth}px` }}>
+    <div
+      ref={tableWrapRef}
+      className={`admin-datatable${actionMenuOpen ? ' action-menu-open' : ''}`}
+      style={{ '--admin-datatable-min-width': `${calculatedMinWidth}px` }}
+      onMouseOver={handleTableMouseOver}
+      onMouseLeave={clearRowTip}
+    >
       <DataTable
         columns={searchableColumns}
         data={filteredData}
@@ -231,6 +416,23 @@ export default function AdminDataTable({
         progressPending={progressPending}
         progressComponent={progressComponent}
       />
+
+      {rowTip &&
+        tipStyle &&
+        createPortal(
+          <div ref={tipRef} className="adm-row-tooltip" style={tipStyle} role="tooltip">
+            <div className="adm-row-tooltip-title">Row Details</div>
+            <div className="adm-row-tooltip-grid">
+              {tipItems.map((item, index) => (
+                <React.Fragment key={`${item.label}-${index}`}>
+                  <span className="adm-row-tooltip-label">{item.label}</span>
+                  <span className="adm-row-tooltip-value">{item.value}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
