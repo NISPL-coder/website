@@ -962,7 +962,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot purple" />
-              <CountUp end={activeOverviewData.kpi.enterpriseSLACount} duration={1200} /> Enterprise SLAs Active
+              <CountUp end={filteredOverviewContracts.length} duration={1200} /> Enterprise SLAs Active
             </span>
             <button
               type="button"
@@ -991,19 +991,19 @@ export default function OverviewSection({
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Accounts Pipeline</span>
             <div className="adm-finance-value blue-val">
-              <CountUp end={activeOverviewData.kpi.totalPipelineCount} duration={1200} /> Accounts
+              <CountUp end={filteredOverviewCustomers.length} duration={1200} /> Accounts
             </div>
             <p className="adm-finance-caption">
               <strong style={{ color: '#059669' }}>
-                <CountUp end={activeOverviewData.kpi.activeCount} duration={1200} /> Active
+                <CountUp end={filteredOverviewCustomers.filter((c) => c.status?.toLowerCase() === 'active').length} duration={1200} /> Active
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#d97706' }}>
-                <CountUp end={activeOverviewData.kpi.demoCount} duration={1200} /> Demo Trial
+                <CountUp end={filteredOverviewCustomers.filter((c) => c.status?.toLowerCase() === 'demo').length} duration={1200} /> Demo Trial
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#64748b' }}>
-                <CountUp end={activeOverviewData.kpi.inactiveCount} duration={1200} /> Inactive
+                <CountUp end={filteredOverviewCustomers.filter((c) => c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'suspended').length} duration={1200} /> Inactive
               </strong>
             </p>
           </div>

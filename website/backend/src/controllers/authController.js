@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Session from '../models/Session.js';
 import AdminOtp from '../models/AdminOtp.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
+import { sangamCrmService } from '../services/sangamCrmService.js';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/httpError.js';
@@ -55,60 +56,129 @@ export async function login(req, res) {
 }
 
 export async function registerCustomer(req, res) {
-  const { name, email, password, company, phone, gstNo, plan } = req.body;
-  const existing = await User.findOne({ email });
+  const {
+    name,
+    email,
+    password,
+    company,
+    companyName,
+    phone,
+    mobile,
+    gstNo,
+    plan,
+    address,
+    city
+  } = req.body;
+
+  const cleanName = String(name || '').trim();
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanCompany = String(company || companyName || cleanName).trim();
+  const cleanPhone = String(phone || mobile || '').trim() || '9876543210';
+  const cleanGst = String(gstNo || '').trim().toUpperCase();
+  const cleanPlan = plan || 'Tally Prime Cloud + VPS Gold';
+
+  if (!cleanName) throw new HttpError(400, 'Customer name is required.');
+  if (!cleanEmail) throw new HttpError(400, 'Customer email is required.');
+
+  // 1. Check existing account in User and Customer collections
+  const existing = await User.findOne({ email: cleanEmail });
   if (existing) throw new HttpError(409, 'An account with this email address already exists.');
 
+  if (isMongoConnected()) {
+    const existingCust = await Customer.findOne({
+      $or: [{ email: cleanEmail }, { phone: cleanPhone }]
+    });
+    if (existingCust) {
+      throw new HttpError(409, `Customer already exists with email "${cleanEmail}" or phone "${cleanPhone}".`);
+    }
+  }
+
+  // 2. Unified Customer Identifier
+  const customerId = `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  // 3. Create User Login Record
   const user = await User.create({
-    name, email, password, role: 'customer',
-    customerId: User.makeCustomerId(),
+    name: cleanName,
+    email: cleanEmail,
+    password,
+    role: 'customer',
+    customerId,
     accountStatus: 'active'
   });
 
-  // Also create a Customer record so the new account appears in admin lists
-  try {
-    const companyName = company || name;
-    const cleanPhone = phone || '';
-    const customerId = `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
-    const customerData = {
-      customerId,
-      id: customerId,
-      name: name.trim(),
-      company: companyName.trim(),
-      email: email.trim().toLowerCase(),
-      phone: cleanPhone.trim(),
-      gstNo: (gstNo || '').trim().toUpperCase(),
-      status: 'active',
-      registered: new Date().toISOString().split('T')[0],
-      plan: plan || 'Tally Prime Cloud + VPS Gold',
-      serverNode: 'CtrlS-KOL-NODE-01',
-      mrr: '₹15,000',
-      address: { city: 'Kolkata', state: 'West Bengal', country: 'India' },
-      sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
-    };
+  // 4. Create and Save Customer Entity in the shared 'customers' collection
+  let savedCustomer = {
+    customerId,
+    id: customerId,
+    name: cleanName,
+    company: cleanCompany,
+    email: cleanEmail,
+    phone: cleanPhone,
+    gstNo: cleanGst,
+    status: 'active',
+    registered: new Date().toISOString().split('T')[0],
+    plan: cleanPlan,
+    serverNode: 'CtrlS-KOL-NODE-01',
+    mrr: '₹15,000',
+    address: {
+      city: address?.city || city || 'Kolkata',
+      state: address?.state || 'West Bengal',
+      country: address?.country || 'India',
+      street: address?.street || '',
+      area: address?.area || '',
+      postalCode: address?.postalCode || '',
+      addressType: address?.addressType || 'Office / Billing'
+    },
+    sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
+  };
 
-    if (isMongoConnected()) {
-      const doc = new Customer(customerData);
-      await doc.save();
-    } else {
-      const list = getCustomersFromFile();
-      saveCustomersToFile([customerData, ...list]);
+  if (isMongoConnected()) {
+    const doc = new Customer(savedCustomer);
+    await doc.save();
+    savedCustomer = doc.toJSON();
+  }
+  const fileList = getCustomersFromFile();
+  saveCustomersToFile([savedCustomer, ...fileList.filter(c => c.customerId !== customerId)]);
+
+  // 5. Automatically Sync to Sangam CRM Companies
+  try {
+    const sangamResult = await sangamCrmService.createOrUpdateCompany(savedCustomer);
+    if (sangamResult.success) {
+      savedCustomer.sangamCrm = {
+        status: 'synced',
+        recordId: sangamResult.recordId,
+        lastSyncedAt: new Date().toISOString(),
+        syncError: null
+      };
+      if (isMongoConnected()) {
+        await Customer.findByIdAndUpdate(savedCustomer._id, {
+          $set: { sangamCrm: savedCustomer.sangamCrm }
+        });
+      }
     }
-  } catch (err) {
-    console.warn('[registerCustomer] Could not create Customer record:', err.message);
+  } catch (syncErr) {
+    console.warn('[registerCustomer] Sangam CRM sync exception:', syncErr.message);
   }
 
   const accessToken = await issueSession(user, req, res);
   await logNotification({
     type: 'customer_created',
     title: 'Customer Self-Registration',
-    message: `Customer "${name}" (${email}) registered online.`,
+    message: `Customer "${cleanName}" (${cleanCompany}) registered online.`,
     severity: 'success',
     entityType: 'customer',
-    user: { name, email, company }
+    entityId: customerId,
+    user: { name: cleanName, email: cleanEmail, company: cleanCompany },
+    metadata: { customerId, plan: cleanPlan }
   });
 
-  res.status(201).json({ success: true, message: 'Account created successfully.', accessToken, user: user.toSafeJSON() });
+  res.status(201).json({
+    success: true,
+    message: 'Account created successfully.',
+    accessToken,
+    user: user.toSafeJSON(),
+    customer: savedCustomer
+  });
 }
 
 export async function getMe(req, res) {

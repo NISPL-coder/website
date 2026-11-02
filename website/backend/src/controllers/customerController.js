@@ -1,5 +1,6 @@
 import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
+import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import mongoose from 'mongoose';
 
@@ -53,6 +54,39 @@ export const getCustomers = async (req, res) => {
     let list = [];
     if (isMongoConnected()) {
       list = await Customer.find().sort({ createdAt: -1 }).lean();
+
+      // Ensure self-registered customer accounts from 'users' collection are synced into 'customers'
+      try {
+        const customerUsers = await User.find({ role: 'customer' }).lean();
+        for (const u of customerUsers) {
+          const uEmail = (u.email || '').toLowerCase();
+          const alreadyExists = list.some(
+            (c) => (c.email && c.email.toLowerCase() === uEmail) || (c.customerId && u.customerId && c.customerId === u.customerId)
+          );
+          if (!alreadyExists && uEmail) {
+            const customerId = u.customerId || `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+            const backfillDoc = new Customer({
+              customerId,
+              id: customerId,
+              name: u.name || 'Customer Account',
+              company: u.name || 'Personal Account',
+              email: uEmail,
+              phone: '9876543210',
+              status: u.accountStatus || 'active',
+              plan: 'Tally Prime Cloud + VPS Gold',
+              serverNode: 'CtrlS-KOL-NODE-01',
+              mrr: '₹15,000',
+              registered: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              address: { city: 'Kolkata', state: 'West Bengal', country: 'India' },
+              sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
+            });
+            await backfillDoc.save();
+            list.unshift(backfillDoc.toJSON());
+          }
+        }
+      } catch (backfillErr) {
+        console.warn('[CustomerController] User backfill note:', backfillErr.message);
+      }
     } else {
       list = getCustomersFromFile();
     }
@@ -237,6 +271,30 @@ export const createCustomer = async (req, res) => {
     );
     saveCustomersToFile(updatedFileList);
 
+    // Ensure corresponding User account exists in 'users' collection for login
+    try {
+      if (isMongoConnected()) {
+        const existingUser = await User.findOne({ email: cleanEmail });
+        if (!existingUser) {
+          await User.create({
+            name: name.trim(),
+            email: cleanEmail,
+            password: req.body.password || 'Customer@12345',
+            role: 'customer',
+            customerId: customerId,
+            accountStatus: status || 'active'
+          });
+        } else {
+          existingUser.name = name.trim();
+          existingUser.customerId = customerId;
+          if (status) existingUser.accountStatus = status;
+          await existingUser.save();
+        }
+      }
+    } catch (userSyncErr) {
+      console.warn('[CustomerController] User account creation note:', userSyncErr.message);
+    }
+
     await logNotification({
       type: 'customer_created',
       title: 'Customer Created',
@@ -408,15 +466,6 @@ export const updateCustomer = async (req, res) => {
       if (idx !== -1) {
         fileList[idx] = { ...fileList[idx], ...updatedData };
         saveCustomersToFile(fileList);
-
-    await logNotification({
-      type: 'customer_deleted',
-      title: 'Customer Deleted',
-      message: `Customer account (${id}) was deleted.`,
-      severity: 'warning',
-      entityType: 'customer',
-      entityId: id
-    });
         savedCustomer = fileList[idx];
       }
     }
@@ -482,14 +531,36 @@ export const deleteCustomer = async (req, res) => {
       ? { $or: [{ customerId: id }, { _id: id }] }
       : { customerId: id };
 
+    let deletedCustomer = null;
     if (isMongoConnected()) {
-      await Customer.findOneAndDelete(query);
+      deletedCustomer = await Customer.findOneAndDelete(query);
+      if (deletedCustomer?.email) {
+        try {
+          await User.findOneAndDelete({ email: deletedCustomer.email.toLowerCase(), role: 'customer' });
+        } catch (uErr) {
+          console.warn('[CustomerController] User delete sync note:', uErr.message);
+        }
+      }
     }
 
     const fileList = getCustomersFromFile().filter(
       (c) => c.customerId !== id && c.id !== id && c._id !== id
     );
     saveCustomersToFile(fileList);
+
+    await logNotification({
+      type: 'customer_deleted',
+      title: 'Customer Deleted',
+      message: `Customer account (${id}) was deleted.`,
+      severity: 'warning',
+      entityType: 'customer',
+      entityId: id,
+      user: {
+        name: deletedCustomer?.name || '',
+        email: deletedCustomer?.email || '',
+        company: deletedCustomer?.company || ''
+      }
+    });
 
     return res.status(200).json({
       success: true,

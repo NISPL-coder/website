@@ -1,5 +1,41 @@
 [
   {
+    "customerId": "CUST-4194",
+    "name": "demo123",
+    "company": "demo123",
+    "email": "demo123@gmail.com",
+    "phone": "8723238732",
+    "alternatePhone": "",
+    "website": "",
+    "industry": "Technology",
+    "accountRelationship": "Customer",
+    "plan": "Tally Prime Cloud + VPS Gold",
+    "serverNode": "CtrlS-KOL-NODE-01",
+    "status": "active",
+    "registered": "2026-11-02",
+    "mrr": "₹15,000",
+    "address": {
+      "street": "",
+      "area": "",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "country": "India",
+      "postalCode": "",
+      "addressType": "Office / Billing"
+    },
+    "gstNo": "",
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": null
+    },
+    "_id": "6ae886ca974745e89a3f6af8",
+    "createdAt": "2026-11-02T12:49:14.162Z",
+    "updatedAt": "2026-11-02T12:49:14.162Z",
+    "id": "CUST-4194"
+  },
+  {
     "customerId": "CUST-9679",
     "name": "demo",
     "company": "demo",

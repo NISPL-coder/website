@@ -487,16 +487,19 @@ export function getOverviewFilteredData(period = 'monthly', fy = '2026-2027', cu
   });
 
   if (filteredContracts.length === 0) {
-    filteredContracts = contracts.slice(0, metrics.kpi.enterpriseSLACount);
+    filteredContracts = contracts;
   }
 
-  // Filter customer accounts matching target count
-  let targetCustomers = [...customers];
-  if (fy === '2025-2026') {
-    targetCustomers = customers.slice(0, metrics.kpi.totalPipelineCount);
-  } else if (fy === '2024-2025') {
-    targetCustomers = customers.slice(0, metrics.kpi.totalPipelineCount);
-  } else {
+  // Filter customer accounts matching the Financial Year
+  let targetCustomers = customers.filter((c) => {
+    const reg = c.registered || c.createdAt || '';
+    if (!reg) return true;
+    const year = parseInt(String(reg).split('-')[0], 10);
+    if (isNaN(year)) return true;
+    return year === startYear || year === endYear;
+  });
+
+  if (targetCustomers.length === 0) {
     targetCustomers = customers;
   }
 
