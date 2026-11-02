@@ -5,6 +5,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
 }
 
 .adm-action-dots-btn {
@@ -20,6 +23,7 @@
   cursor: pointer;
   transition: all 0.15s ease-in-out;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .adm-action-dots-btn:hover,
@@ -44,7 +48,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: admFadeSlideDown 0.15s ease-out;
 }
 
 @keyframes admFadeSlideDown {

@@ -23,7 +23,7 @@ export default function InputField({
       </label>
 
       <div className={`ebolt-input-wrap ${error ? 'has-error' : ''}`}>
-        {Icon && <Icon size={16} className="ebolt-input-icon" />}
+        {Icon && <Icon size={15} className="ebolt-input-icon" />}
         <input
           id={id}
           type={type}

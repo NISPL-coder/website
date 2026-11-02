@@ -3,11 +3,15 @@
  * Centralizes all HTTP communication with NISPL backend cart & add-ons endpoints.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/cart`
-  : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-    ? 'https://website-ebxf.onrender.com/api/cart'
-    : 'http://localhost:5000/api/cart';
+const isLocalhost = Boolean(
+  typeof window !== "undefined" && (
+    window.location.hostname === "localhost" || 
+    window.location.hostname === "127.0.0.1" || 
+    window.location.hostname === "[::1]"
+  )
+);
+const BACKEND_URL = isLocalhost ? "http://localhost:4000" : (import.meta.env.VITE_API_URL || "https://website-ebxf.onrender.com");
+const API_BASE_URL = `${BACKEND_URL}/api/cart`;
 
 const TOKEN_KEY = 'nispl_auth_token';
 const SESSION_ID_KEY = 'nispl_cart_session_id';
@@ -223,3 +227,4 @@ export const cartApi = {
 };
 
 export default cartApi;
+

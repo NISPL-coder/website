@@ -1,0 +1,548 @@
+/* =========================================================================
+   NISPL ADMIN — PREMIUM REACT DATA TABLE THEME
+   Scoped to .admin-datatable so the library defaults stay untouched.
+   ========================================================================= */
+
+.admin-datatable {
+  --rdt-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --rdt-font-size: 0.9rem;
+  --rdt-font-size-header: 0.75rem;
+  --rdt-row-height: 58px;
+  --rdt-header-height: 52px;
+  --rdt-cell-padding-x: 18px;
+  --rdt-cell-padding-x-mobile: 14px;
+  --rdt-icon-size: 18px;
+  --rdt-border-radius: 8px;
+
+  --rdt-color-bg: #ffffff;
+  --rdt-color-header-bg: #f8fafc;
+  --rdt-color-footer-bg: #ffffff;
+  --rdt-color-text-primary: #0f172a;
+  --rdt-color-text-secondary: #64748b;
+  --rdt-color-divider: #f1f5f9;
+  --rdt-color-primary: #6366f1;
+  --rdt-color-highlight: #f8fafc;
+  --rdt-color-highlight-text: #0f172a;
+  --rdt-color-selected: #f3f0ff;
+  --rdt-color-selected-text: #0f172a;
+  --rdt-color-striped: #fafbfc;
+  --rdt-color-striped-text: #0f172a;
+  --rdt-color-btn: #64748b;
+  --rdt-color-btn-hover: #f3f0ff;
+  --rdt-color-btn-focus: #ede9fe;
+  --rdt-color-btn-disabled: #cbd5e1;
+  --rdt-color-scrollbar-thumb: #cbd5e1;
+  --rdt-color-scrollbar-thumb-hover: #94a3b8;
+
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  border-top: 1px solid var(--adm-border-light, #f1f5f9);
+  background: #ffffff;
+}
+
+/* ------------------------------------------------------------------ *
+ * Horizontal scrolling + fixed-height body
+ * ------------------------------------------------------------------ */
+.admin-datatable .rdt_wrapper,
+.admin-datatable .rdt_table,
+.admin-datatable .rdt_Table,
+.admin-datatable .rdt_TableHead,
+.admin-datatable .rdt_TableHeadRow,
+.admin-datatable .rdt_headRow,
+.admin-datatable .rdt_TableBody,
+.admin-datatable .rdt_TableRow,
+.admin-datatable .rdt_row {
+  min-width: var(--admin-datatable-min-width, 1000px);
+}
+
+.admin-datatable .rdt_responsiveWrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar {
+  width: 7px;
+  height: 8px;
+}
+
+.admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+.admin-datatable .rdt_headRow {
+  background: #f8fafc;
+  border-bottom: 1px solid #e8eef5;
+  box-shadow: inset 0 -1px 0 #eef3f8;
+}
+
+.admin-datatable .rdt_cellBaseHead {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  white-space: normal;
+}
+
+/* Let long header labels wrap instead of clipping with an ellipsis. */
+.admin-datatable .rdt_cellBaseHead .rdt_columnSortable {
+  overflow: visible;
+  align-items: flex-start;
+  height: auto;
+  min-height: 100%;
+}
+
+.admin-datatable .rdt_cellBaseHead .rdt_columnText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  word-break: break-word;
+  line-height: 1.3;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+/* Body cells clip overflowing content so columns never paint over each other. */
+.admin-datatable .rdt_cellBase:not(.rdt_cellBaseHead) {
+  overflow: hidden;
+}
+
+/* Per-column filter row rendered inside each header cell. */
+.admin-datatable .adm-col-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-datatable .adm-col-head-label {
+  display: block;
+}
+
+.admin-datatable .adm-col-search {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  margin: 0;
+  padding: 0 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: var(--rdt-font-family);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: text;
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.admin-datatable .adm-col-search::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.admin-datatable .adm-col-search:hover {
+  border-color: #cbd5e1;
+}
+
+.admin-datatable .adm-col-search:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.14);
+}
+
+.admin-datatable .adm-col-search-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 22px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+  cursor: pointer;
+}
+
+
+.admin-datatable .rdt_columnSortableEnabled {
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.admin-datatable .rdt_columnSortableEnabled:hover .rdt_columnText,
+.admin-datatable .rdt_columnSortableActive .rdt_columnText {
+  color: #4f46e5;
+}
+
+.admin-datatable .rdt_sortIcon {
+  margin-left: 6px;
+  margin-top: 2px;
+  color: #94a3b8;
+  transition: color 0.18s ease;
+}
+
+.admin-datatable .rdt_sortIconInactive svg {
+  opacity: 0.38;
+}
+
+.admin-datatable .rdt_sortIconActive svg {
+  opacity: 1;
+}
+
+.admin-datatable .rdt_columnSortableEnabled:hover .rdt_sortIconInactive svg {
+  opacity: 0.75;
+  color: #6366f1;
+}
+
+.admin-datatable .rdt_columnSortableActive .rdt_sortIcon {
+  color: #6366f1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Rows & cells
+ * ------------------------------------------------------------------ */
+.admin-datatable .rdt_row {
+  position: relative;
+  z-index: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.15s ease;
+}
+
+.admin-datatable .rdt_row:last-of-type {
+  border-bottom: none;
+}
+
+.admin-datatable .rdt_rowHighlight,
+.admin-datatable .rdt_row:hover {
+  background: #f8fafc;
+}
+
+/* Lift the hovered row like a card so the full-details popup reads as its overlay. */
+.admin-datatable .rdt_row:hover {
+  z-index: 6;
+  transform: translateY(-3px) scale(1.004);
+  background: #ffffff;
+  border-radius: 12px;
+  border-bottom-color: transparent;
+  box-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.16),
+    0 3px 8px rgba(15, 23, 42, 0.08);
+}
+
+.admin-datatable .rdt_TableCell {
+  padding-top: 0;
+  padding-bottom: 0;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.admin-datatable .rdt_TableCell[data-column-id="actions"],
+.admin-datatable .rdt_TableCol[data-column-id="actions"] {
+  overflow: visible !important;
+}
+
+.admin-datatable .rdt_TableCell.rdt_cellBase {
+  align-items: center;
+  line-height: 1.35;
+}
+
+.admin-datatable .rdt_rowPointer {
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ *
+ * Pagination
+ * ------------------------------------------------------------------ */
+.admin-datatable .rdt_pagination {
+  border-top: 1px solid #f1f5f9;
+  min-height: 54px;
+  padding: 0 18px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  background: #ffffff;
+  gap: 2px;
+}
+
+.admin-datatable .rdt_paginationSpan,
+.admin-datatable .rdt_paginationRange {
+  color: #64748b;
+}
+
+.admin-datatable .rdt_paginationRange {
+  margin: 0 18px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #eef3f8;
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-datatable .rdt_selectWrapper {
+  height: 30px;
+  border-radius: 8px;
+  border-color: #e2e8f0;
+  background: #ffffff;
+  margin-left: 10px;
+}
+
+.admin-datatable .rdt_selectControl {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-datatable .rdt_paginationButton {
+  height: 32px;
+  width: 32px;
+  margin: 0 2px;
+  border-radius: 8px;
+  color: #64748b;
+  fill: #64748b;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.admin-datatable .rdt_paginationButton:hover:not(:disabled) {
+  background: #f3f0ff;
+  color: #6366f1;
+  fill: #6366f1;
+}
+
+.admin-datatable .rdt_paginationButton:disabled {
+  color: #cbd5e1;
+  fill: #cbd5e1;
+}
+
+.admin-datatable .rdt_paginationButton svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Hover row-details popup (portaled to <body>, fixed positioning)
+ * ------------------------------------------------------------------ */
+.adm-row-tooltip {
+  position: fixed;
+  z-index: 9999;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 384px;
+  max-height: 60vh;
+  overflow: hidden;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+  font-family: var(--rdt-font-family);
+  pointer-events: none;
+  animation: admRowTooltipIn 0.14s ease-out;
+}
+
+.adm-row-tooltip-title {
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #818cf8;
+}
+
+.adm-row-tooltip-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px 16px;
+  align-items: start;
+}
+
+.adm-row-tooltip-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  white-space: nowrap;
+  padding-top: 1px;
+}
+
+.adm-row-tooltip-value {
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #f1f5f9;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@keyframes admRowTooltipIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-row-tooltip {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Empty, loading and utility states
+ * ------------------------------------------------------------------ */
+.admin-datatable .rdt_noData {
+  min-height: 220px;
+  background: #ffffff;
+  width: 100%;
+}
+
+.admin-datatable-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 40px 20px;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  margin: 0 auto;
+}
+
+.admin-datatable-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background: #f5f3ff;
+  color: #6366f1;
+  border: 1px solid #e9e4ff;
+}
+
+.admin-datatable-empty-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.admin-datatable-empty-hint {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.admin-datatable-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 40px;
+  color: #6366f1;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.admin-datatable-spinner {
+  animation: adminDatatableSpin 0.75s linear infinite;
+}
+
+@keyframes adminDatatableSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive refinements
+ * ------------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .admin-datatable .rdt_pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .admin-datatable .rdt_paginationRange {
+    margin: 0 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-datatable {
+    --rdt-cell-padding-x: 14px;
+    --rdt-row-height: 56px;
+  }
+
+  .admin-datatable .adm-col-search {
+    font-size: 16px;
+    height: 34px;
+  }
+
+  .admin-datatable .rdt_paginationRowLabel,
+  .admin-datatable .rdt_selectWrapper {
+    display: none;
+  }
+
+  .admin-datatable .rdt_pagination {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-datatable-spinner {
+    animation: none;
+  }
+}
+
+.admin-datatable .rdt_TableCell[data-column-id*="action" i],
+.admin-datatable .rdt_TableCol[data-column-id*="action" i],
+.admin-datatable .rdt_TableCell[data-column-id="actions"],
+.admin-datatable .rdt_TableCol[data-column-id="actions"],
+.admin-datatable div[data-column-id="actions"] {
+  overflow: visible !important;
+  min-width: 120px !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-datatable .rdt_TableCell[data-column-id*="action" i] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-datatable .rdt_TableCell {
+  overflow: visible;
+}

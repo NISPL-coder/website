@@ -1,0 +1,433 @@
+/* ==========================================================================
+   ADMIN NOTIFICATION POPOVER CSS
+   Modern, sleek dropdown for real-time customer, contract & payment notifications.
+   ========================================================================== */
+
+.adm-notif-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 45px -10px rgba(15, 23, 42, 0.16),
+    0 8px 16px -4px rgba(15, 23, 42, 0.08);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (max-width: 540px) {
+  .adm-notif-popover {
+    width: calc(100vw - 20px);
+    right: -50px;
+  }
+}
+
+/* Header */
+.adm-notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef2f6;
+  gap: 12px;
+}
+
+.adm-notif-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-notif-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-notif-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adm-notif-new-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.adm-notif-all-read-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.adm-notif-sub {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.adm-notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.adm-notif-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 6px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-notif-action-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.adm-notif-action-btn-danger:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+.adm-notif-action-btn.is-spinning svg {
+  animation: notifSpin 0.75s linear infinite;
+}
+
+@keyframes notifSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tabs */
+.adm-notif-tabs {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  gap: 6px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.adm-notif-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.adm-notif-tab {
+  border: none;
+  background: transparent;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.adm-notif-tab:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.adm-notif-tab.active {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+/* List */
+.adm-notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-notif-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f8fafc;
+  cursor: pointer;
+  background: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.adm-notif-item:hover {
+  background: #f8fafc;
+}
+
+.adm-notif-item.is-unread {
+  background: #fbfbfe;
+}
+
+.adm-notif-item.is-unread:hover {
+  background: #f5f3ff;
+}
+
+.adm-notif-unread-dot {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6366f1;
+  box-shadow: 0 0 0 2px #ede9fe;
+}
+
+.adm-notif-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.adm-notif-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.adm-notif-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.adm-notif-item-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adm-notif-item-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adm-notif-item-time {
+  font-size: 0.70rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.adm-notif-item-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.adm-notif-tag-payment {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.adm-notif-tag-customer {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.adm-notif-tag-contract {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.adm-notif-tag-amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.adm-notif-tag-danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.adm-notif-tag-purple {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.adm-notif-tag-cyan {
+  background: #ecfeff;
+  color: #0891b2;
+}
+
+.adm-notif-tag-gray {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.adm-notif-item-desc {
+  font-size: 0.78rem;
+  color: #334155;
+  line-height: 1.35;
+  margin: 0 0 6px 0;
+  word-break: break-word;
+}
+
+/* Metadata Chips */
+.adm-notif-item-meta-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.adm-notif-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.adm-notif-chip-amount {
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 700;
+}
+
+.adm-notif-chip-email {
+  font-family: monospace;
+}
+
+/* Row Actions on Hover */
+.adm-notif-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.adm-notif-item:hover .adm-notif-item-actions {
+  opacity: 1;
+}
+
+.adm-notif-row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 4px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-notif-row-action:hover {
+  background: #ede9fe;
+  color: #6366f1;
+  border-color: #c4b5fd;
+}
+
+.adm-notif-row-action-delete:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+/* Empty State */
+.adm-notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.adm-notif-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f5f3ff;
+  color: #6366f1;
+  margin-bottom: 10px;
+}
+
+.adm-notif-empty-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.adm-notif-empty-hint {
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+/* Footer */
+.adm-notif-footer {
+  padding: 8px 16px;
+  background: #f8fafc;
+  border-top: 1px solid #eef2f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-notif-footer-text {
+  font-size: 0.70rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+

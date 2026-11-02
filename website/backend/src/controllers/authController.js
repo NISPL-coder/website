@@ -1,12 +1,18 @@
+import { logNotification } from '../services/notificationService.js';
 import crypto from 'node:crypto';
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import AdminOtp from '../models/AdminOtp.js';
+import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
+import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/httpError.js';
 import { createAccessToken, createRefreshToken, hashToken, verifyRefreshToken } from '../utils/tokens.js';
 import { sendPasswordResetEmail, sendAdminOtpEmail } from '../utils/mailer.js';
 
+function isMongoConnected() {
+  return mongoose.connection.readyState === 1;
+}
 function cookieOptions() {
   return {
     httpOnly: true,
@@ -49,7 +55,7 @@ export async function login(req, res) {
 }
 
 export async function registerCustomer(req, res) {
-  const { name, email, password } = req.body;
+  const { name, email, password, company, phone, gstNo, plan } = req.body;
   const existing = await User.findOne({ email });
   if (existing) throw new HttpError(409, 'An account with this email address already exists.');
 
@@ -58,7 +64,50 @@ export async function registerCustomer(req, res) {
     customerId: User.makeCustomerId(),
     accountStatus: 'active'
   });
+
+  // Also create a Customer record so the new account appears in admin lists
+  try {
+    const companyName = company || name;
+    const cleanPhone = phone || '';
+    const customerId = `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+    const customerData = {
+      customerId,
+      id: customerId,
+      name: name.trim(),
+      company: companyName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: cleanPhone.trim(),
+      gstNo: (gstNo || '').trim().toUpperCase(),
+      status: 'active',
+      registered: new Date().toISOString().split('T')[0],
+      plan: plan || 'Tally Prime Cloud + VPS Gold',
+      serverNode: 'CtrlS-KOL-NODE-01',
+      mrr: '₹15,000',
+      address: { city: 'Kolkata', state: 'West Bengal', country: 'India' },
+      sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
+    };
+
+    if (isMongoConnected()) {
+      const doc = new Customer(customerData);
+      await doc.save();
+    } else {
+      const list = getCustomersFromFile();
+      saveCustomersToFile([customerData, ...list]);
+    }
+  } catch (err) {
+    console.warn('[registerCustomer] Could not create Customer record:', err.message);
+  }
+
   const accessToken = await issueSession(user, req, res);
+  await logNotification({
+    type: 'customer_created',
+    title: 'Customer Self-Registration',
+    message: `Customer "${name}" (${email}) registered online.`,
+    severity: 'success',
+    entityType: 'customer',
+    user: { name, email, company }
+  });
+
   res.status(201).json({ success: true, message: 'Account created successfully.', accessToken, user: user.toSafeJSON() });
 }
 
@@ -97,43 +146,90 @@ export async function logout(req, res) {
 
 export async function forgotPassword(req, res) {
   const { email } = req.body;
-  const user = await User.findOne({ email }).select('+passwordResetTokenHash +passwordResetExpiresAt');
-  // Same response whether the account exists or not, to prevent email enumeration.
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+
+  const user = await User.findOne({
+    $or: [
+      { email: normalizedEmail },
+      { customerId: String(email || '').trim().toUpperCase() }
+    ]
+  }).select('+passwordResetTokenHash +passwordResetExpiresAt');
+
+  let devResetUrl = undefined;
+
+  // Same general response whether the account exists or not, to prevent email enumeration.
   if (user && user.accountStatus === 'active') {
     const rawToken = crypto.randomBytes(32).toString('hex');
     user.passwordResetTokenHash = hashToken(rawToken);
     user.passwordResetExpiresAt = new Date(Date.now() + env.PASSWORD_RESET_EXPIRES_MINUTES * 60 * 1000);
     await user.save();
+
     const resetUrl = `${env.APP_BASE_URL}/reset-password?token=${encodeURIComponent(rawToken)}`;
-    await sendPasswordResetEmail(user.email, resetUrl);
+
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl);
+    } catch (mailErr) {
+      console.error('Failed to send password reset email via SMTP:', mailErr.message);
+      if (env.NODE_ENV === 'production' && env.SMTP_HOST) {
+        throw new HttpError(500, `Email dispatch error: ${mailErr.message}`);
+      }
+    }
+
+    if (env.NODE_ENV !== 'production') {
+      devResetUrl = resetUrl;
+    }
   }
-  res.json({ success: true, message: 'If an active account exists for that email, password reset instructions have been sent.' });
+
+  res.json({
+    success: true,
+    message: 'If an active account exists for that email, password reset instructions have been sent.',
+    devResetUrl
+  });
 }
 
 export async function resetPassword(req, res) {
   const { token, password } = req.body;
+  if (!token) throw new HttpError(400, 'Password reset token is required.');
+  if (!password || String(password).length < 6) {
+    throw new HttpError(400, 'New password must contain at least 6 characters.');
+  }
+
   const user = await User.findOne({
     passwordResetTokenHash: hashToken(token),
     passwordResetExpiresAt: { $gt: new Date() }
   }).select('+password +passwordResetTokenHash +passwordResetExpiresAt');
 
-  if (!user) throw new HttpError(400, 'Reset link is invalid or has expired.');
-  user.password = password;
+  if (!user) throw new HttpError(400, 'Reset link is invalid or has expired. Please request a new link.');
+
+  user.password = String(password);
   user.passwordResetTokenHash = undefined;
   user.passwordResetExpiresAt = undefined;
   await user.save();
+
+  // Revoke all existing sessions
   await Session.updateMany({ user: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
-  res.json({ success: true, message: 'Password has been reset. Please log in again.' });
+
+  res.json({
+    success: true,
+    message: 'Password has been reset successfully. You can now log in.'
+  });
 }
 
 export async function getAdminConfig(req, res) {
+  const existingAdmin = await User.findOne({ role: 'admin' });
   res.json({
     success: true,
-    adminEmail: env.ADMIN_EMAIL
+    adminEmail: env.ADMIN_EMAIL,
+    adminExists: Boolean(existingAdmin)
   });
 }
 
 export async function sendAdminOtp(req, res) {
+  const existingAdmin = await User.findOne({ role: 'admin' });
+  if (existingAdmin) {
+    throw new HttpError(400, 'An administrator account already exists. Multiple admin accounts are not permitted.');
+  }
+
   const adminEmail = env.ADMIN_EMAIL;
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
@@ -163,6 +259,11 @@ export async function sendAdminOtp(req, res) {
 }
 
 export async function verifyAndCreateAdmin(req, res) {
+  const existingAdmin = await User.findOne({ role: 'admin' });
+  if (existingAdmin) {
+    throw new HttpError(400, 'An administrator account already exists. Multiple admin accounts are not permitted.');
+  }
+
   const { name, designation, password, otp } = req.body;
   const adminEmail = env.ADMIN_EMAIL;
 

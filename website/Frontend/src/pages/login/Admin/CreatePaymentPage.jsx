@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
+import { notificationApi } from '../../../services/notificationApi';
 
 const PAYMENT_METHODS = [
   { value: 'NEFT / RTGS Wire', label: 'NEFT / RTGS Wire' },
@@ -80,6 +81,27 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
     };
 
     setPayments([newPayment, ...payments]);
+
+    // Dispatch real-time payment received notification to backend
+    notificationApi.createNotification({
+      type: 'payment_received',
+      title: 'Payment Received',
+      message: `Payment of ${newPayment.amount} received from ${newPayment.company} (${newPayment.customer}) via ${newPayment.method}.`,
+      severity: 'success',
+      entityType: 'payment',
+      entityId: newPayment.id,
+      user: {
+        name: newPayment.customer,
+        company: newPayment.company
+      },
+      metadata: {
+        amount: newPayment.amount,
+        method: newPayment.method,
+        invoiceRef: newPayment.invoiceRef,
+        transactionId: newPayment.id,
+        status: newPayment.status
+      }
+    });
     toast.success(`Payment ${newPayment.id} recorded successfully!`, {
       style: {
         borderRadius: '12px',

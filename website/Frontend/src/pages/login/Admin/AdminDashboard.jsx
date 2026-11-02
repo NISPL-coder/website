@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, LogOut, Menu, X, RefreshCw } from 'lucide-react';
+import { Search, Bell, Menu, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 import './AdminDashboard.css';
@@ -20,6 +20,14 @@ import CreateContractPage from './CreateContractPage';
 import CreatePaymentPage from './CreatePaymentPage';
 import CreateProductPage from './CreateProductPage';
 
+// Admin Tools: Profile Menu, Profile Page, CSV Import & Sangam CRM Sync
+import AdminProfileMenu from './AdminProfileMenu';
+import ProfilePage from './ProfilePage';
+import ImportCsvPage from './ImportCsvPage';
+import SangamSyncPage from './SangamSyncPage';
+import { authApi } from '../../../services/authApi';
+import './AdminTools.css';
+
 // Initial Datasets
 import {
   INITIAL_CUSTOMERS,
@@ -29,6 +37,8 @@ import {
   INITIAL_RECEIPTS
 } from './adminData';
 import { customerApi } from '../../../services/customerApi';
+import { notificationApi } from '../../../services/notificationApi';
+import NotificationPopover from './NotificationPopover';
 import { contractApi } from '../../../services/contractApi';
 
 export default function AdminDashboard({ userSession, onSignOut }) {
@@ -46,6 +56,9 @@ export default function AdminDashboard({ userSession, onSignOut }) {
     if (path.includes('/admin/customer/contract')) return 'contract';
     if (path.includes('/admin/customer/payment')) return 'payment';
     if (path === '/admin/customer' || path.startsWith('/admin/customer')) return 'customer';
+    if (path.includes('/admin/import-csv')) return 'import-csv';
+    if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
+    if (path.includes('/admin/profile')) return 'profile';
     if (path.includes('/admin/product')) return 'product';
     if (path.includes('/admin/receipt')) return 'receipt';
     return 'overview';
@@ -109,6 +122,124 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [receipts, setReceipts] = useState(INITIAL_RECEIPTS);
 
+  // Live Notifications State
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isNotifLoading, setIsNotifLoading] = useState(false);
+
+  const loadNotifications = React.useCallback(async () => {
+    try {
+      setIsNotifLoading(true);
+      const data = await notificationApi.getNotifications();
+      if (data && Array.isArray(data.notifications)) {
+        setNotifications(data.notifications);
+        setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
+      }
+    } catch (err) {
+      console.warn('Failed to load notifications:', err);
+    } finally {
+      setIsNotifLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
+    const timer = setInterval(loadNotifications, 25000);
+
+    // Listen to real-time notification events dispatched across the app
+    const handleNewNotif = (event) => {
+      if (event.detail) {
+        const notif = event.detail;
+        setNotifications((prev) => [notif, ...prev.filter((n) => (n._id || n.id) !== (notif._id || notif.id))]);
+        setUnreadCount((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener('nispl_new_notification', handleNewNotif);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('nispl_new_notification', handleNewNotif);
+    };
+  }, [loadNotifications]);
+
+  // Dynamic Contract Renewal Check: generates renewal notifications for expiring agreements
+  useEffect(() => {
+    if (!contracts || !contracts.length) return;
+    const now = new Date();
+
+    contracts.forEach((c) => {
+      const isExpiringStatus = c.status === 'expiring';
+      let isNearExpiry = false;
+
+      if (c.expiryDate) {
+        const expDate = new Date(c.expiryDate);
+        const daysRemaining = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        if (daysRemaining <= 60) {
+          isNearExpiry = true;
+        }
+      }
+
+      if (isExpiringStatus || isNearExpiry) {
+        const renewalId = `renewal_${c.id || c.contractCode || c._id}`;
+        const stored = localStorage.getItem('nispl_admin_notifications_store') || '';
+        if (!stored.includes(renewalId)) {
+          notificationApi.createNotification({
+            type: 'contract_renewal',
+            title: 'Contract Renewal Due',
+            message: `Contract "${c.name || c.contractCode}" for ${c.company} is due for renewal on ${c.expiryDate || 'upcoming cycle'}.`,
+            severity: 'warning',
+            entityType: 'contract',
+            entityId: renewalId,
+            user: {
+              name: c.customer || c.primaryContact?.name || c.company,
+              company: c.company,
+              email: c.email || c.primaryContact?.email
+            },
+            metadata: {
+              contractCode: c.contractCode || c.id,
+              expiryDate: c.expiryDate,
+              serviceTier: c.serviceTier || c.tier,
+              value: c.contractValue
+            }
+          });
+        }
+      }
+    });
+  }, [contracts]);
+
+  const handleMarkAsRead = async (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n._id === id || n.id === id ? { ...n, read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+    await notificationApi.markAsRead(id);
+  };
+
+  const handleMarkAllAsRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
+    toast.success('All notifications marked as read');
+    await notificationApi.markAllAsRead();
+  };
+
+  const handleDeleteNotif = async (id) => {
+    const target = notifications.find((n) => n._id === id || n.id === id);
+    setNotifications((prev) => prev.filter((n) => n._id !== id && n.id !== id));
+    if (target && !target.read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+    await notificationApi.deleteNotification(id);
+  };
+
+  const handleClearAllNotif = async () => {
+    setNotifications([]);
+    setUnreadCount(0);
+    toast.success('All notifications cleared');
+    await notificationApi.clearAll();
+  };
+
   // Load live customers & contracts with Sangam CRM synchronization status from backend
   useEffect(() => {
     let isMounted = true;
@@ -127,8 +258,11 @@ export default function AdminDashboard({ userSession, onSignOut }) {
     };
   }, []);
 
-  const adminName = userSession?.name || userSession?.user || 'NISPL Administrator';
-  const adminEmail = userSession?.user || 'admin@netinfotechsystem.in';
+  const currentUser = authApi.getCurrentUser();
+  const adminName =
+    userSession?.name || currentUser?.name || userSession?.user || 'NISPL Administrator';
+  const adminEmail =
+    userSession?.email || currentUser?.email || userSession?.user || 'admin@netinfotechsystem.in';
 
   // Manual Refresh Telemetry & Sangam CRM Sync
   const handleRefresh = async () => {
@@ -144,6 +278,7 @@ export default function AdminDashboard({ userSession, onSignOut }) {
       if (liveContracts && Array.isArray(liveContracts)) {
         setContracts(liveContracts);
       }
+      loadNotifications();
       toast.success('Live administrative records & Sangam CRM telemetry synchronized!', {
         style: {
           borderRadius: '12px',
@@ -203,31 +338,35 @@ export default function AdminDashboard({ userSession, onSignOut }) {
           {/* Right Actions */}
           <div className="adm-header-right">
 
-            <button type="button" className="adm-header-icon-btn" title="Pending Notifications">
-              <Bell size={17} />
-              <span className="adm-badge-count">{contracts.filter((c) => c.status === 'expiring').length}</span>
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={`adm-header-icon-btn ${isNotifOpen ? 'is-active' : ''}`}
+                title="Notifications & Activity Stream"
+                onClick={() => setIsNotifOpen((prev) => !prev)}
+                aria-expanded={isNotifOpen}
+              >
+                <Bell size={17} />
+                {unreadCount > 0 && (
+                  <span className="adm-badge-count">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                )}
+              </button>
 
-            {/* Admin Profile Pill */}
-            <div className="adm-user-profile-btn" title={adminEmail}>
-              <div className="adm-user-avatar">
-                {adminName.charAt(0).toUpperCase()}
-              </div>
-              <div className="adm-user-meta">
-                <span className="adm-user-name">{adminName}</span>
-                <span className="adm-user-role">Administrator</span>
-              </div>
+              <NotificationPopover
+                isOpen={isNotifOpen}
+                onClose={() => setIsNotifOpen(false)}
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+                onDelete={handleDeleteNotif}
+                onClearAll={handleClearAllNotif}
+                onRefresh={loadNotifications}
+                isLoading={isNotifLoading}
+              />
             </div>
 
-            <button
-              type="button"
-              className="adm-signout-btn"
-              onClick={onSignOut}
-              title="Sign out of Admin Session"
-            >
-              <LogOut size={15} />
-              <span>Sign Out</span>
-            </button>
+            <AdminProfileMenu name={adminName} email={adminEmail} onSignOut={onSignOut} />
           </div>
         </div>
       </header>
@@ -302,6 +441,7 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                 <OverviewSection
                   adminName={adminName}
                   contracts={contracts}
+                  setContracts={setContracts}
                   payments={payments}
                   products={products}
                   receipts={receipts}
@@ -345,6 +485,22 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                   receipts={receipts}
                   setReceipts={setReceipts}
                   payments={payments}
+                />
+              )}
+
+              {activeNav === 'import-csv' && (
+                <ImportCsvPage setCustomers={setCustomers} />
+              )}
+
+              {activeNav === 'sangam-sync' && (
+                <SangamSyncPage customers={customers} setCustomers={setCustomers} />
+              )}
+
+              {activeNav === 'profile' && (
+                <ProfilePage
+                  adminName={adminName}
+                  adminEmail={adminEmail}
+                  onSignOut={onSignOut}
                 />
               )}
             </>

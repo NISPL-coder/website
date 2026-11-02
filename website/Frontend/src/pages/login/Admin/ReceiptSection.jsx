@@ -1,17 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Check, ReceiptText, Search, Filter } from 'lucide-react';
+import { Download, Check, ReceiptText, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { useTableSort, SortableTh } from './tableSortUtils';
 import { compactSelectStyles } from './reactSelectStyles';
 import ExportDropdown from './ExportDropdown';
 import { formatReceiptsForExport } from './exportUtils';
+import AdminDataTable from './AdminDataTable';
+import DateRangeFilter from './DateRangeFilter';
+import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 export default function ReceiptSection({ receipts, setReceipts, payments }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const filteredReceipts = useMemo(() => {
     return receipts.filter((r) => {
@@ -26,16 +30,127 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
       const matchesStatus =
         statusFilter === 'all' || r.status.toLowerCase() === statusFilter.toLowerCase();
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [receipts, searchQuery, statusFilter]);
+      const matchesDateRange = isWithinDateRange(
+        r.date || r.issueDate || r.issuedAt || r.createdAt,
+        dateFrom,
+        dateTo
+      );
 
-  // Multi-column Ascending/Descending Sorting Hook
-  const { sortedItems: sortedReceipts, sortConfig, requestSort } = useTableSort(
-    filteredReceipts,
-    'id',
-    'asc'
-  );
+      return matchesSearch && matchesStatus && matchesDateRange;
+    });
+  }, [receipts, searchQuery, statusFilter, dateFrom, dateTo]);
+
+  const columns = [
+    {
+      id: 'id',
+      name: 'Receipt No',
+      selector: (row) => row.id,
+      sortable: true,
+      sortFunction: compareText((row) => row.id),
+      minWidth: '150px',
+      cell: (r) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{r.id}</span>
+      )
+    },
+    {
+      id: 'company',
+      name: 'Billed Organization',
+      selector: (row) => row.company,
+      sortable: true,
+      sortFunction: compareText((row) => row.company),
+      minWidth: '210px',
+      grow: 1.2,
+      cell: (r) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>{r.company}</div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{r.customer}</div>
+        </div>
+      )
+    },
+    {
+      id: 'baseAmount',
+      name: 'Taxable Base',
+      selector: (row) => row.baseAmount,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.baseAmount),
+      width: '140px',
+      cell: (r) => <span style={{ color: '#64748b' }}>{r.baseAmount}</span>
+    },
+    {
+      id: 'taxAmount',
+      name: '18% GST',
+      selector: (row) => row.taxAmount,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.taxAmount),
+      width: '130px',
+      cell: (r) => <span style={{ color: '#64748b' }}>{r.taxAmount}</span>
+    },
+    {
+      id: 'amount',
+      name: 'Total Paid',
+      selector: (row) => row.amount,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.amount),
+      width: '140px',
+      cell: (r) => (
+        <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>{r.amount}</span>
+      )
+    },
+    {
+      id: 'date',
+      name: 'Issue Date',
+      selector: (row) => row.date,
+      sortable: true,
+      sortFunction: compareDate((row) => row.date),
+      width: '125px',
+      cell: (r) => <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{r.date}</span>
+    },
+    {
+      id: 'mode',
+      name: 'Payment Channel',
+      selector: (row) => row.mode,
+      sortable: true,
+      sortFunction: compareText((row) => row.mode),
+      width: '165px',
+      cell: (r) => <span>{r.mode}</span>
+    },
+    {
+      id: 'status',
+      name: 'Dispatch Status',
+      selector: (row) => row.status,
+      sortable: true,
+      sortFunction: compareText((row) => row.status),
+      width: '165px',
+      cell: (r) => (
+        <span className="adm-status-pill active">
+          <Check size={12} />
+          <span style={{ textTransform: 'capitalize' }}>{r.status}</span>
+        </span>
+      ),
+      searchType: 'select',
+      searchOptions: ['delivered', 'dispatched'].map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }))
+    },
+    {
+      id: 'actions',
+      name: 'Actions',
+      center: true,
+      width: '130px',
+      button: true,
+      allowOverflow: true,
+      searchable: false,
+      ignoreRowClick: true,
+      cell: (r) => (
+        <button
+          type="button"
+          className="adm-action-pill"
+          onClick={() => toast.success(`Receipt ${r.id} downloaded successfully.`)}
+        >
+          <Download size={13} />
+          <span>PDF</span>
+        </button>
+      )
+    }
+  ];
 
   return (
     <div className="adm-table-card">
@@ -62,20 +177,38 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
 
       {/* 2. Filter / Search Toolbar */}
       <div className="adm-table-toolbar">
-        <div className="adm-table-filters">
-          <div className="adm-search-box" style={{ width: '280px' }}>
-            <Search size={15} className="adm-search-icon" />
-            <input
-              type="text"
-              placeholder="Search by receipt no, firm, client..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="adm-search-input"
-              style={{ width: '100%', height: '36px' }}
-            />
-          </div>
+        <div className="adm-search-box adm-search-box-toolbar">
+          <Search size={16} className="adm-search-icon" />
+          <input
+            type="text"
+            placeholder="Search by receipt no, firm, client..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="adm-search-input"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="adm-search-clear"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery('')}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
 
-          <div style={{ minWidth: '190px' }}>
+        <div className="adm-table-filters">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(from, to) => {
+              setDateFrom(from);
+              setDateTo(to);
+            }}
+          />
+
+          <div className="adm-filter-select-wrap">
             <Select
               styles={compactSelectStyles}
               isSearchable={false}
@@ -98,125 +231,21 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
             />
           </div>
         </div>
-
-        <div className="adm-table-record-count">
-          Showing <strong>{filteredReceipts.length}</strong> of <strong>{receipts.length}</strong> tax receipts
-        </div>
       </div>
 
-      {/* 3. Table with Vertical & Horizontal Scrolling */}
-      <div className="adm-table-responsive">
-        <table className="adm-table" style={{ minWidth: '1050px' }}>
-          <thead>
-            <tr>
-              <SortableTh
-                label="Receipt No"
-                sortKey="id"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Billed Organization"
-                sortKey="company"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Taxable Base"
-                sortKey="baseAmount"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="18% GST"
-                sortKey="taxAmount"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Total Paid"
-                sortKey="amount"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Issue Date"
-                sortKey="date"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Payment Channel"
-                sortKey="mode"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Dispatch Status"
-                sortKey="status"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedReceipts.length > 0 ? (
-              sortedReceipts.map((r) => (
-                <tr key={r.id}>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
-                    {r.id}
-                  </td>
-                  <td style={{ fontWeight: 600 }}>
-                    <div>{r.company}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{r.customer}</div>
-                  </td>
-                  <td style={{ color: '#64748b' }}>{r.baseAmount}</td>
-                  <td style={{ color: '#64748b' }}>{r.taxAmount}</td>
-                  <td style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.92rem' }}>
-                    {r.amount}
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{r.date}</td>
-                  <td>{r.mode}</td>
-                  <td>
-                    <span className="adm-status-pill active">
-                      <Check size={12} />
-                      <span style={{ textTransform: 'capitalize' }}>{r.status}</span>
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="adm-action-pill"
-                      onClick={() =>
-                        toast.success(`Receipt ${r.id} downloaded successfully.`)
-                      }
-                    >
-                      <Download size={13} />
-                      <span>PDF</span>
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="9" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
-                  No payment receipts match your search query.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 4. Table Footer */}
-      <div className="adm-table-footer">
-        <span>GST Compliant Invoices &amp; Digital Invoicing E-Way integration</span>
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>
-          Total Issued Receipts: {receipts.length}
-        </span>
-      </div>
+      {/* 3. React DataTable */}
+      <AdminDataTable
+        columns={columns}
+        data={filteredReceipts}
+        keyField="id"
+        defaultSortFieldId="id"
+        defaultSortAsc
+        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
+        minWidth={1450}
+        noDataMessage="No payment receipts found"
+        noDataHint="Try a different search term or dispatch filter."
+        ariaLabel="Customer payment receipts"
+      />
     </div>
   );
 }
-

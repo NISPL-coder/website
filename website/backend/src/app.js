@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import contractRoutes from './routes/contractRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
@@ -55,6 +56,7 @@ app.get('/', (req, res) => res.json({
     auth: '/api/auth',
     customers: '/api/customers',
     contracts: '/api/contracts',
+    notifications: '/api/notifications',
     users: '/api/v1/users'
   }
 }));
@@ -67,6 +69,8 @@ app.use('/api/v1/customers', customerRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/v1/contracts', contractRoutes);
 app.use('/api/contracts', contractRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

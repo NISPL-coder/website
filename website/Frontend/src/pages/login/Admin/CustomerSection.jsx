@@ -1,32 +1,20 @@
+import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
   Plus,
   Search,
-  Filter,
   CheckCircle2,
   Clock,
-  Building2,
-  Mail,
-  Phone,
-  Server,
   X,
-  Trash2,
-  UserCheck,
-  Shield,
-  Download,
-  Sparkles,
-  XCircle,
-  AlertCircle,
   ExternalLink,
   RotateCw,
-  Eye,
-  Check
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { useTableSort, SortableTh } from './tableSortUtils';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { compactSelectStyles } from './reactSelectStyles';
 import ExportDropdown from './ExportDropdown';
@@ -37,12 +25,16 @@ import ViewCustomerModal from './ViewCustomerModal';
 import EditCustomerModal from './EditCustomerModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
-import { Printer } from 'lucide-react';
+import AdminDataTable from './AdminDataTable';
+import DateRangeFilter from './DateRangeFilter';
+import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 export default function CustomerSection({ customers, setCustomers }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [deletingCustomer, setDeletingCustomer] = useState(null);
@@ -97,11 +89,16 @@ export default function CustomerSection({ customers, setCustomers }) {
         matchesStatus = custStatus === 'inactive' || custStatus === 'suspended';
       }
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [customers, searchQuery, statusFilter]);
+      const matchesDateRange = isWithinDateRange(
+        c.registered || c.createdAt || c.lastSyncedAt,
+        dateFrom,
+        dateTo
+      );
 
-  
+      return matchesSearch && matchesStatus && matchesDateRange;
+    });
+  }, [customers, searchQuery, statusFilter, dateFrom, dateTo]);
+
   const handleCustomerUpdated = (updated) => {
     const cId = updated.id || updated.customerId;
     setCustomers((prev) =>
@@ -120,6 +117,19 @@ export default function CustomerSection({ customers, setCustomers }) {
       await customerApi.deleteCustomer(cId);
       setCustomers((prev) => prev.filter((c) => c.id !== cId && c.customerId !== cId));
       toast.success(`Customer "${deletingCustomer.company || deletingCustomer.name}" deleted successfully.`);
+      notificationApi.createNotification({
+        type: 'customer_deleted',
+        title: 'Customer Account Deleted',
+        message: `Customer "${deletingCustomer.company || deletingCustomer.name}" (${cId}) was removed from directory.`,
+        severity: 'warning',
+        entityType: 'customer',
+        entityId: cId,
+        user: {
+          name: deletingCustomer.name,
+          company: deletingCustomer.company,
+          email: deletingCustomer.email
+        }
+      });
       setDeletingCustomer(null);
     } catch (err) {
       toast.error(`Delete failed: ${err.message}`);
@@ -127,13 +137,6 @@ export default function CustomerSection({ customers, setCustomers }) {
       setIsDeleting(false);
     }
   };
-
-  // Multi-column Ascending/Descending Sorting Hook
-  const { sortedItems: sortedCustomers, sortConfig, requestSort } = useTableSort(
-    filteredCustomers,
-    'id',
-    'asc'
-  );
 
   // Retry Sangam CRM Synchronization
   const handleRetrySync = async (e, customer) => {
@@ -169,13 +172,257 @@ export default function CustomerSection({ customers, setCustomers }) {
     }
   };
 
-  // Delete Customer
-  const handleDeleteCustomer = (customerId, companyName) => {
-    if (window.confirm(`Are you sure you want to remove customer "${companyName}"?`)) {
-      setCustomers((prev) => prev.filter((c) => c.id !== customerId));
-      toast.success(`Customer ${companyName} removed.`);
+  const columns = [
+    {
+      id: 'id',
+      name: 'Customer ID',
+      selector: (row) => row.id,
+      sortable: true,
+      sortFunction: compareText((row) => row.id),
+      width: '140px',
+      cell: (cust) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
+      )
+    },
+    {
+      id: 'company',
+      name: 'Organization & Client',
+      selector: (row) => row.company,
+      sortable: true,
+      sortFunction: compareText((row) => row.company),
+      minWidth: '200px',
+      grow: 1.1,
+      cell: (cust) => (
+        <div>
+          <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
+        </div>
+      )
+    },
+    {
+      id: 'email',
+      name: 'Contact Details',
+      selector: (row) => row.email,
+      sortable: true,
+      sortFunction: compareText((row) => row.email),
+      minWidth: '220px',
+      grow: 1,
+      cell: (cust) => (
+        <div>
+          <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
+        </div>
+      )
+    },
+    {
+      id: 'plan',
+      name: 'Subscribed Plan',
+      selector: (row) => row.plan,
+      sortable: true,
+      sortFunction: compareText((row) => row.plan),
+      minWidth: '160px',
+      cell: (cust) => <span className="adm-status-pill info">{cust.plan}</span>
+    },
+    {
+      id: 'serverNode',
+      name: 'Server Node',
+      selector: (row) => row.serverNode,
+      sortable: true,
+      sortFunction: compareText((row) => row.serverNode),
+      minWidth: '180px',
+      cell: (cust) => (
+        <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', display: 'inline-block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{cust.serverNode}</span>
+      )
+    },
+    {
+      id: 'mrr',
+      name: 'Monthly (MRR)',
+      selector: (row) => row.mrr,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.mrr),
+      width: '135px',
+      cell: (cust) => (
+        <span style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</span>
+      )
+    },
+    {
+      id: 'status',
+      name: 'Status',
+      selector: (row) => row.status,
+      sortable: true,
+      sortFunction: compareText((row) => row.status),
+      width: '145px',
+      cell: (cust) => {
+        const s = cust.status?.toLowerCase();
+        return (
+          <>
+            {s === 'active' && (
+              <span className="adm-status-pill active">
+                <CheckCircle2 size={12} />
+                <span>Active</span>
+              </span>
+            )}
+            {s === 'demo' && (
+              <span className="adm-status-pill demo">
+                <Clock size={12} />
+                <span>Demo Trial</span>
+              </span>
+            )}
+            {(s === 'inactive' || s === 'suspended') && (
+              <span className="adm-status-pill inactive">
+                <XCircle size={12} />
+                <span>Inactive</span>
+              </span>
+            )}
+          </>
+        );
+      },
+      searchType: 'select',
+      searchOptions: [
+        { value: 'active', label: 'Active' },
+        { value: 'demo', label: 'Demo' },
+        { value: 'inactive', label: 'Inactive' },
+        { value: 'suspended', label: 'Suspended' },
+      ]
+    },
+    {
+      id: 'registered',
+      name: 'Registered',
+      selector: (row) => row.registered,
+      sortable: true,
+      sortFunction: compareDate((row) => row.registered),
+      width: '130px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{cust.registered}</span>
+      )
+    },
+    {
+      id: 'sangam',
+      name: 'Sangam CRM Status',
+      selector: (row) => row.sangamCrm?.status || 'synced',
+      sortable: true,
+      sortFunction: compareText((row) => row.sangamCrm?.status || 'synced'),
+      minWidth: '240px',
+      grow: 0.9,
+      cell: (cust) => {
+        const crm = cust.sangamCrm || {
+          status: 'synced',
+          recordId: `SGM-ACC-${cust.id.replace('CUST-', '')}`,
+          lastSyncedAt: cust.registered
+        };
+        const crmStatus = crm.status?.toLowerCase() || 'synced';
+        const crmId = crm.recordId;
+        const isSyncing = syncingIds[cust.id || cust.customerId];
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '160px', whiteSpace: 'nowrap' }}>
+            <div>
+              {crmStatus === 'synced' && (
+                <span
+                  className="adm-status-pill active"
+                  style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
+                  title={`Synced with Sangam CRM (Record ID: ${crmId})`}
+                >
+                  <CheckCircle2 size={11} />
+                  <span>Synced</span>
+                </span>
+              )}
+              {crmStatus === 'pending' && (
+                <span
+                  className="adm-status-pill demo"
+                  style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fde68a' }}
+                  title="Waiting for Sangam CRM synchronization"
+                >
+                  <Clock size={11} />
+                  <span>Pending</span>
+                </span>
+              )}
+              {crmStatus === 'failed' && (
+                <span
+                  className="adm-status-pill inactive"
+                  style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
+                  title={`Sync error: ${crm.syncError || 'API Failed'}`}
+                >
+                  <AlertCircle size={11} />
+                  <span>Failed</span>
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ fontSize: '0.70rem', fontFamily: 'monospace', color: '#475569', fontWeight: 600 }}>
+                {crmId || 'No Record ID'}
+              </span>
+              {crmId && (
+                <a
+                  href={customerApi.getSangamRecordUrl(crmId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#6366f1', display: 'inline-flex', alignItems: 'center' }}
+                  title="View Company in Sangam CRM"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
+
+            {crm.lastSyncedAt && (
+              <span style={{ fontSize: '0.67rem', color: '#94a3b8' }}>
+                {new Date(crm.lastSyncedAt).toLocaleDateString('en-IN', {
+                  day: '2-digit',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+            )}
+
+            {(crmStatus === 'failed' || crmStatus === 'pending') && (
+              <button
+                type="button"
+                className="adm-action-pill"
+                onClick={(e) => handleRetrySync(e, cust)}
+                disabled={isSyncing}
+                style={{
+                  marginTop: '2px',
+                  padding: '2px 8px',
+                  fontSize: '0.68rem',
+                  color: '#6366f1',
+                  borderColor: '#c7d2fe',
+                  background: '#f5f3ff',
+                  alignSelf: 'flex-start'
+                }}
+              >
+                <RotateCw size={10} className={isSyncing ? 'animate-spin' : ''} />
+                <span>{isSyncing ? 'Syncing...' : 'Retry Sync'}</span>
+              </button>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'actions',
+      name: 'Actions',
+      center: true,
+      width: '120px',
+      button: true,
+      allowOverflow: true,
+      ignoreRowClick: true,
+      cell: (cust) => (
+        <RowActionMenu
+          onView={() => setSelectedCustomer(cust)}
+          onEdit={() => setEditingCustomer(cust)}
+          onPrint={() => {
+            generateCustomerPdf(cust);
+            toast.success(`PDF generated for ${cust.company || cust.name}`);
+          }}
+          onDelete={() => setDeletingCustomer(cust)}
+        />
+      )
     }
-  };
+  ];
 
   return (
     <div className="adm-table-card animate-fade-in">
@@ -186,7 +433,7 @@ export default function CustomerSection({ customers, setCustomers }) {
             Customer Directory &amp; Accounts
           </h1>
           <p className="adm-section-sub">
-            Filter, inspect, and manage active clients, live demo trials, and inactive accounts hosted at CtrlS Kolkata Tier-4 datacenter.
+            Manage all NISPL customer records, active clients, live demo trials, and inactive accounts.
           </p>
         </div>
 
@@ -276,22 +523,40 @@ export default function CustomerSection({ customers, setCustomers }) {
 
       {/* 3. Filter Section of Demo, Active, and Inactive + Search */}
       <div className="adm-table-toolbar">
-        <div className="adm-table-filters" style={{ flexWrap: 'wrap', gap: '12px' }}>
-          {/* Search Box */}
-          <div className="adm-search-box" style={{ width: '270px' }}>
-            <Search size={15} className="adm-search-icon" />
-            <input
-              type="text"
-              placeholder="Search by name, company, email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="adm-search-input"
-              style={{ width: '100%', height: '36px' }}
-            />
-          </div>
+        {/* Search Box */}
+        <div className="adm-search-box adm-search-box-toolbar">
+          <Search size={16} className="adm-search-icon" />
+          <input
+            type="text"
+            placeholder="Search by name, company, email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="adm-search-input"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="adm-search-clear"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery('')}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="adm-table-filters">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(from, to) => {
+              setDateFrom(from);
+              setDateTo(to);
+            }}
+          />
 
           {/* React Select Filter */}
-          <div style={{ minWidth: '190px' }}>
+          <div className="adm-filter-select-wrap">
             <Select
               styles={compactSelectStyles}
               isSearchable={false}
@@ -317,254 +582,21 @@ export default function CustomerSection({ customers, setCustomers }) {
             />
           </div>
         </div>
-
-        <div className="adm-table-record-count">
-          Showing <strong>{filteredCustomers.length}</strong> of <strong>{customers.length}</strong> accounts
-        </div>
       </div>
 
-      {/* 4. Customer Listing Table with Vertical & Horizontal Scrolling */}
-      <div className="adm-table-responsive">
-        <table className="adm-table" style={{ minWidth: '1320px' }}>
-          <thead>
-            <tr>
-              <SortableTh
-                label="Customer ID"
-                sortKey="id"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Organization & Client"
-                sortKey="company"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Contact Details"
-                sortKey="email"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Subscribed Plan"
-                sortKey="plan"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Server Node"
-                sortKey="serverNode"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Monthly (MRR)"
-                sortKey="mrr"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Status"
-                sortKey="status"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Registered"
-                sortKey="registered"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Sangam CRM Status"
-                sortKey="sangamCrm.status"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedCustomers.length > 0 ? (
-              sortedCustomers.map((cust) => {
-                const s = cust.status?.toLowerCase();
-                const crm = cust.sangamCrm || { status: 'synced', recordId: `SGM-ACC-${cust.id.replace('CUST-', '')}`, lastSyncedAt: cust.registered };
-                const crmStatus = crm.status?.toLowerCase() || 'synced';
-                const crmId = crm.recordId;
-                const isSyncing = syncingIds[cust.id || cust.customerId];
-
-                return (
-                  <tr key={cust.id}>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
-                      {cust.id}
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
-                    </td>
-                    <td>
-                      <span className="adm-status-pill info">{cust.plan}</span>
-                    </td>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
-                      {cust.serverNode}
-                    </td>
-                    <td style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</td>
-                    <td>
-                      {s === 'active' && (
-                        <span className="adm-status-pill active">
-                          <CheckCircle2 size={12} />
-                          <span>Active</span>
-                        </span>
-                      )}
-                      {s === 'demo' && (
-                        <span className="adm-status-pill demo">
-                          <Clock size={12} />
-                          <span>Demo Trial</span>
-                        </span>
-                      )}
-                      {(s === 'inactive' || s === 'suspended') && (
-                        <span className="adm-status-pill inactive">
-                          <XCircle size={12} />
-                          <span>Inactive</span>
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ fontSize: '0.78rem', color: '#64748b' }}>{cust.registered}</td>
-
-                    {/* Sangam CRM Status Column */}
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '135px' }}>
-                        <div>
-                          {crmStatus === 'synced' && (
-                            <span
-                              className="adm-status-pill active"
-                              style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
-                              title={`Synced with Sangam CRM (Record ID: ${crmId})`}
-                            >
-                              <CheckCircle2 size={11} />
-                              <span>Synced</span>
-                            </span>
-                          )}
-                          {crmStatus === 'pending' && (
-                            <span
-                              className="adm-status-pill demo"
-                              style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fde68a' }}
-                              title="Waiting for Sangam CRM synchronization"
-                            >
-                              <Clock size={11} />
-                              <span>Pending</span>
-                            </span>
-                          )}
-                          {crmStatus === 'failed' && (
-                            <span
-                              className="adm-status-pill inactive"
-                              style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
-                              title={`Sync error: ${crm.syncError || 'API Failed'}`}
-                            >
-                              <AlertCircle size={11} />
-                              <span>Failed</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Sangam Record ID & Quick CRM link */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <span style={{ fontSize: '0.70rem', fontFamily: 'monospace', color: '#475569', fontWeight: 600 }}>
-                            {crmId || 'No Record ID'}
-                          </span>
-                          {crmId && (
-                            <a
-                              href={customerApi.getSangamRecordUrl(crmId)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ color: '#6366f1', display: 'inline-flex', alignItems: 'center' }}
-                              title="View Company in Sangam CRM"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <ExternalLink size={11} />
-                            </a>
-                          )}
-                        </div>
-
-                        {/* Last Sync Timestamp */}
-                        {crm.lastSyncedAt && (
-                          <span style={{ fontSize: '0.67rem', color: '#94a3b8' }}>
-                            {new Date(crm.lastSyncedAt).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        )}
-
-                        {/* Retry Sync Button if Failed or Pending */}
-                        {(crmStatus === 'failed' || crmStatus === 'pending') && (
-                          <button
-                            type="button"
-                            className="adm-action-pill"
-                            onClick={(e) => handleRetrySync(e, cust)}
-                            disabled={isSyncing}
-                            style={{
-                              marginTop: '2px',
-                              padding: '2px 8px',
-                              fontSize: '0.68rem',
-                              color: '#6366f1',
-                              borderColor: '#c7d2fe',
-                              background: '#f5f3ff',
-                              alignSelf: 'flex-start'
-                            }}
-                          >
-                            <RotateCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                            <span>{isSyncing ? 'Syncing...' : 'Retry Sync'}</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-
-                    <td style={{ textAlign: 'center' }}>
-                      <RowActionMenu
-                        onView={() => setSelectedCustomer(cust)}
-                        onEdit={() => setEditingCustomer(cust)}
-                        onPrint={() => {
-                          generateCustomerPdf(cust);
-                          toast.success(`PDF generated for ${cust.company || cust.name}`);
-                        }}
-                        onDelete={() => setDeletingCustomer(cust)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
-                  No customer records found matching "{statusFilter !== 'all' ? statusFilter : searchQuery}".
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 5. Table Footer */}
-      <div className="adm-table-footer">
-        <span>Active enterprise cloud nodes &amp; dedicated Tally Prime deployments at CtrlS Kolkata</span>
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>
-          Active MRR: ₹
-          <CountUp
-            end={parseInt(totalActiveMRR.replace(/[^0-9]/g, '')) || 99000}
-            useIndianFormat={true}
-            duration={1500}
-          />{' '}
-          • Demo Accounts: <CountUp end={counts.demo} duration={1200} />
-        </span>
-      </div>
+      {/* 4. React DataTable */}
+      <AdminDataTable
+        columns={columns}
+        data={filteredCustomers}
+        keyField="id"
+        defaultSortFieldId="id"
+        defaultSortAsc
+        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
+        minWidth={1750}
+        noDataMessage="No customer records found"
+        noDataHint="Try a different search term or account status."
+        ariaLabel="Customer accounts"
+      />
 
       {/* View Customer Modal (React Portal) */}
       <ViewCustomerModal

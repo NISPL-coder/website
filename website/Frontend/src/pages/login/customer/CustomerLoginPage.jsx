@@ -189,7 +189,7 @@ export default function CustomerLoginPage() {
                   className="cust-forgot-link"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert('Password reset instructions will be sent to your registered company email.');
+                    window.location.href = '/login?portal=customer&forgot=true';
                   }}
                 >
                   Forgot password?

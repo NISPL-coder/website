@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Building2, User, Key } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Building2, User, Key } from 'lucide-react';
 
 export default function RegistrationSuccessModal({ customer, onProceed }) {
   const [countdown, setCountdown] = useState(3);
@@ -67,14 +67,16 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
-                GST No:
-              </span>
-              <span style={{ fontSize: '0.88rem', color: '#0F172A', fontFamily: 'monospace' }}>
-                {customer.gstNo}
-              </span>
-            </div>
+            {customer.gstNo ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
+                  GST No:
+                </span>
+                <span style={{ fontSize: '0.88rem', color: '#0F172A', fontFamily: 'monospace' }}>
+                  {customer.gstNo}
+                </span>
+              </div>
+            ) : null}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
               <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>

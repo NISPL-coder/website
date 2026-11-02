@@ -1,3 +1,4 @@
+import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
@@ -161,6 +162,26 @@ export default function CreateContractPage({ contracts, setContracts, customers 
       };
 
       setContracts([createdContract, ...contracts]);
+
+      notificationApi.createNotification({
+        type: 'contract_created',
+        title: 'Contract Agreement Created',
+        message: `Contract "${createdContract.name || createdContract.contractCode}" created for ${customerAccountName} (Value: ${createdContract.contractValue || formState.contractValue}).`,
+        severity: 'success',
+        entityType: 'contract',
+        entityId: createdContract.contractCode || createdContract.id,
+        user: {
+          name: payload.primaryContact?.name,
+          email: payload.primaryContact?.email,
+          company: customerAccountName
+        },
+        metadata: {
+          contractCode: createdContract.contractCode || createdContract.id,
+          value: createdContract.contractValue,
+          serviceTier: createdContract.serviceTier,
+          expiryDate: createdContract.expiryDate
+        }
+      });
 
       if (res.sangamCrm?.status === 'synced') {
         toast.success(

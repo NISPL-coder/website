@@ -4,10 +4,8 @@ import {
   Mail, 
   Phone, 
   Building2, 
-  FileText, 
   UserPlus, 
   ArrowRight, 
-  ShieldCheck,
   AlertCircle,
   Image as ImageIcon,
   Upload,
@@ -24,13 +22,14 @@ export default function CustomerFormCard({
   onChange,
   onSubmit,
   isSubmitting,
-  globalError
+  globalError,
+  isShaking
 }) {
   return (
-    <div className="cust-reg-card animate-fade-in">
+    <div className={`cust-reg-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
       {/* Top Floating Badge Icon */}
       <div className="ebolt-badge-icon-box" aria-hidden="true">
-        <UserPlus size={22} color="#0284c7" />
+        <UserPlus size={18} color="#0284c7" />
       </div>
 
       {/* Main Headings */}
@@ -41,21 +40,16 @@ export default function CustomerFormCard({
         </p>
       </div>
 
-      {/* Section Title */}
-      <div className="ebolt-section-heading" style={{ marginTop: '16px' }}>
-        <span>Customer Details</span>
-      </div>
-
       {/* Global Validation Alert */}
       {globalError && (
-        <div className="ebolt-alert-error" role="alert" style={{ marginTop: '14px' }}>
-          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+        <div className="ebolt-alert-error" role="alert" style={{ marginTop: '8px', marginBottom: '8px' }}>
+          <AlertCircle size={15} style={{ flexShrink: 0 }} />
           <span>{globalError}</span>
         </div>
       )}
 
       {/* Registration Form */}
-      <form onSubmit={onSubmit} className="ebolt-form" style={{ marginTop: '18px' }} noValidate>
+      <form onSubmit={onSubmit} className="ebolt-form" noValidate>
         <div className="ebolt-form-grid-2">
           {/* 1. Name */}
           <InputField
@@ -104,29 +98,18 @@ export default function CustomerFormCard({
             error={errors.companyName}
           />
 
-          {/* 5. GST No */}
-          <InputField
-            id="reg-gst"
-            label="GST No"
-            placeholder="15-digit GSTIN (e.g. 19AAAAA0000A1Z5)"
-            value={formData.gstNo}
-            onChange={(e) => onChange('gstNo', e.target.value.toUpperCase())}
-            icon={FileText}
-            error={errors.gstNo}
-            maxLength={15}
-          />
-
-          {/* 6. Company Logo*/}
-          <div className="ebolt-field-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          {/* 5. Company Logo (Optional) */}
+          <div className="ebolt-field-group ebolt-col-span-2">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className="ebolt-field-lbl" htmlFor="reg-logo" style={{ marginBottom: 0 }}>
                 <span>Company logo</span>
+                <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.74rem', marginLeft: '4px' }}>(Optional)</span>
               </label>
               {formData.companyLogo && (
                 <button
                   type="button"
                   onClick={() => onChange('companyLogo', '')}
-                  style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.74rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.72rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
                   title="Remove logo"
                 >
                   <X size={12} /> Remove
@@ -139,10 +122,10 @@ export default function CustomerFormCard({
                 <img
                   src={formData.companyLogo}
                   alt="Logo preview"
-                  style={{ width: '22px', height: '22px', objectFit: 'contain', marginLeft: '12px', borderRadius: '4px' }}
+                  style={{ width: '20px', height: '20px', objectFit: 'contain', marginLeft: '10px', borderRadius: '4px' }}
                 />
               ) : (
-                <ImageIcon size={16} className="ebolt-input-icon" />
+                <ImageIcon size={15} className="ebolt-input-icon" />
               )}
               <input
                 id="reg-logo"
@@ -151,29 +134,15 @@ export default function CustomerFormCard({
                 placeholder="Logo URL or click Upload"
                 value={formData.companyLogo}
                 onChange={(e) => onChange('companyLogo', e.target.value)}
-                style={{ paddingRight: '82px' }}
+                style={{ paddingRight: '76px' }}
                 autoComplete="off"
               />
               <label
                 htmlFor="reg-logo-file"
-                style={{
-                  position: 'absolute',
-                  right: '6px',
-                  background: '#f1f5f9',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '4px 8px',
-                  fontSize: '0.74rem',
-                  fontWeight: 600,
-                  color: '#334155',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
+                className="ebolt-upload-badge"
                 title="Upload image from device"
               >
-                <Upload size={12} />
+                <Upload size={11} />
                 <span>Upload</span>
               </label>
               <input
@@ -225,7 +194,6 @@ export default function CustomerFormCard({
           className="ebolt-submit-btn"
           id="btn-create-customer"
           disabled={isSubmitting}
-          style={{ marginTop: '24px' }}
         >
           {isSubmitting ? (
             <>
@@ -235,13 +203,13 @@ export default function CustomerFormCard({
           ) : (
             <>
               <span>Create Customer Account</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </>
           )}
         </button>
 
         {/* Sign In Alternative Link */}
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.88rem', color: '#64748b' }}>
+        <div className="ebolt-card-footer-link">
           Already have an active account?{' '}
           <Link 
             to="/customer-login" 

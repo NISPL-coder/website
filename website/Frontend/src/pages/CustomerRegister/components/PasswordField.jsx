@@ -24,7 +24,7 @@ export default function PasswordField({
         {value && strength.label && (
           <span 
             style={{ 
-              fontSize: '0.75rem', 
+              fontSize: '0.7rem', 
               fontWeight: 600, 
               color: strength.color 
             }}
@@ -35,7 +35,7 @@ export default function PasswordField({
       </div>
 
       <div className={`ebolt-input-wrap ${error ? 'has-error' : ''}`}>
-        <Lock size={16} className="ebolt-input-icon" />
+        <Lock size={15} className="ebolt-input-icon" />
         <input
           id={id}
           type={showPassword ? 'text' : 'password'}
@@ -53,7 +53,7 @@ export default function PasswordField({
           title={showPassword ? 'Hide password' : 'Show password'}
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
-          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
       </div>
 
@@ -76,7 +76,7 @@ export default function PasswordField({
         </span>
       ) : (
         <span className="ebolt-field-hint">
-          Must be at least 6 characters
+          Min 6 characters
         </span>
       )}
     </div>

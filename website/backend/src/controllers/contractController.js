@@ -1,3 +1,4 @@
+import { logNotification } from '../services/notificationService.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
@@ -248,6 +249,26 @@ export const createContract = async (req, res) => {
       sangamResult = { success: false, recordId: null, message: syncErr.message };
     }
 
+    await logNotification({
+      type: 'contract_created',
+      title: 'Contract Created',
+      message: `Contract "${savedContract.name || savedContract.service || contractCode}" (${savedContract.company || 'Enterprise'}) was created.`,
+      severity: 'info',
+      entityType: 'contract',
+      entityId: contractCode,
+      user: {
+        name: savedContract.customer || savedContract.name || '',
+        email: savedContract.email || '',
+        company: savedContract.company || ''
+      },
+      metadata: {
+        contractId: contractCode,
+        service: savedContract.service,
+        value: savedContract.totalContractValue || savedContract.value,
+        expiryDate: savedContract.expiryDate || savedContract.endDate
+      }
+    });
+
     return res.status(201).json({
       success: true,
       contract: {
@@ -443,6 +464,18 @@ export const updateContract = async (req, res) => {
       console.warn('[ContractController] Sangam CRM re-sync warning on update:', crmErr.message);
     }
 
+    await logNotification({
+      type: 'contract_updated',
+      title: 'Contract Updated',
+      message: `Contract "${savedContract.name || savedContract.contractCode}" for ${savedContract.company} was updated.`,
+      severity: 'info',
+      entityType: 'contract',
+      entityId: savedContract.contractCode || savedContract._id,
+      user: {
+        company: savedContract.company
+      }
+    });
+
     return res.status(200).json({
       success: true,
       contract: {
@@ -475,6 +508,15 @@ export const deleteContract = async (req, res) => {
       (c) => c.contractId !== id && c.id !== id && c._id !== id
     );
     saveContractsToFile(fileList);
+
+    await logNotification({
+      type: 'contract_deleted',
+      title: 'Contract Deleted',
+      message: `Contract (${id}) was deleted.`,
+      severity: 'warning',
+      entityType: 'contract',
+      entityId: id
+    });
 
     return res.status(200).json({
       success: true,

@@ -3,11 +3,19 @@
  * Centralizes all HTTP communication with the NISPL backend authentication endpoints.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/auth`
-  : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-    ? 'https://website-ebxf.onrender.com/api/auth'
-    : 'http://localhost:4000/api/auth';
+const isLocalhost = Boolean(
+  typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  )
+);
+
+const BACKEND_URL = isLocalhost
+  ? 'http://localhost:4000'
+  : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
+
+const API_BASE_URL = `${BACKEND_URL}/api/auth`;
 
 const TOKEN_KEY = 'nispl_auth_token';
 const SESSION_KEY = 'nispl_customer_session';
@@ -79,8 +87,8 @@ export const authApi = {
       throw new Error(data.error || 'Registration failed. Please verify your details.');
     }
 
-    if (data.token && data.user) {
-      this.setAuthSession(data.token, data.user);
+    if (data.accessToken && data.user) {
+      this.setAuthSession(data.accessToken, data.user);
     }
 
     return data;
@@ -104,8 +112,8 @@ export const authApi = {
       throw new Error(data.error || 'Authentication failed. Please verify your credentials.');
     }
 
-    if (data.token && data.user) {
-      this.setAuthSession(data.token, data.user);
+    if (data.accessToken && data.user) {
+      this.setAuthSession(data.accessToken, data.user);
     }
 
     return data;
@@ -149,7 +157,29 @@ export const authApi = {
 
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to dispatch password reset instructions.');
+      throw new Error(data.message || data.error || 'Failed to dispatch password reset instructions.');
+    }
+
+    return data;
+  },
+
+  /**
+   * Reset account password using verification token
+   * @param {string} token
+   * @param {string} password
+   */
+  async resetPassword(token, password) {
+    const res = await fetch(`${API_BASE_URL}/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ token, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to reset password. Link may have expired.');
     }
 
     return data;

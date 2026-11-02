@@ -24,15 +24,19 @@ export const registerSchema = body => {
   const name = String(body.name ?? '').trim();
   const email = String(body.email ?? '').trim().toLowerCase();
   const password = String(body.password ?? '');
+  const company = String(body.company ?? body.companyName ?? '').trim();
+  const phone = String(body.phone ?? body.mobile ?? '').trim();
+  const gstNo = String(body.gstNo ?? '').trim().toUpperCase();
+  const plan = String(body.plan ?? '').trim();
   if (name.length < 2) return { valid: false, message: 'Name must contain at least 2 characters.' };
   if (!emailOk(email)) return { valid: false, message: 'A valid email address is required.' };
   if (password.length < 10) return { valid: false, message: 'Password must contain at least 10 characters.' };
-  return { valid: true, value: { name, email, password } };
+  return { valid: true, value: { name, email, password, company, phone, gstNo, plan } };
 };
 
 export const forgotSchema = body => {
   const email = String(body.email ?? '').trim().toLowerCase();
-  if (!emailOk(email)) return { valid: false, message: 'A valid email address is required.' };
+  if (!email) return { valid: false, message: 'Email address is required.' };
   return { valid: true, value: { email } };
 };
 
@@ -40,7 +44,7 @@ export const resetSchema = body => {
   const token = String(body.token ?? '').trim();
   const password = String(body.password ?? '');
   if (!token) return { valid: false, message: 'Reset token is required.' };
-  if (password.length < 10) return { valid: false, message: 'New password must contain at least 10 characters.' };
+  if (password.length < 6) return { valid: false, message: 'New password must contain at least 6 characters.' };
   return { valid: true, value: { token, password } };
 };
 

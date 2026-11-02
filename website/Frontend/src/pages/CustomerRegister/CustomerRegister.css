@@ -1,16 +1,39 @@
 /* ==========================================================================
-   CUSTOMER REGISTRATION MODULE CSS
-   Clean, modern, responsive styling with verified inputs & feedback
+   CUSTOMER REGISTRATION MODULE CSS (COMPACT & RESPONSIVE)
+   Clean, modern styling designed to fit cleanly within viewports without scrolling.
    ========================================================================== */
 
+.cust-reg-viewport {
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 10px 16px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.cust-reg-nav {
+  padding: 2px 12px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+/* Fill the leftover viewport height and center the card inside it */
 .cust-reg-container {
+  flex: 1 0 auto;
   width: 100%;
-  max-width: 680px;
-  margin: 16px auto 40px auto;
+  max-width: 620px;
+  margin: 0 auto;
   position: relative;
   z-index: 10;
-  padding: 0 16px;
+  padding: 0 10px;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cust-reg-card {
@@ -18,67 +41,83 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1.5px solid #dbeafe;
-  border-radius: 24px;
-  box-shadow: 
-    0 24px 60px -12px rgba(15, 23, 42, 0.08),
-    0 8px 24px -4px rgba(2, 132, 199, 0.05);
-  padding: 36px 40px;
+  border-radius: 18px;
+  box-shadow:
+    0 16px 40px -10px rgba(15, 23, 42, 0.08),
+    0 6px 18px -4px rgba(2, 132, 199, 0.05);
+  padding: 24px 34px;
   position: relative;
   box-sizing: border-box;
   width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 12px 0;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
   .cust-reg-card {
-    padding: 24px 20px;
-    border-radius: 18px;
+    padding: 16px 16px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cust-reg-card {
+    padding: 12px 12px;
+    border-radius: 12px;
+  }
+
+  .ebolt-card-title {
+    font-size: 1.15rem;
+  }
+
+  .ebolt-card-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .ebolt-form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 
 /* Badge Icon on top of card */
 .ebolt-badge-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: #f0f9ff;
   border: 1.5px solid #bae6fd;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px auto;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+  margin: 0 auto 6px auto;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
 }
 
 .ebolt-reg-header-center {
   text-align: center;
-  margin-bottom: 20px;
+  margin: 0 auto 12px auto;
 }
 
 .ebolt-card-title {
-  font-size: 1.65rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  font-weight: 600;
   color: #0f172a;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   letter-spacing: -0.02em;
 }
 
 .ebolt-card-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   color: #64748b;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Section Heading */
-.ebolt-section-heading {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1e293b;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 480px;
+  text-align: center;
+  line-height: 1.3;
 }
 
 /* Form Grid */
@@ -89,13 +128,13 @@
 .ebolt-form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 18px;
+  gap: 12px 16px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 580px) {
   .ebolt-form-grid-2 {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 7px;
   }
 }
 
@@ -107,12 +146,12 @@
 .ebolt-field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   width: 100%;
 }
 
 .ebolt-field-lbl {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #334155;
   display: flex;
@@ -125,21 +164,23 @@
   display: flex;
   align-items: center;
   width: 100%;
+  height: 42px;
   border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 9px;
   background: #ffffff;
   transition: all 0.2s ease;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .ebolt-input-wrap:focus-within {
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 2.5px rgba(2, 132, 199, 0.14);
 }
 
 .ebolt-input-wrap.has-error {
   border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.12);
 }
 
 .ebolt-input-wrap.has-success {
@@ -148,7 +189,7 @@
 
 .ebolt-input-icon {
   position: absolute;
-  left: 14px;
+  left: 10px;
   color: #94a3b8;
   pointer-events: none;
   flex-shrink: 0;
@@ -156,10 +197,11 @@
 
 .ebolt-input {
   width: 100%;
+  height: 100%;
   border: none;
   background: transparent;
-  padding: 12px 14px 12px 42px;
-  font-size: 0.92rem;
+  padding: 0 12px 0 36px;
+  font-size: 0.88rem;
   color: #0f172a;
   outline: none;
   box-sizing: border-box;
@@ -168,13 +210,38 @@
 
 .ebolt-input::placeholder {
   color: #94a3b8;
+  font-size: 0.84rem;
+}
+
+/* Upload Badge inside Company Logo input */
+.ebolt-upload-badge {
+  position: absolute;
+  right: 5px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.ebolt-upload-badge:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 /* Eye Toggle Button */
 .ebolt-eye-btn {
   background: none;
   border: none;
-  padding: 0 14px;
+  padding: 0 10px;
+  height: 100%;
   color: #94a3b8;
   cursor: pointer;
   display: flex;
@@ -189,26 +256,28 @@
 
 /* Error and Hint Messages */
 .ebolt-field-error-msg {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: #ef4444;
   font-weight: 500;
-  margin-top: 2px;
+  margin-top: 1px;
+  line-height: 1.2;
 }
 
 .ebolt-field-hint {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 2px;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 1px;
+  line-height: 1.2;
 }
 
 /* Password Strength Bar */
 .ebolt-pwd-strength-bar-track {
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: #e2e8f0;
   border-radius: 999px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .ebolt-pwd-strength-bar-fill {
@@ -221,13 +290,13 @@
 .ebolt-alert-error {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.88rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
 }
 
 /* Primary Submit Button */
@@ -236,23 +305,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  gap: 6px;
+  height: 44px;
+  padding: 0 16px;
+  background: #1a1a24;
   color: #ffffff;
   border: none;
-  border-radius: 12px;
-  font-size: 0.98rem;
+  border-radius: 9px;
+  font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: all 0.2s ease;
+  margin-top: 14px;
 }
 
 .ebolt-submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  background: #252834;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .ebolt-submit-btn:disabled {
@@ -260,10 +331,18 @@
   cursor: not-allowed;
 }
 
+/* Card footer alternative sign in link */
+.ebolt-card-footer-link {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
 /* Spinner */
 .ebolt-spinner {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #ffffff;
   border-radius: 50%;
@@ -274,17 +353,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Trust footer */
-.cust-trust-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: #059669;
-  font-weight: 600;
 }
 
 /* Dialog / Modal */
@@ -298,66 +366,13 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 16px;
 }
 
-.ebolt-dialog-card {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  width: 100%;
-  padding: 28px;
-  border: 1px solid #e2e8f0;
+/* Shake animation for registration errors */
+@keyframes ebolt-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
 }
+.ebolt-shake { animation: ebolt-shake 0.5s ease-in-out; }
 
-.ebolt-dialog-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.ebolt-dialog-check {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ebolt-dialog-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.ebolt-dialog-sub {
-  font-size: 0.82rem;
-  color: #64748b;
-}
-
-.ebolt-session-user-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}

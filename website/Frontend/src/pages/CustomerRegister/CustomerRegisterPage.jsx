@@ -1,3 +1,4 @@
+import { notificationApi } from '../../services/notificationApi';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RegisterHeader from './components/RegisterHeader';
@@ -9,7 +10,6 @@ import {
   validateEmail, 
   validateMobile, 
   validateCompanyName, 
-  validateGstNo, 
   validatePassword, 
   validatePasswordMatch 
 } from './utils/validation';
@@ -19,14 +19,13 @@ import './CustomerRegister.css';
 export default function CustomerRegisterPage() {
   const navigate = useNavigate();
 
-  // Form State
+  // Form State without GSTIN
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     mobile: '',
     companyName: '',
     companyLogo: '',
-    gstNo: '',
     password: '',
     retypePassword: ''
   });
@@ -36,6 +35,7 @@ export default function CustomerRegisterPage() {
   const [globalError, setGlobalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCustomer, setCreatedCustomer] = useState(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   // Field change handler with live validation clearance
   const handleChange = (field, value) => {
@@ -72,9 +72,6 @@ export default function CustomerRegisterPage() {
     const companyErr = validateCompanyName(formData.companyName);
     if (companyErr) newErrors.companyName = companyErr;
 
-    const gstErr = validateGstNo(formData.gstNo);
-    if (gstErr) newErrors.gstNo = gstErr;
-
     const pwdErr = validatePassword(formData.password);
     if (pwdErr) newErrors.password = pwdErr;
 
@@ -86,6 +83,8 @@ export default function CustomerRegisterPage() {
     if (Object.keys(newErrors).length > 0) {
       const firstError = Object.values(newErrors)[0];
       setGlobalError(firstError);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return false;
     }
 
@@ -110,13 +109,29 @@ export default function CustomerRegisterPage() {
         mobile: formData.mobile,
         companyName: formData.companyName,
         companyLogo: formData.companyLogo,
-        gstNo: formData.gstNo,
+        gstNo: '',
         password: formData.password
       });
 
       setCreatedCustomer(newCustomer);
+
+      notificationApi.createNotification({
+        type: 'customer_created',
+        title: 'New Customer Self-Registration',
+        message: `Customer "${formData.name}" (${formData.email}) registered online for ${formData.companyName}.`,
+        severity: 'success',
+        entityType: 'customer',
+        entityId: newCustomer.customerId || newCustomer.id || '',
+        user: {
+          name: formData.name,
+          email: formData.email,
+          company: formData.companyName
+        }
+      });
     } catch (err) {
       setGlobalError(err.message || 'Registration failed. Please check your details and try again.');
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
     } finally {
       setIsSubmitting(false);
     }
@@ -127,7 +142,7 @@ export default function CustomerRegisterPage() {
   };
 
   return (
-    <div className="ebolt-login-viewport">
+    <div className="ebolt-login-viewport cust-reg-viewport">
       {/* Top Header Navigation */}
       <RegisterHeader />
 
@@ -140,6 +155,7 @@ export default function CustomerRegisterPage() {
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           globalError={globalError}
+          isShaking={isShaking}
         />
       </main>
 

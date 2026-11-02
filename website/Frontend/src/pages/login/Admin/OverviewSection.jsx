@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { useTableSort, SortableTh } from './tableSortUtils';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import {
   PERIOD_OPTIONS,
@@ -35,6 +34,17 @@ import {
   getOverviewFilteredData
 } from './overviewFilterData';
 import { compactSelectStyles } from './reactSelectStyles';
+import AdminDataTable from './AdminDataTable';
+import DateRangeFilter from './DateRangeFilter';
+import RowActionMenu from './RowActionMenu';
+import ViewCustomerModal from './ViewCustomerModal';
+import EditCustomerModal from './EditCustomerModal';
+import DeleteConfirmModal from './DeleteConfirmModal';
+import ViewContractModal from './ViewContractModal';
+import EditContractModal from './EditContractModal';
+import { generateCustomerPdf } from './utils/generateCustomerPdf';
+import { generateContractPdf } from './utils/generateContractPdf';
+import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 // Geometry helper for Donut Pie Chart slices
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -65,6 +75,7 @@ function describeDonutSlice(x, y, innerRadius, outerRadius, startAngle, endAngle
 export default function OverviewSection({
   adminName,
   contracts = [],
+  setContracts,
   payments = [],
   products = [],
   receipts = [],
@@ -84,8 +95,29 @@ export default function OverviewSection({
   }, [selectedPeriod, selectedFY, customers, contracts]);
 
   // Overview Customer List Filter and Search
-  const [custFilter, setCustFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
   const [custSearch, setCustSearch] = useState('');
+  const [custStatusFilter, setCustStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
+  const [custDateFrom, setCustDateFrom] = useState('');
+  const [custDateTo, setCustDateTo] = useState('');
+
+  // Overview Contract List Filter and Search
+  const [contSearch, setContSearch] = useState('');
+  const [contStatusFilter, setContStatusFilter] = useState('all'); // 'all' | 'active' | 'notstarted' | 'inactive'
+  const [contDateFrom, setContDateFrom] = useState('');
+  const [contDateTo, setContDateTo] = useState('');
+
+  // Customer modals state
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
+  const [syncingIds, setSyncingIds] = useState({});
+
+  // Contract modals state
+  const [viewingContract, setViewingContract] = useState(null);
+  const [editingContract, setEditingContract] = useState(null);
+  const [deletingContract, setDeletingContract] = useState(null);
+  const [isDeletingContract, setIsDeletingContract] = useState(false);
 
   // Active chart hover data state
   const [hoveredSalesPoint, setHoveredSalesPoint] = useState(null);
@@ -122,37 +154,126 @@ export default function OverviewSection({
       const q = custSearch.toLowerCase();
       const matchesSearch =
         !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q) ||
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.company || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.id || '').toLowerCase().includes(q) ||
         (c.plan && c.plan.toLowerCase().includes(q));
 
-      const status = c.status?.toLowerCase();
+      const status = (c.status || '').toLowerCase();
       let matchesStatus = true;
-      if (custFilter === 'active') matchesStatus = status === 'active';
-      else if (custFilter === 'demo') matchesStatus = status === 'demo';
-      else if (custFilter === 'inactive') matchesStatus = status === 'inactive' || status === 'suspended';
+      if (custStatusFilter === 'active') matchesStatus = status === 'active';
+      else if (custStatusFilter === 'demo') matchesStatus = status === 'demo';
+      else if (custStatusFilter === 'inactive') matchesStatus = status === 'inactive' || status === 'suspended';
 
-      return matchesSearch && matchesStatus;
+      const matchesDateRange = isWithinDateRange(
+        c.registered || c.createdAt || c.lastSyncedAt,
+        custDateFrom,
+        custDateTo
+      );
+
+      return matchesSearch && matchesStatus && matchesDateRange;
     });
-  }, [activeOverviewData, custSearch, custFilter]);
+  }, [activeOverviewData, custSearch, custStatusFilter, custDateFrom, custDateTo]);
 
-  // Multi-column sorting for Overview Customer List
-  const { sortedItems: sortedOverviewCustomers, sortConfig: custSortConfig, requestCustSort: requestCustSortOriginal, requestSort: requestCustSort } = useTableSort(
-    filteredOverviewCustomers,
-    'id',
-    'asc'
-  );
+  // Filtered contract list for the Overview Contract Table
+  const filteredOverviewContracts = useMemo(() => {
+    const list = activeOverviewData.filteredContracts || [];
+    return list.filter((c) => {
+      const q = contSearch.toLowerCase();
+      const matchesSearch =
+        !q ||
+        (c.id || c.contractId || '').toLowerCase().includes(q) ||
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.company || c.customer || '').toLowerCase().includes(q) ||
+        (c.service || '').toLowerCase().includes(q);
 
-  // Multi-column sorting for recent commitments
-  const { sortedItems: sortedRecentContracts, sortConfig: contractSortConfig, requestSort: requestContractSort } = useTableSort(
-    activeOverviewData.filteredContracts,
-    'expiryDate',
-    'asc'
-  );
+      const status = (c.status || '').toLowerCase();
+      let matchesStatus = true;
+      if (contStatusFilter === 'active') matchesStatus = status === 'active';
+      else if (contStatusFilter === 'notstarted') matchesStatus = status === 'notstarted' || status === 'draft';
+      else if (contStatusFilter === 'inactive') matchesStatus = status === 'inactive' || status === 'expired';
 
-  // SVG Coordinates for Sales Area Chart
+      const matchesDateRange = isWithinDateRange(
+        c.startDate || c.createdAt || c.expiryDate,
+        contDateFrom,
+        contDateTo
+      );
+
+      return matchesSearch && matchesStatus && matchesDateRange;
+    });
+  }, [activeOverviewData, contSearch, contStatusFilter, contDateFrom, contDateTo]);
+
+  // Customer modal handlers
+  const handleCustomerUpdated = (updated) => {
+    const cId = updated.id || updated.customerId;
+    setCustomers((prev) => prev.map((c) => ((c.id === cId || c.customerId === cId) ? updated : c)));
+    if (selectedCustomer && (selectedCustomer.id === cId || selectedCustomer.customerId === cId)) {
+      setSelectedCustomer(updated);
+    }
+  };
+
+  const handleConfirmDeleteCustomer = async () => {
+    if (!deletingCustomer) return;
+    setIsDeletingCustomer(true);
+    const cId = deletingCustomer.id || deletingCustomer.customerId;
+    try {
+      const { customerApi } = await import('../../../services/customerApi');
+      await customerApi.deleteCustomer(cId);
+      setCustomers((prev) => prev.filter((c) => c.id !== cId && c.customerId !== cId));
+      setDeletingCustomer(null);
+    } catch (err) {
+      toast.error(`Delete failed: ${err.message}`);
+    } finally {
+      setIsDeletingCustomer(false);
+    }
+  };
+
+  const handleRetrySync = async (e, customer) => {
+    if (e) e.stopPropagation();
+    const custId = customer.id || customer.customerId;
+    setSyncingIds((prev) => ({ ...prev, [custId]: true }));
+    try {
+      const { customerApi } = await import('../../../services/customerApi');
+      const res = await customerApi.retrySangamSync(custId);
+      if (res.success) {
+        setCustomers((prev) => prev.map((c) => (c.id === custId || c.customerId === custId) ? { ...c, sangamCrm: res.sangamCrm } : c));
+        if (selectedCustomer && (selectedCustomer.id === custId || selectedCustomer.customerId === custId)) {
+          setSelectedCustomer((prev) => ({ ...prev, sangamCrm: res.sangamCrm }));
+        }
+        toast.success('Synchronized to Sangam CRM!');
+      } else {
+        toast.error(`Sync failed: ${res.sangamCrm?.syncError || 'Unknown error'}`);
+      }
+    } catch (err) {
+      toast.error(`Sync failed: ${err.message}`);
+    } finally {
+      setSyncingIds((prev) => ({ ...prev, [custId]: false }));
+    }
+  };
+
+  // Contract modal handlers
+  const getContractId = (row) => row.id || row.contractId;
+  const handleContractUpdated = (updated) => {
+    const cId = getContractId(updated);
+    setContracts((prev) => prev.map((item) => (item.id === cId || item.contractId === cId ? updated : item)));
+  };
+
+  const handleConfirmDeleteContract = async () => {
+    if (!deletingContract) return;
+    setIsDeletingContract(true);
+    const cId = getContractId(deletingContract);
+    try {
+      const { contractApi } = await import('../../../services/contractApi');
+      await contractApi.deleteContract(cId);
+      setContracts((prev) => prev.filter((item) => (item.id || item.contractId) !== cId));
+      setDeletingContract(null);
+    } catch (err) {
+      toast.error(`Delete failed: ${err.message}`);
+    } finally {
+      setIsDeletingContract(false);
+    }
+  };
   const svgWidth = 620;
   const svgHeight = 220;
   const paddingX = 42;
@@ -239,6 +360,229 @@ export default function OverviewSection({
     return `₹${(value / 100000).toFixed(1)} L`;
   };
 
+  const overviewCustomerColumns = [
+    {
+      id: 'id',
+      name: 'Customer ID',
+      selector: (row) => row.id,
+      sortable: true,
+      sortFunction: compareText((row) => row.id),
+      width: '135px',
+      cell: (cust) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
+      )
+    },
+    {
+      id: 'company',
+      name: 'Organization & Client',
+      selector: (row) => row.company,
+      sortable: true,
+      sortFunction: compareText((row) => row.company),
+      minWidth: '190px',
+      grow: 1.1,
+      cell: (cust) => (
+        <div>
+          <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
+        </div>
+      )
+    },
+    {
+      id: 'email',
+      name: 'Contact Details',
+      selector: (row) => row.email,
+      sortable: true,
+      sortFunction: compareText((row) => row.email),
+      minWidth: '220px',
+      grow: 1,
+      cell: (cust) => (
+        <div>
+          <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
+        </div>
+      )
+    },
+    {
+      id: 'plan',
+      name: 'Subscribed Plan',
+      selector: (row) => row.plan,
+      sortable: true,
+      sortFunction: compareText((row) => row.plan),
+      minWidth: '155px',
+      cell: (cust) => <span className="adm-status-pill info">{cust.plan}</span>
+    },
+    {
+      id: 'serverNode',
+      name: 'Server Node',
+      selector: (row) => row.serverNode,
+      sortable: true,
+      sortFunction: compareText((row) => row.serverNode),
+      minWidth: '165px',
+      cell: (cust) => (
+        <span style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{cust.serverNode}</span>
+      )
+    },
+    {
+      id: 'mrr',
+      name: 'Monthly MRR',
+      selector: (row) => row.mrr,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.mrr),
+      width: '130px',
+      cell: (cust) => (
+        <span style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</span>
+      )
+    },
+    {
+      id: 'status',
+      name: 'Status',
+      selector: (row) => row.status,
+      sortable: true,
+      sortFunction: compareText((row) => row.status),
+      width: '140px',
+      cell: (cust) => {
+        const s = cust.status?.toLowerCase();
+        return (
+          <>
+            {s === 'demo' && (
+              <span className="adm-status-pill demo">
+                <Clock size={12} />
+                <span>Demo Trial</span>
+              </span>
+            )}
+            {(s === 'inactive' || s === 'suspended') && (
+              <span className="adm-status-pill inactive">
+                <XCircle size={12} />
+                <span>Inactive</span>
+              </span>
+            )}
+            {s === 'active' && (
+              <span className="adm-status-pill active">
+                <CheckCircle2 size={12} />
+                <span>Active</span>
+              </span>
+            )}
+          </>
+        );
+      },
+      searchType: 'select'
+    },
+    {
+      id: 'actions',
+      name: 'Quick Action',
+      center: true,
+      width: '120px',
+      button: true,
+      allowOverflow: true,
+      ignoreRowClick: true,
+      cell: (cust) => (
+        <RowActionMenu
+          onView={() => setSelectedCustomer(cust)}
+          onEdit={() => setEditingCustomer(cust)}
+          onPrint={() => {
+            generateCustomerPdf(cust);
+            toast.success(`PDF generated for ${cust.company || cust.name}`);
+          }}
+          onDelete={() => setDeletingCustomer(cust)}
+        />
+      )
+    }
+  ];
+
+  const recentContractColumns = [
+    {
+      id: 'id',
+      name: 'Contract No',
+      selector: (row) => row.id,
+      sortable: true,
+      sortFunction: compareText((row) => row.id),
+      width: '140px',
+      cell: (c) => <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{c.id}</span>
+    },
+    {
+      id: 'company',
+      name: 'Customer / Company',
+      selector: (row) => row.company,
+      sortable: true,
+      sortFunction: compareText((row) => row.company),
+      minWidth: '185px',
+      grow: 1.1,
+      cell: (c) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>{c.company}</div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.customer}</div>
+        </div>
+      )
+    },
+    {
+      id: 'service',
+      name: 'Service SLA',
+      selector: (row) => row.service,
+      sortable: true,
+      sortFunction: compareText((row) => row.service),
+      minWidth: '210px',
+      grow: 1,
+      cell: (c) => <span style={{ color: '#334155' }}>{c.service}</span>
+    },
+    {
+      id: 'value',
+      name: 'Annual Value',
+      selector: (row) => row.value,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.value),
+      width: '145px',
+      cell: (c) => (
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>{c.value}</span>
+      )
+    },
+    {
+      id: 'expiryDate',
+      name: 'Expiry Date',
+      selector: (row) => row.expiryDate,
+      sortable: true,
+      sortFunction: compareDate((row) => row.expiryDate),
+      width: '130px',
+      cell: (c) => (
+        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{c.expiryDate}</span>
+      )
+    },
+    {
+      id: 'status',
+      name: 'Status',
+      selector: (row) => row.status,
+      sortable: true,
+      sortFunction: compareText((row) => row.status),
+      width: '135px',
+      cell: (c) => (
+        <span className={`adm-status-pill ${c.status === 'active' ? 'active' : 'expiring'}`}>
+          <CheckCircle2 size={12} />
+          <span style={{ textTransform: 'capitalize' }}>{c.status}</span>
+        </span>
+      ),
+      searchType: 'select'
+    },
+    {
+      id: 'actions',
+      name: 'Action',
+      center: true,
+      width: '120px',
+      button: true,
+      allowOverflow: true,
+      ignoreRowClick: true,
+      cell: (c) => (
+        <RowActionMenu
+          onView={() => setViewingContract(c)}
+          onEdit={() => setEditingContract(c)}
+          onPrint={() => {
+            generateContractPdf(c);
+            toast.success(`PDF generated for ${c.company || c.customer}`);
+          }}
+          onDelete={() => setDeletingContract(c)}
+        />
+      )
+    }
+  ];
+
   return (
     <div className="adm-overview-container animate-fade-in">
       {/* =========================================================================
@@ -296,6 +640,214 @@ export default function OverviewSection({
             />
           </div>
         </div>
+      </div>
+
+      {/* =========================================================================
+         4. CUSTOMER LIST ON ADMIN OVERVIEW SECTION (WITH COUNT-UP & FILTERING)
+         ========================================================================= */}
+      <div className="adm-table-card animate-fade-in" style={{ marginBottom: '28px' }}>
+        <div className="adm-card-header">
+          <div className="adm-card-header-info">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 className="adm-section-title">Customer Accounts Directory</h2>
+              <span className="adm-status-pill info">
+                <Users size={12} />
+                <span>
+                  <CountUp end={customerCounts.total} duration={1200} /> Registered Accounts
+                </span>
+              </span>
+            </div>
+            <p className="adm-section-sub">
+              Live enterprise client list, active cloud ERP deployments, and prospective demo trials.
+            </p>
+          </div>
+
+          <div className="adm-card-header-action">
+            <button
+              type="button"
+              className="adm-btn-primary"
+              onClick={() => navigate('/admin/customer')}
+            >
+              <span>Manage Customers</span>
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Filter Section: search + status dropdown + date range */}
+        <div className="adm-table-toolbar">
+          {/* Search Box */}
+          <div className="adm-search-box adm-search-box-toolbar">
+            <Search size={16} className="adm-search-icon" />
+            <input
+              type="text"
+              placeholder="Search customers or company..."
+              value={custSearch}
+              onChange={(e) => setCustSearch(e.target.value)}
+              className="adm-search-input"
+            />
+            {custSearch && (
+              <button
+                type="button"
+                className="adm-search-clear"
+                aria-label="Clear search"
+                onClick={() => setCustSearch('')}
+              >
+                <XCircle size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="adm-table-filters" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <DateRangeFilter
+              from={custDateFrom}
+              to={custDateTo}
+              onChange={(from, to) => {
+                setCustDateFrom(from);
+                setCustDateTo(to);
+              }}
+            />
+
+            <div className="adm-filter-select-wrap">
+              <Select
+                styles={compactSelectStyles}
+                isSearchable={false}
+                options={[
+                  { value: 'all', label: `All Statuses (${customerCounts.total})` },
+                  { value: 'active', label: `Active Only (${customerCounts.active})` },
+                  { value: 'demo', label: `Demo / Trials (${customerCounts.demo})` },
+                  { value: 'inactive', label: `Inactive (${customerCounts.inactive})` }
+                ]}
+                value={{
+                  value: custStatusFilter,
+                  label:
+                    custStatusFilter === 'all'
+                      ? `All Statuses (${customerCounts.total})`
+                      : custStatusFilter === 'active'
+                      ? `Active Only (${customerCounts.active})`
+                      : custStatusFilter === 'demo'
+                      ? `Demo / Trials (${customerCounts.demo})`
+                      : `Inactive (${customerCounts.inactive})`
+                }}
+                onChange={(opt) => setCustStatusFilter(opt ? opt.value : 'all')}
+                classNamePrefix="react-select"
+              />
+            </div>
+          </div>
+        </div>
+
+        <AdminDataTable
+          columns={overviewCustomerColumns}
+          data={filteredOverviewCustomers}
+          keyField="id"
+          defaultSortFieldId="id"
+          defaultSortAsc
+          resetPageToken={`${custSearch}|${custStatusFilter}|${custDateFrom}|${custDateTo}`}
+          minWidth={1350}
+          noDataMessage="No customer accounts match this filter"
+          noDataHint="Try adjusting the status filters or search text."
+          ariaLabel="Overview customer accounts"
+        />
+      </div>
+
+      {/* =========================================================================
+         5. RECENT CONTRACT COMMITMENTS TABLE
+         ========================================================================= */}
+      <div className="adm-table-card">
+        <div className="adm-card-header">
+          <div className="adm-card-header-info">
+            <h2 className="adm-section-title">Recent Contract Commitments</h2>
+            <p className="adm-section-sub">
+              Latest client SLAs signed across Eastern India enterprise accounts.
+            </p>
+          </div>
+          <div className="adm-card-header-action">
+            <button
+              type="button"
+              className="adm-btn-secondary"
+              onClick={() => navigate('/admin/customer/contract')}
+            >
+              <span>View All Contracts</span>
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Filter Section: search + status dropdown + date range */}
+        <div className="adm-table-toolbar">
+          <div className="adm-search-box adm-search-box-toolbar">
+            <Search size={16} className="adm-search-icon" />
+            <input
+              type="text"
+              placeholder="Search by code, company, client..."
+              value={contSearch}
+              onChange={(e) => setContSearch(e.target.value)}
+              className="adm-search-input"
+            />
+            {contSearch && (
+              <button
+                type="button"
+                className="adm-search-clear"
+                aria-label="Clear search"
+                onClick={() => setContSearch('')}
+              >
+                <XCircle size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="adm-table-filters" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <DateRangeFilter
+              from={contDateFrom}
+              to={contDateTo}
+              onChange={(from, to) => {
+                setContDateFrom(from);
+                setContDateTo(to);
+              }}
+            />
+
+            <div className="adm-filter-select-wrap">
+              <Select
+                styles={compactSelectStyles}
+                isSearchable={false}
+                options={[
+                  { value: 'all', label: 'All Statuses' },
+                  { value: 'active', label: 'Active Only' },
+                  { value: 'notstarted', label: 'Not Started / Draft' },
+                  { value: 'inactive', label: 'Inactive / Closed' }
+                ]}
+                value={{
+                  value: contStatusFilter,
+                  label:
+                    contStatusFilter === 'all'
+                      ? 'All Statuses'
+                      : contStatusFilter === 'active'
+                      ? 'Active Only'
+                      : contStatusFilter === 'notstarted'
+                      ? 'Not Started / Draft'
+                      : 'Inactive / Closed'
+                }}
+                onChange={(opt) => setContStatusFilter(opt ? opt.value : 'all')}
+                classNamePrefix="react-select"
+              />
+            </div>
+          </div>
+        </div>
+
+        <AdminDataTable
+          columns={recentContractColumns}
+          data={filteredOverviewContracts.slice(0, 5)}
+          keyField="id"
+          defaultSortFieldId="expiryDate"
+          defaultSortAsc
+          pagination={false}
+          minWidth={1150}
+          scrollHeight="clamp(220px, 32vh, 320px)"
+          resetPageToken={`${contSearch}|${contStatusFilter}|${contDateFrom}|${contDateTo}`}
+          noDataMessage="No recent contracts found"
+          noDataHint="Contracts you create will appear here."
+          ariaLabel="Recent contract commitments"
+        />
       </div>
 
       {/* =========================================================================
@@ -780,327 +1332,69 @@ export default function OverviewSection({
         </div>
       </div>
 
-      {/* =========================================================================
-         4. CUSTOMER LIST ON ADMIN OVERVIEW SECTION (WITH COUNT-UP & FILTERING)
-         ========================================================================= */}
-      <div className="adm-table-card animate-fade-in" style={{ marginBottom: '28px' }}>
-        <div className="adm-card-header">
-          <div className="adm-card-header-info">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 className="adm-section-title">Customer Accounts Directory</h2>
-              <span className="adm-status-pill info">
-                <Users size={12} />
-                <span>
-                  <CountUp end={customerCounts.total} duration={1200} /> Registered Accounts
-                </span>
-              </span>
-            </div>
-            <p className="adm-section-sub">
-              Live enterprise client list, active cloud ERP deployments, and prospective demo trials.
-            </p>
-          </div>
 
-          <div className="adm-card-header-action">
-            <button
-              type="button"
-              className="adm-btn-primary"
-              onClick={() => navigate('/admin/customer')}
-            >
-              <span>Manage Customers</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </div>
 
-        {/* Filter Section: Demo, Active, Inactive + Search */}
-        <div className="adm-table-toolbar">
-          <div className="adm-table-filters" style={{ flexWrap: 'wrap', gap: '12px' }}>
-            {/* Search Box */}
-            <div className="adm-search-box" style={{ width: '260px' }}>
-              <Search size={15} className="adm-search-icon" />
-              <input
-                type="text"
-                placeholder="Search customers or company..."
-                value={custSearch}
-                onChange={(e) => setCustSearch(e.target.value)}
-                className="adm-search-input"
-                style={{ width: '100%', height: '36px' }}
-              />
-            </div>
+      {/* View Customer Modal (React Portal) */}
+      <ViewCustomerModal
+        customer={selectedCustomer}
+        isOpen={!!selectedCustomer}
+        onClose={() => setSelectedCustomer(null)}
+        onEdit={(cust) => {
+          setSelectedCustomer(null);
+          setEditingCustomer(cust);
+        }}
+        onRetrySync={handleRetrySync}
+        isSyncing={selectedCustomer ? !!syncingIds[selectedCustomer.id || selectedCustomer.customerId] : false}
+      />
 
-            {/* Filter Pills for Active, Demo, Inactive with CountUp */}
-            <div className="adm-filter-pills">
-              <button
-                type="button"
-                className={`adm-pill-btn ${custFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setCustFilter('all')}
-              >
-                All (<CountUp end={customerCounts.total} duration={1000} />)
-              </button>
-              <button
-                type="button"
-                className={`adm-pill-btn ${custFilter === 'active' ? 'active active-tab' : ''}`}
-                onClick={() => setCustFilter('active')}
-              >
-                <span className="adm-filter-dot active-dot" />
-                Active (<CountUp end={customerCounts.active} duration={1000} />)
-              </button>
-              <button
-                type="button"
-                className={`adm-pill-btn ${custFilter === 'demo' ? 'active demo-tab' : ''}`}
-                onClick={() => setCustFilter('demo')}
-              >
-                <span className="adm-filter-dot demo-dot" />
-                Demo (<CountUp end={customerCounts.demo} duration={1000} />)
-              </button>
-              <button
-                type="button"
-                className={`adm-pill-btn ${custFilter === 'inactive' ? 'active inactive-tab' : ''}`}
-                onClick={() => setCustFilter('inactive')}
-              >
-                <span className="adm-filter-dot inactive-dot" />
-                Inactive (<CountUp end={customerCounts.inactive} duration={1000} />)
-              </button>
-            </div>
-          </div>
+      {/* Edit Customer Modal */}
+      <EditCustomerModal
+        customer={editingCustomer}
+        isOpen={!!editingCustomer}
+        onClose={() => setEditingCustomer(null)}
+        onUpdated={handleCustomerUpdated}
+      />
 
-          <div className="adm-table-record-count">
-            Showing <strong>{filteredOverviewCustomers.length}</strong> accounts
-          </div>
-        </div>
+      {/* Delete Confirmation Modal (Customer) */}
+      <DeleteConfirmModal
+        isOpen={!!deletingCustomer}
+        title="Delete Customer"
+        itemName={deletingCustomer?.company || deletingCustomer?.name || 'this customer'}
+        itemType="customer"
+        onConfirm={handleConfirmDeleteCustomer}
+        onCancel={() => setDeletingCustomer(null)}
+        isDeleting={isDeletingCustomer}
+      />
 
-        {/* Customer Table with Horizontal & Vertical Scrolling */}
-        <div className="adm-table-responsive">
-          <table className="adm-table" style={{ minWidth: '1020px' }}>
-            <thead>
-              <tr>
-                <SortableTh
-                  label="Customer ID"
-                  sortKey="id"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Organization & Client"
-                  sortKey="company"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Contact Details"
-                  sortKey="email"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Subscribed Plan"
-                  sortKey="plan"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Server Node"
-                  sortKey="serverNode"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Monthly MRR"
-                  sortKey="mrr"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <SortableTh
-                  label="Status"
-                  sortKey="status"
-                  currentSort={custSortConfig}
-                  onSort={requestCustSort}
-                />
-                <th>Quick Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedOverviewCustomers.length > 0 ? (
-                sortedOverviewCustomers.map((cust) => {
-                  const s = cust.status?.toLowerCase();
-                  return (
-                    <tr key={cust.id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
-                        {cust.id}
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
-                      </td>
-                      <td>
-                        <span className="adm-status-pill info">{cust.plan}</span>
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>
-                        {cust.serverNode}
-                      </td>
-                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</td>
-                      <td>
-                        {s === 'demo' && (
-                          <span className="adm-status-pill demo">
-                            <Clock size={12} />
-                            <span>Demo Trial</span>
-                          </span>
-                        )}
-                        {(s === 'inactive' || s === 'suspended') && (
-                          <span className="adm-status-pill inactive">
-                            <XCircle size={12} />
-                            <span>Inactive</span>
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="adm-action-pill"
-                          onClick={() => {
-                            toast.success(`Opening profile for ${cust.company}...`);
-                            navigate('/admin/customer');
-                          }}
-                        >
-                          Inspect
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                    No customer accounts match this filter.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* View Contract Modal */}
+      <ViewContractModal
+        contract={viewingContract}
+        isOpen={!!viewingContract}
+        onClose={() => setViewingContract(null)}
+        onEdit={(c) => {
+          setViewingContract(null);
+          setEditingContract(c);
+        }}
+      />
 
-        <div className="adm-table-footer">
-          <span>Enterprise client accounts connected to CtrlS Kolkata Tier-4 datacenter</span>
-          <button
-            type="button"
-            className="adm-action-pill"
-            style={{ fontWeight: 600, color: '#6366f1' }}
-            onClick={() => navigate('/admin/customer')}
-          >
-            <span>Open Complete Customer Console →</span>
-          </button>
-        </div>
-      </div>
+      {/* Edit Contract Modal */}
+      <EditContractModal
+        contract={editingContract}
+        isOpen={!!editingContract}
+        onClose={() => setEditingContract(null)}
+        onUpdated={handleContractUpdated}
+      />
 
-      {/* =========================================================================
-         5. RECENT CONTRACT COMMITMENTS TABLE
-         ========================================================================= */}
-      <div className="adm-table-card">
-        <div className="adm-card-header">
-          <div className="adm-card-header-info">
-            <h2 className="adm-section-title">Recent Contract Commitments</h2>
-            <p className="adm-section-sub">
-              Latest client SLAs signed across Eastern India enterprise accounts.
-            </p>
-          </div>
-          <div className="adm-card-header-action">
-            <button
-              type="button"
-              className="adm-btn-secondary"
-              onClick={() => navigate('/admin/customer/contract')}
-            >
-              <span>View All Contracts</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </div>
-
-        <div className="adm-table-responsive">
-          <table className="adm-table" style={{ minWidth: '950px' }}>
-            <thead>
-              <tr>
-                <SortableTh
-                  label="Contract No"
-                  sortKey="id"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <SortableTh
-                  label="Customer / Company"
-                  sortKey="company"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <SortableTh
-                  label="Service SLA"
-                  sortKey="service"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <SortableTh
-                  label="Annual Value"
-                  sortKey="value"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <SortableTh
-                  label="Expiry Date"
-                  sortKey="expiryDate"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <SortableTh
-                  label="Status"
-                  sortKey="status"
-                  currentSort={contractSortConfig}
-                  onSort={requestContractSort}
-                />
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRecentContracts.slice(0, 5).map((c) => (
-                <tr key={c.id}>
-                  <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{c.id}</td>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{c.company}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.customer}</div>
-                  </td>
-                  <td style={{ color: '#334155' }}>{c.service}</td>
-                  <td style={{ fontWeight: 600, color: '#0f172a' }}>{c.value}</td>
-                  <td style={{ fontSize: '0.78rem', color: '#64748b' }}>{c.expiryDate}</td>
-                  <td>
-                    <span
-                      className={`adm-status-pill ${
-                        c.status === 'active' ? 'active' : 'expiring'
-                      }`}
-                    >
-                      <CheckCircle2 size={12} />
-                      <span style={{ textTransform: 'capitalize' }}>{c.status}</span>
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="adm-action-pill"
-                      onClick={() => {
-                        toast.success(`Viewing ${c.company} contract details`);
-                        navigate('/admin/customer/contract');
-                      }}
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Delete Confirmation Modal (Contract) */}
+      <DeleteConfirmModal
+        isOpen={!!deletingContract}
+        title="Delete Contract"
+        itemName={deletingContract?.company || deletingContract?.customer || 'this contract'}
+        itemType="contract"
+        onConfirm={handleConfirmDeleteContract}
+        onCancel={() => setDeletingContract(null)}
+        isDeleting={isDeletingContract}
+      />
     </div>
   );
 }

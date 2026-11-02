@@ -222,7 +222,7 @@ export default function ViewCustomerModal({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: '12px',
               fontSize: '0.82rem',
               color: '#475569'
@@ -292,7 +292,7 @@ export default function ViewCustomerModal({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: '16px',
             fontSize: '0.86rem'
           }}

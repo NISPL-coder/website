@@ -72,18 +72,71 @@ export default function LoginPage({ lockedPortal }) {
     setErrorMessage('');
   };
 
+  // Check if an admin has already been created (hides create admin option once 1 admin exists)
+  const [adminConfigLoaded, setAdminConfigLoaded] = useState(false);
+  const [adminExists, setAdminExists] = useState(() => {
+    try {
+      const cached = localStorage.getItem('nispl_admin_exists');
+      return cached !== null ? cached === 'true' : true; // Default to true (hidden) to prevent flash
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    authApi.getAdminConfig()
+      .then(res => {
+        if (isMounted) {
+          if (typeof res?.adminExists === 'boolean') {
+            setAdminExists(res.adminExists);
+            try {
+              localStorage.setItem('nispl_admin_exists', res.adminExists ? 'true' : 'false');
+            } catch (e) {
+              // ignore
+            }
+          }
+          setAdminConfigLoaded(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to verify admin status:', err);
+        if (isMounted) setAdminConfigLoaded(true);
+      });
+    return () => { isMounted = false; };
+  }, []);
+
   // Form Fields State: ONLY Email & Password
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isShaking, setIsShaking] = useState(false);
 
   // Modals state
   const [activeSession, setActiveSession] = useState(null);
-  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [isForgotOpen, setIsForgotOpen] = useState(() => searchParams.get('forgot') === 'true');
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [devResetUrl, setDevResetUrl] = useState('');
+
+  // Social sign-in notice (providers are not connected to the backend yet)
+  const [socialNote, setSocialNote] = useState('');
+
+  useEffect(() => {
+    if (!socialNote) return undefined;
+    const timer = setTimeout(() => setSocialNote(''), 6000);
+    return () => clearTimeout(timer);
+  }, [socialNote]);
+
+  const handleSocialSignIn = (provider) => {
+    setSocialNote(
+      `${provider} sign-in is not enabled for this workspace yet. Please continue with your email and password.`
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,10 +144,14 @@ export default function LoginPage({ lockedPortal }) {
 
     if (!email.trim()) {
       setErrorMessage('Please enter your email or account ID.');
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return;
     }
     if (!password) {
       setErrorMessage('Please enter your password.');
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return;
     }
 
@@ -130,17 +187,29 @@ export default function LoginPage({ lockedPortal }) {
     } catch (err) {
       setIsLoading(false);
       setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
     }
   };
 
   const handleSendReset = async (e) => {
     e.preventDefault();
-    if (!resetEmail.trim()) return;
+    setResetError('');
+    if (!resetEmail.trim()) {
+      setResetError('Please enter your email address.');
+      return;
+    }
+    setIsSendingReset(true);
     try {
-      await authApi.forgotPassword(resetEmail.trim());
+      const response = await authApi.forgotPassword(resetEmail.trim());
+      setIsSendingReset(false);
       setResetSent(true);
+      if (response.devResetUrl) {
+        setDevResetUrl(response.devResetUrl);
+      }
     } catch (err) {
-      setErrorMessage(err.message || 'Failed to dispatch reset instructions.');
+      setIsSendingReset(false);
+      setResetError(err.message || 'Failed to dispatch reset instructions. Please verify your email.');
     }
   };
 
@@ -193,7 +262,7 @@ export default function LoginPage({ lockedPortal }) {
 
       {/* Main Centered Frosted Glass Card */}
       <main className="ebolt-login-wrapper">
-        <div className="ebolt-login-card animate-fade-in">
+        <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
           
           {/* Top Floating Action Icon Badge: ->] */}
           <div className="ebolt-badge-icon-box" aria-hidden="true">
@@ -205,13 +274,7 @@ export default function LoginPage({ lockedPortal }) {
           </div>
 
           {/* Heading and Description */}
-          <h1 className="ebolt-card-title">
-            {activePortal === 'customer' || location.pathname === '/customer-login'
-              ? 'Login'
-              : activePortal === 'admin'
-              ? 'Login'
-              : 'Login'}
-          </h1>
+          <h1 className="ebolt-card-title">Sign in with email</h1>
           <p className="ebolt-card-subtitle">
             {activePortal === 'customer' || location.pathname === '/customer-login'
               ? 'Access your cloud instances, remote Tally licenses & support.'
@@ -317,9 +380,12 @@ export default function LoginPage({ lockedPortal }) {
                 <span>Get Started</span>
               )}
             </button>
+            {socialNote && (
+              <p className="ebolt-social-note" role="status">{socialNote}</p>
+            )}
 
-            {/* Create Admin Option (Shown for Admin Login - matches user request) */}
-            {activePortal === 'admin' && (
+            {/* Create Admin Option (Shown for Admin Login ONLY when no admin has been created yet) */}
+            {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
               <div className="ebolt-create-account-box animate-fade-in">
                 <span className="ebolt-create-account-text">Are you a new administrator? </span>
                 <Link to="/admin/create" className="ebolt-create-account-link">
@@ -432,12 +498,15 @@ export default function LoginPage({ lockedPortal }) {
             <div className="ebolt-dialog-header">
               <div>
                 <h3 className="ebolt-dialog-title">Reset password</h3>
-                <span className="ebolt-dialog-sub">Enter your email to receive a recovery link</span>
+                <span className="ebolt-dialog-sub">Enter your email to receive recovery instructions</span>
               </div>
               <button 
                 type="button" 
                 className="ebolt-dialog-close" 
-                onClick={() => setIsForgotOpen(false)}
+                onClick={() => {
+                  setIsForgotOpen(false);
+                  setResetError('');
+                }}
                 aria-label="Close"
               >
                 <X size={18} />
@@ -447,20 +516,48 @@ export default function LoginPage({ lockedPortal }) {
             <div className="ebolt-dialog-body">
               {resetSent ? (
                 <div className="reset-sent-state">
-                  <CheckCircle2 size={36} className="text-green" style={{ margin: '0 auto 12px' }} />
+                  <CheckCircle2 size={38} className="text-green" style={{ margin: '0 auto 12px' }} />
                   <h4>Check your inbox</h4>
-                  <p>A secure reset token has been dispatched to <b>{resetEmail || 'your email'}</b>.</p>
+                  <p>If an account is associated with <b>{resetEmail}</b>, password recovery instructions have been dispatched.</p>
+                  
+                  {devResetUrl && (
+                    <div style={{ margin: '16px 0', padding: '12px 14px', background: '#f0fdf4', borderRadius: '8px', border: '1px dashed #22c55e', fontSize: '0.82rem', textAlign: 'left' }}>
+                      <span style={{ fontWeight: 600, color: '#15803d' }}>Local Dev Reset Link:</span>
+                      <div style={{ marginTop: '6px' }}>
+                        <Link 
+                          to={devResetUrl.replace(/^https?:\/\/[^/]+/, '')} 
+                          onClick={() => setIsForgotOpen(false)}
+                          style={{ color: '#0284c7', textDecoration: 'underline', wordBreak: 'break-all', fontWeight: 500 }}
+                        >
+                          Open Password Reset Page &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
                   <button 
                     type="button" 
                     className="ebolt-submit-btn" 
                     style={{ marginTop: '16px' }}
-                    onClick={() => setIsForgotOpen(false)}
+                    onClick={() => {
+                      setIsForgotOpen(false);
+                      setResetSent(false);
+                      setResetError('');
+                      setDevResetUrl('');
+                    }}
                   >
                     Done
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSendReset}>
+                <form onSubmit={handleSendReset} noValidate>
+                  {resetError && (
+                    <div className="ebolt-alert-error" role="alert" style={{ marginBottom: '14px' }}>
+                      <AlertCircle size={15} />
+                      <span>{resetError}</span>
+                    </div>
+                  )}
+
                   <div className="ebolt-input-wrap">
                     <Mail size={16} className="ebolt-input-icon" />
                     <input 
@@ -468,23 +565,38 @@ export default function LoginPage({ lockedPortal }) {
                       className="ebolt-input"
                       placeholder="Enter registered email address"
                       value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
+                      onChange={(e) => {
+                        setResetEmail(e.target.value);
+                        if (resetError) setResetError('');
+                      }}
+                      autoComplete="email"
                       required
+                      autoFocus
                     />
                   </div>
+
                   <div className="ebolt-dialog-footer" style={{ padding: 0, marginTop: '20px' }}>
                     <button 
                       type="button" 
                       className="ebolt-btn-outline"
-                      onClick={() => setIsForgotOpen(false)}
+                      onClick={() => {
+                        setIsForgotOpen(false);
+                        setResetError('');
+                      }}
+                      disabled={isSendingReset}
                     >
                       Cancel
                     </button>
                     <button 
                       type="submit" 
                       className="ebolt-btn-solid"
+                      disabled={isSendingReset || !resetEmail.trim()}
                     >
-                      Send Reset Link
+                      {isSendingReset ? (
+                        <span className="ebolt-spinner" />
+                      ) : (
+                        <span>Send Reset Link</span>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -495,5 +607,38 @@ export default function LoginPage({ lockedPortal }) {
       )}
 
     </div>
+  );
+}
+
+/* ==========================================================================
+   Social provider marks (inline SVG so they render without extra assets)
+   ========================================================================== */
+function GoogleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true" focusable="false">
+      <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+      <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
+      <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
+      <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
   );
 }

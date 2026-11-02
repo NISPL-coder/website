@@ -36,6 +36,7 @@ const AdminDashboard = lazyWithRetry(() => import('./pages/login/Admin/AdminDash
 const CustomerLoginPage = lazyWithRetry(() => import('./pages/login/customer/CustomerLoginPage'));
 const CustomerRegisterPage = lazyWithRetry(() => import('./pages/CustomerRegister'));
 const CreateAdminPage = lazyWithRetry(() => import('./pages/login/Admin/CreateAdminPage'));
+const ResetPasswordPage = lazyWithRetry(() => import('./pages/login/ResetPasswordPage'));
 const DemoModal = lazyWithRetry(() => import('./components/modals/DemoModal'));
 const LoginModal = lazyWithRetry(() => import('./components/modals/LoginModal'));
 const SearchModal = lazyWithRetry(() => import('./components/modals/SearchModal'));
@@ -152,6 +153,7 @@ function MainApp() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/career" element={<CareerPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           
           {/* Customer Portal Routes with Sidebar & Header */}
           <Route path="/customer/overview" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
@@ -188,6 +190,9 @@ function MainApp() {
           <Route path="/admin/receipt/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/receipt" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
+          <Route path="/admin/import-csv" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/sangam-sync" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/profile" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />

@@ -38,6 +38,16 @@ export default function CreateAdminPage() {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
 
+  // Check if an admin already exists (only 1 admin allowed)
+  const [adminAlreadyExists, setAdminAlreadyExists] = useState(() => {
+    try {
+      const cached = localStorage.getItem('nispl_admin_exists');
+      return cached !== null ? cached === 'true' : true; // Default to true (blocked) to prevent flash
+    } catch {
+      return true;
+    }
+  });
+
   // Modal State: 'closed' | 'ask_admin' | 'otp_verify' | 'success'
   const [modalStep, setModalStep] = useState('closed');
   
@@ -51,12 +61,21 @@ export default function CreateAdminPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState('');
 
-  // Fetch configured admin email on mount
+  // Fetch configured admin email and status on mount
   useEffect(() => {
     let isMounted = true;
     authApi.getAdminConfig()
       .then(res => {
-        if (isMounted && res.adminEmail) {
+        if (!isMounted) return;
+        if (typeof res?.adminExists === 'boolean') {
+          setAdminAlreadyExists(res.adminExists);
+          try {
+            localStorage.setItem('nispl_admin_exists', res.adminExists ? 'true' : 'false');
+          } catch (e) {
+            // ignore
+          }
+        }
+        if (res?.adminEmail) {
           setAdminEmail(res.adminEmail);
         }
       })
@@ -161,6 +180,10 @@ export default function CreateAdminPage() {
         password,
         otp: otp.trim()
       });
+      try {
+        localStorage.setItem('nispl_admin_exists', 'true');
+      } catch (e) {}
+      setAdminAlreadyExists(true);
       setIsVerifying(false);
       setModalStep('success');
     } catch (err) {
@@ -208,7 +231,28 @@ export default function CreateAdminPage() {
             </div>
           )}
 
-          <form onSubmit={handleNextClick} className="ebolt-form" noValidate>
+          {adminAlreadyExists ? (
+            <div style={{ textAlign: 'center', padding: '12px 0' }} className="animate-fade-in">
+              <div className="ebolt-alert-error" style={{ marginBottom: '18px', textAlign: 'left', lineHeight: '1.45' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>
+                  An administrator account has already been initialized. Only 1 administrator is permitted for this system.
+                </span>
+              </div>
+              <p className="ebolt-card-subtitle" style={{ marginBottom: '22px' }}>
+                If you already have administrator credentials, please sign in through the Admin Portal.
+              </p>
+              <Link 
+                to="/login?portal=admin" 
+                className="ebolt-submit-btn" 
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                <span>Proceed to Admin Login</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleNextClick} className="ebolt-form" noValidate>
             
             {/* Full Name (Mandatory) */}
             <div>
@@ -323,6 +367,7 @@ export default function CreateAdminPage() {
               </Link>
             </div>
           </form>
+          )}
         </div>
       </main>
 
@@ -421,7 +466,7 @@ export default function CreateAdminPage() {
                 
                 {/* Admin Email Input with Send OTP button beside it */}
                 <div>
-                  <label className="admin-input-label">Admin Email (.env)</label>
+                  <label className="admin-input-label">Email</label>
                   <div className="admin-email-row">
                     <div className="ebolt-input-wrap admin-email-wrap">
                       <div className="ebolt-input-icon">

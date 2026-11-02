@@ -1,17 +1,33 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, CreditCard, X, Search, Filter, Clock } from 'lucide-react';
+import { CheckCircle2, X, Search, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { useTableSort, SortableTh } from './tableSortUtils';
 import { compactSelectStyles } from './reactSelectStyles';
 import ExportDropdown from './ExportDropdown';
 import { formatPaymentsForExport } from './exportUtils';
+import AdminDataTable from './AdminDataTable';
+import DateRangeFilter from './DateRangeFilter';
+import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+
+const getName = (row) => row.name || row.customer || '—';
+const getAccount = (row) => row.accountName || row.company || '—';
+const getInvoiceNumber = (row) => row.invoiceNumber || row.invoiceRef || '—';
+const getInvoiceDate = (row) => row.invoiceDate || '2026-10-15';
+const getReceivedAmount = (row) => row.receivedAmount || row.amount;
+const getPending = (row) => row.pendingPayment || '₹0';
+const getExpectedDate = (row) => row.expectedPaymentDate || '—';
+const getReceivedDate = (row) => row.paymentReceivedDate || row.date || '—';
+const getMethod = (row) => row.paymentMethod || row.method || 'NEFT Wire';
+const getFilterDate = (row) =>
+  row.invoiceDate || row.date || row.paymentReceivedDate || row.expectedPaymentDate || row.createdAt;
 
 export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
@@ -33,16 +49,181 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       const matchesStatus =
         statusFilter === 'all' || statusStr === statusFilter.toLowerCase();
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [payments, searchQuery, statusFilter]);
+      const matchesDateRange = isWithinDateRange(
+        getFilterDate(p),
+        dateFrom,
+        dateTo
+      );
 
-  // Multi-column Ascending/Descending Sorting Hook
-  const { sortedItems: sortedPayments, sortConfig, requestSort } = useTableSort(
-    filteredPayments,
-    'invoiceDate',
-    'desc'
-  );
+      return matchesSearch && matchesStatus && matchesDateRange;
+    });
+  }, [payments, searchQuery, statusFilter, dateFrom, dateTo]);
+
+  const columns = [
+    {
+      id: 'name',
+      name: 'Name',
+      selector: (row) => getName(row),
+      sortable: true,
+      sortFunction: compareText(getName),
+      minWidth: '190px',
+      grow: 1.1,
+      cell: (p) => (
+        <div>
+          <div style={{ fontWeight: 600, color: '#0f172a' }}>{getName(p)}</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#6366f1' }}>
+            {p.id}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'accountName',
+      name: 'Account Name',
+      selector: (row) => getAccount(row),
+      sortable: true,
+      sortFunction: compareText(getAccount),
+      minWidth: '170px',
+      grow: 1,
+      cell: (p) => <span style={{ fontWeight: 600, color: '#1e293b' }}>{getAccount(p)}</span>
+    },
+    {
+      id: 'invoiceNumber',
+      name: 'Invoice Number',
+      selector: (row) => getInvoiceNumber(row),
+      sortable: true,
+      sortFunction: compareText(getInvoiceNumber),
+      minWidth: '150px',
+      cell: (p) => (
+        <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', color: '#334155' }}>
+          {getInvoiceNumber(p)}
+        </span>
+      )
+    },
+    {
+      id: 'invoiceDate',
+      name: 'Invoice Date',
+      selector: (row) => getInvoiceDate(row),
+      sortable: true,
+      sortFunction: compareDate(getInvoiceDate),
+      width: '130px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{getInvoiceDate(p)}</span>
+      )
+    },
+    {
+      id: 'receivedAmount',
+      name: 'Received Amount',
+      selector: (row) => getReceivedAmount(row),
+      sortable: true,
+      sortFunction: compareNumber(getReceivedAmount),
+      width: '150px',
+      cell: (p) => (
+        <span style={{ fontWeight: 700, color: '#059669', fontSize: '0.92rem' }}>
+          {getReceivedAmount(p)}
+        </span>
+      )
+    },
+    {
+      id: 'pendingPayment',
+      name: 'Pending Payment',
+      selector: (row) => getPending(row),
+      sortable: true,
+      sortFunction: compareNumber(getPending),
+      width: '150px',
+      cell: (p) => (
+        <span
+          style={{
+            fontWeight: 600,
+            color: getPending(p) === '₹0' ? '#94a3b8' : '#d97706',
+            fontSize: '0.88rem'
+          }}
+        >
+          {getPending(p)}
+        </span>
+      )
+    },
+    {
+      id: 'expectedPaymentDate',
+      name: 'Expected Payment Date',
+      selector: (row) => getExpectedDate(row),
+      sortable: true,
+      sortFunction: compareDate(getExpectedDate),
+      width: '150px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{getExpectedDate(p)}</span>
+      )
+    },
+    {
+      id: 'paymentReceivedDate',
+      name: 'Payment Received Date',
+      selector: (row) => getReceivedDate(row),
+      sortable: true,
+      sortFunction: compareDate(getReceivedDate),
+      width: '155px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.82rem', color: '#334155' }}>{getReceivedDate(p)}</span>
+      )
+    },
+    {
+      id: 'paymentMethod',
+      name: 'Payment Method',
+      selector: (row) => getMethod(row),
+      sortable: true,
+      sortFunction: compareText(getMethod),
+      width: '150px',
+      cell: (p) => <span className="adm-status-pill info">{getMethod(p)}</span>
+    },
+    {
+      id: 'status',
+      name: 'Status',
+      selector: (row) => row.status,
+      sortable: true,
+      sortFunction: compareText((row) => row.status),
+      width: '135px',
+      cell: (p) => {
+        const isPaid = p.status === 'paid';
+        const isPartial = p.status === 'partial';
+        return (
+          <span
+            className={`adm-status-pill ${isPaid ? 'active' : isPartial ? 'demo' : 'pending'}`}
+          >
+            {isPaid && <CheckCircle2 size={12} />}
+            {!isPaid && <Clock size={12} />}
+            <span style={{ textTransform: 'capitalize' }}>{p.status}</span>
+          </span>
+        );
+      },
+      searchType: 'select',
+      searchOptions: [
+        { value: 'paid', label: 'Paid' },
+        { value: 'partial', label: 'Partial' },
+        { value: 'pending', label: 'Pending' },
+      ]
+    },
+    {
+      id: 'actions',
+      name: 'Action',
+      center: true,
+      width: '130px',
+      button: true,
+      allowOverflow: true,
+      searchable: false,
+      ignoreRowClick: true,
+      cell: (p) => (
+        <button
+          type="button"
+          className="adm-action-pill"
+          onClick={() => {
+            toast.success(`Opening receipt for ${getInvoiceNumber(p)}`);
+            if (onGoToReceipt) onGoToReceipt();
+          }}
+        >
+          Receipt
+        </button>
+      )
+    }
+  ];
 
   return (
     <div className="adm-table-card">
@@ -69,20 +250,38 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
 
       {/* 2. Filter / Search Toolbar */}
       <div className="adm-table-toolbar">
-        <div className="adm-table-filters">
-          <div className="adm-search-box" style={{ width: '300px' }}>
-            <Search size={15} className="adm-search-icon" />
-            <input
-              type="text"
-              placeholder="Search by name, account, invoice, method..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="adm-search-input"
-              style={{ width: '100%', height: '36px' }}
-            />
-          </div>
+        <div className="adm-search-box adm-search-box-toolbar">
+          <Search size={16} className="adm-search-icon" />
+          <input
+            type="text"
+            placeholder="Search by name, account, invoice, method..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="adm-search-input"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="adm-search-clear"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery('')}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
 
-          <div style={{ minWidth: '190px' }}>
+        <div className="adm-table-filters">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(from, to) => {
+              setDateFrom(from);
+              setDateTo(to);
+            }}
+          />
+
+          <div className="adm-filter-select-wrap">
             <Select
               styles={compactSelectStyles}
               isSearchable={false}
@@ -108,175 +307,21 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
             />
           </div>
         </div>
-
-        <div className="adm-table-record-count">
-          Showing <strong>{filteredPayments.length}</strong> of <strong>{payments.length}</strong> payment records
-        </div>
       </div>
 
-      {/* 3. Table with Exact Fields from Payment Details */}
-      <div className="adm-table-responsive">
-        <table className="adm-table" style={{ minWidth: '1380px' }}>
-          <thead>
-            <tr>
-              <SortableTh
-                label="Name"
-                sortKey="name"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Account Name"
-                sortKey="accountName"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Invoice Number"
-                sortKey="invoiceNumber"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Invoice Date"
-                sortKey="invoiceDate"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Received Amount"
-                sortKey="receivedAmount"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Pending Payment"
-                sortKey="pendingPayment"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Expected Payment Date"
-                sortKey="expectedPaymentDate"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Payment Received Date"
-                sortKey="paymentReceivedDate"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Payment Method"
-                sortKey="paymentMethod"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <SortableTh
-                label="Status"
-                sortKey="status"
-                currentSort={sortConfig}
-                onSort={requestSort}
-              />
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedPayments.length > 0 ? (
-              sortedPayments.map((p) => {
-                const nameDisplay = p.name || p.customer;
-                const accountDisplay = p.accountName || p.company;
-                const invNumber = p.invoiceNumber || p.invoiceRef;
-                const invDate = p.invoiceDate || '2026-10-15';
-                const rcvAmount = p.receivedAmount || p.amount;
-                const pndPayment = p.pendingPayment || '₹0';
-                const expDate = p.expectedPaymentDate || '—';
-                const rcvDate = p.paymentReceivedDate || p.date || '—';
-                const pMethod = p.paymentMethod || p.method || 'NEFT Wire';
-                const isPaid = p.status === 'paid';
-                const isPartial = p.status === 'partial';
-
-                return (
-                  <tr key={p.id}>
-                    <td>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{nameDisplay}</div>
-                      <div style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#6366f1' }}>{p.id}</div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, color: '#1e293b' }}>{accountDisplay}</div>
-                    </td>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.84rem', color: '#334155' }}>
-                      {invNumber}
-                    </td>
-                    <td style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                      {invDate}
-                    </td>
-                    <td style={{ fontWeight: 700, color: '#059669', fontSize: '0.92rem' }}>
-                      {rcvAmount}
-                    </td>
-                    <td
-                      style={{
-                        fontWeight: 600,
-                        color: pndPayment === '₹0' ? '#94a3b8' : '#d97706',
-                        fontSize: '0.88rem'
-                      }}
-                    >
-                      {pndPayment}
-                    </td>
-                    <td style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                      {expDate}
-                    </td>
-                    <td style={{ fontSize: '0.82rem', color: '#334155' }}>
-                      {rcvDate}
-                    </td>
-                    <td>
-                      <span className="adm-status-pill info">{pMethod}</span>
-                    </td>
-                    <td>
-                      <span
-                        className={`adm-status-pill ${
-                          isPaid ? 'active' : isPartial ? 'demo' : 'pending'
-                        }`}
-                      >
-                        {isPaid && <CheckCircle2 size={12} />}
-                        {!isPaid && <Clock size={12} />}
-                        <span style={{ textTransform: 'capitalize' }}>{p.status}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="adm-action-pill"
-                        onClick={() => {
-                          toast.success(`Opening receipt for ${invNumber}`);
-                          if (onGoToReceipt) onGoToReceipt();
-                        }}
-                      >
-                        Receipt
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="11" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
-                  No payment records found matching your filter criteria.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 4. Table Footer */}
-      <div className="adm-table-footer">
-        <span>Instant RTGS / NEFT automatic reconciliations synced with ERP</span>
-        <span style={{ fontWeight: 600, color: '#059669' }}>
-          Total Settled: {payments.filter(p => p.status === 'paid').length} Transactions
-        </span>
-      </div>
+      {/* 3. React DataTable */}
+      <AdminDataTable
+        columns={columns}
+        data={filteredPayments}
+        keyField="id"
+        defaultSortFieldId="invoiceDate"
+        defaultSortAsc={false}
+        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
+        minWidth={1750}
+        noDataMessage="No payment records found"
+        noDataHint="Try a different search term or settlement filter."
+        ariaLabel="Customer payments"
+      />
     </div>
   );
 }

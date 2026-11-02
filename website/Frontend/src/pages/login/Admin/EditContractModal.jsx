@@ -1,3 +1,4 @@
+import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, Save, FileText, Layers, Calendar, CreditCard } from 'lucide-react';
@@ -78,6 +79,23 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
       const updated = res.contract || { ...contract, ...formData };
 
       onUpdated?.(updated);
+
+      notificationApi.createNotification({
+        type: 'contract_updated',
+        title: 'Contract Agreement Updated',
+        message: `Contract "${formData.name || cId}" for ${formData.company} was updated (Status: ${formData.status}).`,
+        severity: 'info',
+        entityType: 'contract',
+        entityId: cId,
+        user: {
+          company: formData.company
+        },
+        metadata: {
+          status: formData.status,
+          contractValue: formData.contractValue,
+          expiryDate: formData.expiryDate
+        }
+      });
       toast.success('Contract updated & synced with Sangam CRM!', { id: toastId });
       onClose();
     } catch (err) {
@@ -181,7 +199,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
             </div>
 
             {/* Account / Company & Contact Email */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Client / Account Name *</label>
                 <input
@@ -205,7 +223,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
             </div>
 
             {/* Contract Type, Subscription Period, Total Value */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Contract Type</label>
                 <select
@@ -246,7 +264,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
             </div>
 
             {/* Start Date, End Date, Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Start Date *</label>
                 <input

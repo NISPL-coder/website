@@ -279,23 +279,6 @@
   box-shadow: 0 1px 3px rgba(220, 38, 38, 0.35);
 }
 
-.adm-user-profile-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #ffffff;
-  border: 1px solid var(--adm-border-input);
-  border-radius: var(--adm-radius-pill);
-  padding: 4px 14px 4px 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.adm-user-profile-btn:hover {
-  border-color: var(--adm-purple);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.08);
-}
-
 .adm-user-avatar {
   width: 34px;
   height: 34px;
@@ -820,19 +803,63 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
-.adm-table-record-count {
-  font-size: 0.88rem;
-  color: var(--adm-text-muted);
-  background: #ffffff;
-  border: 1px solid var(--adm-border-input);
-  padding: 5px 12px;
-  border-radius: var(--adm-radius-pill);
+/* Search stays on the left, every filter control groups on the right. */
+.adm-table-toolbar > .adm-table-filters {
+  margin-left: auto;
 }
 
-.adm-table-record-count strong {
-  color: var(--adm-text-main);
+/* Toolbar search: keeps the icon, input and clear button aligned. */
+.adm-search-box-toolbar {
+  position: relative;
+  flex: 0 1 340px;
+  min-width: 230px;
+  max-width: 100%;
+}
+
+.adm-search-box-toolbar .adm-search-input {
+  width: 100%;
+  height: 38px;
+  padding-right: 36px;
+  border-radius: var(--adm-radius-sm);
+  box-shadow: none;
+}
+
+.adm-search-box-toolbar .adm-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.adm-search-clear {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #eef2f7;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.adm-search-clear:hover {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.adm-filter-select-wrap {
+  min-width: 205px;
+  max-width: 100%;
+}
+
+.adm-filter-select-wrap .react-select__control {
+  min-height: 38px;
 }
 
 .adm-select-filter {
@@ -1010,6 +1037,12 @@
   border-radius: var(--adm-radius-pill);
   font-size: 0.82rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .adm-status-pill.active { background: var(--adm-emerald-soft); color: var(--adm-emerald); border: 1px solid rgba(5, 150, 105, 0.2); }
@@ -2863,10 +2896,6 @@ input:checked + .adm-slider:before {
   }
 
   /* Icon-only header actions to save horizontal space */
-  .adm-user-profile-btn {
-    padding: 4px;
-  }
-
   .adm-user-meta {
     display: none;
   }
@@ -2906,6 +2935,13 @@ input:checked + .adm-slider:before {
 
   .adm-table-filters {
     width: 100%;
+    margin-left: 0;
+  }
+
+  .adm-date-range,
+  .adm-date-range-trigger {
+    width: 100%;
+    min-width: 0;
   }
 
   .adm-select-filter {

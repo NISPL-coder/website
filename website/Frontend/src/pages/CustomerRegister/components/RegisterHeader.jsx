@@ -5,18 +5,18 @@ import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 
 export default function RegisterHeader() {
   return (
-    <header className="ebolt-top-nav">
+    <header className="ebolt-top-nav cust-reg-nav">
       <Link to="/" className="ebolt-brand-link" title="Net Infotech System Pvt. Ltd. Concept to Reality">
         <img 
           src={logoImg} 
           alt="Net Infotech System Pvt. Ltd." 
           className="ebolt-brand-logo-img" 
-          height="48"
+          height="36"
         />
       </Link>
 
       <Link to="/customer-login" className="ebolt-home-pill-btn" id="reg-back-to-login">
-        <ArrowLeft size={14} />
+        <ArrowLeft size={13} />
         <span>Back to Login</span>
       </Link>
     </header>

@@ -3,11 +3,15 @@
  * Handles fetching dashboard overview metrics from backend.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/dashboard`
-  : (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-    ? 'https://website-ebxf.onrender.com/api/dashboard'
-    : 'http://localhost:5000/api/dashboard';
+const isLocalhost = Boolean(
+  typeof window !== "undefined" && (
+    window.location.hostname === "localhost" || 
+    window.location.hostname === "127.0.0.1" || 
+    window.location.hostname === "[::1]"
+  )
+);
+const BACKEND_URL = isLocalhost ? "http://localhost:4000" : (import.meta.env.VITE_API_URL || "https://website-ebxf.onrender.com");
+const API_BASE_URL = `${BACKEND_URL}/api/dashboard`;
 
 const TOKEN_KEY = 'nispl_auth_token';
 
@@ -41,3 +45,4 @@ export const dashboardApi = {
 };
 
 export default dashboardApi;
+

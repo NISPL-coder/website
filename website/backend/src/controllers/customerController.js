@@ -1,3 +1,4 @@
+import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import mongoose from 'mongoose';
@@ -184,6 +185,25 @@ export const createCustomer = async (req, res) => {
     );
     saveCustomersToFile(updatedFileList);
 
+    await logNotification({
+      type: 'customer_created',
+      title: 'Customer Created',
+      message: `Customer "${savedCustomer.name}" (${savedCustomer.company || savedCustomer.email}) was registered.`,
+      severity: 'success',
+      entityType: 'customer',
+      entityId: savedCustomer.customerId || savedCustomer._id,
+      user: {
+        name: savedCustomer.name,
+        email: savedCustomer.email,
+        company: savedCustomer.company
+      },
+      metadata: {
+        customerId: savedCustomer.customerId,
+        plan: savedCustomer.plan,
+        mrr: savedCustomer.mrr
+      }
+    });
+
     return res.status(201).json({
       success: true,
       customer: savedCustomer,
@@ -336,6 +356,15 @@ export const updateCustomer = async (req, res) => {
       if (idx !== -1) {
         fileList[idx] = { ...fileList[idx], ...updatedData };
         saveCustomersToFile(fileList);
+
+    await logNotification({
+      type: 'customer_deleted',
+      title: 'Customer Deleted',
+      message: `Customer account (${id}) was deleted.`,
+      severity: 'warning',
+      entityType: 'customer',
+      entityId: id
+    });
         savedCustomer = fileList[idx];
       }
     }
@@ -361,6 +390,21 @@ export const updateCustomer = async (req, res) => {
     } catch (crmErr) {
       console.warn('[CustomerController] Sangam CRM re-sync warning on update:', crmErr.message);
     }
+
+    await logNotification({
+      type: 'customer_updated',
+      title: 'Customer Updated',
+      message: `Customer "${savedCustomer.name}" (${savedCustomer.company || savedCustomer.email}) details were updated.`,
+      severity: 'info',
+      entityType: 'customer',
+      entityId: savedCustomer.customerId || savedCustomer._id,
+      user: {
+        name: savedCustomer.name,
+        email: savedCustomer.email,
+        company: savedCustomer.company
+      },
+      metadata: { customerId: savedCustomer.customerId }
+    });
 
     return res.status(200).json({
       success: true,

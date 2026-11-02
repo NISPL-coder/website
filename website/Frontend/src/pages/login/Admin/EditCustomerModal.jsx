@@ -1,3 +1,4 @@
+import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, Save, User, Building2, Mail, Phone, MapPin } from 'lucide-react';
@@ -135,6 +136,25 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       const updated = res.customer || { ...customer, ...payload };
 
       onUpdated?.(updated);
+
+      notificationApi.createNotification({
+        type: 'customer_updated',
+        title: 'Customer Profile Updated',
+        message: `Customer "${payload.name || payload.company}" (${cId}) profile details were updated.`,
+        severity: 'info',
+        entityType: 'customer',
+        entityId: cId,
+        user: {
+          name: payload.name,
+          email: payload.email,
+          company: payload.company
+        },
+        metadata: {
+          plan: payload.plan,
+          status: payload.status,
+          serverNode: payload.serverNode
+        }
+      });
       toast.success('Customer updated & synced with Sangam CRM Companies!', { id: toastId });
       onClose();
     } catch (err) {
@@ -226,7 +246,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Name & Company */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Contact Person Name *</label>
                 <input
@@ -251,7 +271,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             </div>
 
             {/* Email & Phone */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Corporate Email *</label>
                 <input
@@ -276,7 +296,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             </div>
 
             {/* Alternate Phone & Website */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Alternate Phone</label>
                 <input
@@ -300,7 +320,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             </div>
 
             {/* Industry, Relationship, Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Industry</label>
                 <select
@@ -342,7 +362,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             </div>
 
             {/* Address Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Street / Location</label>
                 <input
@@ -364,7 +384,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">City</label>
                 <input
@@ -407,7 +427,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             </div>
 
             {/* Plan & MRR */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Cloud Plan</label>
                 <input

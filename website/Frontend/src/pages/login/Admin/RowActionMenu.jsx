@@ -10,39 +10,40 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Anchor the dropdown to the trigger button using fixed positioning so it
-  // is never clipped by the scrollable table container.
-  const updateMenuPosition = useCallback(() => {
+  const computePosition = useCallback(() => {
     const button = buttonRef.current;
-    if (!button) return;
-
+    if (!button) return null;
     const rect = button.getBoundingClientRect();
     const estimatedMenuHeight = 190;
     const spaceBelow = window.innerHeight - rect.bottom;
     const openAbove = spaceBelow < estimatedMenuHeight && rect.top > estimatedMenuHeight;
-
-    setMenuPosition(
-      openAbove
-        ? {
-            top: 'auto',
-            bottom: window.innerHeight - rect.top + 6,
-            right: window.innerWidth - rect.right
-          }
-        : {
-            top: rect.bottom + 6,
-            bottom: 'auto',
-            right: window.innerWidth - rect.right
-          }
-    );
+    return openAbove
+      ? { top: 'auto', bottom: window.innerHeight - rect.top + 6, right: window.innerWidth - rect.right }
+      : { top: rect.bottom + 6, bottom: 'auto', right: window.innerWidth - rect.right };
   }, []);
+
+  const toggleMenu = useCallback((e) => {
+    e.stopPropagation();
+    setIsOpen((prev) => {
+      if (prev) {
+        setMenuPosition(null);
+        return false;
+      }
+      const pos = computePosition();
+      setMenuPosition(pos);
+      return true;
+    });
+  }, [computePosition]);
 
   useEffect(() => {
     if (!isOpen) {
       setMenuPosition(null);
       return undefined;
     }
-
-    updateMenuPosition();
+    if (!menuPosition) {
+      const pos = computePosition();
+      if (pos) setMenuPosition(pos);
+    }
 
     const handleClickOutside = (e) => {
       if (menuRef.current?.contains(e.target)) return;
@@ -54,21 +55,18 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
       if (e.key === 'Escape') setIsOpen(false);
     };
 
-    // Close on scroll so the fixed dropdown never drifts away from its row.
     const handleScroll = () => setIsOpen(false);
 
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
-    window.addEventListener('resize', updateMenuPosition);
     window.addEventListener('scroll', handleScroll, true);
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      window.removeEventListener('resize', updateMenuPosition);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [isOpen, updateMenuPosition]);
+  }, [isOpen, menuPosition, computePosition]);
 
   const dropdown =
     isOpen && menuPosition
@@ -145,10 +143,7 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
         ref={buttonRef}
         type="button"
         className={`adm-action-dots-btn ${isOpen ? 'active' : ''}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen((prev) => !prev);
-        }}
+        onClick={toggleMenu}
         title="Actions"
         aria-label="Actions"
       >

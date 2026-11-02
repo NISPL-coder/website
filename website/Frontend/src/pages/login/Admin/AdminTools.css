@@ -1,0 +1,383 @@
+/* ==========================================================================
+   ADMIN TOOLS — Profile menu, Import CSV, Sangam Sync & Profile page styles
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * Header profile chip + dropdown
+ * ------------------------------------------------------------------ */
+.adm-profile-menu {
+  position: relative;
+}
+
+.adm-profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid #e9ebf3;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-profile-chip:hover,
+.adm-profile-chip.is-open {
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 14px -6px rgba(99, 102, 241, 0.35);
+}
+
+.adm-profile-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-profile-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.adm-profile-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-profile-email {
+  font-size: 0.68rem;
+  color: #64748b;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-profile-chevron {
+  color: #94a3b8;
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.adm-profile-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+.adm-profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 256px;
+  background: #ffffff;
+  border: 1px solid #eef0f6;
+  border-radius: 14px;
+  box-shadow: 0 18px 44px -12px rgba(15, 23, 42, 0.25);
+  z-index: 1300;
+  overflow: hidden;
+  animation: admProfileDropdownIn 0.14s ease-out;
+}
+
+@keyframes admProfileDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.adm-profile-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef0f6;
+}
+
+.adm-profile-dropdown-header .adm-profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.adm-profile-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.adm-profile-dropdown-item:hover {
+  background: #f5f3ff;
+  color: #4f46e5;
+}
+
+.adm-profile-dropdown-item.danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.adm-profile-dropdown-divider {
+  height: 1px;
+  background: #eef0f6;
+}
+
+@media (max-width: 900px) {
+  .adm-profile-meta {
+    display: none;
+  }
+
+  .adm-profile-chip {
+    padding: 5px 8px 5px 6px;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Sidebar tools section
+ * ------------------------------------------------------------------ */
+.adm-sidebar-tools-label {
+  margin: 14px 10px 4px 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.adm-sidebar-divider {
+  height: 1px;
+  margin: 10px 12px 2px 12px;
+  background: #eef0f6;
+}
+
+.adm-sidebar.collapsed .adm-sidebar-tools-label,
+.adm-sidebar.collapsed .adm-sidebar-divider {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Import CSV page
+ * ------------------------------------------------------------------ */
+.adm-import-dropzone {
+  border: 2px dashed #c7d2fe;
+  border-radius: 16px;
+  background: #f8f7ff;
+  padding: 34px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.adm-import-dropzone:hover,
+.adm-import-dropzone.is-dragging {
+  border-color: #6366f1;
+  background: #f3f1ff;
+}
+
+.adm-import-dropzone-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e2ff;
+  color: #6366f1;
+  margin-bottom: 10px;
+}
+
+.adm-import-dropzone-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.adm-import-dropzone-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.adm-import-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.adm-import-preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #eef0f6;
+  border-radius: 12px;
+}
+
+.adm-import-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.adm-import-preview-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-import-preview-table td {
+  padding: 7px 12px;
+  border-top: 1px solid #f1f5f9;
+  color: #334155;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-import-result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.8rem;
+  color: #334155;
+}
+
+.adm-import-result-row:last-child {
+  border-bottom: none;
+}
+
+.adm-import-progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #eef0f6;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.adm-import-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+/* ------------------------------------------------------------------ *
+ * Profile page
+ * ------------------------------------------------------------------ */
+.adm-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #eef2ff 0%, #f5f3ff 55%, #faf5ff 100%);
+  border: 1px solid #e0e7ff;
+}
+
+.adm-profile-hero-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 10px 24px -8px rgba(99, 102, 241, 0.55);
+}
+
+.adm-profile-hero-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.adm-profile-hero-email {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0 0 8px 0;
+}
+
+.adm-profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.adm-profile-info-card {
+  border: 1px solid #eef0f6;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+}
+
+.adm-profile-info-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.adm-profile-info-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-profile-dropdown {
+    animation: none;
+  }
+}

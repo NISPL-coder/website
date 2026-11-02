@@ -7,17 +7,16 @@
 .ebolt-login-viewport {
   position: relative;
   min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  /* background: 
-    radial-gradient(ellipse 100% 45% at 50% 100%, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.6) 50%, transparent 80%),
-    radial-gradient(circle 850px at 50% 48%, transparent 848px, rgba(255, 255, 255, 0.5) 849px, rgba(255, 255, 255, 0.5) 851px, transparent 852px),
-    radial-gradient(circle 620px at 50% 48%, transparent 618px, rgba(255, 255, 255, 0.55) 619px, rgba(255, 255, 255, 0.55) 621px, transparent 622px),
-    radial-gradient(circle 420px at 50% 48%, transparent 418px, rgba(255, 255, 255, 0.6) 419px, rgba(255, 255, 255, 0.6) 421px, transparent 422px),
-    linear-gradient(180deg, #8dc5f8 0%, #b3dcfa 22%, #d5edfd 50%, #eaf5fe 75%, #ffffff 100%); */
+  background:
+    radial-gradient(ellipse 620px 460px at 50% 44%, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0) 72%),
+    linear-gradient(180deg, #8FCCEE 0%, #A8D7F1 14%, #C6E5F8 32%, #DCEEFA 52%, #EDF5FC 72%, #FBFCFE 88%, #F4F7FB 100%);
   background-attachment: fixed;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -121,6 +120,8 @@
   .ebolt-top-nav {
     padding: 2px 4px;
     gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .ebolt-brand-logo-img {
@@ -137,6 +138,27 @@
   .ebolt-login-card {
     padding: 28px 18px 24px 18px;
     border-radius: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .ebolt-brand-logo-img {
+    height: 52px;
+    max-width: 120px;
+  }
+
+  .ebolt-home-pill-btn {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+  }
+
+  .ebolt-login-card {
+    padding: 20px 12px 18px 12px;
+    border-radius: 16px;
+  }
+
+  .ebolt-card-title {
+    font-size: 1.3rem;
   }
 }
 
@@ -159,61 +181,67 @@
   position: relative;
   z-index: 10;
   width: 100%;
+  flex: 1 0 auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: auto 0;
-  padding: 24px 0;
+  padding: 20px 0;
 }
 
 .ebolt-login-card {
   width: 100%;
   max-width: 440px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1.5px solid #d1d5db;
-  border-radius: 28px;
-  box-shadow: 
-    0 24px 60px -12px rgba(15, 23, 42, 0.12),
-    0 8px 24px rgba(15, 23, 42, 0.06);
-  padding: 38px 36px 34px 36px;
+  min-height: 100%;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow:
+    0 32px 70px -26px rgba(15, 42, 71, 0.30),
+    0 12px 28px -16px rgba(15, 42, 71, 0.14);
+  padding: 32px 36px 28px 36px;
   text-align: center;
   position: relative;
   transition: transform 0.3s ease;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Top Square Icon Badge: ->] */
 .ebolt-badge-icon-box {
-  width: 52px;
-  height: 52px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 15px;
-  margin: 0 auto 18px auto;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f9fd 100%);
+  border: 1px solid #e3eaf3;
+  border-radius: 18px;
+  margin: 0 auto 16px auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 4px 14px rgba(0, 0, 0, 0.06),
-    0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 22px -12px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .ebolt-card-title {
   font-family: 'Inter', sans-serif;
-  font-size: 1.48rem;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: #0d1421;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0 0 8px 0;
 }
 
 .ebolt-card-subtitle {
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   color: #6b7280;
-  line-height: 1.48;
-  max-width: 320px;
+  line-height: 1.5;
+  max-width: 100%;
+  text-align: center;
   margin: 0 auto 18px auto;
 }
 
@@ -228,7 +256,7 @@
   padding: 4px;
   border-radius: 12px;
   gap: 3px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
@@ -302,8 +330,8 @@
   -moz-appearance: none;
   cursor: pointer;
   padding-right: 42px;
-  background-color: #f1f4f9;
-  border: 1px solid #cbd5e1;
+  background-color: #eff2f7;
+  border: 1px solid transparent;
   font-weight: 600;
   color: #111827;
   font-size: 0.92rem;
@@ -312,8 +340,8 @@
 
 .ebolt-select:focus {
   background: #ffffff;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
 
 .ebolt-select-chevron {
@@ -349,27 +377,27 @@
 
 .ebolt-input {
   width: 100%;
-  height: 48px;
-  background: #f1f4f9;
-  border: 1px solid #cbd5e1;
+  height: 52px;
+  background: #eff2f7;
+  border: 1px solid transparent;
   border-radius: 12px;
   padding: 0 40px 0 42px;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: #111827;
   outline: none;
   transition: all 0.2s ease;
 }
 
 .ebolt-input::placeholder {
-  color: #8c97a7;
+  color: #9ca3af;
   font-size: 0.9rem;
 }
 
 .ebolt-input:focus {
   background: #ffffff;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
 
 .ebolt-input:focus ~ .ebolt-input-icon {
@@ -426,21 +454,22 @@
 /* Primary Action Button: Black / Dark Charcoal */
 .ebolt-submit-btn {
   width: 100%;
-  height: 48px;
-  background: #191b24;
+  height: 50px;
+  background: #1a1a24;
   color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.96rem;
+  font-family: 'Inter', 'Outfit', sans-serif;
+  font-size: 0.95rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.22s ease;
-  box-shadow: 0 4px 14px rgba(25, 27, 36, 0.2);
+  box-shadow: 0 6px 16px -8px rgba(26, 26, 36, 0.55);
 }
 
 .ebolt-submit-btn:hover:not(:disabled) {
@@ -466,69 +495,6 @@
 
 @keyframes ebolt-spin {
   to { transform: rotate(360deg); }
-}
-
-/* Divider: ······ Or sign in with ······ */
-.ebolt-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 14px 0 10px 0;
-}
-
-.ebolt-divider-line {
-  flex: 1;
-  height: 1px;
-  background: #e2e8f0;
-}
-
-.ebolt-divider-text {
-  font-size: 0.78rem;
-  color: #8c97a7;
-  white-space: nowrap;
-}
-
-/* Bottom 3 Pill Buttons (Google, Microsoft, Demo) */
-.ebolt-social-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.ebolt-social-pill {
-  height: 42px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
-}
-
-.ebolt-social-pill:hover {
-  background: #f8fafc;
-  border-color: rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
-}
-
-.ebolt-demo-pill {
-  gap: 4px;
-}
-
-.ebolt-zap-icon {
-  color: #d97706;
-}
-
-.ebolt-demo-txt {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #1e293b;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 /* ==========================================================================
@@ -777,19 +743,21 @@
   opacity: 0.95 !important;
   pointer-events: none;
   user-select: none;
+  text-align: center;
+  text-align-last: center;
 }
 
 .ebolt-select-wrap.is-locked-wrap {
   cursor: not-allowed !important;
 }
 
-/* Create an Account row below submit button */
+/* Create an Account row below the social sign-in options */
 .ebolt-create-account-box {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px dashed #cbd5e1;
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: none;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1109,4 +1077,13 @@
 }
 
 
+
+
+/* Shake animation for auth errors */
+@keyframes ebolt-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+.ebolt-shake { animation: ebolt-shake 0.5s ease-in-out; }
 

@@ -24,21 +24,21 @@ export default function RetypePasswordField({
           {required && <span style={{ color: '#ef4444', marginLeft: '3px' }}>*</span>}
         </label>
         {isMatched && (
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <Check size={12} />
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <Check size={11} />
             Matches
           </span>
         )}
         {isMismatch && (
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <X size={12} />
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <X size={11} />
             Mismatch
           </span>
         )}
       </div>
 
       <div className={`ebolt-input-wrap ${error || isMismatch ? 'has-error' : isMatched ? 'has-success' : ''}`}>
-        <Lock size={16} className="ebolt-input-icon" />
+        <Lock size={15} className="ebolt-input-icon" />
         <input
           id={id}
           type={showPassword ? 'text' : 'password'}
@@ -56,7 +56,7 @@ export default function RetypePasswordField({
           title={showPassword ? 'Hide password' : 'Show password'}
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
-          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
       </div>
 

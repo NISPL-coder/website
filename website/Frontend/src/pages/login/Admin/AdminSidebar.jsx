@@ -7,6 +7,8 @@ import {
   CreditCard,
   Package,
   ReceiptText,
+  FileUp,
+  RefreshCw,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -137,6 +139,40 @@ export default function AdminSidebar({
           <div className="adm-nav-item-left">
             <ReceiptText size={19} />
             <span>Receipt</span>
+          </div>
+        </button>
+
+        {/* DATA TOOLS */}
+        {!isCollapsed && (
+          <div className="adm-sidebar-divider" aria-hidden="true" />
+        )}
+        {!isCollapsed && (
+          <div className="adm-sidebar-tools-label">Data Tools</div>
+        )}
+
+        {/* 5. IMPORT CSV */}
+        <button
+          type="button"
+          className={`adm-nav-item ${activeNav === 'import-csv' ? 'active' : ''}`}
+          onClick={() => handleNavClick('/admin/import-csv')}
+          title="Bulk Import Customers via CSV"
+        >
+          <div className="adm-nav-item-left">
+            <FileUp size={19} />
+            <span>Import CSV</span>
+          </div>
+        </button>
+
+        {/* 6. SANGAM SYNC */}
+        <button
+          type="button"
+          className={`adm-nav-item ${activeNav === 'sangam-sync' ? 'active' : ''}`}
+          onClick={() => handleNavClick('/admin/sangam-sync')}
+          title="Sangam CRM Synchronization Status"
+        >
+          <div className="adm-nav-item-left">
+            <RefreshCw size={19} />
+            <span>Sangam Sync</span>
           </div>
         </button>
       </nav>

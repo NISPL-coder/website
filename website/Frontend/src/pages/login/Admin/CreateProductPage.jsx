@@ -12,6 +12,7 @@ import {
   Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { notificationApi } from '../../../services/notificationApi';
 import { customSelectStyles } from './reactSelectStyles';
 
 const PRODUCT_TYPE_CONFIG = {
@@ -92,6 +93,17 @@ export default function CreateProductPage({ products, setProducts, productType =
     };
 
     setProducts([newProduct, ...products]);
+
+    // Dispatch real-time product notification to admin
+    notificationApi.createNotification({
+      type: 'product_created',
+      title: 'Product Added to Catalog',
+      message: `Product "${newProduct.name}" (${newProduct.price} ${newProduct.frequency}) was added to catalog.`,
+      severity: 'info',
+      entityType: 'product',
+      entityId: newProduct.id,
+      metadata: { sku: newProduct.sku, price: newProduct.price }
+    });
     toast.success(`Product "${newProduct.name}" added to catalog!`, {
       style: {
         borderRadius: '12px',

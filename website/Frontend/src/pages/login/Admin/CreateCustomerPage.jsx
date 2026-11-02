@@ -1,3 +1,4 @@
+import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
@@ -175,6 +176,26 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
       setCustomers((prev) => [createdCustomer, ...prev.filter((c) => c.id !== createdCustomer.id)]);
 
+      notificationApi.createNotification({
+        type: 'customer_created',
+        title: 'Customer Account Created',
+        message: `New customer account "${customerPayload.name}" (${customerPayload.company || customerPayload.email}) created for plan ${customerPayload.plan || 'Tally Prime Cloud'}.`,
+        severity: 'success',
+        entityType: 'customer',
+        entityId: createdCustomer.customerId || createdCustomer.id || customerPayload.customerId,
+        user: {
+          name: customerPayload.name,
+          email: customerPayload.email,
+          company: customerPayload.company
+        },
+        metadata: {
+          customerId: createdCustomer.customerId || createdCustomer.id,
+          plan: customerPayload.plan,
+          serverNode: customerPayload.serverNode,
+          mrr: customerPayload.mrr
+        }
+      });
+
       if (sangamStatus === 'synced') {
         toast.success(
           `Customer created & synced to Sangam CRM Companies (Record ID: ${res.sangamCrm.recordId})!`,
@@ -217,6 +238,24 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       };
 
       setCustomers((prev) => [fallbackCustomer, ...prev]);
+
+      notificationApi.createNotification({
+        type: 'customer_created',
+        title: 'Customer Account Created',
+        message: `Customer "${fallbackCustomer.name}" (${fallbackCustomer.company}) registered.`,
+        severity: 'success',
+        entityType: 'customer',
+        entityId: fallbackCustomer.customerId || fallbackCustomer.id,
+        user: {
+          name: fallbackCustomer.name,
+          email: fallbackCustomer.email,
+          company: fallbackCustomer.company
+        },
+        metadata: {
+          customerId: fallbackCustomer.customerId,
+          plan: fallbackCustomer.plan
+        }
+      });
       toast.error(`Saved locally. Sangam CRM synchronization failed: ${err.message}`, {
         id: toastId,
         duration: 4000

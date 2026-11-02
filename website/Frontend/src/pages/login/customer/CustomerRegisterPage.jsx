@@ -4,6 +4,7 @@ import {
   User, 
   Mail, 
   Phone, 
+  Lock, 
   Building2, 
   FileText, 
   Calendar, 
@@ -40,6 +41,7 @@ import {
 } from '../SubscriptionLogos';
 import '../LoginPage.css';
 import './CustomerRegister.css';
+import { authApi } from '../../../services/authApi';
 
 export const SUBSCRIPTION_GROUPS = [
   {
@@ -385,7 +387,9 @@ export default function CustomerRegisterPage() {
     mobile: '',
     companyName: '',
     companyLogo: '',
-    gstNo: ''
+    gstNo: '',
+    password: '',
+    confirmPassword: ''
   });
 
   // Section 2: Selected Plan Option (Default: TSS Single User 1-Year)
@@ -496,6 +500,14 @@ export default function CustomerRegisterPage() {
       setValidationError('Please enter 15-digit GSTIN.');
       return;
     }
+    if (!customerDetails.password || customerDetails.password.length < 10) {
+      setValidationError('Password must be at least 10 characters.');
+      return;
+    }
+    if (customerDetails.password !== customerDetails.confirmPassword) {
+      setValidationError('Passwords do not match.');
+      return;
+    }
 
     // Scroll to top and transition to Step 2
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -518,11 +530,19 @@ export default function CustomerRegisterPage() {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const data = await authApi.register({
+        name: customerDetails.name.trim(),
+        email: customerDetails.email.trim(),
+        password: customerDetails.password,
+        mobile: customerDetails.mobile.trim(),
+        companyName: customerDetails.companyName.trim(),
+        gstNo: customerDetails.gstNo.trim(),
+        plan: activePlan.name
+      });
 
       setRegisteredData({
-        customerId: `NIS-CUST-${Math.floor(10000 + Math.random() * 90000)}`,
+        customerId: data.user?.customerId || data.user?.id || `NIS-CUST-${Math.floor(10000 + Math.random() * 90000)}`,
         ...customerDetails,
         planName: activePlan.name,
         planDuration: activePlan.duration,
@@ -531,7 +551,11 @@ export default function CustomerRegisterPage() {
         installationDate,
         expiryDate: calculatedExpiryDate
       });
-    }, 750);
+    } catch (err) {
+      setValidationError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -739,7 +763,49 @@ export default function CustomerRegisterPage() {
                     </div>
                   </div>
 
-                  {/* 6. Company Logo (non mandatory) */}
+                  {/* 6. Password */}
+                  <div className="ebolt-field-group">
+                    <label className="ebolt-field-lbl" htmlFor="reg-password">
+                      <span>Password</span>
+                      <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div className="ebolt-input-wrap">
+                      <Lock size={16} className="ebolt-input-icon" />
+                      <input
+                        id="reg-password"
+                        type="password"
+                        className="ebolt-input"
+                        placeholder="At least 10 characters"
+                        value={customerDetails.password}
+                        onChange={(e) => handleCustomerChange('password', e.target.value)}
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 7. Confirm Password */}
+                  <div className="ebolt-field-group">
+                    <label className="ebolt-field-lbl" htmlFor="reg-confirm-password">
+                      <span>Confirm Password</span>
+                      <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div className="ebolt-input-wrap">
+                      <Lock size={16} className="ebolt-input-icon" />
+                      <input
+                        id="reg-confirm-password"
+                        type="password"
+                        className="ebolt-input"
+                        placeholder="Re-enter password"
+                        value={customerDetails.confirmPassword}
+                        onChange={(e) => handleCustomerChange('confirmPassword', e.target.value)}
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 8. Company Logo (non mandatory) */}
                   <div className="ebolt-field-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <label className="ebolt-field-lbl" htmlFor="reg-logo">

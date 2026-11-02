@@ -2,21 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
-  Package,
   Search,
-  Filter,
   ArrowRight,
   ArrowLeft,
   Cloud,
-  ShieldCheck,
-  CheckCircle2,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 import tallyLogo from '../../../assets/partners/tally.png';
-import { useTableSort, SortableTh } from './tableSortUtils';
 import { compactSelectStyles } from './reactSelectStyles';
+import AdminDataTable from './AdminDataTable';
+import { compareNumber, compareText } from './adminTableUtils';
 
 export default function ProductSection({ products, setProducts }) {
   const navigate = useNavigate();
@@ -84,13 +82,6 @@ export default function ProductSection({ products, setProducts }) {
     });
   }, [products, selectedCategory, searchQuery, availabilityFilter]);
 
-  // Multi-column sorting for product table
-  const { sortedItems: sortedProducts, sortConfig, requestSort } = useTableSort(
-    currentCategoryProducts,
-    'name',
-    'asc'
-  );
-
   // Toggle availability
   const handleToggleProduct = (productId) => {
     setProducts((prev) =>
@@ -112,6 +103,118 @@ export default function ProductSection({ products, setProducts }) {
       toast.success(`${productName} removed.`);
     }
   };
+
+  const columns = [
+    {
+      id: 'name',
+      name: 'Product Name & Overview',
+      selector: (row) => row.name,
+      sortable: true,
+      sortFunction: compareText((row) => row.name),
+      minWidth: '340px',
+      grow: 1.6,
+      wrap: true,
+      cell: (prod) => (
+        <div style={{ padding: '8px 0' }}>
+          <div style={{ fontWeight: 600, color: '#0f172a' }}>{prod.name}</div>
+          <div
+            style={{
+              fontSize: '0.74rem',
+              color: '#64748b',
+              maxWidth: '380px',
+              whiteSpace: 'normal',
+              lineHeight: 1.45
+            }}
+          >
+            {prod.description}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'sku',
+      name: 'SKU Code',
+      selector: (row) => row.sku,
+      sortable: true,
+      sortFunction: compareText((row) => row.sku),
+      minWidth: '175px',
+      cell: (prod) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#6366f1' }}>
+          {prod.sku}
+        </span>
+      )
+    },
+    {
+      id: 'category',
+      name: 'Category / Tier',
+      selector: (row) => row.category,
+      sortable: true,
+      sortFunction: compareText((row) => row.category),
+      minWidth: '175px',
+      cell: (prod) => <span className="adm-product-badge">{prod.category}</span>
+    },
+    {
+      id: 'price',
+      name: 'Pricing & Billing',
+      selector: (row) => row.price,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.price),
+      minWidth: '175px',
+      cell: (prod) => (
+        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
+          {prod.price}
+          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500 }}>
+            {' '}{prod.frequency}
+          </span>
+        </div>
+      )
+    },
+    {
+      id: 'available',
+      name: 'Live Availability',
+      selector: (row) => (row.available ? 1 : 0),
+      sortable: true,
+      sortFunction: compareNumber((row) => (row.available ? 1 : 0)),
+      minWidth: '210px',
+      cell: (prod) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label className="adm-switch">
+            <input
+              type="checkbox"
+              checked={prod.available}
+              onChange={() => handleToggleProduct(prod.id)}
+            />
+            <span className="adm-slider" />
+          </label>
+          <span
+            className={`adm-status-pill ${prod.available ? 'active' : 'suspended'}`}
+            style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+          >
+            {prod.available ? 'Available' : 'Disabled'}
+          </span>
+        </div>
+      )
+    },
+    {
+      id: 'actions',
+      name: 'Actions',
+      center: true,
+      width: '135px',
+      ignoreRowClick: true,
+      cell: (prod) => (
+        <button
+          type="button"
+          className="adm-action-pill"
+          style={{ color: '#dc2626', borderColor: '#fecaca' }}
+          onClick={() => handleDeleteProduct(prod.id, prod.name)}
+          title="Remove product from catalog"
+        >
+          <Trash2 size={13} />
+          <span>Delete</span>
+        </button>
+      )
+    }
+  ];
 
   return (
     <>
@@ -288,20 +391,29 @@ export default function ProductSection({ products, setProducts }) {
 
           {/* Filter / Search Toolbar */}
           <div className="adm-table-toolbar">
-            <div className="adm-table-filters">
-              <div className="adm-search-box" style={{ width: '280px' }}>
-                <Search size={15} className="adm-search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search by product name, SKU..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="adm-search-input"
-                  style={{ width: '100%', height: '36px' }}
-                />
-              </div>
+            <div className="adm-search-box adm-search-box-toolbar">
+              <Search size={16} className="adm-search-icon" />
+              <input
+                type="text"
+                placeholder="Search by product name, SKU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="adm-search-input"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="adm-search-clear"
+                  aria-label="Clear search"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
 
-              <div style={{ minWidth: '190px' }}>
+            <div className="adm-table-filters">
+              <div className="adm-filter-select-wrap">
                 <Select
                   styles={compactSelectStyles}
                   isSearchable={false}
@@ -324,116 +436,21 @@ export default function ProductSection({ products, setProducts }) {
                 />
               </div>
             </div>
-
-            <div className="adm-table-record-count">
-              Showing <strong>{sortedProducts.length}</strong> of <strong>{currentCategoryProducts.length}</strong> products
-            </div>
           </div>
 
-          {/* Table with Vertical & Horizontal Scrolling and Multi-Column Sorting */}
-          <div className="adm-table-responsive">
-            <table className="adm-table" style={{ minWidth: '1000px' }}>
-              <thead>
-                <tr>
-                  <SortableTh
-                    label="Product Name & Overview"
-                    sortKey="name"
-                    currentSort={sortConfig}
-                    onSort={requestSort}
-                  />
-                  <SortableTh
-                    label="SKU Code"
-                    sortKey="sku"
-                    currentSort={sortConfig}
-                    onSort={requestSort}
-                  />
-                  <SortableTh
-                    label="Category / Tier"
-                    sortKey="category"
-                    currentSort={sortConfig}
-                    onSort={requestSort}
-                  />
-                  <SortableTh
-                    label="Pricing & Billing"
-                    sortKey="price"
-                    currentSort={sortConfig}
-                    onSort={requestSort}
-                  />
-                  <SortableTh
-                    label="Live Availability"
-                    sortKey="available"
-                    currentSort={sortConfig}
-                    onSort={requestSort}
-                  />
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedProducts.length > 0 ? (
-                  sortedProducts.map((prod) => (
-                    <tr key={prod.id}>
-                      <td>
-                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{prod.name}</div>
-                        <div style={{ fontSize: '0.74rem', color: '#64748b', maxWidth: '380px', whiteSpace: 'normal' }}>
-                          {prod.description}
-                        </div>
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 600, color: '#6366f1' }}>
-                        {prod.sku}
-                      </td>
-                      <td>
-                        <span className="adm-product-badge">{prod.category}</span>
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
-                          {prod.price}
-                          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500 }}>
-                            {' '}{prod.frequency}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <label className="adm-switch">
-                            <input
-                              type="checkbox"
-                              checked={prod.available}
-                              onChange={() => handleToggleProduct(prod.id)}
-                            />
-                            <span className="adm-slider" />
-                          </label>
-                          <span
-                            className={`adm-status-pill ${prod.available ? 'active' : 'suspended'}`}
-                            style={{ fontSize: '0.7rem', padding: '2px 8px' }}
-                          >
-                            {prod.available ? 'Available' : 'Disabled'}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="adm-action-pill"
-                          style={{ color: '#dc2626', borderColor: '#fecaca' }}
-                          onClick={() => handleDeleteProduct(prod.id, prod.name)}
-                          title="Remove product from catalog"
-                        >
-                          <Trash2 size={13} />
-                          <span>Delete</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
-                      No products found matching your search.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Product Catalog DataTable */}
+          <AdminDataTable
+            columns={columns}
+            data={currentCategoryProducts}
+            keyField="id"
+            defaultSortFieldId="name"
+            defaultSortAsc
+            resetPageToken={`${searchQuery}|${availabilityFilter}|${selectedCategory}`}
+            minWidth={1250}
+            noDataMessage="No products found"
+            noDataHint="Try a different search term or availability filter."
+            ariaLabel="Product catalog"
+          />
 
           {/* Table Footer */}
           <div className="adm-table-footer">

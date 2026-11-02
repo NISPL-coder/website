@@ -139,7 +139,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
             gap: '12px',
             marginBottom: '22px'
           }}
@@ -184,7 +184,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
         </div>
 
         {/* Detailed Attribute Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '22px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '22px' }}>
           <div>
             <label style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
               Service Scope & SLA Tier
