@@ -1,39 +1,158 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   UserCheck,
   UserPlus,
   Trash2,
-  Shield,
   Key,
-  CheckCircle,
-  PauseCircle,
   PlayCircle,
-  AlertCircle,
+  PauseCircle,
   X,
   Loader2,
-  Check
+  Check,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { staffApi } from '../../../services/staffApi';
 import { authApi } from '../../../services/authApi';
+import AdminDataTable from './AdminDataTable';
+import RowActionMenu from './RowActionMenu';
+import {
+  usePermissions,
+  PERMISSION_ACTIONS,
+  fromPermissionMatrix,
+  toPermissionMatrix
+} from './PermissionsContext';
 import './UserAccessSection.css';
 
-const AVAILABLE_PERMISSIONS = [
-  { id: 'overview', label: 'Dashboard & Telemetry' },
-  { id: 'customer', label: 'Customer Management' },
-  { id: 'contract', label: 'Contract Directory' },
-  { id: 'payment', label: 'Payment Records' },
-  { id: 'product', label: 'Product Catalog' },
-  { id: 'receipt', label: 'Receipt Generation' },
-  { id: 'data_tools', label: 'Import CSV & Sangam Sync' },
-  { id: 'user_access', label: 'User Access Control' },
-  { id: 'activity_logs', label: 'Activity Logs & Audit' }
+const MODULE_OPTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'customer', label: 'Customer' },
+  { id: 'contract', label: 'Contract' },
+  { id: 'payment', label: 'Payment' },
+  { id: 'product', label: 'Product' },
+  { id: 'receipt', label: 'Receipt' },
+  { id: 'import_csv', label: 'Import CSV' },
+  { id: 'sangam_sync', label: 'Sangam Sync' },
+  { id: 'user_access', label: 'User Access' },
+  { id: 'activity_logs', label: 'Activity Logs' }
 ];
+
+const ACTION_META = {
+  view: { label: 'View', hint: 'Open the module and read records' },
+  create: { label: 'Add', hint: 'Create new records' },
+  edit: { label: 'Edit', hint: 'Update existing records' },
+  delete: { label: 'Delete', hint: 'Permanently remove records' }
+};
+
+const emptyMatrix = () => toPermissionMatrix([]);
+
+const ROLE_LABELS = { admin: 'Admin', manager: 'Manager', support: 'Support' };
+const STATUS_LABELS = { active: 'Active', inactive: 'Inactive', suspended: 'Suspended' };
+
+const roleLabel = (role) => ROLE_LABELS[String(role || 'support').toLowerCase()] || 'Support';
+const statusLabel = (status) => STATUS_LABELS[String(status || 'inactive').toLowerCase()] || 'Inactive';
+
+const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  try {
+    const d = new Date(dateString);
+    return d.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  } catch {
+    return String(dateString);
+  }
+};
+
+function PermissionMatrix({ matrix, onChange }) {
+  const toggle = (moduleId, action, next) => {
+    onChange((prev) => {
+      const moduleState = { ...(prev[moduleId] || {}) };
+      moduleState[action] = next;
+      // Read access is the prerequisite for every other operation.
+      if (action === 'view' && !next) {
+        PERMISSION_ACTIONS.forEach((a) => { moduleState[a] = false; });
+      }
+      if (action !== 'view' && next) moduleState.view = true;
+      return { ...prev, [moduleId]: moduleState };
+    });
+  };
+
+  const toggleModule = (moduleId, next) => {
+    onChange((prev) => ({
+      ...prev,
+      [moduleId]: next
+        ? { view: true, create: true, edit: true, delete: true }
+        : { view: false, create: false, edit: false, delete: false }
+    }));
+  };
+
+  return (
+    <div className="usr-matrix">
+      <div className="usr-matrix-head">
+        <span>Module</span>
+        {PERMISSION_ACTIONS.map((action) => (
+          <span key={action} title={ACTION_META[action].hint}>
+            {ACTION_META[action].label}
+          </span>
+        ))}
+      </div>
+
+      {MODULE_OPTIONS.map((option) => {
+        const flags = matrix[option.id] || {};
+        const allOn = PERMISSION_ACTIONS.every((action) => flags[action]);
+        const anyOn = PERMISSION_ACTIONS.some((action) => flags[action]);
+        return (
+          <div className={`usr-matrix-row ${anyOn ? 'is-on' : ''}`} key={option.id}>
+            <div className="usr-matrix-module">
+              <div
+                className={`usr-custom-checkbox ${allOn ? 'checked' : 'indeterminate'}`}
+                role="checkbox"
+                aria-checked={allOn ? true : anyOn ? 'mixed' : false}
+                tabIndex={0}
+                title={allOn ? 'Remove all access to this module' : 'Grant full access to this module'}
+                onClick={() => toggleModule(option.id, !allOn)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleModule(option.id, !allOn);
+                  }
+                }}
+              >
+                {allOn && <Check size={11} strokeWidth={3} />}
+              </div>
+              <span>{option.label}</span>
+            </div>
+
+            {PERMISSION_ACTIONS.map((action) => {
+              const on = Boolean(flags[action]);
+              return (
+                <div
+                  key={action}
+                  className={`usr-matrix-cell ${on ? 'checked' : ''}`}
+                  title={ACTION_META[action].hint}
+                  onClick={() => toggle(option.id, action, !on)}
+                >
+                  <div className="usr-custom-checkbox">{on && <Check size={11} strokeWidth={3} />}</div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function UserAccessSection() {
   const [staffList, setStaffList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const { can, refresh: refreshOwnPermissions } = usePermissions();
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -48,14 +167,39 @@ export default function UserAccessSection() {
     password: '',
     role: 'manager',
     status: 'active',
-    permissions: ['customer', 'contract'],
     designation: ''
   });
+  const [addMatrix, setAddMatrix] = useState(emptyMatrix);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Edit Permissions state
   const [editRole, setEditRole] = useState('manager');
-  const [editPermissions, setEditPermissions] = useState([]);
+  const [editMatrix, setEditMatrix] = useState(emptyMatrix);
+
+  // Check if any modal is active
+  const isAnyModalOpen = isAddModalOpen || isPermissionsModalOpen || isDeleteModalOpen;
+
+  // Manage Body Scroll Lock & Escape Key
+  useEffect(() => {
+    if (!isAnyModalOpen) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        setIsAddModalOpen(false);
+        setIsPermissionsModalOpen(false);
+        setIsDeleteModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAnyModalOpen, isSubmitting]);
 
   // Load Current Admin
   useEffect(() => {
@@ -68,7 +212,10 @@ export default function UserAccessSection() {
     try {
       setIsLoading(true);
       const data = await staffApi.getStaff();
-      setStaffList(data || []);
+      const sorted = (data || []).sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
+      setStaffList(sorted);
     } catch (err) {
       toast.error(err.message || 'Failed to fetch staff members.');
     } finally {
@@ -88,22 +235,11 @@ export default function UserAccessSection() {
       password: '',
       role: 'manager',
       status: 'active',
-      permissions: ['customer', 'contract'],
       designation: ''
     });
+    setAddMatrix(emptyMatrix());
+    setShowPassword(false);
     setIsAddModalOpen(true);
-  };
-
-  const handleToggleAddPermission = (permId) => {
-    setAddForm((prev) => {
-      const exists = prev.permissions.includes(permId);
-      return {
-        ...prev,
-        permissions: exists
-          ? prev.permissions.filter((p) => p !== permId)
-          : [...prev.permissions, permId]
-      };
-    });
   };
 
   const handleSubmitAdd = async (e) => {
@@ -114,7 +250,10 @@ export default function UserAccessSection() {
     }
     try {
       setIsSubmitting(true);
-      await staffApi.createStaff(addForm);
+      await staffApi.createStaff({
+        ...addForm,
+        permissions: fromPermissionMatrix(addMatrix)
+      });
       toast.success(`Staff account for ${addForm.name} created successfully!`);
       setIsAddModalOpen(false);
       loadStaff();
@@ -143,27 +282,25 @@ export default function UserAccessSection() {
   const handleOpenPermissions = (staff) => {
     setSelectedStaff(staff);
     setEditRole(staff.role || 'manager');
-    setEditPermissions(Array.isArray(staff.permissions) ? staff.permissions : []);
+    setEditMatrix(toPermissionMatrix(Array.isArray(staff.permissions) ? staff.permissions : []));
     setIsPermissionsModalOpen(true);
-  };
-
-  const handleToggleEditPermission = (permId) => {
-    setEditPermissions((prev) =>
-      prev.includes(permId) ? prev.filter((p) => p !== permId) : [...prev, permId]
-    );
   };
 
   const handleSavePermissions = async () => {
     if (!selectedStaff) return;
+    const permissions = fromPermissionMatrix(editMatrix);
     try {
       setIsSubmitting(true);
       await staffApi.updatePermissions(selectedStaff.id || selectedStaff._id, {
         role: editRole,
-        permissions: editPermissions
+        permissions
       });
       toast.success(`Access permissions updated for ${selectedStaff.name}!`);
       setIsPermissionsModalOpen(false);
       loadStaff();
+      // Any other console tab (including the affected staff member's) picks this up live.
+      window.dispatchEvent(new Event('nispl_permissions_changed'));
+      if (isCurrentUser(selectedStaff)) refreshOwnPermissions();
     } catch (err) {
       toast.error(err.message || 'Failed to update permissions.');
     } finally {
@@ -192,26 +329,129 @@ export default function UserAccessSection() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '—';
-    try {
-      const d = new Date(dateString);
-      return d.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      });
-    } catch {
-      return String(dateString);
-    }
-  };
-
   const isCurrentUser = (staff) => {
     if (!currentUser) return false;
     if (staff.email?.toLowerCase() === currentUser.email?.toLowerCase()) return true;
     if (currentUser.id && (staff.id === currentUser.id || staff._id === currentUser.id)) return true;
     return false;
   };
+
+  const columns = useMemo(
+    () => [
+      {
+        id: 'name',
+        name: 'Name',
+        selector: (row) => row.name || '',
+        sortable: true,
+        minWidth: '200px',
+        grow: 1.5,
+        autoSizeExtra: 84, // room for the inline "Primary" chip
+        cell: (row) => (
+          <div className="usr-name-cell">
+            <span>{row.name || '—'}</span>
+            {row.isPrimaryAdmin && <span className="usr-primary-chip">Primary</span>}
+          </div>
+        )
+      },
+      {
+        id: 'email',
+        name: 'Email',
+        selector: (row) => row.email || '',
+        sortable: true,
+        minWidth: '240px',
+        grow: 2,
+        cell: (row) => <span className="usr-email-cell">{row.email}</span>
+      },
+      {
+        id: 'role',
+        name: 'Role',
+        selector: (row) => roleLabel(row.role),
+        sortable: true,
+        searchType: 'select',
+        minWidth: '130px',
+        grow: 0.8,
+        cell: (row) => (
+          <span className={`usr-pill usr-pill-${String(row.role || 'support').toLowerCase()}`}>
+            {roleLabel(row.role)}
+          </span>
+        )
+      },
+      {
+        id: 'status',
+        name: 'Status',
+        selector: (row) => statusLabel(row.status),
+        sortable: true,
+        searchType: 'select',
+        minWidth: '130px',
+        grow: 0.8,
+        cell: (row) => (
+          <span className={`usr-pill usr-pill-${String(row.status || 'inactive').toLowerCase()}`}>
+            {statusLabel(row.status)}
+          </span>
+        )
+      },
+      {
+        id: 'createdAt',
+        name: 'Created',
+        selector: (row) => new Date(row.createdAt || 0).getTime(),
+        autoSizeValue: (row) => formatDate(row.createdAt),
+        sortable: true,
+        searchable: false,
+        minWidth: '150px',
+        grow: 1,
+        cell: (row) => <span className="usr-date-cell">{formatDate(row.createdAt)}</span>
+      },
+      {
+        id: 'actions',
+        name: 'Actions',
+        center: true,
+        width: '110px',
+        button: true,
+        allowOverflow: true,
+        ignoreRowClick: true,
+        cell: (row) => {
+          
+
+          const isActive = String(row.status || 'inactive').toLowerCase() === 'active';
+          const canEdit = can('user_access', 'edit');
+          const canDelete = can('user_access', 'delete');
+
+          const items = [
+            {
+              label: isActive ? 'Deactivate' : 'Activate',
+              icon: isActive ? PauseCircle : PlayCircle,
+              tone: isActive ? 'orange' : 'green',
+              hidden: !canEdit || row.isPrimaryAdmin,
+              onClick: () => handleToggleStatus(row)
+            },
+            {
+              label: 'Grant Access',
+              icon: Key,
+              tone: 'purple',
+              hidden: !canEdit || row.isPrimaryAdmin,
+              onClick: () => handleOpenPermissions(row)
+            },
+            {
+              label: 'Delete',
+              icon: Trash2,
+              tone: 'red',
+              danger: true,
+              divider: true,
+              hidden: !canDelete || row.isPrimaryAdmin,
+              onClick: () => handleOpenDelete(row)
+            }
+          ];
+
+          if (items.every((item) => item.hidden)) {
+            return <span className="usr-you-badge"></span>;
+          }
+
+          return <RowActionMenu items={items} />;
+        }
+      }
+    ],
+    [can, currentUser]
+  );
 
   return (
     <div className="usr-section-wrapper animate-fade-in">
@@ -229,210 +469,109 @@ export default function UserAccessSection() {
           </div>
         </div>
 
-        <button type="button" className="usr-add-btn" onClick={handleOpenAdd}>
-          <UserPlus size={17} />
-          <span>+ Add Staff</span>
-        </button>
+        {can('user_access', 'create') && (
+          <button type="button" className="usr-add-btn" onClick={handleOpenAdd}>
+            <UserPlus size={17} />
+            <span>+ Add Staff</span>
+          </button>
+        )}
       </div>
 
-      {/* Main Table Card */}
+      {/* Main React DataTable */}
       <div className="usr-table-card">
-        <div className="usr-table-responsive">
-          <table className="usr-table">
-            <thead>
-              <tr>
-                <th style={{ width: '22%' }}>Name</th>
-                <th style={{ width: '28%' }}>Email</th>
-                <th style={{ width: '14%' }}>Role</th>
-                <th style={{ width: '12%' }}>Status</th>
-                <th style={{ width: '12%' }}>Created</th>
-                <th style={{ width: '12%', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6}>
-                    <div className="usr-state-box">
-                      <Loader2 size={24} className="usr-spinner" />
-                      <div>Loading staff accounts...</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : staffList.length === 0 ? (
-                <tr>
-                  <td colSpan={6}>
-                    <div className="usr-state-box">
-                      <AlertCircle size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
-                      <div>No staff members registered yet.</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                staffList.map((staff) => {
-                  const isSelf = isCurrentUser(staff);
-                  const roleLower = (staff.role || 'support').toLowerCase();
-                  const statusLower = (staff.status || 'inactive').toLowerCase();
-
-                  return (
-                    <tr key={staff.id || staff._id || staff.email}>
-                      <td className="usr-name-cell">
-                        {staff.name}
-                        {staff.isPrimaryAdmin && (
-                          <span
-                            style={{
-                              marginLeft: '8px',
-                              fontSize: '0.68rem',
-                              background: '#eff6ff',
-                              color: '#2563eb',
-                              border: '1px solid #bfdbfe',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontWeight: 600
-                            }}
-                          >
-                            Primary
-                          </span>
-                        )}
-                      </td>
-                      <td className="usr-email-cell">{staff.email}</td>
-                      <td>
-                        <span className={`usr-pill usr-pill-${roleLower}`}>
-                          {roleLower === 'admin'
-                            ? 'Admin'
-                            : roleLower === 'manager'
-                            ? 'Manager'
-                            : 'Support'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`usr-pill usr-pill-${statusLower}`}>
-                          {statusLower === 'active' ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="usr-date-cell">{formatDate(staff.createdAt)}</td>
-                      <td>
-                        <div className="usr-actions-cell">
-                          {isSelf ? (
-                            <span className="usr-you-badge">You</span>
-                          ) : (
-                            <>
-                              {/* Activate / Deactivate Toggle */}
-                              {statusLower === 'active' ? (
-                                <button
-                                  type="button"
-                                  className="usr-btn-action usr-btn-deactivate"
-                                  onClick={() => handleToggleStatus(staff)}
-                                  title="Deactivate account"
-                                >
-                                  <PauseCircle size={14} />
-                                  <span>Deactivate</span>
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="usr-btn-action usr-btn-activate"
-                                  onClick={() => handleToggleStatus(staff)}
-                                  title="Activate account"
-                                >
-                                  <PlayCircle size={14} />
-                                  <span>Activate</span>
-                                </button>
-                              )}
-
-                              {/* Grant Access / Permissions */}
-                              <button
-                                type="button"
-                                className="usr-btn-action usr-btn-permissions"
-                                onClick={() => handleOpenPermissions(staff)}
-                                title="Grant access and configure permissions"
-                              >
-                                <Key size={13} />
-                                <span>Access</span>
-                              </button>
-
-                              {/* Delete Account */}
-                              <button
-                                type="button"
-                                className="usr-btn-action usr-btn-delete"
-                                onClick={() => handleOpenDelete(staff)}
-                                title="Delete staff member"
-                              >
-                                <Trash2 size={13} />
-                                <span>Delete</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AdminDataTable
+          columns={columns}
+          data={staffList}
+          keyField="id"
+          defaultSortFieldId="createdAt"
+          defaultSortAsc={false}
+          paginationPerPage={8}
+          paginationRowsPerPageOptions={[8, 15, 25, 50]}
+          progressPending={isLoading}
+          noDataMessage="No staff members registered yet."
+          noDataHint="Create an admin, manager, or support account to grant console access."
+          scrollHeight="600px"
+          minWidth={1150}
+          ariaLabel="Staff accounts"
+        />
       </div>
 
       {/* =========================================================================
-         MODAL 1: ADD STAFF MODAL
+         MODAL 1: ADD STAFF MODAL (PORTALED TO DOCUMENT.BODY)
          ========================================================================= */}
-      {isAddModalOpen && (
-        <div className="usr-modal-backdrop" onClick={() => setIsAddModalOpen(false)}>
-          <div className="usr-modal-card" onClick={(e) => e.stopPropagation()}>
+      {isAddModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="usr-modal-backdrop" onClick={() => !isSubmitting && setIsAddModalOpen(false)}>
+          <div className="usr-modal-card usr-modal-card--wide" onClick={(e) => e.stopPropagation()}>
             <div className="usr-modal-header">
-              <h3 className="usr-modal-title">Create New Staff Account</h3>
+              <div>
+                <h3 className="usr-modal-title">Create New Staff Account</h3>
+                <div className="usr-modal-subtitle">Add administrative, management, or support personnel</div>
+              </div>
               <button
                 type="button"
                 className="usr-modal-close"
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => !isSubmitting && setIsAddModalOpen(false)}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitAdd}>
+            <form onSubmit={handleSubmitAdd} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
               <div className="usr-modal-body">
                 <div className="usr-form-group">
-                  <label className="usr-form-label">Full Name *</label>
+                  <label className="usr-form-label">Full Name <span className="usr-req">*</span></label>
                   <input
                     type="text"
                     required
                     className="usr-form-input"
-                    placeholder="e.g. Baban Patra"
+                    placeholder="Enter Name"
                     value={addForm.name}
                     onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                   />
                 </div>
 
                 <div className="usr-form-group">
-                  <label className="usr-form-label">Email Address *</label>
+                  <label className="usr-form-label">Email Address <span className="usr-req">*</span></label>
                   <input
                     type="email"
                     required
                     className="usr-form-input"
-                    placeholder="e.g. thebabanpatra@gmail.com"
+                    placeholder="Enter Email"
                     value={addForm.email}
                     onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                   />
                 </div>
 
                 <div className="usr-form-group">
-                  <label className="usr-form-label">Initial Password *</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    className="usr-form-input"
-                    placeholder="Set temporary password"
-                    value={addForm.password}
-                    onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-                  />
+                  <label className="usr-form-label" htmlFor="usr-staff-password">Password <span className="usr-req">*</span></label>
+                  <div className="usr-password-wrap">
+                    <input
+                      id="usr-staff-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      className="usr-form-input"
+                      placeholder="Set password (min 6 characters)"
+                      autoComplete="new-password"
+                      value={addForm.password}
+                      onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      className="usr-password-eye"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div className="usr-form-group">
-                    <label className="usr-form-label">Role *</label>
+                    <label className="usr-form-label">Role <span className="usr-req">*</span></label>
                     <select
                       className="usr-form-select"
                       value={addForm.role}
@@ -445,7 +584,7 @@ export default function UserAccessSection() {
                   </div>
 
                   <div className="usr-form-group">
-                    <label className="usr-form-label">Status *</label>
+                    <label className="usr-form-label">Status <span className="usr-req">*</span></label>
                     <select
                       className="usr-form-select"
                       value={addForm.status}
@@ -459,26 +598,10 @@ export default function UserAccessSection() {
 
                 <div className="usr-form-group">
                   <label className="usr-form-label">Granted Access Modules</label>
-                  <div className="usr-perm-grid">
-                    {AVAILABLE_PERMISSIONS.map((perm) => {
-                      const isChecked = addForm.permissions.includes(perm.id);
-                      return (
-                        <div
-                          key={perm.id}
-                          className={`usr-perm-item ${isChecked ? 'checked' : ''}`}
-                          onClick={() => handleToggleAddPermission(perm.id)}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => {}}
-                            style={{ cursor: 'pointer' }}
-                          />
-                          <span>{perm.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <p className="usr-matrix-note">
+                    Tick a module name for full access, or grant View / Add / Edit / Delete individually.
+                  </p>
+                  <PermissionMatrix matrix={addMatrix} onChange={setAddMatrix} />
                 </div>
               </div>
 
@@ -487,6 +610,7 @@ export default function UserAccessSection() {
                   type="button"
                   className="usr-btn-secondary"
                   onClick={() => setIsAddModalOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
@@ -503,26 +627,27 @@ export default function UserAccessSection() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =========================================================================
-         MODAL 2: GRANT ACCESS / PERMISSIONS MODAL
+         MODAL 2: GRANT ACCESS / PERMISSIONS MODAL (PORTALED TO DOCUMENT.BODY)
          ========================================================================= */}
-      {isPermissionsModalOpen && selectedStaff && (
-        <div className="usr-modal-backdrop" onClick={() => setIsPermissionsModalOpen(false)}>
-          <div className="usr-modal-card" onClick={(e) => e.stopPropagation()}>
+      {isPermissionsModalOpen && selectedStaff && typeof document !== 'undefined' && createPortal(
+        <div className="usr-modal-backdrop" onClick={() => !isSubmitting && setIsPermissionsModalOpen(false)}>
+          <div className="usr-modal-card usr-modal-card--wide" onClick={(e) => e.stopPropagation()}>
             <div className="usr-modal-header">
               <div>
                 <h3 className="usr-modal-title">Grant Access & Permissions</h3>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                <div className="usr-modal-subtitle">
                   {selectedStaff.name} ({selectedStaff.email})
                 </div>
               </div>
               <button
                 type="button"
                 className="usr-modal-close"
-                onClick={() => setIsPermissionsModalOpen(false)}
+                onClick={() => !isSubmitting && setIsPermissionsModalOpen(false)}
               >
                 <X size={18} />
               </button>
@@ -545,26 +670,12 @@ export default function UserAccessSection() {
 
               <div className="usr-form-group">
                 <label className="usr-form-label">Module Access Permissions</label>
-                <div className="usr-perm-grid">
-                  {AVAILABLE_PERMISSIONS.map((perm) => {
-                    const isChecked = editPermissions.includes(perm.id);
-                    return (
-                      <div
-                        key={perm.id}
-                        className={`usr-perm-item ${isChecked ? 'checked' : ''}`}
-                        onClick={() => handleToggleEditPermission(perm.id)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          style={{ cursor: 'pointer' }}
-                        />
-                        <span>{perm.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+                <p className="usr-matrix-note">
+                  {editRole === 'admin'
+                    ? 'Admins always have unrestricted access to every module. These switches take effect once the role is Manager or Support.'
+                    : 'Changes take effect immediately — the next request this user makes is already checked against these permissions, without signing them out.'}
+                </p>
+                <PermissionMatrix matrix={editMatrix} onChange={setEditMatrix} />
               </div>
             </div>
 
@@ -573,6 +684,7 @@ export default function UserAccessSection() {
                 type="button"
                 className="usr-btn-secondary"
                 onClick={() => setIsPermissionsModalOpen(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
@@ -586,34 +698,38 @@ export default function UserAccessSection() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =========================================================================
-         MODAL 3: DELETE CONFIRMATION MODAL
+         MODAL 3: DELETE CONFIRMATION MODAL (PORTALED TO DOCUMENT.BODY)
          ========================================================================= */}
-      {isDeleteModalOpen && selectedStaff && (
-        <div className="usr-modal-backdrop" onClick={() => setIsDeleteModalOpen(false)}>
+      {isDeleteModalOpen && selectedStaff && typeof document !== 'undefined' && createPortal(
+        <div className="usr-modal-backdrop" onClick={() => !isSubmitting && setIsDeleteModalOpen(false)}>
           <div className="usr-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="usr-modal-header">
-              <h3 className="usr-modal-title">Delete Staff Account</h3>
+              <div>
+                <h3 className="usr-modal-title">Delete Staff Account</h3>
+                <div className="usr-modal-subtitle">Revoke all administrative access</div>
+              </div>
               <button
                 type="button"
                 className="usr-modal-close"
-                onClick={() => setIsDeleteModalOpen(false)}
+                onClick={() => !isSubmitting && setIsDeleteModalOpen(false)}
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="usr-modal-body">
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: '0.92rem', color: '#475569', lineHeight: 1.5 }}>
                 Are you sure you want to permanently delete the staff account for{' '}
                 <strong style={{ color: '#0f172a' }}>{selectedStaff.name}</strong> (
                 {selectedStaff.email})?
               </p>
-              <p style={{ margin: '12px 0 0', fontSize: '0.82rem', color: '#dc2626' }}>
-                This user will immediately lose all access to the administrative dashboard.
+              <p style={{ margin: '14px 0 0', fontSize: '0.84rem', color: '#dc2626', background: '#fef2f2', padding: '10px 12px', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                This user will immediately lose all access to the administrative dashboard and their active sessions will be terminated.
               </p>
             </div>
 
@@ -622,6 +738,7 @@ export default function UserAccessSection() {
                 type="button"
                 className="usr-btn-secondary"
                 onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
@@ -635,9 +752,9 @@ export default function UserAccessSection() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
-

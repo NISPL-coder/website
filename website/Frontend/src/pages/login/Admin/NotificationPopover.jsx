@@ -216,9 +216,6 @@ export default function NotificationPopover({
               <span className="adm-notif-all-read-pill">All caught up</span>
             )}
           </div>
-          <span className="adm-notif-sub">
-            Real-time administrative telemetry & user activity
-          </span>
         </div>
 
         <div className="adm-notif-header-actions">

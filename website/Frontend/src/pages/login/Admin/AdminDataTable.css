@@ -120,6 +120,12 @@
 /* Body cells clip overflowing content so columns never paint over each other. */
 .admin-datatable .rdt_cellBase:not(.rdt_cellBaseHead) {
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.admin-datatable .rdt_TableCol,
+.admin-datatable .rdt_TableCell {
+  box-sizing: border-box;
 }
 
 /* Per-column filter row rendered inside each header cell. */
@@ -543,7 +549,6 @@
 .admin-datatable .rdt_TableCol[data-column-id="actions"],
 .admin-datatable div[data-column-id="actions"] {
   overflow: visible !important;
-  min-width: 120px !important;
   flex-shrink: 0 !important;
 }
 
@@ -551,8 +556,4 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-}
-
-.admin-datatable .rdt_TableCell {
-  overflow: visible;
 }

@@ -173,6 +173,11 @@ export default function OverviewSection({
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.registered || 0).getTime();
+      const dateB = new Date(b.createdAt || b.registered || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [activeOverviewData, custSearch, custStatusFilter, custDateFrom, custDateTo]);
 
@@ -201,6 +206,11 @@ export default function OverviewSection({
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.startDate || a.createdAt || 0).getTime();
+      const dateB = new Date(b.startDate || b.createdAt || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [activeOverviewData, contSearch, contStatusFilter, contDateFrom, contDateTo]);
 
@@ -477,6 +487,7 @@ export default function OverviewSection({
       ignoreRowClick: true,
       cell: (cust) => (
         <RowActionMenu
+          module="customer"
           onView={() => setSelectedCustomer(cust)}
           onEdit={() => setEditingCustomer(cust)}
           onPrint={() => {
@@ -571,6 +582,7 @@ export default function OverviewSection({
       ignoreRowClick: true,
       cell: (c) => (
         <RowActionMenu
+          module="contract"
           onView={() => setViewingContract(c)}
           onEdit={() => setEditingContract(c)}
           onPrint={() => {
@@ -740,13 +752,14 @@ export default function OverviewSection({
           columns={overviewCustomerColumns}
           data={filteredOverviewCustomers}
           keyField="id"
-          defaultSortFieldId="id"
-          defaultSortAsc
+          defaultSortFieldId="registered"
+          defaultSortAsc={false}
           resetPageToken={`${custSearch}|${custStatusFilter}|${custDateFrom}|${custDateTo}`}
           minWidth={1350}
           noDataMessage="No customer accounts match this filter"
           noDataHint="Try adjusting the status filters or search text."
           ariaLabel="Overview customer accounts"
+          scrollHeight="600px"
         />
       </div>
 
@@ -838,8 +851,8 @@ export default function OverviewSection({
           columns={recentContractColumns}
           data={filteredOverviewContracts.slice(0, 5)}
           keyField="id"
-          defaultSortFieldId="expiryDate"
-          defaultSortAsc
+          defaultSortFieldId="startDate"
+          defaultSortAsc={false}
           pagination={false}
           minWidth={1150}
           scrollHeight="clamp(220px, 32vh, 320px)"
@@ -847,6 +860,7 @@ export default function OverviewSection({
           noDataMessage="No recent contracts found"
           noDataHint="Contracts you create will appear here."
           ariaLabel="Recent contract commitments"
+          scrollHeight="600px"
         />
       </div>
 

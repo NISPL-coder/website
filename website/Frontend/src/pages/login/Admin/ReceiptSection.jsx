@@ -37,6 +37,11 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.date || a.createdAt || 0).getTime();
+      const dateB = new Date(b.date || b.createdAt || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [receipts, searchQuery, statusFilter, dateFrom, dateTo]);
 
@@ -238,13 +243,14 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
         columns={columns}
         data={filteredReceipts}
         keyField="id"
-        defaultSortFieldId="id"
-        defaultSortAsc
+        defaultSortFieldId="date"
+        defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
         minWidth={1450}
         noDataMessage="No payment receipts found"
         noDataHint="Try a different search term or dispatch filter."
         ariaLabel="Customer payment receipts"
+        scrollHeight="600px"
       />
     </div>
   );

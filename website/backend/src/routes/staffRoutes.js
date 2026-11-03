@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { authenticate, authorizeRole } from '../middleware/authenticate.js';
+import { authenticate } from '../middleware/authenticate.js';
+import { requirePermission } from '../middleware/permission.js';
 import {
   listStaff,
   createStaff,
@@ -13,16 +14,13 @@ const router = Router();
 // Require valid authentication for all staff routes
 router.use(authenticate);
 
-// List staff accounts (Admin or Manager)
-router.get('/', authorizeRole('admin', 'manager'), listStaff);
-
-// Only full Admin can create, modify permissions, toggle status, or delete staff
-router.post('/', authorizeRole('admin'), createStaff);
-router.patch('/:id/status', authorizeRole('admin'), toggleStaffStatus);
-router.put('/:id/status', authorizeRole('admin'), toggleStaffStatus);
-router.patch('/:id/permissions', authorizeRole('admin'), updateStaffPermissions);
-router.put('/:id/permissions', authorizeRole('admin'), updateStaffPermissions);
-router.delete('/:id', authorizeRole('admin'), deleteStaff);
+// Admins always have access; managers/support must be granted the user_access module
+router.get('/', requirePermission('user_access', 'view'), listStaff);
+router.post('/', requirePermission('user_access', 'create'), createStaff);
+router.patch('/:id/status', requirePermission('user_access', 'edit'), toggleStaffStatus);
+router.put('/:id/status', requirePermission('user_access', 'edit'), toggleStaffStatus);
+router.patch('/:id/permissions', requirePermission('user_access', 'edit'), updateStaffPermissions);
+router.put('/:id/permissions', requirePermission('user_access', 'edit'), updateStaffPermissions);
+router.delete('/:id', requirePermission('user_access', 'delete'), deleteStaff);
 
 export default router;
-

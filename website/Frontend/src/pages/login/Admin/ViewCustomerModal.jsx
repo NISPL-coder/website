@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { customerApi } from '../../../services/customerApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
+import { usePermissions } from './PermissionsContext';
 
 export default function ViewCustomerModal({
   customer,
@@ -26,6 +27,8 @@ export default function ViewCustomerModal({
   onRetrySync,
   isSyncing = false
 }) {
+  const { can } = usePermissions();
+  const canEdit = can('customer', 'edit');
   useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
@@ -267,7 +270,7 @@ export default function ViewCustomerModal({
               </a>
             )}
 
-            {(crmStatus === 'failed' || crmStatus === 'pending') && onRetrySync && (
+            {(crmStatus === 'failed' || crmStatus === 'pending') && canEdit && onRetrySync && (
               <button
                 type="button"
                 className="adm-btn-secondary"
@@ -358,17 +361,19 @@ export default function ViewCustomerModal({
             <Printer size={15} />
             <span>Print (PDF)</span>
           </button>
-          <button
-            type="button"
-            className="adm-btn-secondary"
-            onClick={() => {
-              onClose?.();
-              onEdit?.(customer);
-            }}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-          >
-            Edit Profile
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              className="adm-btn-secondary"
+              onClick={() => {
+                onClose?.();
+                onEdit?.(customer);
+              }}
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            >
+              Edit Profile
+            </button>
+          )}
           <button
             type="button"
             className="adm-btn-primary"

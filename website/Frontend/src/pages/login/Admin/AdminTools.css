@@ -575,3 +575,59 @@
     animation: none;
   }
 }
+
+/* ==========================================================================
+   RBAC: restricted view placeholder + sidebar footnote
+   ========================================================================== */
+.adm-noaccess {
+  max-width: 520px;
+  margin: 64px auto;
+  padding: 34px 32px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.35);
+  text-align: center;
+}
+
+.adm-noaccess-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.adm-noaccess h3 {
+  margin: 0 0 10px;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adm-noaccess p {
+  margin: 0 0 20px;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.adm-noaccess strong {
+  color: #334155;
+}
+
+.adm-sidebar-empty-note {
+  margin: 10px 14px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}

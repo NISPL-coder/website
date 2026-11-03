@@ -15,8 +15,10 @@ import tallyLogo from '../../../assets/partners/tally.png';
 import { compactSelectStyles } from './reactSelectStyles';
 import AdminDataTable from './AdminDataTable';
 import { compareNumber, compareText } from './adminTableUtils';
+import { usePermissions } from './PermissionsContext';
 
 export default function ProductSection({ products, setProducts }) {
+  const { can } = usePermissions();
   const navigate = useNavigate();
   // Navigation State: null = 2-card Solution selection view; 'tally' | 'cloud' = category catalog
   const [selectedCategory, setSelectedCategory] = useState(() => {
@@ -79,6 +81,11 @@ export default function ProductSection({ products, setProducts }) {
         (availabilityFilter === 'disabled' && !p.available);
 
       return matchesSearch && matchesAvailability;
+    }).sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [products, selectedCategory, searchQuery, availabilityFilter]);
 
@@ -370,22 +377,24 @@ export default function ProductSection({ products, setProducts }) {
                 <span>Back to Solutions</span>
               </button>
 
-              <button
-                type="button"
-                className="adm-btn-primary"
-                onClick={() =>
-                  navigate(
-                    selectedCategory === 'tally'
-                      ? '/admin/product/tally/create'
-                      : '/admin/product/cloud/create'
-                  )
-                }
-              >
-                <Plus size={16} />
-                <span>
-                  {selectedCategory === 'tally' ? 'Add Tally Product' : 'Add Cloud Product'}
-                </span>
-              </button>
+              {can('product', 'create') && (
+                <button
+                  type="button"
+                  className="adm-btn-primary"
+                  onClick={() =>
+                    navigate(
+                      selectedCategory === 'tally'
+                        ? '/admin/product/tally/create'
+                        : '/admin/product/cloud/create'
+                    )
+                  }
+                >
+                  <Plus size={16} />
+                  <span>
+                    {selectedCategory === 'tally' ? 'Add Tally Product' : 'Add Cloud Product'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -443,13 +452,14 @@ export default function ProductSection({ products, setProducts }) {
             columns={columns}
             data={currentCategoryProducts}
             keyField="id"
-            defaultSortFieldId="name"
-            defaultSortAsc
+            defaultSortFieldId="sku"
+            defaultSortAsc={false}
             resetPageToken={`${searchQuery}|${availabilityFilter}|${selectedCategory}`}
             minWidth={1250}
             noDataMessage="No products found"
             noDataHint="Try a different search term or availability filter."
             ariaLabel="Product catalog"
+            scrollHeight="600px"
           />
 
           {/* Table Footer */}

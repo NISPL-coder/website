@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, Menu, X } from 'lucide-react';
+import { Search, Bell, Menu, X, ShieldAlert } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 import './AdminDashboard.css';
@@ -42,10 +42,72 @@ import { customerApi } from '../../../services/customerApi';
 import { notificationApi } from '../../../services/notificationApi';
 import NotificationPopover from './NotificationPopover';
 import { contractApi } from '../../../services/contractApi';
+import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
 
-export default function AdminDashboard({ userSession, onSignOut }) {
+// Which permission module unlocks each admin view
+const NAV_MODULE = {
+  overview: 'overview',
+  customer: 'customer',
+  contract: 'contract',
+  payment: 'payment',
+  product: 'product',
+  receipt: 'receipt',
+  'import-csv': 'import_csv',
+  'sangam-sync': 'sangam_sync',
+  'user-access': 'user_access',
+  'activity-logs': 'activity_logs',
+  profile: null
+};
+
+const FIRST_ALLOWED_ROUTE = [
+  ['overview', '/admin/overview'],
+  ['customer', '/admin/customer'],
+  ['contract', '/admin/customer/contract'],
+  ['payment', '/admin/customer/payment'],
+  ['product', '/admin/product'],
+  ['receipt', '/admin/receipt'],
+  ['import_csv', '/admin/import-csv'],
+  ['sangam_sync', '/admin/sangam-sync'],
+  ['data_tools', '/admin/sangam-sync'],
+  ['user_access', '/admin/user-access'],
+  ['activity_logs', '/admin/activity-logs']
+];
+
+function NoAccessCard({ moduleName, action = 'view', target }) {
+  const navigate = useNavigate();
+  const label = MODULE_LABELS[moduleName] || moduleName;
+  return (
+    <div className="adm-noaccess">
+      <div className="adm-noaccess-icon">
+        <ShieldAlert size={26} />
+      </div>
+      <h3>Access restricted</h3>
+      <p>
+        Your role has not been granted{' '}
+        <strong>{action === 'view' ? 'access to' : `permission to ${action} in`}</strong> the {label} module. Ask a
+        primary administrator to extend your access from User Access &rarr; Grant Access.
+      </p>
+      {target && (
+        <button type="button" className="adm-btn-primary" onClick={() => navigate(target[1])}>
+          Go to {MODULE_LABELS[target[0]]}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function AdminDashboard(props) {
+  return (
+    <PermissionsProvider>
+      <AdminDashboardShell {...props} />
+    </PermissionsProvider>
+  );
+}
+
+function AdminDashboardShell({ userSession, onSignOut }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { can, isReady } = usePermissions();
 
   // Desktop sidebar collapsed state
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -67,6 +129,38 @@ export default function AdminDashboard({ userSession, onSignOut }) {
     if (path.includes('/admin/receipt')) return 'receipt';
     return 'overview';
   }, [location.pathname]);
+
+  // Permission module backing the current view
+  const viewModule = NAV_MODULE[activeNav] ?? null;
+
+  const createModule = useMemo(() => {
+    const path = location.pathname;
+    if (path === '/admin/customer/create') return 'customer';
+    if (path === '/admin/customer/contract/create' || path === '/admin/contract/create') return 'contract';
+    if (path === '/admin/customer/payment/create' || path === '/admin/payment/create') return 'payment';
+    if (path.startsWith('/admin/product/') && path.endsWith('/create')) return 'product';
+    return null;
+  }, [location.pathname]);
+
+  const blockedView = Boolean(viewModule) && isReady && !can(viewModule);
+  const blockedCreate = Boolean(createModule) && isReady && !can(createModule, 'create');
+
+  const allowedTarget = useMemo(
+    () =>
+      FIRST_ALLOWED_ROUTE.find(
+        ([navModule]) => navModule !== viewModule && navModule !== createModule && can(navModule)
+      ),
+    [can, viewModule, createModule]
+  );
+
+  // Land an under-privileged staff on the first module they can actually open
+  useEffect(() => {
+    if (!isReady) return;
+    if (location.pathname !== '/admin/overview') return;
+    if (can('overview')) return;
+    const target = FIRST_ALLOWED_ROUTE.find(([navModule]) => can(navModule));
+    if (target) navigate(target[1], { replace: true });
+  }, [isReady, can, location.pathname, navigate]);
 
   // Customer parent menu expandable state
   const isCustomerRelated =
@@ -248,23 +342,27 @@ export default function AdminDashboard({ userSession, onSignOut }) {
   // Load live customers & contracts with Sangam CRM synchronization status from backend
   useEffect(() => {
     let isMounted = true;
-    customerApi.getCustomers().then((data) => {
-      if (isMounted && data && Array.isArray(data)) {
-        setCustomers(data);
-        if (data.stats) {
-          setCustomerStats(data.stats);
+    if (can('customer', 'view')) {
+      customerApi.getCustomers().then((data) => {
+        if (isMounted && data && Array.isArray(data)) {
+          setCustomers(data);
+          if (data.stats) {
+            setCustomerStats(data.stats);
+          }
         }
-      }
-    });
-    contractApi.getContracts().then((data) => {
-      if (isMounted && data && Array.isArray(data) ) {
-        setContracts(data);
-      }
-    });
+      });
+    }
+    if (can('contract', 'view')) {
+      contractApi.getContracts().then((data) => {
+        if (isMounted && data && Array.isArray(data)) {
+          setContracts(data);
+        }
+      });
+    }
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [can]);
 
   const currentUser = authApi.getCurrentUser();
   const adminName =
@@ -277,8 +375,8 @@ export default function AdminDashboard({ userSession, onSignOut }) {
     setIsRefreshing(true);
     try {
       const [liveCustomers, liveContracts] = await Promise.all([
-        customerApi.getCustomers(),
-        contractApi.getContracts()
+        can('customer', 'view') ? customerApi.getCustomers() : null,
+        can('contract', 'view') ? contractApi.getContracts() : null
       ]);
       if (liveCustomers && Array.isArray(liveCustomers)) {
         setCustomers(liveCustomers);
@@ -412,41 +510,52 @@ export default function AdminDashboard({ userSession, onSignOut }) {
         {/* Main Routed View Container */}
         <main className="adm-main-content">
           {/* 1. DEDICATED SEPARATE /CREATE PAGES */}
-          {location.pathname === '/admin/customer/create' && (
-            <CreateCustomerPage customers={customers} setCustomers={setCustomers} />
-          )}
+          {blockedCreate ? (
+            <NoAccessCard moduleName={createModule} action="create" target={allowedTarget} />
+          ) : (
+            <>
+              {location.pathname === '/admin/customer/create' && (
+                <CreateCustomerPage customers={customers} setCustomers={setCustomers} />
+              )}
 
-          {(location.pathname === '/admin/customer/contract/create' || location.pathname === '/admin/contract/create') && (
-            <CreateContractPage contracts={contracts} setContracts={setContracts} customers={customers} />
-          )}
+              {(location.pathname === '/admin/customer/contract/create' ||
+                location.pathname === '/admin/contract/create') && (
+                <CreateContractPage contracts={contracts} setContracts={setContracts} customers={customers} />
+              )}
 
-          {(location.pathname === '/admin/customer/payment/create' || location.pathname === '/admin/payment/create') && (
-            <CreatePaymentPage
-              payments={payments}
-              setPayments={setPayments}
-              customers={customers}
-              contracts={contracts}
-            />
-          )}
+              {(location.pathname === '/admin/customer/payment/create' ||
+                location.pathname === '/admin/payment/create') && (
+                <CreatePaymentPage
+                  payments={payments}
+                  setPayments={setPayments}
+                  customers={customers}
+                  contracts={contracts}
+                />
+              )}
 
-          {location.pathname === '/admin/product/tally/create' && (
-            <CreateProductPage
-              products={products}
-              setProducts={setProducts}
-              productType="tally"
-            />
-          )}
+              {location.pathname === '/admin/product/tally/create' && (
+                <CreateProductPage
+                  products={products}
+                  setProducts={setProducts}
+                  productType="tally"
+                />
+              )}
 
-          {location.pathname === '/admin/product/cloud/create' && (
-            <CreateProductPage
-              products={products}
-              setProducts={setProducts}
-              productType="cloud"
-            />
+              {location.pathname === '/admin/product/cloud/create' && (
+                <CreateProductPage
+                  products={products}
+                  setProducts={setProducts}
+                  productType="cloud"
+                />
+              )}
+            </>
           )}
 
           {/* 2. REGULAR DIRECTORY & MANAGEMENT VIEWS */}
-          {!location.pathname.endsWith('/create') && (
+          {!location.pathname.endsWith('/create') &&
+            (blockedView ? (
+              <NoAccessCard moduleName={viewModule} target={allowedTarget} />
+            ) : (
             <>
               {activeNav === 'overview' && (
                 <OverviewSection
@@ -524,7 +633,7 @@ export default function AdminDashboard({ userSession, onSignOut }) {
                 <ActivityLogsSection />
               )}
             </>
-          )}
+            ))}
         </main>
       </div>
     </div>

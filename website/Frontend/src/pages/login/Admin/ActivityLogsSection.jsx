@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Activity,
   Search,
@@ -19,8 +20,103 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminDataTable from './AdminDataTable';
+import DateRangeFilter from './DateRangeFilter';
 import { activityLogApi } from '../../../services/activityLogApi';
 import './ActivityLogsSection.css';
+
+/* ------------------------------------------------------------------ *
+ * Changes payload -> before/after diff
+ * ------------------------------------------------------------------ */
+
+/** Normalizes the various `changes` payload shapes into { before, after, meta }. */
+function buildDiff(changes) {
+  if (!changes || typeof changes !== 'object' || Array.isArray(changes)) {
+    return { before: {}, after: {}, meta: {} };
+  }
+
+  // Explicit before/after objects (permission updates)
+  if (
+    changes.before &&
+    changes.after &&
+    typeof changes.before === 'object' &&
+    typeof changes.after === 'object'
+  ) {
+    const { before, after, ...meta } = changes;
+    return { before, after, meta };
+  }
+
+  // Deletion: the whole record is the previous state
+  if (changes.deletedStaff && typeof changes.deletedStaff === 'object') {
+    const { deletedStaff, ...meta } = changes;
+    return { before: deletedStaff, after: {}, meta };
+  }
+
+  // previousX / newX pairs (status toggles)
+  const before = {};
+  const after = {};
+  const meta = {};
+  let paired = false;
+
+  Object.entries(changes).forEach(([key, value]) => {
+    const prevMatch = key.match(/^previous([A-Z]\w*)$/);
+    if (prevMatch) {
+      const field = prevMatch[1].charAt(0).toLowerCase() + prevMatch[1].slice(1);
+      before[field] = value;
+      const newKey = `new${prevMatch[1]}`;
+      if (newKey in changes) {
+        after[field] = changes[newKey];
+        paired = true;
+      }
+      return;
+    }
+
+    const nextMatch = key.match(/^new([A-Z]\w*)$/);
+    if (nextMatch) {
+      const field = nextMatch[1].charAt(0).toLowerCase() + nextMatch[1].slice(1);
+      if (`previous${nextMatch[1]}` in changes) return;
+      after[field] = value;
+      paired = true;
+      return;
+    }
+
+    meta[key] = value;
+  });
+
+  if (paired) return { before, after, meta };
+
+  // Creation: everything present is new
+  return { before: {}, after: changes, meta: {} };
+}
+
+/** Classifies every key across both sides as added / removed / modified / unchanged. */
+function classifyDiffRows(before, after) {
+  const keys = [...Object.keys(before), ...Object.keys(after).filter((k) => !(k in before))];
+
+  return keys.map((key) => {
+    const hasBefore = key in before;
+    const hasAfter = key in after;
+    let kind = 'unchanged';
+    if (hasBefore && !hasAfter) kind = 'removed';
+    else if (!hasBefore && hasAfter) kind = 'added';
+    else if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) kind = 'modified';
+    return { key, kind, beforeValue: before[key], afterValue: after[key] };
+  });
+}
+
+const formatDiffValue = (value) => {
+  if (value === undefined) return 'undefined';
+  if (value === null) return 'null';
+  if (Array.isArray(value) && value.every((item) => typeof item !== 'object')) {
+    return `[${value.map((item) => JSON.stringify(item)).join(', ')}]`;
+  }
+  return JSON.stringify(value);
+};
+
+const humanizeKey = (key) =>
+  key
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function ActivityLogsSection() {
   const [logs, setLogs] = useState([]);
@@ -31,10 +127,43 @@ export default function ActivityLogsSection() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Inspect Modal State
   const [inspectLog, setInspectLog] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [showRawJson, setShowRawJson] = useState(false);
+
+  const inspectDiff = useMemo(() => {
+    if (!inspectLog) return null;
+    const { before, after, meta } = buildDiff(inspectLog.changes);
+    const rows = classifyDiffRows(before, after);
+    return { before, after, meta, rows, changedRows: rows.filter((row) => row.kind !== 'unchanged') };
+  }, [inspectLog]);
+
+  const openInspect = (log) => {
+    setShowRawJson(false);
+    setCopied(false);
+    setInspectLog(log);
+  };
+
+  // Manage Body Scroll Lock & Escape Key for Inspect Modal
+  useEffect(() => {
+    if (!inspectLog) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setInspectLog(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [inspectLog]);
 
   // Fetch Live Activity Logs
   const loadLogs = useCallback(async (quiet = false) => {
@@ -43,7 +172,9 @@ export default function ActivityLogsSection() {
       else setIsRefreshing(true);
 
       const data = await activityLogApi.getActivityLogs({
-        limit: 100
+        limit: 100,
+        startDate: dateFrom ? new Date(`${dateFrom}T00:00:00`).toISOString() : undefined,
+        endDate: dateTo ? new Date(`${dateTo}T23:59:59.999`).toISOString() : undefined
       });
 
       if (data && Array.isArray(data.logs)) {
@@ -58,7 +189,7 @@ export default function ActivityLogsSection() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [dateFrom, dateTo]);
 
   useEffect(() => {
     loadLogs();
@@ -103,7 +234,7 @@ export default function ActivityLogsSection() {
         (log.category || 'general').toLowerCase() === categoryFilter.toLowerCase();
 
       return matchesQuery && matchesCat;
-    });
+    }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [logs, searchQuery, categoryFilter]);
 
   // Format Date & Time
@@ -142,7 +273,8 @@ export default function ActivityLogsSection() {
         name: 'Admin',
         selector: (row) => row.adminName,
         sortable: true,
-        width: '20%',
+        minWidth: '220px',
+        grow: 1.2,
         cell: (row) => {
           const roleLower = (row.adminRole || 'admin').toLowerCase();
           return (
@@ -183,7 +315,8 @@ export default function ActivityLogsSection() {
         name: 'Action',
         selector: (row) => row.action,
         sortable: true,
-        width: '18%',
+        minWidth: '180px',
+        grow: 1,
         cell: (row) => (
           <span className={`act-action-badge ${getActionBadgeClass(row.category, row.action)}`}>
             {row.action}
@@ -195,16 +328,10 @@ export default function ActivityLogsSection() {
         name: 'Details / Event',
         selector: (row) => row.details,
         sortable: true,
-        width: '24%',
+        minWidth: '280px',
+        grow: 2,
         cell: (row) => (
-          <div
-            style={{
-              fontSize: '0.84rem',
-              color: '#334155',
-              lineHeight: 1.4,
-              wordBreak: 'break-word'
-            }}
-          >
+          <div className="act-details-cell">
             {row.details}
           </div>
         )
@@ -214,7 +341,8 @@ export default function ActivityLogsSection() {
         name: 'IP Address',
         selector: (row) => row.ipAddress,
         sortable: true,
-        width: '12%',
+        minWidth: '150px',
+        grow: 0.8,
         cell: (row) => (
           <span className="act-ip-badge">
             <Globe size={11} style={{ color: '#64748b' }} />
@@ -227,7 +355,8 @@ export default function ActivityLogsSection() {
         name: 'Timestamp',
         selector: (row) => new Date(row.createdAt).getTime(),
         sortable: true,
-        width: '14%',
+        minWidth: '180px',
+        grow: 1,
         cell: (row) => (
           <span style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}>
             {formatDateTime(row.createdAt)}
@@ -238,12 +367,15 @@ export default function ActivityLogsSection() {
         id: 'changes',
         name: 'Changes Data',
         sortable: false,
-        width: '12%',
+        minWidth: '160px',
+        grow: 0.8,
+        searchable: false,
+        center: true,
         cell: (row) => (
           <button
             type="button"
             className="act-inspect-btn"
-            onClick={() => setInspectLog(row)}
+            onClick={() => openInspect(row)}
             title="Inspect audit changes JSON"
           >
             <Code2 size={13} />
@@ -350,6 +482,15 @@ export default function ActivityLogsSection() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(nextFrom, nextTo) => {
+              setDateFrom(nextFrom);
+              setDateTo(nextTo);
+            }}
+          />
+
           <select
             className="act-filter-select"
             value={categoryFilter}
@@ -376,17 +517,25 @@ export default function ActivityLogsSection() {
           paginationPerPage={8}
           paginationRowsPerPageOptions={[8, 15, 25, 50]}
           progressPending={isLoading}
-          noDataMessage="No activity logs found."
-          noDataHint="Try adjusting your search criteria or filter options."
-          scrollHeight="clamp(300px, 50vh, 550px)"
+          noDataMessage={
+            dateFrom || dateTo
+              ? 'No activity logs in the selected date range.'
+              : 'No activity logs found.'
+          }
+          noDataHint={
+            dateFrom || dateTo
+              ? 'Widen the date range or clear the filter to see more events.'
+              : 'Try adjusting your search criteria or filter options.'
+          }
+          scrollHeight="600px"
         />
       </div>
 
       {/* =========================================================================
-         INSPECT JSON CHANGES MODAL
+         INSPECT JSON CHANGES MODAL (PORTALED TO DOCUMENT.BODY)
          ========================================================================= */}
-      {inspectLog && (
-        <div className="usr-modal-backdrop" onClick={() => setInspectLog(null)}>
+      {inspectLog && typeof document !== 'undefined' && createPortal(
+        <div className="act-modal-backdrop" onClick={() => setInspectLog(null)}>
           <div className="act-inspect-modal-card" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="act-inspect-header">
@@ -400,11 +549,12 @@ export default function ActivityLogsSection() {
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    background: '#dcfce7',
-                    color: '#16a34a'
+                    background: inspectLog.status === 'failed' ? '#fee2e2' : inspectLog.status === 'warning' ? '#fef3c7' : '#dcfce7',
+                    color: inspectLog.status === 'failed' ? '#dc2626' : inspectLog.status === 'warning' ? '#d97706' : '#16a34a',
+                    textTransform: 'uppercase'
                   }}
                 >
-                  SUCCESS
+                  {inspectLog.status || 'success'}
                 </span>
               </div>
               <button
@@ -464,19 +614,124 @@ export default function ActivityLogsSection() {
               </div>
 
               <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
-                  Changes Data (JSON Payload)
+                <div className="act-diff-heading-row">
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                    Changes Data (Previous vs Updated)
+                  </div>
+                  <button
+                    type="button"
+                    className="act-raw-toggle"
+                    onClick={() => setShowRawJson((prev) => !prev)}
+                  >
+                    {showRawJson ? 'Show Diff View' : 'Show Raw JSON'}
+                  </button>
                 </div>
 
-                <div className="act-json-container">
-                  <button type="button" className="act-copy-btn" onClick={handleCopyJson}>
-                    {copied ? <Check size={12} /> : <Copy size={12} />}
-                    <span>{copied ? 'Copied!' : 'Copy JSON'}</span>
-                  </button>
-                  <pre style={{ margin: 0 }}>
-                    {JSON.stringify(inspectLog.changes || {}, null, 2)}
-                  </pre>
-                </div>
+                {!showRawJson && inspectDiff && (
+                  <>
+                    {inspectDiff.changedRows.length === 0 ? (
+                      <div className="act-diff-empty">
+                        No field-level changes were recorded for this event.
+                      </div>
+                    ) : (
+                      <div className="act-diff-summary">
+                        {inspectDiff.changedRows.map((row) => (
+                          <span key={row.key} className={`act-diff-chip ${row.kind}`}>
+                            <strong>{humanizeKey(row.key)}</strong>
+                            {row.kind === 'modified' && (
+                              <>
+                                <em>{formatDiffValue(row.beforeValue)}</em>
+                                <span className="act-diff-arrow">→</span>
+                                <em>{formatDiffValue(row.afterValue)}</em>
+                              </>
+                            )}
+                            {row.kind === 'added' && <em>{formatDiffValue(row.afterValue)}</em>}
+                            {row.kind === 'removed' && <em>{formatDiffValue(row.beforeValue)}</em>}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="act-diff-grid">
+                      <div className="act-diff-panel">
+                        <div className="act-diff-panel-head">
+                          <span>Previous Data</span>
+                          <span className="act-diff-panel-tag removed">before</span>
+                        </div>
+                        <div className="act-diff-lines">
+                          {inspectDiff.rows.map((row) => (
+                            <div
+                              key={row.key}
+                              className={`act-diff-line ${
+                                row.kind === 'removed' || row.kind === 'modified' ? row.kind : 'neutral'
+                              }`}
+                            >
+                              <span className="act-diff-sign">
+                                {row.kind === 'removed' ? '-' : row.kind === 'modified' ? '~' : ' '}
+                              </span>
+                              <span className="act-diff-key">"{row.key}"</span>
+                              <span className="act-diff-sep">: </span>
+                              <span className="act-diff-val">
+                                {row.kind === 'added'
+                                  ? '(not set)'
+                                  : formatDiffValue(row.beforeValue)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="act-diff-panel">
+                        <div className="act-diff-panel-head">
+                          <span>Changed Data</span>
+                          <span className="act-diff-panel-tag added">after</span>
+                        </div>
+                        <div className="act-diff-lines">
+                          {inspectDiff.rows.map((row) => (
+                            <div
+                              key={row.key}
+                              className={`act-diff-line ${
+                                row.kind === 'added' || row.kind === 'modified' ? row.kind : 'neutral'
+                              }`}
+                            >
+                              <span className="act-diff-sign">
+                                {row.kind === 'added' ? '+' : row.kind === 'modified' ? '~' : ' '}
+                              </span>
+                              <span className="act-diff-key">"{row.key}"</span>
+                              <span className="act-diff-sep">: </span>
+                              <span className="act-diff-val">
+                                {row.kind === 'removed' ? '(deleted)' : formatDiffValue(row.afterValue)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {Object.keys(inspectDiff.meta).length > 0 && (
+                      <div className="act-diff-meta">
+                        {Object.entries(inspectDiff.meta).map(([key, value]) => (
+                          <span key={key} className="act-diff-meta-item">
+                            <strong>{humanizeKey(key)}</strong>
+                            <span>{formatDiffValue(value)}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {showRawJson && (
+                  <div className="act-json-container">
+                    <button type="button" className="act-copy-btn" onClick={handleCopyJson}>
+                      {copied ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{copied ? 'Copied!' : 'Copy JSON'}</span>
+                    </button>
+                    <pre style={{ margin: 0 }}>
+                      {JSON.stringify(inspectLog.changes || {}, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -491,7 +746,8 @@ export default function ActivityLogsSection() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -527,6 +527,16 @@ export const updateCustomer = async (req, res) => {
       metadata: { customerId: savedCustomer.customerId }
     });
 
+    const previousRecord = customer.toObject?.() || customer;
+    const beforeSlice = {};
+    const afterSlice = {};
+    Object.keys(updatedData).forEach((key) => {
+      if (String(previousRecord[key] ?? '') !== String(updatedData[key] ?? '')) {
+        beforeSlice[key] = previousRecord[key] ?? '';
+        afterSlice[key] = updatedData[key];
+      }
+    });
+
     await logActivity(req, {
       action: 'UPDATE_CUSTOMER',
       category: 'customer',
@@ -535,8 +545,8 @@ export const updateCustomer = async (req, res) => {
       details: `Updated customer details for "${savedCustomer.name}" (${savedCustomer.customerId})`,
       changes: {
         customerId: savedCustomer.customerId,
-        updatedFields: req.body,
-        currentRecord: savedCustomer
+        before: beforeSlice,
+        after: afterSlice
       }
     });
 

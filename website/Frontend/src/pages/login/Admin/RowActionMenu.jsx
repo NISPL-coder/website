@@ -1,26 +1,60 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreVertical, Eye, Edit3, Trash2, Printer } from 'lucide-react';
+import { usePermissions } from './PermissionsContext';
 import './RowActionMenu.css';
 
-export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
+/**
+ * Three-dots row action menu.
+ *
+ * Either pass the classic `onView/onEdit/onPrint/onDelete` handlers (Edit and
+ * Delete disappear when `module` denies the operation), or pass an explicit
+ * `items` array of `{ label, icon, tone, danger, divider, hidden, onClick }`
+ * for module-specific actions such as staff access grants.
+ */
+export default function RowActionMenu({ onView, onEdit, onDelete, onPrint, module, items }) {
+  const { can } = usePermissions();
+  const allowEdit = !module || can(module, 'edit');
+  const allowDelete = !module || can(module, 'delete');
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  const menuItems = useMemo(() => {
+    if (items) return items.filter((item) => item && !item.hidden);
+
+    const legacy = [];
+    if (onView) legacy.push({ label: 'View', icon: Eye, tone: 'blue', onClick: onView });
+    if (onEdit && allowEdit) {
+      legacy.push({ label: 'Edit', icon: Edit3, tone: 'purple', onClick: onEdit });
+    }
+    if (onPrint) legacy.push({ label: 'Print (PDF)', icon: Printer, tone: 'green', onClick: onPrint });
+    if (onDelete && allowDelete) {
+      legacy.push({
+        label: 'Delete',
+        icon: Trash2,
+        tone: 'red',
+        danger: true,
+        divider: true,
+        onClick: onDelete
+      });
+    }
+    return legacy;
+  }, [items, onView, onEdit, onPrint, onDelete, allowEdit, allowDelete]);
+
   const computePosition = useCallback(() => {
     const button = buttonRef.current;
     if (!button) return null;
     const rect = button.getBoundingClientRect();
-    const estimatedMenuHeight = 190;
+    const estimatedMenuHeight = menuItems.length * 34 + 24;
     const spaceBelow = window.innerHeight - rect.bottom;
     const openAbove = spaceBelow < estimatedMenuHeight && rect.top > estimatedMenuHeight;
     return openAbove
       ? { top: 'auto', bottom: window.innerHeight - rect.top + 6, right: window.innerWidth - rect.right }
       : { top: rect.bottom + 6, bottom: 'auto', right: window.innerWidth - rect.right };
-  }, []);
+  }, [menuItems.length]);
 
   const toggleMenu = useCallback((e) => {
     e.stopPropagation();
@@ -98,55 +132,23 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint }) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className="adm-action-dropdown-item"
-              onClick={() => {
-                setIsOpen(false);
-                onView?.();
-              }}
-            >
-              <Eye size={14} className="adm-action-icon blue" />
-              <span>View</span>
-            </button>
+            {menuItems.map((item, index) => (
+              <React.Fragment key={`${item.label}-${index}`}>
+                {item.divider && index > 0 && <div className="adm-action-dropdown-divider" />}
 
-            <button
-              type="button"
-              className="adm-action-dropdown-item"
-              onClick={() => {
-                setIsOpen(false);
-                onEdit?.();
-              }}
-            >
-              <Edit3 size={14} className="adm-action-icon purple" />
-              <span>Edit</span>
-            </button>
-
-            <button
-              type="button"
-              className="adm-action-dropdown-item"
-              onClick={() => {
-                setIsOpen(false);
-                onPrint?.();
-              }}
-            >
-              <Printer size={14} className="adm-action-icon green" />
-              <span>Print (PDF)</span>
-            </button>
-
-            <div className="adm-action-dropdown-divider" />
-
-            <button
-              type="button"
-              className="adm-action-dropdown-item danger"
-              onClick={() => {
-                setIsOpen(false);
-                onDelete?.();
-              }}
-            >
-              <Trash2 size={14} className="adm-action-icon red" />
-              <span>Delete</span>
-            </button>
+                <button
+                  type="button"
+                  className={`adm-action-dropdown-item${item.danger ? ' danger' : ''}`}
+                  onClick={() => {
+                    setIsOpen(false);
+                    item.onClick?.();
+                  }}
+                >
+                  <item.icon size={14} className={`adm-action-icon ${item.tone || 'blue'}`} />
+                  <span>{item.label}</span>
+                </button>
+              </React.Fragment>
+            ))}
           </div>,
           document.body
         )

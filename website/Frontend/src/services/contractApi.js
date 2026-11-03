@@ -4,6 +4,9 @@
  * and Sangam CRM Contracts synchronization endpoints.
  */
 
+import { authApi } from './authApi';
+import { withAuth, readApiError } from './apiAuth';
+
 const isLocalhost = Boolean(typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'));
 const BACKEND_URL = isLocalhost ? 'http://localhost:4000' : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
 const API_BASE_URL = `${BACKEND_URL}/api/contracts`;
@@ -18,12 +21,11 @@ export const contractApi = {
     try {
       const res = await fetch(API_BASE_URL, {
         method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: withAuth({ Accept: 'application/json' })
       });
+      authApi._handleRefreshedToken(res);
       if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+        throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
       const data = await res.json();
       return data.contracts || [];
@@ -40,15 +42,19 @@ export const contractApi = {
   async createContract(contractData) {
     const res = await fetch(API_BASE_URL, {
       method: 'POST',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      },
+      }),
       body: JSON.stringify(contractData)
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to create contract record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to create contract record.');
     }
 
@@ -67,15 +73,19 @@ export const contractApi = {
   async updateContract(contractId, contractData) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(contractId)}`, {
       method: 'PUT',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      },
+      }),
       body: JSON.stringify(contractData)
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to update contract record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to update contract record.');
     }
 
@@ -89,13 +99,15 @@ export const contractApi = {
   async deleteContract(contractId) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(contractId)}`, {
       method: 'DELETE',
-      headers: {
-        Accept: 'application/json'
-      }
+      headers: withAuth({ Accept: 'application/json' })
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to delete contract record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to delete contract record.');
     }
 
@@ -105,14 +117,18 @@ export const contractApi = {
   async retrySangamSync(contractId) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(contractId)}/sync`, {
       method: 'POST',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      }
+      })
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Sangam CRM contract synchronization retry failed.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || data.message || 'Sangam CRM contract synchronization retry failed.');
     }
 

@@ -42,7 +42,10 @@ export async function listActivityLogs(req, res) {
     if (req.query.startDate) filter.createdAt.$gte = new Date(req.query.startDate);
     if (req.query.endDate) {
       const end = new Date(req.query.endDate);
-      end.setHours(23, 59, 59, 999);
+      // Only widen a bare "YYYY-MM-DD" to end-of-day; full timestamps are already exact.
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(req.query.endDate).trim())) {
+        end.setHours(23, 59, 59, 999);
+      }
       filter.createdAt.$lte = end;
     }
   }

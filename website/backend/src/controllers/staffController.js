@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import { HttpError } from '../utils/httpError.js';
+import { normalizePermissions } from '../middleware/permission.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
 
@@ -21,10 +22,10 @@ export async function listStaff(req, res) {
     await primaryCandidate.save();
   }
 
-  // Reload to reflect any primary admin flag update
+  // Reload to reflect any primary admin flag update (latest staff first)
   staffList = await User.find({
     role: { $in: ['admin', 'manager', 'support'] }
-  }).sort({ createdAt: 1 });
+  }).sort({ createdAt: -1 });
 
   const formatted = staffList.map(u => ({
     id: u._id.toString(),
@@ -88,7 +89,7 @@ export async function createStaff(req, res) {
     password: String(password),
     role: cleanRole,
     accountStatus: cleanStatus,
-    permissions: Array.isArray(permissions) ? permissions : [],
+    permissions: normalizePermissions(permissions),
     designation: String(designation || '').trim(),
     createdBy: req.user?._id || null,
     isPrimaryAdmin: false
@@ -217,7 +218,7 @@ export async function updateStaffPermissions(req, res) {
   }
 
   if (Array.isArray(permissions)) {
-    staff.permissions = permissions;
+    staff.permissions = normalizePermissions(permissions);
   }
 
   if (designation !== undefined) {

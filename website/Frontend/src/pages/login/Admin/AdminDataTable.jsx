@@ -9,10 +9,62 @@ const TOOLTIP_HOVER_DELAY = 200;
 const TOOLTIP_EDGE_GAP = 8;
 const TOOLTIP_ROW_GAP = 10;
 
+/* Column auto-sizing: horizontal cell padding + the sort arrow + a glyph safety margin. */
+const CELL_PADDING_PX = 40;
+const SORT_ICON_PX = 30;
+const FILTER_FLOOR_PX = 120;
+const STATIC_FLOOR_PX = 90;
+const DEFAULT_CAP_PX = 460;
+// Hard ceiling for DOM-measured overflow repairs, so one bad cell cannot stretch a table.
+const HARD_CAP_PX = 760;
+// Values longer than this are prose/JSON meant to wrap, so they keep the authored width.
+const WRAPPING_TEXT_LIMIT = 90;
+const MEASURE_FONT = '600 14.4px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+let measureCtx = null;
+const measureTextWidth = (text) => {
+  const value = String(text ?? '');
+  if (!value) return 0;
+  try {
+    if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d');
+  } catch {
+    measureCtx = null;
+  }
+  if (!measureCtx) return value.length * 8;
+  measureCtx.font = MEASURE_FONT;
+  return measureCtx.measureText(value).width;
+};
+
+/** Widest string a column will ever render, across the current data set. */
+const measureColumn = (column, data) => {
+  const label = typeof column.name === 'string' ? column.name : '';
+  let widest = measureTextWidth(label) * 1.1; // headers are uppercase + letter-spaced
+  let longest = label.length;
+
+  data.forEach((row) => {
+    const raw = typeof column.autoSizeValue === 'function'
+      ? column.autoSizeValue(row)
+      : getRowValue(column, row);
+    const text = formatTipValue(raw);
+    if (text.length > longest) longest = text.length;
+    const width = measureTextWidth(text);
+    if (width > widest) widest = width;
+  });
+
+  return { widest: Math.ceil(widest), longest };
+};
+
 const isActionColumn = (column) => {
   const id = String(column.id ?? '').toLowerCase();
   const name = typeof column.name === 'string' ? column.name.toLowerCase() : '';
-  return column.omit || id.includes('action') || name.includes('action');
+  return (
+    column.omit ||
+    id.includes('action') ||
+    name.includes('action') ||
+    id === 'sno' ||
+    name.includes('s/no') ||
+    name === '#'
+  );
 };
 
 const formatTipValue = (value) => {
@@ -60,28 +112,29 @@ const getColumnOptions = (column, data) => {
  * Shared, premium wrapper around react-data-table-component.
  *
  * Handles the visual theme, fixed-height scrolling body, pagination,
- * empty/loading states and the inline per-column filter row.
+ * empty/loading states, automatic S/No. column, inline per-column filter row,
+ * and content-driven column widths: every column is measured against the rows
+ * it renders, so nothing is cut off and the columns still fill the card.
  *
  * Add `searchType: 'select'` (optionally with `searchOptions`) to a column to
  * render its column search as a dropdown instead of a free-text input.
  * Add `searchable: false` to opt a column out of the filter row.
- *
- * Hovering a data row lifts it and opens an anchored popup with the complete
- * row data. While a row action menu (RowActionMenu) is open, the hover lift
- * and popup are suppressed until that menu closes.
+ * `minWidth` / `maxWidth` bound the measured width, `width` pins it, and
+ * `autoSize: false` / `button: true` keep a column at its authored width.
  */
 export default function AdminDataTable({
   columns,
   data = [],
   keyField = 'id',
   defaultSortFieldId,
-  defaultSortAsc = true,
+  defaultSortAsc = false, // Latest on top by default
+  showSno = true,         // S/No. serial column enabled by default
   pagination = true,
   paginationPerPage = 8,
   paginationRowsPerPageOptions = [8, 15, 25, 50],
   paginationOptions,
   fixedHeader = true,
-  scrollHeight = 'clamp(260px, 42vh, 430px)',
+  scrollHeight = 'clamp(400px, 65vh, 700px)',
   persistTableHead = true,
   noDataMessage = 'No records found.',
   noDataHint = 'Try adjusting your search or filters.',
@@ -94,16 +147,83 @@ export default function AdminDataTable({
   ariaLabel = 'Data table',
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(paginationPerPage);
+
+  useEffect(() => {
+    setPerPage(paginationPerPage);
+  }, [paginationPerPage]);
+
   const [columnFilters, setColumnFilters] = useState({});
   const [rowTip, setRowTip] = useState(null); // { row, rowEl }
   const [tipSize, setTipSize] = useState({ width: 0, height: 0 });
   const [positionTick, setPositionTick] = useState(0);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   const hoverTimerRef = useRef(null);
   const hoveredRowKeyRef = useRef(null);
   const tableWrapRef = useRef(null);
   const tipRef = useRef(null);
   const actionMenuOpenRef = useRef(false);
+
+  // The scroll container's own width is what the columns have to fill.
+  useLayoutEffect(() => {
+    const outer = tableWrapRef.current;
+    if (!outer) return undefined;
+
+    const read = () => {
+      const scroller = outer.querySelector('.rdt_responsiveWrapper');
+      const width = (scroller || outer).clientWidth;
+      setContainerWidth((previous) => (Math.abs(previous - width) > 1 ? width : previous));
+    };
+
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(outer);
+    return () => observer.disconnect();
+  }, []);
+
+  // Automatically prepend S/No. column if showSno is true and not already present
+  const tableColumns = useMemo(() => {
+    if (showSno === false) return columns || [];
+    const hasSno = (columns || []).some(
+      (c) =>
+        String(c.id || '').toLowerCase() === 'sno' ||
+        String(c.name || '').toLowerCase().includes('s/no') ||
+        String(c.name || '').toLowerCase() === 's.no' ||
+        String(c.name || '').toLowerCase() === '#'
+    );
+    if (hasSno) return columns || [];
+
+    const snoCol = {
+      id: 'sno',
+      name: 'S/No.',
+      width: '75px',
+      minWidth: '75px',
+      grow: 0,
+      sortable: false,
+      searchable: false,
+      center: true,
+      cell: (row, index) => {
+        const pageOffset = pagination ? (currentPage - 1) * perPage : 0;
+        return (
+          <span
+            className="adm-sno-cell"
+            style={{
+              fontWeight: 600,
+              color: '#64748b',
+              fontSize: '0.82rem',
+              display: 'inline-block',
+              textAlign: 'center',
+              width: '100%'
+            }}
+          >
+            {pageOffset + index + 1}
+          </span>
+        );
+      }
+    };
+    return [snoCol, ...(columns || [])];
+  }, [columns, showSno, pagination, currentPage, perPage]);
 
   useEffect(
     () => () => {
@@ -180,7 +300,7 @@ export default function AdminDataTable({
 
     return data.filter((row) =>
       activeFilters.every(([columnId, query]) => {
-        const column = columns.find((item) => String(item.id) === columnId);
+        const column = tableColumns.find((item) => String(item.id) === columnId);
         if (!column) return true;
 
         const raw = getRowValue(column, row);
@@ -192,7 +312,7 @@ export default function AdminDataTable({
           : value.toLowerCase().includes(query.toLowerCase());
       })
     );
-  }, [data, columns, activeFilters]);
+  }, [data, tableColumns, activeFilters]);
 
   // Show a full-row detail popup when hovering a data row (body rows have id="row-<keyField>").
   const handleTableMouseOver = useCallback(
@@ -226,25 +346,110 @@ export default function AdminDataTable({
     [filteredData, keyField, clearRowTip]
   );
 
-  // Dynamically calculate the minimum width required so columns NEVER overflow/squish
-  const calculatedMinWidth = useMemo(() => {
-    let total = 0;
-    (columns || []).forEach((col) => {
-      if (col.omit) return;
-      const w = col.width || col.minWidth;
-      if (w) {
-        const num = parseFloat(w);
-        total += isNaN(num) ? 140 : num;
-      } else {
-        total += 140;
+  // Cells can still need more room than the raw text implies (badges, chips,
+  // stacked lines). One bounded repair pass per data/columns change reads the
+  // real overflow from the DOM (see below) and widens just those columns.
+  const [widthBumps, setWidthBumps] = useState({});
+  const healedForRef = useRef(null);
+  const healKey = useMemo(
+    () => `${data.length}|${(tableColumns || []).map((c) => String(c.id ?? c.name ?? '')).join(',')}`,
+    [data.length, tableColumns]
+  );
+
+  // Every column measured against the values it actually renders.
+  const measuredWidths = useMemo(() => {
+    const widths = {};
+    const pinned = new Set();
+    (tableColumns || []).forEach((column) => {
+      const id = String(column.id ?? column.name ?? '');
+      if (!id) return;
+
+      const floor =
+        parseFloat(column.minWidth) ||
+        (column.searchable === false || column.omit ? STATIC_FLOOR_PX : FILTER_FLOOR_PX);
+      const cap = parseFloat(column.maxWidth) || DEFAULT_CAP_PX;
+
+      if (column.width) {
+        const explicit = parseFloat(column.width);
+        widths[id] = Number.isFinite(explicit) ? Math.max(explicit, floor) : floor;
+        pinned.add(id);
+        return;
       }
+      if (column.autoSize === false || column.button || isActionColumn(column)) {
+        widths[id] = Math.max(floor, STATIC_FLOOR_PX);
+        return;
+      }
+
+      const { widest, longest } = measureColumn(column, data);
+      if (longest > WRAPPING_TEXT_LIMIT) {
+        widths[id] = floor; // wrapping prose / JSON payload keeps its authored width
+        return;
+      }
+
+      const padding =
+        CELL_PADDING_PX + (column.sortable ? SORT_ICON_PX : 0) + (column.autoSizeExtra || 0);
+      widths[id] = Math.min(Math.max(widest + padding, floor), cap);
     });
-    return Math.max(total + 80, Number(minWidth) || 1000);
-  }, [columns, minWidth]);
+
+    // Overflow measured from the previous paint, valid only for the current data set.
+    if (healedForRef.current === healKey) {
+      Object.entries(widthBumps).forEach(([id, bump]) => {
+        if (!widths[id] || pinned.has(id)) return;
+        widths[id] = Math.min(widths[id] + bump, HARD_CAP_PX);
+      });
+    }
+    return widths;
+  }, [tableColumns, data, healKey, widthBumps]);
+
+  // Content widths first, then any leftover space is shared by the `grow` weights
+  // so the table still fills the card instead of leaving a gap on the right.
+  const sizedColumns = useMemo(() => {
+    const base = (tableColumns || []).map((column) => ({
+      column,
+      id: String(column.id ?? column.name ?? ''),
+      width: measuredWidths[String(column.id ?? column.name ?? '')] || FILTER_FLOOR_PX
+    }));
+
+    const contentTotal = base.reduce((sum, item) => sum + item.width, 0);
+    const target = Math.max(containerWidth, contentTotal, Number(minWidth) || 0);
+    const surplus = Math.max(0, target - contentTotal);
+    const weightTotal = base.reduce((sum, item) => sum + (item.column.grow ?? 1), 0) || 1;
+
+    const sized = base.map(({ column, width }) => ({
+      ...column,
+      width: `${width + Math.floor((surplus * (column.grow ?? 1)) / weightTotal)}px`,
+      minWidth: undefined,
+      maxWidth: undefined,
+      grow: 0
+    }));
+
+    return { sized, total: sized.reduce((sum, column) => sum + (parseFloat(column.width) || 0), 0) };
+  }, [tableColumns, measuredWidths, containerWidth, minWidth]);
+
+  const calculatedMinWidth = sizedColumns.total + 8;
+
+  // Measure real overflow once per data/columns change, then widen those columns.
+  useLayoutEffect(() => {
+    const el = tableWrapRef.current;
+    if (!el || healedForRef.current === healKey) return;
+    healedForRef.current = healKey;
+
+    const next = {};
+    el.querySelectorAll('.rdt_TableCell[data-column-id]').forEach((cell) => {
+      const needed = cell.scrollWidth - cell.clientWidth;
+      if (needed <= 1) return;
+      const id = cell.getAttribute('data-column-id');
+      next[id] = Math.max(next[id] || 0, needed);
+    });
+
+    if (Object.keys(next).length) {
+      setWidthBumps((previous) => ({ ...previous, ...next }));
+    }
+  }, [healKey, sizedColumns]);
 
   const tipItems = useMemo(() => {
     if (!rowTip) return [];
-    return columns
+    return tableColumns
       .filter((column) => !isActionColumn(column))
       .map((column) => {
         const label =
@@ -253,7 +458,7 @@ export default function AdminDataTable({
             : String(column.id ?? '');
         return { label, value: formatTipValue(getRowValue(column, rowTip.row)) };
       });
-  }, [rowTip, columns]);
+  }, [rowTip, tableColumns]);
 
   useLayoutEffect(() => {
     if (rowTip && tipRef.current) {
@@ -282,24 +487,33 @@ export default function AdminDataTable({
   }, [rowTip, tipItems, tipSize, positionTick]);
 
   const searchableColumns = useMemo(
-    () => (columns || []).map((column) => {
+    () => sizedColumns.sized.map((column) => {
       const columnId = String(column.id ?? column.name ?? '');
       const isActionCol =
         columnId.toLowerCase().includes('action') ||
         (typeof column.name === 'string' && column.name.toLowerCase().includes('action'));
+      const isSnoCol =
+        columnId.toLowerCase() === 'sno' ||
+        (typeof column.name === 'string' && column.name.toLowerCase().includes('s/no'));
       const canSearch =
-        column.searchable !== false && !column.omit && !isActionCol;
+        column.searchable !== false && !column.omit && !isActionCol && !isSnoCol;
 
       if (!canSearch) {
-        if (isActionCol) {
-          return {
-            ...column,
-            button: true,
-            allowOverflow: true,
-            searchable: false,
-          };
-        }
-        return column;
+        return {
+          ...column,
+          button: column.button ?? false,
+          allowOverflow: column.allowOverflow ?? false,
+          searchable: false,
+          name: (
+            <div
+              className="adm-col-head"
+              style={column.center ? { alignItems: 'center', textAlign: 'center' } : {}}
+            >
+              <span className="adm-col-head-label">{column.name}</span>
+              <div style={{ height: '30px', visibility: 'hidden' }} aria-hidden="true" />
+            </div>
+          )
+        };
       }
 
       const label =
@@ -353,7 +567,7 @@ export default function AdminDataTable({
         ),
       };
     }),
-    [columns, columnFilters, data, handleColumnFilter]
+    [sizedColumns, columnFilters, data, handleColumnFilter]
   );
 
   const noDataComponent = (
@@ -402,7 +616,10 @@ export default function AdminDataTable({
         }}
         paginationPage={currentPage}
         onChangePage={setCurrentPage}
-        onChangeRowsPerPage={() => setCurrentPage(1)}
+        onChangeRowsPerPage={(newPerPage, page) => {
+          setPerPage(newPerPage);
+          setCurrentPage(page || 1);
+        }}
         paginationPosition="bottom"
         fixedHeader={fixedHeader}
         fixedHeaderScrollHeight={scrollHeight}

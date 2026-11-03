@@ -4,6 +4,7 @@ import {
   CalendarDays, Clock3, Fingerprint, Layers, Lock, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 import { authApi } from '../../../services/authApi';
+import { describePermissions } from './PermissionsContext';
 import toast from 'react-hot-toast';
 import './AdminTools.css';
 
@@ -73,7 +74,6 @@ export default function ProfilePage({ adminName, adminEmail }) {
   const email = profile?.email || adminEmail || '';
   const role = capitalize(profile?.role);
   const accountStatus = profile?.accountStatus || 'active';
-  const permissions = Array.isArray(profile?.permissions) ? profile.permissions : [];
 
   const accountItems = [
     { label: 'Portal Access', value: PORTAL_NAME, icon: ShieldCheck },
@@ -91,7 +91,7 @@ export default function ProfilePage({ adminName, adminEmail }) {
     { label: 'Last Sign-In', value: formatDateTime(profile?.lastLoginAt), icon: Clock3 },
     {
       label: 'Granted Permissions',
-      value: permissions.length ? permissions.join(', ') : '—',
+      value: describePermissions(profile),
       icon: UserCog
     }
   ];

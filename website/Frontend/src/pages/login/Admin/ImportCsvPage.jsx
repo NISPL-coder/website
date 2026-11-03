@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { usePermissions } from './PermissionsContext';
 import './AdminTools.css';
 
 const EXPECTED_FIELDS = [
@@ -89,6 +90,8 @@ function buildTemplateCsv() {
 }
 
 export default function ImportCsvPage({ setCustomers }) {
+  const { can } = usePermissions();
+  const canImport = can('customer', 'create');
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState('');
@@ -332,20 +335,27 @@ export default function ImportCsvPage({ setCustomers }) {
           </div>
 
           {/* Import action */}
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={handleImport}
-            disabled={isImporting || missingRequired.length > 0 || records.length === 0}
-            style={{ marginTop: '16px', width: '100%', height: '44px' }}
-          >
-            <FileUp size={16} />
-            <span>
-              {isImporting
-                ? `Importing ${progress.done}/${progress.total}...`
-                : `Import ${records.length} Customer Record(s)`}
-            </span>
-          </button>
+          {canImport ? (
+            <button
+              type="button"
+              className="adm-btn-primary"
+              onClick={handleImport}
+              disabled={isImporting || missingRequired.length > 0 || records.length === 0}
+              style={{ marginTop: '16px', width: '100%', height: '44px' }}
+            >
+              <FileUp size={16} />
+              <span>
+                {isImporting
+                  ? `Importing ${progress.done}/${progress.total}...`
+                  : `Import ${records.length} Customer Record(s)`}
+              </span>
+            </button>
+          ) : (
+            <p className="adm-section-sub" style={{ marginTop: '16px' }}>
+              Your account can read customer records but cannot import them. Ask an administrator for
+              Add access on the Customer module.
+            </p>
+          )}
 
           {isImporting && (
             <div className="adm-import-progress-bar">

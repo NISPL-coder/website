@@ -28,6 +28,7 @@ import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { usePermissions } from './PermissionsContext';
 
 export default function CustomerSection({
   customers,
@@ -36,6 +37,7 @@ export default function CustomerSection({
   setCustomerStats
 }) {
   const navigate = useNavigate();
+  const { can } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
   const [dateFrom, setDateFrom] = useState('');
@@ -133,6 +135,11 @@ export default function CustomerSection({
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.registered || 0).getTime();
+      const dateB = new Date(b.createdAt || b.registered || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [customers, searchQuery, statusFilter, dateFrom, dateTo]);
 
@@ -427,7 +434,7 @@ export default function CustomerSection({
               </span>
             )}
 
-            {(crmStatus === 'failed' || crmStatus === 'pending') && (
+            {(crmStatus === 'failed' || crmStatus === 'pending') && can('customer', 'edit') && (
               <button
                 type="button"
                 className="adm-action-pill"
@@ -461,6 +468,7 @@ export default function CustomerSection({
       ignoreRowClick: true,
       cell: (cust) => (
         <RowActionMenu
+          module="customer"
           onView={() => setSelectedCustomer(cust)}
           onEdit={() => setEditingCustomer(cust)}
           onPrint={() => {
@@ -493,14 +501,16 @@ export default function CustomerSection({
             fileName="NISPL_Customers"
             itemLabel="customers"
           />
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={() => navigate('/admin/customer/create')}
-          >
-            <Plus size={16} />
-            <span>Create Customer</span>
-          </button>
+          {can('customer', 'create') && (
+            <button
+              type="button"
+              className="adm-btn-primary"
+              onClick={() => navigate('/admin/customer/create')}
+            >
+              <Plus size={16} />
+              <span>Create Customer</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -638,13 +648,14 @@ export default function CustomerSection({
         columns={columns}
         data={filteredCustomers}
         keyField="id"
-        defaultSortFieldId="id"
-        defaultSortAsc
+        defaultSortFieldId="registered"
+        defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
         minWidth={1750}
         noDataMessage="No customer records found"
         noDataHint="Try a different search term or account status."
         ariaLabel="Customer accounts"
+        scrollHeight="600px"
       />
 
       {/* View Customer Modal (React Portal) */}

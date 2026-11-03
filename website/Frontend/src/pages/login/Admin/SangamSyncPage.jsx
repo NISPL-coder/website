@@ -5,6 +5,7 @@ import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { customerApi } from '../../../services/customerApi';
 import AdminDataTable from './AdminDataTable';
 import { compareText, compareDate } from './adminTableUtils';
+import { usePermissions } from './PermissionsContext';
 import './AdminTools.css';
 
 function getCrmStatus(customer) {
@@ -37,6 +38,8 @@ function SyncStatusPill({ status, syncError }) {
 }
 
 export default function SangamSyncPage({ customers, setCustomers }) {
+  const { can } = usePermissions();
+  const canSync = can('customer', 'edit');
   const [syncingIds, setSyncingIds] = useState({});
   const [isSyncAllRunning, setIsSyncAllRunning] = useState(false);
 
@@ -55,6 +58,14 @@ export default function SangamSyncPage({ customers, setCustomers }) {
     () => customers.filter((c) => getCrmStatus(c) !== 'synced'),
     [customers]
   );
+
+  const sortedCustomers = useMemo(() => {
+    return [...customers].sort(
+      (a, b) =>
+        new Date(b.createdAt || b.registered || b.sangamCrm?.lastSyncedAt || 0) -
+        new Date(a.createdAt || a.registered || a.sangamCrm?.lastSyncedAt || 0)
+    );
+  }, [customers]);
 
   const applySyncResult = (customerId, sangamCrm) => {
     setCustomers((prev) =>
@@ -222,6 +233,13 @@ export default function SangamSyncPage({ customers, setCustomers }) {
       cell: (cust) => {
         const custId = cust.id || cust.customerId;
         const isSyncing = !!syncingIds[custId];
+        if (!canSync) {
+          return (
+            <span style={{ color: '#94a3b8', fontSize: '0.74rem', whiteSpace: 'nowrap' }}>
+              Read-only
+            </span>
+          );
+        }
         return (
           <button
             type="button"
@@ -252,22 +270,24 @@ export default function SangamSyncPage({ customers, setCustomers }) {
           </p>
         </div>
         <div className="adm-card-header-action">
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={handleSyncAll}
-            disabled={!outOfSync.length || isSyncAllRunning}
-            style={{ opacity: outOfSync.length ? 1 : 0.6 }}
-          >
-            <RefreshCw size={16} className={isSyncAllRunning ? 'animate-spin' : ''} />
-            <span>
-              {isSyncAllRunning
-                ? 'Syncing...'
-                : outOfSync.length
-                ? `Sync ${outOfSync.length} Pending Record(s)`
-                : 'All Records Synced'}
-            </span>
-          </button>
+          {canSync && (
+            <button
+              type="button"
+              className="adm-btn-primary"
+              onClick={handleSyncAll}
+              disabled={!outOfSync.length || isSyncAllRunning}
+              style={{ opacity: outOfSync.length ? 1 : 0.6 }}
+            >
+              <RefreshCw size={16} className={isSyncAllRunning ? 'animate-spin' : ''} />
+              <span>
+                {isSyncAllRunning
+                  ? 'Syncing...'
+                  : outOfSync.length
+                  ? `Sync ${outOfSync.length} Pending Record(s)`
+                  : 'All Records Synced'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -320,13 +340,15 @@ export default function SangamSyncPage({ customers, setCustomers }) {
 
       <AdminDataTable
         columns={columns}
-        data={customers}
+        data={sortedCustomers}
         keyField="id"
-        defaultSortFieldId="syncStatus"
+        defaultSortFieldId="lastSyncedAt"
+        defaultSortAsc={false}
         minWidth={1100}
         noDataMessage="No customer records found"
         noDataHint="Import or create customers to monitor Sangam CRM sync."
         ariaLabel="Sangam CRM synchronization status"
+        scrollHeight="600px"
       />
     </div>
   );

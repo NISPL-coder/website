@@ -4,6 +4,9 @@
  * and Sangam CRM synchronization endpoints.
  */
 
+import { authApi } from './authApi';
+import { withAuth, readApiError } from './apiAuth';
+
 const isLocalhost = Boolean(
   typeof window !== "undefined" && (
     window.location.hostname === "localhost" || 
@@ -24,12 +27,11 @@ export const customerApi = {
     try {
       const res = await fetch(API_BASE_URL, {
         method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: withAuth({ Accept: 'application/json' })
       });
+      authApi._handleRefreshedToken(res);
       if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+        throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
       const data = await res.json();
       const list = data.customers || [];
@@ -50,12 +52,11 @@ export const customerApi = {
     try {
       const res = await fetch(API_BASE_URL, {
         method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: withAuth({ Accept: 'application/json' })
       });
+      authApi._handleRefreshedToken(res);
       if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+        throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
       const data = await res.json();
       return {
@@ -65,7 +66,7 @@ export const customerApi = {
       };
     } catch (err) {
       console.warn('[customerApi] Could not fetch customer listing:', err.message);
-      return { customers: [], stats: null, count: 0 };
+      return { customers: [], stats: null, count: 0, error: err.message };
     }
   },
 
@@ -76,15 +77,19 @@ export const customerApi = {
   async createCustomer(customerData) {
     const res = await fetch(API_BASE_URL, {
       method: 'POST',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      },
+      }),
       body: JSON.stringify(customerData)
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to create customer record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to create customer record.');
     }
 
@@ -103,15 +108,19 @@ export const customerApi = {
   async updateCustomer(customerId, customerData) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(customerId)}`, {
       method: 'PUT',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      },
+      }),
       body: JSON.stringify(customerData)
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to update customer record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to update customer record.');
     }
 
@@ -125,13 +134,15 @@ export const customerApi = {
   async deleteCustomer(customerId) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(customerId)}`, {
       method: 'DELETE',
-      headers: {
-        Accept: 'application/json'
-      }
+      headers: withAuth({ Accept: 'application/json' })
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to delete customer record.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || 'Failed to delete customer record.');
     }
 
@@ -141,14 +152,18 @@ export const customerApi = {
   async retrySangamSync(customerId) {
     const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(customerId)}/sync`, {
       method: 'POST',
-      headers: {
+      headers: withAuth({
         'Content-Type': 'application/json',
         Accept: 'application/json'
-      }
+      })
     });
+    authApi._handleRefreshedToken(res);
 
+    if (!res.ok) {
+      throw await readApiError(res, 'Sangam CRM synchronization retry failed.');
+    }
     const data = await res.json();
-    if (!res.ok || !data.success) {
+    if (!data.success) {
       throw new Error(data.error || data.message || 'Sangam CRM synchronization retry failed.');
     }
 

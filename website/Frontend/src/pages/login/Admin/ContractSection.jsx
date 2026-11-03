@@ -25,11 +25,13 @@ import { generateContractPdf } from './utils/generateContractPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { usePermissions } from './PermissionsContext';
 
 const getContractId = (row) => row.id || row.contractId;
 
 export default function ContractSection({ contracts, setContracts }) {
   const navigate = useNavigate();
+  const { can } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -141,6 +143,11 @@ export default function ContractSection({ contracts, setContracts }) {
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.startDate || a.createdAt || 0).getTime();
+      const dateB = new Date(b.startDate || b.createdAt || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [contracts, searchQuery, statusFilter, dateFrom, dateTo]);
 
@@ -350,7 +357,7 @@ export default function ContractSection({ contracts, setContracts }) {
               </span>
             )}
 
-            {(crmStatus === 'failed' || crmStatus === 'pending') && (
+            {(crmStatus === 'failed' || crmStatus === 'pending') && can('contract', 'edit') && (
               <button
                 type="button"
                 className="adm-action-pill"
@@ -385,6 +392,7 @@ export default function ContractSection({ contracts, setContracts }) {
       ignoreRowClick: true,
       cell: (c) => (
         <RowActionMenu
+          module="contract"
           onView={() => setViewingContract(c)}
           onEdit={() => setEditingContract(c)}
           onPrint={() => {
@@ -415,14 +423,16 @@ export default function ContractSection({ contracts, setContracts }) {
             fileName="NISPL_Contracts"
             itemLabel="contracts"
           />
-          <button
-            type="button"
-            className="adm-btn-primary"
-            onClick={() => navigate('/admin/customer/contract/create')}
-          >
-            <Plus size={16} />
-            <span>Create Contract</span>
-          </button>
+          {can('contract', 'create') && (
+            <button
+              type="button"
+              className="adm-btn-primary"
+              onClick={() => navigate('/admin/customer/contract/create')}
+            >
+              <Plus size={16} />
+              <span>Create Contract</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -492,13 +502,14 @@ export default function ContractSection({ contracts, setContracts }) {
         columns={columns}
         data={filteredContracts}
         keyField="id"
-        defaultSortFieldId="id"
+        defaultSortFieldId="startDate"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
         minWidth={1680}
         noDataMessage="No contract agreements found"
         noDataHint="Try a different search term or status filter."
         ariaLabel="Customer contracts"
+        scrollHeight="600px"
       />
 
       {/* View Modal */}

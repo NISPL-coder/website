@@ -56,6 +56,11 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       );
 
       return matchesSearch && matchesStatus && matchesDateRange;
+    }).sort((a, b) => {
+      const dateA = new Date(a.invoiceDate || a.date || a.createdAt || 0).getTime();
+      const dateB = new Date(b.invoiceDate || b.date || b.createdAt || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b.id || '').localeCompare(String(a.id || ''));
     });
   }, [payments, searchQuery, statusFilter, dateFrom, dateTo]);
 
@@ -321,6 +326,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         noDataMessage="No payment records found"
         noDataHint="Try a different search term or settlement filter."
         ariaLabel="Customer payments"
+        scrollHeight="600px"
       />
     </div>
   );
