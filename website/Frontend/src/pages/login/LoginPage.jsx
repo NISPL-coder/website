@@ -169,17 +169,17 @@ export default function LoginPage({ lockedPortal }) {
 
       const userRole = response?.user?.role || response?.role;
 
-      if (userRole === 'customer' || activePortal === 'customer') {
+      if (userRole === 'customer') {
         navigate('/customer/overview');
         return;
       }
 
-      if (['admin', 'manager', 'support'].includes(userRole) || activePortal === 'admin') {
+      if (['admin', 'manager', 'support'].includes(userRole)) {
         navigate('/admin/overview');
         return;
       }
 
-      if (userRole === 'partner' || activePortal === 'partner') {
+      if (userRole === 'partner') {
         navigate('/partner-dashboard');
         return;
       }
@@ -291,9 +291,59 @@ export default function LoginPage({ lockedPortal }) {
 
           {/* Error Notice */}
           {errorMessage && (
-            <div className="ebolt-alert-error" role="alert">
-              <AlertCircle size={15} />
-              <span>{errorMessage}</span>
+            <div className="ebolt-alert-error" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{errorMessage}</span>
+              </div>
+              {errorMessage.includes('Customer Portal') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage('');
+                    handleSelectPortal('customer');
+                    navigate('/customer-login');
+                  }}
+                  style={{
+                    alignSelf: 'flex-start',
+                    marginTop: '4px',
+                    padding: '5px 12px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Go to Customer Portal &rarr;
+                </button>
+              )}
+              {errorMessage.includes('Admin Portal') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMessage('');
+                    handleSelectPortal('admin');
+                    navigate('/login?portal=admin');
+                  }}
+                  style={{
+                    alignSelf: 'flex-start',
+                    marginTop: '4px',
+                    padding: '5px 12px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Go to Admin Portal &rarr;
+                </button>
+              )}
             </div>
           )}
 

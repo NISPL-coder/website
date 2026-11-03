@@ -34,9 +34,11 @@ import {
   getOverviewFilteredData
 } from './overviewFilterData';
 import { compactSelectStyles } from './reactSelectStyles';
+import { dashboardApi } from '../../../services/dashboardApi';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import RowActionMenu from './RowActionMenu';
+import { usePermissions } from './PermissionsContext';
 import ViewCustomerModal from './ViewCustomerModal';
 import EditCustomerModal from './EditCustomerModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
@@ -84,15 +86,35 @@ export default function OverviewSection({
   setIsAddContractModalOpen
 }) {
   const navigate = useNavigate();
+  const { visibleColumns } = usePermissions();
 
   // Overview Filters: Period (Monthly, Quarterly, Yearly) & Financial Year
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [selectedFY, setSelectedFY] = useState('2026-2027');
+  const [apiOverview, setApiOverview] = useState(null);
 
-  // Consolidated Telemetry Filter Engine
+  // Fetch dynamic overview metrics directly from backend API
+  useEffect(() => {
+    let isMounted = true;
+    dashboardApi
+      .getOverview({ period: selectedPeriod, fy: selectedFY })
+      .then((data) => {
+        if (isMounted && data) {
+          setApiOverview(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Dashboard overview API note:', err.message);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedPeriod, selectedFY, customers.length, contracts.length, payments.length]);
+
+  // Consolidated Telemetry Filter Engine (100% Dynamic from Live API)
   const activeOverviewData = useMemo(() => {
-    return getOverviewFilteredData(selectedPeriod, selectedFY, customers, contracts);
-  }, [selectedPeriod, selectedFY, customers, contracts]);
+    return getOverviewFilteredData(selectedPeriod, selectedFY, customers, contracts, payments, apiOverview);
+  }, [selectedPeriod, selectedFY, customers, contracts, payments, apiOverview]);
 
   // Overview Customer List Filter and Search
   const [custSearch, setCustSearch] = useState('');
@@ -749,7 +771,7 @@ export default function OverviewSection({
         </div>
 
         <AdminDataTable
-          columns={overviewCustomerColumns}
+          columns={visibleColumns('overview', overviewCustomerColumns)}
           data={filteredOverviewCustomers}
           keyField="id"
           defaultSortFieldId="registered"
@@ -848,7 +870,7 @@ export default function OverviewSection({
         </div>
 
         <AdminDataTable
-          columns={recentContractColumns}
+          columns={visibleColumns('overview', recentContractColumns)}
           data={filteredOverviewContracts.slice(0, 5)}
           keyField="id"
           defaultSortFieldId="startDate"
@@ -1243,7 +1265,7 @@ export default function OverviewSection({
                 <h2 className="adm-chart-title">Revenue Share by Solution</h2>
                 <span className="adm-status-pill info" style={{ fontSize: '0.7rem' }}>
                   <Layers size={11} />
-                  <span>4 Categories</span>
+                  <span>{activeOverviewData.pieChart?.categories?.length || 4} Categories</span>
                 </span>
               </div>
               <p className="adm-chart-sub">

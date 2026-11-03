@@ -1,0 +1,908 @@
+[
+  {
+    "_id": "6ae9d3449f518423a266085b",
+    "productId": "ctrls-1-user",
+    "id": "ctrls-1-user",
+    "name": "CtrlS Cloud Server — 1 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.41",
+    "sku": "NIS-CTRLS-1U",
+    "price": "₹500",
+    "monthlyPrice": 500,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy.",
+    "userBadge": "2 core/3 GB/50 GB",
+    "users": 1,
+    "tier": "1 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "2 core/3 GB/50 GB"
+      },
+      {
+        "label": "CPU",
+        "value": "2 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "3 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "50 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.41"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.41",
+      "Server Configuration: 2 core/3 GB/50 GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.433Z",
+    "updatedAt": "2026-11-03T12:51:51.507Z",
+    "__v": 0,
+    "cores": "2 Core",
+    "ram": "3 GB",
+    "serverConfiguration": "2 core/3 GB/50 GB",
+    "storage": "50 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a266085e",
+    "productId": "ctrls-2-user",
+    "id": "ctrls-2-user",
+    "name": "CtrlS Cloud Server — 2 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.42",
+    "sku": "NIS-CTRLS-2U",
+    "price": "₹1,000",
+    "monthlyPrice": 1000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (3 core/3 GB/50 GB) with N+N dual power feed redundancy.",
+    "userBadge": "3 core/3 GB/50 GB",
+    "users": 2,
+    "tier": "2 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "3 core/3 GB/50 GB"
+      },
+      {
+        "label": "CPU",
+        "value": "3 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "3 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "50 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.42"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.42",
+      "Server Configuration: 3 core/3 GB/50 GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.487Z",
+    "updatedAt": "2026-11-03T12:51:51.556Z",
+    "__v": 0,
+    "cores": "3 Core",
+    "ram": "3 GB",
+    "serverConfiguration": "3 core/3 GB/50 GB",
+    "storage": "50 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660860",
+    "productId": "ctrls-3-user",
+    "id": "ctrls-3-user",
+    "name": "CtrlS Cloud Server — 3 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.43",
+    "sku": "NIS-CTRLS-3U",
+    "price": "₹1,500",
+    "monthlyPrice": 1500,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/4GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/4GB/100GB",
+    "users": 3,
+    "tier": "3 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/4GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "4 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.43"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.43",
+      "Server Configuration: 4core/4GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.541Z",
+    "updatedAt": "2026-11-03T12:51:51.595Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "4 GB",
+    "serverConfiguration": "4core/4GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660863",
+    "productId": "ctrls-4-user",
+    "id": "ctrls-4-user",
+    "name": "CtrlS Cloud Server — 4 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.44",
+    "sku": "NIS-CTRLS-4U",
+    "price": "₹2,000",
+    "monthlyPrice": 2000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/6GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/6GB/100GB",
+    "users": 4,
+    "tier": "4 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/6GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "6 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.44"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.44",
+      "Server Configuration: 4core/6GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.616Z",
+    "updatedAt": "2026-11-03T12:51:51.634Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "6 GB",
+    "serverConfiguration": "4core/6GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660865",
+    "productId": "ctrls-5-user",
+    "id": "ctrls-5-user",
+    "name": "CtrlS Cloud Server — 5 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.45",
+    "sku": "NIS-CTRLS-5U",
+    "price": "₹2,500",
+    "monthlyPrice": 2500,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/8GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/8GB/100GB",
+    "users": 5,
+    "tier": "5 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/8GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "8 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.45"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.45",
+      "Server Configuration: 4core/8GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.663Z",
+    "updatedAt": "2026-11-03T12:51:51.677Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "8 GB",
+    "serverConfiguration": "4core/8GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660867",
+    "productId": "ctrls-6-user",
+    "id": "ctrls-6-user",
+    "name": "CtrlS Cloud Server — 6 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.46",
+    "sku": "NIS-CTRLS-6U",
+    "price": "₹3,000",
+    "monthlyPrice": 3000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/9GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/9GB/100GB",
+    "users": 6,
+    "tier": "6 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/9GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "9 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.46"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.46",
+      "Server Configuration: 4core/9GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.711Z",
+    "updatedAt": "2026-11-03T12:51:51.716Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "9 GB",
+    "serverConfiguration": "4core/9GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660869",
+    "productId": "ctrls-7-user",
+    "id": "ctrls-7-user",
+    "name": "CtrlS Cloud Server — 7 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.47",
+    "sku": "NIS-CTRLS-7U",
+    "price": "₹3,500",
+    "monthlyPrice": 3500,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/10GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/10GB/100GB",
+    "users": 7,
+    "tier": "7 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/10GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "10 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.47"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.47",
+      "Server Configuration: 4core/10GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.757Z",
+    "updatedAt": "2026-11-03T12:51:51.756Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "10 GB",
+    "serverConfiguration": "4core/10GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a266086b",
+    "productId": "ctrls-8-user",
+    "id": "ctrls-8-user",
+    "name": "CtrlS Cloud Server — 8 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.48",
+    "sku": "NIS-CTRLS-8U",
+    "price": "₹4,000",
+    "monthlyPrice": 4000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/12GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "4core/12GB/100GB",
+    "users": 8,
+    "tier": "8 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/12GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "12 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.48"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.48",
+      "Server Configuration: 4core/12GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.805Z",
+    "updatedAt": "2026-11-03T12:51:51.795Z",
+    "__v": 0,
+    "cores": "4 Core",
+    "ram": "12 GB",
+    "serverConfiguration": "4core/12GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a266086d",
+    "productId": "ctrls-10-user",
+    "id": "ctrls-10-user",
+    "name": "CtrlS Cloud Server — 10 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.50",
+    "sku": "NIS-CTRLS-10U",
+    "price": "₹5,000",
+    "monthlyPrice": 5000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (6 core/12 GB/100GB) with N+N dual power feed redundancy.",
+    "userBadge": "6 core/12 GB/100GB",
+    "users": 10,
+    "tier": "10 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "6 core/12 GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "6 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "12 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.50"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.50",
+      "Server Configuration: 6 core/12 GB/100GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.873Z",
+    "updatedAt": "2026-11-03T12:51:51.882Z",
+    "__v": 0,
+    "cores": "6 Core",
+    "ram": "12 GB",
+    "serverConfiguration": "6 core/12 GB/100GB",
+    "storage": "100 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a266086f",
+    "productId": "ctrls-12-user",
+    "id": "ctrls-12-user",
+    "name": "CtrlS Cloud Server — 12 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.52",
+    "sku": "NIS-CTRLS-12U",
+    "price": "₹6,000",
+    "monthlyPrice": 6000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (8 core/16 GB/150GB) with N+N dual power feed redundancy.",
+    "userBadge": "8 core/16 GB/150GB",
+    "users": 12,
+    "tier": "12 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "8 core/16 GB/150GB"
+      },
+      {
+        "label": "CPU",
+        "value": "8 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "16 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "150 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.52"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.52",
+      "Server Configuration: 8 core/16 GB/150GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.927Z",
+    "updatedAt": "2026-11-03T12:51:51.921Z",
+    "__v": 0,
+    "cores": "8 Core",
+    "ram": "16 GB",
+    "serverConfiguration": "8 core/16 GB/150GB",
+    "storage": "150 GB SSD"
+  },
+  {
+    "_id": "6ae9d3449f518423a2660871",
+    "productId": "ctrls-15-user",
+    "id": "ctrls-15-user",
+    "name": "CtrlS Cloud Server — 15 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.55",
+    "sku": "NIS-CTRLS-15U",
+    "price": "₹7,500",
+    "monthlyPrice": 7500,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (8core/20GB/150GB) with N+N dual power feed redundancy.",
+    "userBadge": "8core/20GB/150GB",
+    "users": 15,
+    "tier": "15 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "8core/20GB/150GB"
+      },
+      {
+        "label": "CPU",
+        "value": "8 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "20 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "150 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.55"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.55",
+      "Server Configuration: 8core/20GB/150GB"
+    ],
+    "createdAt": "2026-11-03T12:27:48.976Z",
+    "updatedAt": "2026-11-03T12:51:51.965Z",
+    "__v": 0,
+    "cores": "8 Core",
+    "ram": "20 GB",
+    "serverConfiguration": "8core/20GB/150GB",
+    "storage": "150 GB SSD"
+  },
+  {
+    "_id": "6ae9d3459f518423a2660873",
+    "productId": "ctrls-20-user",
+    "id": "ctrls-20-user",
+    "name": "CtrlS Cloud Server — 20 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.60",
+    "sku": "NIS-CTRLS-20U",
+    "price": "₹10,000",
+    "monthlyPrice": 10000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (8core/24GB/200GB) with N+N dual power feed redundancy.",
+    "userBadge": "8core/24GB/200GB",
+    "users": 20,
+    "tier": "20 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "8core/24GB/200GB"
+      },
+      {
+        "label": "CPU",
+        "value": "8 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "24 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "200 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.60"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.60",
+      "Server Configuration: 8core/24GB/200GB"
+    ],
+    "createdAt": "2026-11-03T12:27:49.028Z",
+    "updatedAt": "2026-11-03T12:51:52.003Z",
+    "__v": 0,
+    "cores": "8 Core",
+    "ram": "24 GB",
+    "serverConfiguration": "8core/24GB/200GB",
+    "storage": "200 GB SSD"
+  },
+  {
+    "_id": "6ae9d3459f518423a2660875",
+    "productId": "ctrls-30-user",
+    "id": "ctrls-30-user",
+    "name": "CtrlS Cloud Server — 30 User",
+    "category": "Infrastructure",
+    "provider": "ctrls-cloud",
+    "ipAddress": "103.115.220.70",
+    "sku": "NIS-CTRLS-30U",
+    "price": "₹15,000",
+    "monthlyPrice": 15000,
+    "frequency": "/ month",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (8core/32GB/300GB) with N+N dual power feed redundancy.",
+    "userBadge": "8core/32GB/300GB",
+    "users": 30,
+    "tier": "30 User",
+    "available": true,
+    "status": "active",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "8core/32GB/300GB"
+      },
+      {
+        "label": "CPU",
+        "value": "8 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "32 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "300 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.70"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.70",
+      "Server Configuration: 8core/32GB/300GB"
+    ],
+    "createdAt": "2026-11-03T12:27:49.075Z",
+    "updatedAt": "2026-11-03T12:51:52.043Z",
+    "__v": 0,
+    "cores": "8 Core",
+    "ram": "32 GB",
+    "serverConfiguration": "8core/32GB/300GB",
+    "storage": "300 GB SSD"
+  },
+  {
+    "_id": "6ae9d3459f518423a2660877",
+    "productId": "aws-starter",
+    "id": "aws-starter",
+    "name": "AWS Cloud EC2 — Starter Pack",
+    "category": "Cloud Hosting",
+    "provider": "aws-cloud",
+    "ipAddress": "13.235.110.24",
+    "sku": "NIS-AWS-EC2-S1",
+    "price": "₹3,999",
+    "monthlyPrice": 3999,
+    "frequency": "/ month",
+    "description": "Amazon Web Services Dedicated EC2 Compute with SSD and 99.99% SLA.",
+    "userBadge": "",
+    "users": 1,
+    "tier": "",
+    "available": true,
+    "status": "active",
+    "specs": [],
+    "features": [],
+    "createdAt": "2026-11-03T12:27:49.125Z",
+    "updatedAt": "2026-11-03T12:27:49.125Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ae9d3459f518423a2660879",
+    "productId": "azure-starter",
+    "id": "azure-starter",
+    "name": "Microsoft Azure — 4 GB RAM Plan",
+    "category": "Cloud Hosting",
+    "provider": "azure-cloud",
+    "ipAddress": "20.198.88.15",
+    "sku": "NIS-AZURE-VM-S1",
+    "price": "₹4,499",
+    "monthlyPrice": 4499,
+    "frequency": "/ month",
+    "description": "Scalable Microsoft Azure enterprise cloud VM with automated backup.",
+    "userBadge": "",
+    "users": 1,
+    "tier": "",
+    "available": true,
+    "status": "active",
+    "specs": [],
+    "features": [],
+    "createdAt": "2026-11-03T12:27:49.174Z",
+    "updatedAt": "2026-11-03T12:27:49.174Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ae9d3459f518423a266087b",
+    "productId": "tally-silver",
+    "id": "tally-silver",
+    "name": "Tally Prime Single User Silver",
+    "category": "ERP Solutions",
+    "provider": "tally",
+    "ipAddress": "103.115.220.10",
+    "sku": "NIS-TP-SILVER-2026",
+    "price": "₹18,000",
+    "monthlyPrice": 18000,
+    "frequency": "/ year",
+    "description": "Dedicated single PC business edition for MSMEs with e-invoicing.",
+    "userBadge": "",
+    "users": 1,
+    "tier": "",
+    "available": true,
+    "status": "active",
+    "specs": [],
+    "features": [],
+    "createdAt": "2026-11-03T12:27:49.235Z",
+    "updatedAt": "2026-11-03T12:27:49.235Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ae9d3459f518423a266087d",
+    "productId": "tally-gold",
+    "id": "tally-gold",
+    "name": "Tally Prime Multi-User Gold",
+    "category": "ERP Solutions",
+    "provider": "tally",
+    "ipAddress": "103.115.220.12",
+    "sku": "NIS-TP-GOLD-2026",
+    "price": "₹54,000",
+    "monthlyPrice": 54000,
+    "frequency": "/ year",
+    "description": "Unlimited concurrent accounting nodes across network with audit trail.",
+    "userBadge": "",
+    "users": 1,
+    "tier": "",
+    "available": true,
+    "status": "active",
+    "specs": [],
+    "features": [],
+    "createdAt": "2026-11-03T12:27:49.280Z",
+    "updatedAt": "2026-11-03T12:27:49.280Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ae9d8e88f223813189d3c97",
+    "productId": "ctrls-9-user",
+    "available": true,
+    "category": "Infrastructure",
+    "cores": "4 Core",
+    "description": "CtrlS Kolkata Tier-4 Datacenter Cloud Server (4core/13GB/100GB) with N+N dual power feed redundancy.",
+    "features": [
+      "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy",
+      "Windows Server licence, enterprise SSD array & daily snapshot image",
+      "Static Dedicated Public IP Address: 103.115.220.49",
+      "Server Configuration: 4core/13GB/100GB"
+    ],
+    "frequency": "/ month",
+    "id": "ctrls-9-user",
+    "ipAddress": "103.115.220.49",
+    "monthlyPrice": 4500,
+    "name": "CtrlS Cloud Server — 9 User",
+    "price": "₹4,500",
+    "provider": "ctrls-cloud",
+    "ram": "13 GB",
+    "serverConfiguration": "4core/13GB/100GB",
+    "sku": "NIS-CTRLS-9U",
+    "specs": [
+      {
+        "label": "Server Configuration",
+        "value": "4core/13GB/100GB"
+      },
+      {
+        "label": "CPU",
+        "value": "4 Core"
+      },
+      {
+        "label": "RAM",
+        "value": "13 GB"
+      },
+      {
+        "label": "Storage",
+        "value": "100 GB SSD"
+      },
+      {
+        "label": "Static IP",
+        "value": "103.115.220.49"
+      },
+      {
+        "label": "Datacenter",
+        "value": "CtrlS Kolkata Tier-4"
+      }
+    ],
+    "status": "active",
+    "storage": "100 GB SSD",
+    "tier": "9 User",
+    "updatedAt": "2026-11-03T12:51:51.840Z",
+    "userBadge": "4core/13GB/100GB",
+    "users": 9
+  }
+]

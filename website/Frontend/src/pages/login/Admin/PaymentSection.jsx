@@ -8,6 +8,7 @@ import ExportDropdown from './ExportDropdown';
 import { formatPaymentsForExport } from './exportUtils';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
+import { usePermissions } from './PermissionsContext';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 const getName = (row) => row.name || row.customer || '—';
@@ -24,6 +25,7 @@ const getFilterDate = (row) =>
 
 export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
   const navigate = useNavigate();
+  const { visibleColumns } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -316,7 +318,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
 
       {/* 3. React DataTable */}
       <AdminDataTable
-        columns={columns}
+        columns={visibleColumns('payment', columns)}
         data={filteredPayments}
         keyField="id"
         defaultSortFieldId="invoiceDate"

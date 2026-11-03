@@ -12413,3 +12413,29 @@
 }
 
 
+
+/* ==========================================================================
+   CONSOLE SHELL PARITY
+   The customer portal renders inside the shared console chrome, which already
+   pads the content column, so the page containers drop their own gutters.
+   ========================================================================== */
+.adm-main-content .flowmail-overview-container {
+  padding: 0;
+  width: 100%;
+}
+
+/* ==========================================================================
+   CLOUD PLAN CARD HOVER
+   Inline styles set the resting border and shadow, so the hover state wins
+   with !important instead of duplicating those styles per card.
+   ========================================================================== */
+.cloud-plan-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.cloud-plan-card:hover {
+  transform: translateY(-6px);
+  border-color: #6366f1 !important;
+  box-shadow: 0 18px 38px -12px rgba(99, 102, 241, 0.28),
+    0 6px 14px -6px rgba(15, 23, 42, 0.12) !important;
+}

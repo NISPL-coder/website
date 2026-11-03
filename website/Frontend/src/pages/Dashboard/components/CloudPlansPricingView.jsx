@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -10,13 +10,15 @@ import {
   Zap,
   Info,
   PhoneCall,
-  MessageSquare
+  MessageSquare,
+  Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CLOUD_PROVIDERS } from '../data/productsData';
 import { formatINR } from '../utils/pricingUtils';
 import tallyLogo from '../../../assets/partners/tally.png';
 import ctrlsLogo from '../../../assets/partners/ctrls.png';
+import { productApi } from '../../../services/productApi';
 
 export default function CloudPlansPricingView({
   providerId,
@@ -26,16 +28,116 @@ export default function CloudPlansPricingView({
 }) {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annually'
   const [justAddedId, setJustAddedId] = useState(null);
+  const [liveProducts, setLiveProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const provider = CLOUD_PROVIDERS.find((p) => p.id === providerId || (providerId === 'tally-on-cloud' && p.id === 'aws-cloud')) || CLOUD_PROVIDERS[0];
-  const plans = provider.plans || [];
+  // Fetch live products from database
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      setIsLoading(true);
+      try {
+        const data = await productApi.getProducts();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setLiveProducts(data);
+        }
+      } catch (err) {
+        console.warn('[CloudPlansPricingView] Could not load live products:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [providerId]);
+
+  const provider =
+    CLOUD_PROVIDERS.find(
+      (p) =>
+        p.id === providerId ||
+        (providerId === 'tally-on-cloud' && p.id === 'aws-cloud')
+    ) || CLOUD_PROVIDERS[0];
+
+  // CtrlS is sold per concurrent user, so a year is 12 months at list rate
+  const isPerUser = provider.billingModel === 'per_user' || providerId === 'ctrls-cloud';
+  const ratePerUser = provider.ratePerUserPerMonth || 500;
+
+  // Active plans derived dynamically from backend, strictly filtering out inactive products
+  const activePlans = useMemo(() => {
+    const providerKey = providerId === 'tally-on-cloud' ? 'aws-cloud' : providerId;
+
+    if (liveProducts.length > 0) {
+      const dbMatches = liveProducts.filter((p) => {
+        const matchesProv =
+          p.provider === providerKey ||
+          (providerKey === 'ctrls-cloud' && (p.provider === 'ctrls-cloud' || p.id?.startsWith('ctrls-')));
+
+        // Strict Active / Inactive check
+        const isLive = p.available !== false && p.status !== 'inactive';
+        return matchesProv && isLive;
+      });
+
+      if (dbMatches.length > 0) {
+        return dbMatches
+          .map((p) => {
+            const mPrice =
+              typeof p.monthlyPrice === 'number'
+                ? p.monthlyPrice
+                : typeof p.price === 'number'
+                ? p.price
+                : parseInt(String(p.price).replace(/[^0-9]/g, ''), 10) || 500;
+
+            const uCount = p.users || (p.tier ? parseInt(p.tier.replace(/[^0-9]/g, ''), 10) : 1) || 1;
+
+            const serverConfig = p.serverConfiguration || p.userBadge || `${uCount} User`;
+            return {
+              id: p.id || p.productId,
+              name: p.name,
+              tier: p.tier || `${uCount} User`,
+              tierName: p.tier || `${uCount} User`,
+              serverConfiguration: serverConfig,
+              users: uCount,
+              userBadge: serverConfig,
+              ipAddress: p.ipAddress || '103.115.220.41',
+              monthlyPrice: mPrice,
+              originalPrice: Math.round(mPrice * 1.15),
+              specs: p.specs && p.specs.length > 0
+                ? p.specs
+                : [
+                    { label: 'Server Configuration', value: serverConfig },
+                    { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+                    { label: 'Static IP', value: p.ipAddress || '103.115.220.41' }
+                  ],
+              features: p.features && p.features.length > 0
+                ? p.features
+                : [
+                    `Server Configuration: ${serverConfig}`,
+                    `CtrlS Tier-4 Datacenter hosting (Static IP: ${p.ipAddress || '103.115.220.41'})`,
+                    'Windows Server licence & daily snapshot backup',
+                    'N+N dual power feed redundancy'
+                  ],
+              isPopular: uCount === 5 || uCount === 10
+            };
+          })
+          .sort((a, b) => a.users - b.users);
+      }
+    }
+
+    // Fallback: static plans filtered by active status
+    return (provider.plans || []).filter(
+      (p) => p.available !== false && p.status !== 'inactive'
+    );
+  }, [liveProducts, providerId, provider]);
+
+  const periodBasePrice = (plan) => {
+    if (billingCycle !== 'annually') return plan.monthlyPrice;
+    return isPerUser ? plan.monthlyPrice * 12 : Math.round(plan.monthlyPrice * 0.9);
+  };
 
   const handleAddPlan = (plan) => {
-    // 18% GST calculation
-    const basePrice = billingCycle === 'annually'
-      ? Math.round(plan.monthlyPrice * 0.9)
-      : plan.monthlyPrice;
-
+    const basePrice = periodBasePrice(plan);
     const gstAmount = Math.round(basePrice * 0.18);
     const finalPrice = basePrice + gstAmount;
 
@@ -46,8 +148,14 @@ export default function CloudPlansPricingView({
       originalBasePrice: plan.originalPrice || basePrice,
       finalPrice,
       category: provider.name,
-      billingCycle: billingCycle === 'annually' ? 'Annual Billing (-10%)' : 'Monthly',
-      quantity: 1
+      billingCycle:
+        billingCycle === 'annually'
+          ? isPerUser
+            ? 'Annual Billing (12 Months)'
+            : 'Annual Billing (-10%)'
+          : 'Monthly',
+      quantity: 1,
+      ipAddress: plan.ipAddress
     });
 
     setJustAddedId(plan.id);
@@ -59,8 +167,11 @@ export default function CloudPlansPricingView({
   };
 
   return (
-    <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* ── 1. Top Header Banner (FlowMail Style) ────────────────── */}
+    <div
+      className="flowmail-section-wrapper animate-fade-in"
+      style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+    >
+      {/* ── 1. Top Header Banner ────────────────── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -68,29 +179,37 @@ export default function CloudPlansPricingView({
             <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.74rem' }}>
               Dedicated Compute
             </span>
+            {isPerUser && (
+              <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.74rem' }}>
+                {formatINR(ratePerUser)} / user / month
+              </span>
+            )}
           </div>
-          <p className="flowmail-welcome-sub">
-            {provider.shortDesc}
-          </p>
+          <p className="flowmail-welcome-sub">{provider.shortDesc}</p>
         </div>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Annual / Monthly Toggle Switch (FlowMail Pill) */}
-          <div style={{
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '999px',
-            padding: '3px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-          }}>
+          {/* Annual / Monthly Toggle Switch */}
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '999px',
+              padding: '3px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+            }}
+          >
             <button
               type="button"
               onClick={() => setBillingCycle('monthly')}
               style={{
                 border: 'none',
-                background: billingCycle === 'monthly' ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)' : 'transparent',
+                background:
+                  billingCycle === 'monthly'
+                    ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)'
+                    : 'transparent',
                 color: billingCycle === 'monthly' ? '#ffffff' : '#64748b',
                 padding: '6px 14px',
                 borderRadius: '999px',
@@ -107,7 +226,10 @@ export default function CloudPlansPricingView({
               onClick={() => setBillingCycle('annually')}
               style={{
                 border: 'none',
-                background: billingCycle === 'annually' ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)' : 'transparent',
+                background:
+                  billingCycle === 'annually'
+                    ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)'
+                    : 'transparent',
                 color: billingCycle === 'annually' ? '#ffffff' : '#64748b',
                 padding: '6px 14px',
                 borderRadius: '999px',
@@ -121,15 +243,18 @@ export default function CloudPlansPricingView({
               }}
             >
               <span>Annual</span>
-              <span style={{
-                background: billingCycle === 'annually' ? 'rgba(255,255,255,0.25)' : '#e6f9ed',
-                color: billingCycle === 'annually' ? '#ffffff' : '#10b981',
-                padding: '2px 6px',
-                borderRadius: '999px',
-                fontSize: '0.68rem',
-                fontWeight: '700'
-              }}>
-                -10%
+              <span
+                style={{
+                  background:
+                    billingCycle === 'annually' ? 'rgba(255,255,255,0.25)' : '#e6f9ed',
+                  color: billingCycle === 'annually' ? '#ffffff' : '#10b981',
+                  padding: '2px 6px',
+                  borderRadius: '999px',
+                  fontSize: '0.68rem',
+                  fontWeight: '700'
+                }}
+              >
+                {isPerUser ? '12 mo' : '-10%'}
               </span>
             </button>
           </div>
@@ -146,169 +271,242 @@ export default function CloudPlansPricingView({
         </div>
       </section>
 
-      {/* ── 2. 4 Pricing Cards Grid (FlowMail Card Theme) ─────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-        {plans.map((plan) => {
-          const inCart = cartItemIds.includes(plan.id);
-          const isAdded = justAddedId === plan.id;
-          const isSilver = plan.tier.toLowerCase() === 'silver' || plan.isPopular;
+      {/* ── 2. Pricing Cards Grid (Strictly Active Plans Only) ───────────── */}
+      {activePlans.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+          {activePlans.map((plan) => {
+            const inCart = cartItemIds.includes(plan.id);
+            const isAdded = justAddedId === plan.id;
+            const isSilver = plan.tier?.toLowerCase() === 'silver' || plan.isPopular;
 
-          const displayPrice = billingCycle === 'annually'
-            ? Math.round(plan.monthlyPrice * 0.9)
-            : plan.monthlyPrice;
+            const displayPrice = periodBasePrice(plan);
+            const priceSuffix = isPerUser && billingCycle === 'annually' ? '/yr' : '/mo';
 
-          return (
-            <div
-              key={plan.id}
-              className="flowmail-card"
-              style={{
-                padding: '28px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: '20px',
-                position: 'relative',
-                border: isSilver ? '2px solid #6366f1' : '1px solid rgba(226, 232, 240, 0.85)',
-                boxShadow: isSilver
-                  ? '0 12px 32px -4px rgba(99, 102, 241, 0.15), 0 4px 8px -2px rgba(99, 102, 241, 0.08)'
-                  : undefined
-              }}
-            >
-              {isSilver && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
-                  color: '#ffffff',
-                  fontSize: '0.72rem',
-                  fontWeight: '700',
-                  padding: '3px 12px',
-                  borderRadius: '999px',
-                  boxShadow: '0 2px 8px rgba(99, 102, 241, 0.35)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em'
-                }}>
-                  Most Popular
-                </div>
-              )}
-
-              <div>
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {plan.tierName || plan.tier}
-                  </span>
-                  <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.7rem' }}>
-                    {plan.userBadge || '1-3 Users'}
-                  </span>
-                </div>
-
-                {/* Price */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a' }}>₹</span>
-                    <span style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                      {displayPrice.toLocaleString('en-IN')}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '4px' }}>/mo</span>
-                  </div>
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginTop: '3px' }}>
-                    + 18% GST ({billingCycle === 'annually' ? 'Billed annually' : 'Monthly'})
-                  </span>
-                </div>
-
-                {/* Specs List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '14px', marginBottom: '14px' }}>
-                  {plan.specs && plan.specs.map((spec, sIdx) => (
-                    <div key={sIdx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#475569' }}>
-                      <CheckCircle2 size={14} color="#6366f1" style={{ flexShrink: 0 }} />
-                      <span><strong>{spec.label}:</strong> {spec.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Features */}
-                {plan.features && plan.features.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {plan.features.slice(0, 2).map((feat, fIdx) => (
-                      <span key={fIdx} style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                        &bull; {feat}
-                      </span>
-                    ))}
+            return (
+              <div
+                key={plan.id}
+                className="flowmail-card cloud-plan-card"
+                style={{
+                  padding: '28px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '20px',
+                  position: 'relative',
+                  border: isSilver ? '2px solid #6366f1' : '1px solid rgba(226, 232, 240, 0.85)',
+                  boxShadow: isSilver
+                    ? '0 12px 32px -4px rgba(99, 102, 241, 0.15), 0 4px 8px -2px rgba(99, 102, 241, 0.08)'
+                    : undefined
+                }}
+              >
+                {isSilver && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                      color: '#ffffff',
+                      fontSize: '0.72rem',
+                      fontWeight: '700',
+                      padding: '3px 12px',
+                      borderRadius: '999px',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.35)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    Most Popular
                   </div>
                 )}
-              </div>
 
-              {/* Action */}
-              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                <button
-                  type="button"
-                  className={inCart ? 'flowmail-btn-secondary' : 'flowmail-btn-primary'}
-                  onClick={() => !inCart && handleAddPlan(plan)}
-                  disabled={inCart}
-                  style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '0.88rem' }}
-                >
-                  {isAdded ? (
-                    <>
-                      <Check size={14} />
-                      <span>Added to Cart</span>
-                    </>
-                  ) : inCart ? (
-                    <>
-                      <Check size={14} />
-                      <span>In Cart</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={14} />
-                      <span>{isSilver ? 'Select Plan' : 'Get A Quotation'}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                <div>
+                  {/* Header */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: '10px',
+                      marginBottom: '14px'
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        color: '#6366f1',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em'
+                      }}
+                    >
+                      {plan.tierName || plan.tier}
+                      {isPerUser && (
+                        <span
+                          style={{
+                            display: 'block',
+                            marginTop: '3px',
+                            fontSize: '0.7rem',
+                            fontWeight: '600',
+                            color: '#94a3b8',
+                            letterSpacing: '0.02em',
+                            textTransform: 'none'
+                          }}
+                        >
+                          Server Configuration
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className="flowmail-trend-pill indigo"
+                      style={{ fontSize: '0.7rem', textAlign: 'right' }}
+                    >
+                      {plan.userBadge || '1-3 Users'}
+                    </span>
+                  </div>
 
-      {/* ── 3. Bottom Consultation Footnote (FlowMail Card) ──────── */}
-      <div className="flowmail-card" style={{ padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: '#e0f2fe',
-            color: '#0284c7',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Server size={18} />
-          </div>
-          <div>
-            <h4 style={{ margin: '0 0 2px 0', fontSize: '0.92rem', fontWeight: '700', color: '#0f172a' }}>
-              Need a custom multi-core Xeon VPS or enterprise hybrid cluster?
-            </h4>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
-              We architect customized high-availability setups for multi-branch organizations with automated failovers.
-            </p>
-          </div>
+                  {/* Price */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                      <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a' }}>
+                        ₹
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '2rem',
+                          fontWeight: '800',
+                          color: '#0f172a',
+                          letterSpacing: '-0.02em',
+                          lineHeight: 1
+                        }}
+                      >
+                        {displayPrice.toLocaleString('en-IN')}
+                      </span>
+                      <span
+                        style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '4px' }}
+                      >
+                        {priceSuffix}
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '0.74rem',
+                        color: '#94a3b8',
+                        display: 'block',
+                        marginTop: '3px'
+                      }}
+                    >
+                      + 18% GST ({billingCycle === 'annually' ? 'Billed annually' : 'Monthly'})
+                    </span>
+                  </div>
+                  
+                  {/* Specs List */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      borderTop: '1px solid #f1f5f9',
+                      paddingTop: '14px'
+                    }}
+                  >
+                    {plan.specs &&
+                      plan.specs.map((spec, sIdx) => (
+                        <div
+                          key={sIdx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.82rem',
+                            color: '#475569'
+                          }}
+                        >
+                          <CheckCircle2
+                            size={14}
+                            color="#6366f1"
+                            style={{ flexShrink: 0 }}
+                          />
+                          <span>
+                            <strong>{spec.label}:</strong> {spec.value}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Bottom Action */}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleAddPlan(plan)}
+                    disabled={inCart}
+                    className={
+                      inCart
+                        ? 'flowmail-btn-secondary'
+                        : isSilver
+                        ? 'flowmail-btn-primary'
+                        : 'flowmail-btn-secondary'
+                    }
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                      padding: '10px 16px',
+                      fontSize: '0.88rem'
+                    }}
+                  >
+                    {inCart ? (
+                      <>
+                        <Check size={16} />
+                        <span>Added to Cart</span>
+                      </>
+                    ) : isAdded ? (
+                      <>
+                        <Check size={16} />
+                        <span>Added!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart size={16} />
+                        <span>Add to Cart</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        <a
-          href="https://wa.me/919330113000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flowmail-btn-secondary"
-          style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+      ) : (
+        <div
+          className="flowmail-card"
+          style={{
+            padding: '48px 32px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px'
+          }}
         >
-          <MessageSquare size={14} color="#10b981" />
-          <span>Chat on WhatsApp</span>
-        </a>
-      </div>
+          <Server size={42} color="#94a3b8" />
+          <h3 style={{ fontSize: '1.1rem', color: '#1e293b', margin: 0 }}>
+            No Active Plans Currently Published
+          </h3>
+          <p style={{ fontSize: '0.86rem', color: '#64748b', maxWidth: '420px', margin: 0 }}>
+            All server tiers for this cloud infrastructure are currently undergoing maintenance or are disabled by administrators.
+          </p>
+          <button
+            type="button"
+            className="flowmail-btn-secondary"
+            onClick={onBack}
+            style={{ marginTop: '12px' }}
+          >
+            ← Explore Other Cloud Providers
+          </button>
+        </div>
+      )}
     </div>
   );
 }

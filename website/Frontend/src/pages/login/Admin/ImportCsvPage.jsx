@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { notificationApi } from '../../../services/notificationApi';
 import { usePermissions } from './PermissionsContext';
 import './AdminTools.css';
 
@@ -255,6 +256,15 @@ export default function ImportCsvPage({ setCustomers }) {
       const live = await customerApi.getCustomers();
       if (live && Array.isArray(live) && setCustomers) setCustomers(live);
 
+      notificationApi.createNotification({
+        type: 'customer_created',
+        title: 'Bulk Companies Imported',
+        message: 'Imported ' + res.succeeded + ' company account(s) and generated customer portal credentials.',
+        severity: 'success',
+        entityType: 'customer',
+        metadata: { succeeded: res.succeeded, failed: res.failed }
+      });
+
       if (res.succeeded === compRecords.length) {
         toast.success(`All ${res.succeeded} company record(s) imported & credentials generated!`, { id: toastId });
       } else {
@@ -286,6 +296,15 @@ export default function ImportCsvPage({ setCustomers }) {
       // Refresh global customer directory
       const live = await customerApi.getCustomers();
       if (live && Array.isArray(live) && setCustomers) setCustomers(live);
+
+      notificationApi.createNotification({
+        type: 'customer_created',
+        title: 'Bulk Contacts Imported',
+        message: 'Imported ' + res.succeeded + ' contact record(s) and generated login credentials.',
+        severity: 'success',
+        entityType: 'customer',
+        metadata: { succeeded: res.succeeded, failed: res.failed }
+      });
 
       if (res.succeeded === contRecords.length) {
         toast.success(`All ${res.succeeded} contact record(s) imported & credentials generated!`, { id: toastId });

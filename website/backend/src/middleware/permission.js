@@ -1,4 +1,5 @@
 import { HttpError } from '../utils/httpError.js';
+import { MODULE_COLUMNS } from '../utils/columnPermissions.js';
 
 export const PERMISSION_MODULES = [
   'overview',
@@ -67,8 +68,11 @@ export function requirePermission(module, action = 'view') {
 }
 
 /**
- * Normalises whatever the admin UI sends into a canonical `module:action` set so
+ * Normalises whatever the admin UI sends into a canonical permission set so
  * stored permissions stay stable regardless of the granting interface version.
+ * Grammar: `module:action`, optionally `module:view:columnId` to narrow which
+ * columns of a visible module the staff member is shown. Unknown modules,
+ * actions and column ids are dropped rather than stored.
  */
 export function normalizePermissions(input) {
   const list = Array.isArray(input) ? input : [];
@@ -80,13 +84,20 @@ export function normalizePermissions(input) {
       result.add(WILDCARD);
       continue;
     }
-    const [module, action = 'view'] = value.split(':');
+    const [module, action = 'view', column] = value.split(':');
     if (!PERMISSION_MODULES.includes(module)) continue;
     if (module === WILDCARD) {
       result.add(WILDCARD);
       continue;
     }
     if (!PERMISSION_ACTIONS.includes(action)) continue;
+    if (column) {
+      if (action !== 'view') continue;
+      const known = MODULE_COLUMNS[module] || [];
+      if (!known.some((candidate) => candidate.id === column)) continue;
+      result.add(`${module}:${action}:${column}`);
+      continue;
+    }
     result.add(`${module}:${action}`);
   }
   return [...result].sort();

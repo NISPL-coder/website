@@ -49,20 +49,51 @@ export async function login(req, res) {
   }
   if (user.accountStatus !== 'active') throw new HttpError(403, 'Your account is not active. Contact an administrator.');
 
-  // Seamless role & portal routing:
-  // If a customer logs in from any page, route them to customer portal.
-  // If staff/admin logs in, route them to admin portal.
-  const isAdminPortalUser = ['admin', 'manager', 'support'].includes(user.role);
-  let resolvedPortal = portal;
-  if (user.role === 'customer') {
-    resolvedPortal = 'customer';
-  } else if (isAdminPortalUser) {
-    resolvedPortal = 'admin';
-  } else if (user.role === 'partner') {
-    resolvedPortal = 'partner';
-  } else if (portal && portal !== user.role) {
-    throw new HttpError(403, `This account is not authorized for the ${portal} portal.`);
+  const requestedPortal = String(portal || '').trim().toLowerCase();
+
+  // Strict Portal & Role Access Control:
+  // 1. Manager accounts can ONLY log in through the Admin Portal
+  if (user.role === 'manager') {
+    if (requestedPortal && requestedPortal !== 'admin' && requestedPortal !== 'auto') {
+      throw new HttpError(403, 'Manager accounts can only log in through the Admin Portal.');
+    }
   }
+
+  // 2. Admin Portal: ONLY Admin itself and Manager can log in
+  if (requestedPortal === 'admin') {
+    const isAllowedInAdminPortal = user.role === 'admin' || user.role === 'manager' || Boolean(user.isPrimaryAdmin);
+    if (!isAllowedInAdminPortal) {
+      if (user.role === 'customer') {
+        throw new HttpError(403, 'Customer accounts cannot log in through the Admin Portal. Please use the Customer Portal to log in.');
+      }
+      throw new HttpError(403, 'This account is not authorized for the Admin portal. Only Admin and Manager accounts can log in here.');
+    }
+  }
+
+  // 3. Customer Portal: ONLY Customer accounts can log in
+  if (requestedPortal === 'customer') {
+    if (user.role !== 'customer') {
+      if (user.role === 'manager') {
+        throw new HttpError(403, 'Manager accounts can only log in through the Admin Portal.');
+      }
+      if (user.role === 'admin' || user.isPrimaryAdmin) {
+        throw new HttpError(403, 'Admin accounts must log in through the Admin Portal.');
+      }
+      throw new HttpError(403, 'This account is not authorized for the Customer Portal. Only Customer accounts can log in here.');
+    }
+  }
+
+  // 4. Partner Portal: ONLY Partner accounts can log in
+  if (requestedPortal === 'partner') {
+    if (user.role !== 'partner') {
+      throw new HttpError(403, 'This account is not authorized for the Partner Portal.');
+    }
+  }
+
+  const isAdminPortalUser = user.role === 'admin' || user.role === 'manager' || Boolean(user.isPrimaryAdmin);
+  let resolvedPortal = requestedPortal && requestedPortal !== 'auto'
+    ? requestedPortal
+    : (user.role === 'customer' ? 'customer' : (isAdminPortalUser ? 'admin' : user.role));
 
   user.lastLoginAt = new Date();
   await user.save();

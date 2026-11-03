@@ -163,6 +163,7 @@ function MainApp() {
           <Route path="/customer/receipt" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
           <Route path="/customer/payment" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
           <Route path="/customer/help" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
+          <Route path="/customer/profile" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
           <Route path="/help" element={<Navigate to="/customer/help" replace />} />
           <Route path="/help-center" element={<Navigate to="/customer/help" replace />} />
           <Route path="/customer/dashboard" element={<Navigate to="/customer/overview" replace />} />
@@ -197,6 +198,7 @@ function MainApp() {
           <Route path="/admin/staff" element={<Navigate to="/admin/user-access" replace />} />
           <Route path="/admin/activity-logs" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin/activity_logs" element={<Navigate to="/admin/activity-logs" replace />} />
+          <Route path="/admin/notifications" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />

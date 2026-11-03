@@ -3,6 +3,7 @@ import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/C
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { redactRecords } from '../utils/columnPermissions.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -137,13 +138,14 @@ export const getCustomers = async (req, res) => {
     });
 
     const stats = computeCustomerStats(formatted);
+    const visible = redactRecords(req.user, 'customer', formatted);
 
     return res.status(200).json({
       success: true,
-      count: formatted.length,
+      count: visible.length,
       stats,
       summary: stats,
-      customers: formatted
+      customers: visible
     });
   } catch (err) {
     console.error('[CustomerController] getCustomers error:', err.message);
@@ -154,12 +156,13 @@ export const getCustomers = async (req, res) => {
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
     }));
     const stats = computeCustomerStats(formattedFile);
+    const visibleFile = redactRecords(req.user, 'customer', formattedFile);
     return res.status(200).json({
       success: true,
-      count: formattedFile.length,
+      count: visibleFile.length,
       stats,
       summary: stats,
-      customers: formattedFile
+      customers: visibleFile
     });
   }
 };

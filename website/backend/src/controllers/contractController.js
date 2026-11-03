@@ -2,6 +2,7 @@ import { logNotification } from '../services/notificationService.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { redactRecords } from '../utils/columnPermissions.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -18,11 +19,11 @@ export const getContracts = async (req, res) => {
       list = getContractsFromFile();
     }
 
-    const formatted = list.map((c) => ({
+    const formatted = redactRecords(req.user, 'contract', list.map((c) => ({
       ...c,
       id: c.contractId || c._id || c.id,
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
-    }));
+    })));
 
     return res.status(200).json({
       success: true,
@@ -31,7 +32,7 @@ export const getContracts = async (req, res) => {
     });
   } catch (err) {
     console.error('[ContractController] getContracts error:', err.message);
-    const fileList = getContractsFromFile();
+    const fileList = redactRecords(req.user, 'contract', getContractsFromFile());
     return res.status(200).json({
       success: true,
       count: fileList.length,

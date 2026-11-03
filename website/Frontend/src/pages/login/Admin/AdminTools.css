@@ -69,6 +69,75 @@
   white-space: nowrap;
 }
 
+/* Name / email + role sit in one tight stack inside the header chip. */
+.adm-profile-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.adm-profile-sub .adm-profile-email {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.adm-profile-dropdown-role {
+  margin-top: 3px;
+}
+
+.adm-profile-role {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-profile-dropdown-header .adm-profile-role {
+  font-size: 0.62rem;
+  padding: 2px 9px;
+}
+
+.adm-profile-role--admin {
+  background: #eef2ff;
+  border-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.adm-profile-role--manager {
+  background: #e0f2fe;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+
+.adm-profile-role--support {
+  background: #ecfdf5;
+  border-color: #d1fae5;
+  color: #047857;
+}
+
+.adm-profile-role--customer {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.adm-profile-role--partner {
+  background: #fdf4ff;
+  border-color: #f5d0fe;
+  color: #a21caf;
+}
+
 .adm-profile-chevron {
   color: #94a3b8;
   transition: transform 0.18s ease;
@@ -152,7 +221,8 @@
 }
 
 @media (max-width: 900px) {
-  .adm-profile-meta {
+  /* Only the collapsed chip drops its text; the open dropdown keeps it. */
+  .adm-profile-chip .adm-profile-meta {
     display: none;
   }
 
@@ -182,6 +252,23 @@
 .adm-sidebar.collapsed .adm-sidebar-tools-label,
 .adm-sidebar.collapsed .adm-sidebar-divider {
   display: none;
+}
+
+/* Count chip on a nav row (e.g. the customer portal cart badge). */
+.adm-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #6366f1;
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 /* ------------------------------------------------------------------ *

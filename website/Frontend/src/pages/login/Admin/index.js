@@ -1,5 +1,5 @@
 export { default as AdminDashboard } from './AdminDashboard';
-export { default as AdminSidebar } from './AdminSidebar';
+export { default as ConsoleShell } from './ConsoleShell';
 export { default as OverviewSection } from './OverviewSection';
 export { default as CustomerSection } from './CustomerSection';
 export { default as ContractSection } from './ContractSection';

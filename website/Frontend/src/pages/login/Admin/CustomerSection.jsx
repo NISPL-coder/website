@@ -41,7 +41,7 @@ export default function CustomerSection({
   setCustomerStats
 }) {
   const navigate = useNavigate();
-  const { can } = usePermissions();
+  const { can, visibleColumns } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
   const [dateFrom, setDateFrom] = useState('');
@@ -814,7 +814,7 @@ export default function CustomerSection({
 
       {/* 4. React DataTable */}
       <AdminDataTable
-        columns={columns}
+        columns={visibleColumns('customer', columns)}
         data={filteredCustomers}
         keyField="id"
         defaultSortFieldId="registered"

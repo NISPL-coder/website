@@ -15,6 +15,7 @@ import LinkedInQRCode from '../../components/LinkedInQRCode';
 import photoFinancialSpecialist from '../../assets/corporate_team_handshake.webp';
 import photoMicrosoftCloudEng from '../../assets/office_engineers_collaborating.webp';
 import photoDatacenterArchitect from '../../assets/client_team_celebration.webp';
+import { notificationApi } from '../../services/notificationApi';
 import './ContactPage.css';
 
 const ASSOCIATES = [
@@ -113,6 +114,26 @@ export default function ContactPage() {
       setTicketId(generatedTicket);
       setIsSubmitting(false);
       setIsSubmitted(true);
+
+      notificationApi.createNotification({
+        type: 'customer_query',
+        title: 'New Customer Query',
+        message: 'Customer query received from ' + formData.name + ' (' + (formData.companyName || 'Individual') + ') regarding "' + (formData.interestedIn || 'General Inquiry') + '". Reference #' + generatedTicket + '.',
+        severity: 'info',
+        entityType: 'customer',
+        entityId: generatedTicket,
+        user: {
+          name: formData.name,
+          email: formData.email,
+          company: formData.companyName
+        },
+        metadata: {
+          ticketId: generatedTicket,
+          mobile: formData.mobile,
+          interestedIn: formData.interestedIn,
+          description: formData.description
+        }
+      });
     }, 700);
   };
 

@@ -2,6 +2,7 @@ import ActivityLog from '../models/ActivityLog.js';
 import User from '../models/User.js';
 import Customer from '../models/Customer.js';
 import { HttpError } from '../utils/httpError.js';
+import { redactRecord, redactRecords } from '../utils/columnPermissions.js';
 
 /**
  * List activity logs with filtering, search, and pagination
@@ -143,10 +144,10 @@ export async function listActivityLogs(req, res) {
       todayLogs: todayCount,
       uniqueAdminsCount: uniqueAdmins.length
     },
-    logs: logs.map(l => ({
+    logs: redactRecords(req.user, 'activity_logs', logs.map(l => ({
       ...l,
       id: l._id.toString()
-    }))
+    })))
   });
 }
 
@@ -159,10 +160,10 @@ export async function getActivityLogById(req, res) {
 
   res.json({
     success: true,
-    log: {
+    log: redactRecord(req.user, 'activity_logs', {
       ...log,
       id: log._id.toString()
-    }
+    })
   });
 }
 

@@ -13,6 +13,7 @@ const BACKEND_URL = isLocalhost
   : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
 
 const STAFF_BASE_URL = `${BACKEND_URL}/api/staff`;
+const PERMISSIONS_BASE_URL = `${BACKEND_URL}/api/permissions`;
 
 const getHeaders = () => {
   const token = authApi.getAuthToken();
@@ -74,6 +75,20 @@ export const staffApi = {
       throw new Error(data.message || data.error || 'Failed to update staff status.');
     }
     return data;
+  },
+
+  /**
+   * Column inventory per module, served by the API so the grant UI and the
+   * server-side redaction can never drift apart.
+   */
+  async getColumnRegistry() {
+    const res = await fetch(`${PERMISSIONS_BASE_URL}/columns`, { headers: getHeaders() });
+    authApi._handleRefreshedToken(res);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to load the column registry.');
+    }
+    return data.registry;
   },
 
   /**

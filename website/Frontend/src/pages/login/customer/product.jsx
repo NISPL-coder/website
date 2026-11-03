@@ -48,7 +48,8 @@ import { formatINR } from '../../Dashboard/utils/pricingUtils';
 export default function ProductsSection({
   onAddToCart,
   onGoToCart,
-  cartItemIds = []
+  cartItemIds = [],
+  externalSearch = ''
 }) {
   // Navigation State: null = initial 2-card screen; 'tally' = Tally catalog; 'cloud' = Cloud flow
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -60,6 +61,11 @@ export default function ProductsSection({
   const [selectedDuration, setSelectedDuration] = useState('all');
   const [selectedSort, setSelectedSort] = useState('recommended');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
+
+  // The console header owns the global search; mirror it into the local filter.
+  useEffect(() => {
+    setSearchQuery(externalSearch);
+  }, [externalSearch]);
 
   // Showcase Slider & Wishlist State (Matching User's Collection Design)
   const [activeCardIndex, setActiveCardIndex] = useState(1);
@@ -151,13 +157,16 @@ export default function ProductsSection({
   };
 
   const handleAdd = (product) => {
+    // Cloud plan cards arrive pre-priced and carry no `pricing` breakdown
+    const pricing = product.pricing || {};
+
     onAddToCart({
       id: product.id,
       name: product.fullName || product.name,
-      basePrice: product.pricing.discountedPrice || product.basePrice,
+      basePrice: pricing.discountedPrice || product.basePrice,
       originalBasePrice: product.basePrice,
-      finalPrice: product.pricing.finalPrice,
-      category: product.categoryLabel,
+      finalPrice: pricing.finalPrice || product.finalPrice,
+      category: product.categoryLabel || product.category,
       billingCycle: product.billingCycle || product.duration,
       quantity: 1
     });

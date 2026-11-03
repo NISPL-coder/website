@@ -31,7 +31,7 @@ const getContractId = (row) => row.id || row.contractId;
 
 export default function ContractSection({ contracts, setContracts }) {
   const navigate = useNavigate();
-  const { can } = usePermissions();
+  const { can, visibleColumns } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -499,7 +499,7 @@ export default function ContractSection({ contracts, setContracts }) {
 
       {/* 3. React DataTable */}
       <AdminDataTable
-        columns={columns}
+        columns={visibleColumns('contract', columns)}
         data={filteredContracts}
         keyField="id"
         defaultSortFieldId="startDate"

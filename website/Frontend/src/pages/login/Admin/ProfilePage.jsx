@@ -44,7 +44,7 @@ const initialsOf = (name) =>
     .map((part) => part[0].toUpperCase())
     .join('');
 
-export default function ProfilePage({ adminName, adminEmail }) {
+export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL_NAME }) {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -75,8 +75,12 @@ export default function ProfilePage({ adminName, adminEmail }) {
   const role = capitalize(profile?.role);
   const accountStatus = profile?.accountStatus || 'active';
 
+  const isStaffAccount = ['admin', 'manager', 'support'].includes(
+    String(profile?.role || '').toLowerCase()
+  );
+
   const accountItems = [
-    { label: 'Portal Access', value: PORTAL_NAME, icon: ShieldCheck },
+    { label: 'Portal Access', value: portalName, icon: ShieldCheck },
     { label: 'Role', value: role, icon: UserCog },
     { label: 'Designation', value: profile?.designation || '—', icon: BadgeCheck },
     { label: 'Data Centre / Location', value: profile?.location || '—', icon: Server },
@@ -89,11 +93,10 @@ export default function ProfilePage({ adminName, adminEmail }) {
     { label: 'Security Clearance', value: profile?.securityLevel || '—', icon: Fingerprint },
     { label: 'Sign-In Method', value: SIGN_IN_METHOD, icon: KeyRound },
     { label: 'Last Sign-In', value: formatDateTime(profile?.lastLoginAt), icon: Clock3 },
-    {
-      label: 'Granted Permissions',
-      value: describePermissions(profile),
-      icon: UserCog
-    }
+    // Module grants only mean something for console staff accounts.
+    ...(isStaffAccount
+      ? [{ label: 'Granted Permissions', value: describePermissions(profile), icon: UserCog }]
+      : [])
   ];
 
   const handleChangePassword = async (event) => {

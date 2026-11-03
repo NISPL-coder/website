@@ -10,6 +10,7 @@ import {
   X,
   Loader2,
   Check,
+  ChevronDown,
   Eye,
   EyeOff
 } from 'lucide-react';
@@ -22,6 +23,8 @@ import {
   usePermissions,
   PERMISSION_ACTIONS,
   fromPermissionMatrix,
+  fromColumnMatrix,
+  toColumnMatrix,
   toPermissionMatrix
 } from './PermissionsContext';
 import './UserAccessSection.css';
@@ -68,7 +71,32 @@ const formatDate = (dateString) => {
   }
 };
 
-function PermissionMatrix({ matrix, onChange }) {
+function PermissionMatrix({ matrix, onChange, columns, onColumnsChange, registry }) {
+  const [expanded, setExpanded] = useState([]);
+
+  const defsFor = (moduleId) => (registry && registry[moduleId]) || [];
+  const flagsFor = (moduleId) => {
+    const defs = defsFor(moduleId);
+    if (defs.length === 0) return {};
+    const base = {};
+    defs.forEach((def) => { base[def.id] = true; });
+    return { ...base, ...(columns && columns[moduleId] ? columns[moduleId] : {}) };
+  };
+
+  const clearModule = (moduleId) => {
+    onChange((prev) => ({
+      ...prev,
+      [moduleId]: { view: false, create: false, edit: false, delete: false }
+    }));
+    if (onColumnsChange) onColumnsChange((prev) => ({ ...prev, [moduleId]: {} }));
+  };
+
+  // A module opened from this row starts unrestricted; the admin then withholds
+  // individual columns, and an empty column set means the module is closed.
+  const releaseColumns = (moduleId) => {
+    if (onColumnsChange) onColumnsChange((prev) => ({ ...prev, [moduleId]: {} }));
+  };
+
   const toggle = (moduleId, action, next) => {
     onChange((prev) => {
       const moduleState = { ...(prev[moduleId] || {}) };
@@ -80,6 +108,7 @@ function PermissionMatrix({ matrix, onChange }) {
       if (action !== 'view' && next) moduleState.view = true;
       return { ...prev, [moduleId]: moduleState };
     });
+    if (action === 'view') releaseColumns(moduleId);
   };
 
   const toggleModule = (moduleId, next) => {
@@ -89,6 +118,24 @@ function PermissionMatrix({ matrix, onChange }) {
         ? { view: true, create: true, edit: true, delete: true }
         : { view: false, create: false, edit: false, delete: false }
     }));
+    releaseColumns(moduleId);
+  };
+
+  const toggleColumn = (moduleId, columnId, next) => {
+    const defs = defsFor(moduleId);
+    const state = { ...flagsFor(moduleId), [columnId]: next };
+    onColumnsChange((prev) => ({ ...prev, [moduleId]: state }));
+    if (!defs.some((def) => state[def.id])) clearModule(moduleId);
+  };
+
+  const setAllColumns = (moduleId, value) => {
+    const defs = defsFor(moduleId);
+    if (!value) {
+      clearModule(moduleId);
+      return;
+    }
+    onColumnsChange((prev) => ({ ...prev, [moduleId]: {} }));
+    if (!matrix[moduleId]?.view) toggle(moduleId, 'view', true);
   };
 
   return (
@@ -106,6 +153,12 @@ function PermissionMatrix({ matrix, onChange }) {
         const flags = matrix[option.id] || {};
         const allOn = PERMISSION_ACTIONS.every((action) => flags[action]);
         const anyOn = PERMISSION_ACTIONS.some((action) => flags[action]);
+        const defs = defsFor(option.id);
+        const columnFlags = flagsFor(option.id);
+        const checkedCount = defs.filter((def) => columnFlags[def.id]).length;
+        const unrestricted = defs.length === 0 || checkedCount === defs.length;
+        const isExpanded = expanded.includes(option.id);
+
         return (
           <div className={`usr-matrix-row ${anyOn ? 'is-on' : ''}`} key={option.id}>
             <div className="usr-matrix-module">
@@ -141,6 +194,60 @@ function PermissionMatrix({ matrix, onChange }) {
                 </div>
               );
             })}
+
+            {defs.length > 0 && flags.view && (
+              <div className="usr-matrix-columns">
+                <button
+                  type="button"
+                  className="usr-columns-toggle"
+                  onClick={() =>
+                    setExpanded((prev) =>
+                      prev.includes(option.id) ? prev.filter((id) => id !== option.id) : [...prev, option.id]
+                    )
+                  }
+                >
+                  <ChevronDown size={13} className={`usr-columns-caret ${isExpanded ? 'is-open' : ''}`} />
+                  <span>Columns</span>
+                  <em>{unrestricted ? `All ${defs.length}` : `${checkedCount} of ${defs.length}`}</em>
+                </button>
+
+                {isExpanded && (
+                  <div className="usr-columns-grid">
+                    {defs.map((def) => {
+                      const on = Boolean(columnFlags[def.id]);
+                      return (
+                        <div
+                          key={def.id}
+                          className={`usr-column-item ${on ? 'is-on' : ''}`}
+                          role="checkbox"
+                          aria-checked={on}
+                          tabIndex={0}
+                          onClick={() => toggleColumn(option.id, def.id, !on)}
+                          onKeyDown={(e) => {
+                            if (e.key === ' ' || e.key === 'Enter') {
+                              e.preventDefault();
+                              toggleColumn(option.id, def.id, !on);
+                            }
+                          }}
+                        >
+                          <div className="usr-custom-checkbox">{on && <Check size={11} strokeWidth={3} />}</div>
+                          <span>{def.label}</span>
+                        </div>
+                      );
+                    })}
+
+                    <div className="usr-columns-foot">
+                      <button type="button" onClick={() => setAllColumns(option.id, true)}>
+                        Show all columns
+                      </button>
+                      <span className="usr-columns-hint">
+                        Withheld columns are removed from the table and from the records the API returns.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
@@ -152,7 +259,7 @@ export default function UserAccessSection() {
   const [staffList, setStaffList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const { can, refresh: refreshOwnPermissions } = usePermissions();
+  const { can, refresh: refreshOwnPermissions, columnRegistry, columnsByModule, visibleColumns } = usePermissions();
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -170,12 +277,14 @@ export default function UserAccessSection() {
     designation: ''
   });
   const [addMatrix, setAddMatrix] = useState(emptyMatrix);
+  const [addColumns, setAddColumns] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Edit Permissions state
   const [editRole, setEditRole] = useState('manager');
   const [editMatrix, setEditMatrix] = useState(emptyMatrix);
+  const [editColumns, setEditColumns] = useState({});
 
   // Check if any modal is active
   const isAnyModalOpen = isAddModalOpen || isPermissionsModalOpen || isDeleteModalOpen;
@@ -238,6 +347,7 @@ export default function UserAccessSection() {
       designation: ''
     });
     setAddMatrix(emptyMatrix());
+    setAddColumns({});
     setShowPassword(false);
     setIsAddModalOpen(true);
   };
@@ -252,7 +362,7 @@ export default function UserAccessSection() {
       setIsSubmitting(true);
       await staffApi.createStaff({
         ...addForm,
-        permissions: fromPermissionMatrix(addMatrix)
+        permissions: [...fromPermissionMatrix(addMatrix), ...fromColumnMatrix(addColumns, columnRegistry)]
       });
       toast.success(`Staff account for ${addForm.name} created successfully!`);
       setIsAddModalOpen(false);
@@ -280,15 +390,17 @@ export default function UserAccessSection() {
 
   // Handle Open Permissions Modal
   const handleOpenPermissions = (staff) => {
+    const permissions = Array.isArray(staff.permissions) ? staff.permissions : [];
     setSelectedStaff(staff);
     setEditRole(staff.role || 'manager');
-    setEditMatrix(toPermissionMatrix(Array.isArray(staff.permissions) ? staff.permissions : []));
+    setEditMatrix(toPermissionMatrix(permissions));
+    setEditColumns(toColumnMatrix(permissions, columnRegistry));
     setIsPermissionsModalOpen(true);
   };
 
   const handleSavePermissions = async () => {
     if (!selectedStaff) return;
-    const permissions = fromPermissionMatrix(editMatrix);
+    const permissions = [...fromPermissionMatrix(editMatrix), ...fromColumnMatrix(editColumns, columnRegistry)];
     try {
       setIsSubmitting(true);
       await staffApi.updatePermissions(selectedStaff.id || selectedStaff._id, {
@@ -480,7 +592,7 @@ export default function UserAccessSection() {
       {/* Main React DataTable */}
       <div className="usr-table-card">
         <AdminDataTable
-          columns={columns}
+          columns={visibleColumns('user_access', columns)}
           data={staffList}
           keyField="id"
           defaultSortFieldId="createdAt"
@@ -601,7 +713,13 @@ export default function UserAccessSection() {
                   <p className="usr-matrix-note">
                     Tick a module name for full access, or grant View / Add / Edit / Delete individually.
                   </p>
-                  <PermissionMatrix matrix={addMatrix} onChange={setAddMatrix} />
+                  <PermissionMatrix
+                    matrix={addMatrix}
+                    onChange={setAddMatrix}
+                    columns={addColumns}
+                    onColumnsChange={setAddColumns}
+                    registry={columnsByModule}
+                  />
                 </div>
               </div>
 
@@ -675,7 +793,13 @@ export default function UserAccessSection() {
                     ? 'Admins always have unrestricted access to every module. These switches take effect once the role is Manager or Support.'
                     : 'Changes take effect immediately — the next request this user makes is already checked against these permissions, without signing them out.'}
                 </p>
-                <PermissionMatrix matrix={editMatrix} onChange={setEditMatrix} />
+                <PermissionMatrix
+                  matrix={editMatrix}
+                  onChange={setEditMatrix}
+                  columns={editColumns}
+                  onColumnsChange={setEditColumns}
+                  registry={columnsByModule}
+                />
               </div>
             </div>
 

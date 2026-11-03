@@ -38,7 +38,7 @@ function SyncStatusPill({ status, syncError }) {
 }
 
 export default function SangamSyncPage({ customers, setCustomers }) {
-  const { can } = usePermissions();
+  const { can, visibleColumns } = usePermissions();
   const canSync = can('customer', 'edit');
   const [syncingIds, setSyncingIds] = useState({});
   const [isSyncAllRunning, setIsSyncAllRunning] = useState(false);
@@ -339,7 +339,7 @@ export default function SangamSyncPage({ customers, setCustomers }) {
       </div>
 
       <AdminDataTable
-        columns={columns}
+        columns={visibleColumns('sangam_sync', columns)}
         data={sortedCustomers}
         keyField="id"
         defaultSortFieldId="lastSyncedAt"

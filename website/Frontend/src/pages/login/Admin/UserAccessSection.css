@@ -565,3 +565,109 @@
 .usr-btn-danger:hover {
   background: #b91c1c;
 }
+
+/* Per-module column grants, revealed under a module row */
+.usr-matrix-columns {
+  grid-column: 1 / -1;
+  padding-top: 6px;
+}
+
+.usr-columns-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid #dbe4f0;
+  border-radius: 7px;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.usr-columns-toggle:hover {
+  border-color: #2563eb;
+  color: #1e40af;
+}
+
+.usr-columns-toggle em {
+  font-style: normal;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.usr-columns-caret {
+  transition: transform 0.15s ease;
+}
+
+.usr-columns-caret.is-open {
+  transform: rotate(180deg);
+}
+
+.usr-columns-grid {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px 12px;
+}
+
+.usr-column-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.usr-column-item:hover {
+  background: #f5f9ff;
+}
+
+.usr-column-item.is-on .usr-custom-checkbox {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.usr-column-item.is-on {
+  color: #0f172a;
+}
+
+.usr-columns-foot {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding-top: 9px;
+  border-top: 1px solid #eef2f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.usr-columns-foot button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.usr-columns-foot button:hover {
+  text-decoration: underline;
+}
+
+.usr-columns-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}

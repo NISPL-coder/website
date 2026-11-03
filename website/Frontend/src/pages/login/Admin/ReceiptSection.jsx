@@ -8,10 +8,12 @@ import ExportDropdown from './ExportDropdown';
 import { formatReceiptsForExport } from './exportUtils';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
+import { usePermissions } from './PermissionsContext';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 export default function ReceiptSection({ receipts, setReceipts, payments }) {
   const navigate = useNavigate();
+  const { visibleColumns } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -240,7 +242,7 @@ export default function ReceiptSection({ receipts, setReceipts, payments }) {
 
       {/* 3. React DataTable */}
       <AdminDataTable
-        columns={columns}
+        columns={visibleColumns('receipt', columns)}
         data={filteredReceipts}
         keyField="id"
         defaultSortFieldId="date"

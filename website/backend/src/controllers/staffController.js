@@ -4,6 +4,7 @@ import { HttpError } from '../utils/httpError.js';
 import { normalizePermissions } from '../middleware/permission.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
+import { redactRecords } from '../utils/columnPermissions.js';
 
 /**
  * List all administrative and support staff members
@@ -27,7 +28,7 @@ export async function listStaff(req, res) {
     role: { $in: ['admin', 'manager', 'support'] }
   }).sort({ createdAt: -1 });
 
-  const formatted = staffList.map(u => ({
+  const formatted = redactRecords(req.user, 'user_access', staffList.map(u => ({
     id: u._id.toString(),
     _id: u._id.toString(),
     name: u.name,
@@ -41,7 +42,7 @@ export async function listStaff(req, res) {
     lastLoginAt: u.lastLoginAt,
     createdAt: u.createdAt,
     updatedAt: u.updatedAt
-  }));
+  })));
 
   res.json({
     success: true,

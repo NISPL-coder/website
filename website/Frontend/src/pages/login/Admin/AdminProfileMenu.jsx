@@ -13,7 +13,43 @@ function getInitials(name) {
     .join('');
 }
 
-export default function AdminProfileMenu({ name, email, onSignOut }) {
+const ROLE_LABELS = {
+  admin: 'Admin',
+  manager: 'Manager',
+  support: 'Support',
+  partner: 'Partner',
+  customer: 'Customer'
+};
+
+/** The signed-in account's role, straight from the live session — never assumed. */
+function roleLabel(role, isPrimaryAdmin) {
+  const key = String(role).trim().toLowerCase();
+  if (key === 'admin' && isPrimaryAdmin) return 'Primary Admin';
+  return ROLE_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function roleToneClass(role) {
+  const key = String(role).trim().toLowerCase();
+  return ROLE_LABELS[key] ? `adm-profile-role--${key}` : '';
+}
+
+function RoleBadge({ role, isPrimaryAdmin }) {
+  if (!role) return null;
+  return (
+    <span className={`adm-profile-role ${roleToneClass(role)}`} title={`Account role: ${roleLabel(role, isPrimaryAdmin)}`}>
+      {roleLabel(role, isPrimaryAdmin)}
+    </span>
+  );
+}
+
+export default function AdminProfileMenu({
+  name,
+  email,
+  role,
+  isPrimaryAdmin = false,
+  profilePath = '/admin/profile',
+  onSignOut
+}) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -54,7 +90,10 @@ export default function AdminProfileMenu({ name, email, onSignOut }) {
         <span className="adm-profile-avatar">{getInitials(name)}</span>
         <span className="adm-profile-meta">
           <span className="adm-profile-name">{name}</span>
-          <span className="adm-profile-email">{email}</span>
+          <span className="adm-profile-sub">
+            <span className="adm-profile-email">{email}</span>
+            <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
+          </span>
         </span>
         <ChevronDown size={14} className={`adm-profile-chevron ${isOpen ? 'rotate' : ''}`} />
       </button>
@@ -66,18 +105,23 @@ export default function AdminProfileMenu({ name, email, onSignOut }) {
             <span className="adm-profile-meta">
               <span className="adm-profile-name">{name}</span>
               <span className="adm-profile-email">{email}</span>
+              <span className="adm-profile-dropdown-role">
+                <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
+              </span>
             </span>
           </div>
 
-          <button
-            type="button"
-            className="adm-profile-dropdown-item"
-            onClick={() => handleNavigate('/admin/profile')}
-            role="menuitem"
-          >
-            <User size={15} />
-            <span>Profile</span>
-          </button>
+          {profilePath && (
+            <button
+              type="button"
+              className="adm-profile-dropdown-item"
+              onClick={() => handleNavigate(profilePath)}
+              role="menuitem"
+            >
+              <User size={15} />
+              <span>Profile</span>
+            </button>
+          )}
 
           <div className="adm-profile-dropdown-divider" />
 

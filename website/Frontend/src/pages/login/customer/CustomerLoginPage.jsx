@@ -121,9 +121,32 @@ export default function CustomerLoginPage() {
                   background: 'rgba(239, 68, 68, 0.12)',
                   border: '1px solid rgba(239, 68, 68, 0.3)',
                   color: '#FCA5A5',
-                  fontSize: '0.86rem'
+                  fontSize: '0.86rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
                 }}>
-                  {errorMsg}
+                  <span>{errorMsg}</span>
+                  {errorMsg.includes('Admin Portal') && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/login?portal=admin')}
+                      style={{
+                        alignSelf: 'flex-start',
+                        marginTop: '4px',
+                        padding: '4px 10px',
+                        background: '#3b82f6',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Go to Admin Portal &rarr;
+                    </button>
+                  )}
                 </div>
               )}
 

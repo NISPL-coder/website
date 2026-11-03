@@ -21,6 +21,7 @@ import {
 import toast from 'react-hot-toast';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
+import { usePermissions } from './PermissionsContext';
 import { activityLogApi } from '../../../services/activityLogApi';
 import './ActivityLogsSection.css';
 
@@ -119,6 +120,7 @@ const humanizeKey = (key) =>
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function ActivityLogsSection() {
+  const { visibleColumns } = usePermissions();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState({ totalLogs: 0, todayLogs: 0, uniqueAdminsCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -508,7 +510,7 @@ export default function ActivityLogsSection() {
       {/* Main React DataTable */}
       <div className="act-table-card">
         <AdminDataTable
-          columns={columns}
+          columns={visibleColumns('activity_logs', columns)}
           data={filteredLogs}
           keyField="id"
           defaultSortFieldId="createdAt"

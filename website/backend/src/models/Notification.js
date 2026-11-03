@@ -10,9 +10,14 @@ const notificationSchema = new mongoose.Schema(
         'payment_created',
         'payment_updated',
         'payment_deleted',
+        'payment_due_soon',
+        'payment_due',
         'customer_created',
         'customer_updated',
         'customer_deleted',
+        'customer_registered',
+        'customer_query',
+        'support_ticket',
         'contract_created',
         'contract_updated',
         'contract_deleted',
@@ -21,6 +26,8 @@ const notificationSchema = new mongoose.Schema(
         'product_updated',
         'product_deleted',
         'receipt_created',
+        'admin_created',
+        'staff_created',
         'system'
       ],
       default: 'system',
@@ -43,7 +50,7 @@ const notificationSchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ['customer', 'contract', 'payment', 'product', 'receipt', 'user', 'other'],
+      enum: ['customer', 'contract', 'payment', 'product', 'receipt', 'user', 'admin', 'other'],
       default: 'other'
     },
     entityId: {

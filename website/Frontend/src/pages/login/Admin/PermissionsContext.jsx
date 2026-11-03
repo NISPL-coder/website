@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi } from '../../../services/authApi';
+import { staffApi } from '../../../services/staffApi';
 
 /**
  * Live RBAC source of truth for the admin console.
@@ -149,6 +150,59 @@ export function fromPermissionMatrix(matrix) {
   return list;
 }
 
+/**
+ * Column grants are stored as `module:view:<columnId>`. A module grant with no
+ * column entries means every column, so every permission set saved before the
+ * column picker existed keeps working unchanged. Mirrors the backend rule in
+ * Backend/src/utils/columnPermissions.js.
+ */
+export function isPermissionColumnVisible(user, module, columnId) {
+  if (!user) return true;
+  if (user.role === 'admin' || user.isPrimaryAdmin) return true;
+
+  const granted = Array.isArray(user.permissions) ? user.permissions : [];
+  if (granted.includes('*') || granted.includes(`${module}:*`)) return true;
+
+  const scoped = granted
+    .filter((entry) => String(entry || '').startsWith(`${module}:view:`))
+    .map((entry) => entry.split(':')[2]);
+  if (scoped.length === 0) return true;
+  return scoped.includes(columnId);
+}
+
+/** `{ module: { columnId: boolean } }` read out of the stored permission strings. */
+export function toColumnMatrix(permissions = [], registry = []) {
+  const scoped = {};
+  for (const value of permissions) {
+    const parts = String(value || '').split(':');
+    if (parts.length !== 3 || parts[1] !== 'view') continue;
+    if (!scoped[parts[0]]) scoped[parts[0]] = new Set();
+    scoped[parts[0]].add(parts[2]);
+  }
+
+  const matrix = {};
+  for (const entry of registry) {
+    const allow = scoped[entry.module];
+    matrix[entry.module] = {};
+    entry.columns.forEach((column) => {
+      matrix[entry.module][column.id] = allow ? allow.has(column.id) : true;
+    });
+  }
+  return matrix;
+}
+
+/** Collapse the picker back to strings — only a restriction needs storing. */
+export function fromColumnMatrix(matrix = {}, registry = []) {
+  const list = [];
+  for (const entry of registry) {
+    const flags = matrix[entry.module] || {};
+    const checked = entry.columns.filter((column) => flags[column.id]).map((column) => column.id);
+    if (checked.length === 0 || checked.length === entry.columns.length) continue;
+    checked.forEach((id) => list.push(`${entry.module}:view:${id}`));
+  }
+  return list;
+}
+
 /** Human-readable one-liner of a staff member's live access. */
 export function describePermissions(user) {
   if (!user) return '—';
@@ -170,6 +224,22 @@ const PermissionsContext = createContext(null);const signatureOf = (user) =>
 
 export function PermissionsProvider({ children }) {
   const [user, setUser] = useState(() => authApi.getCurrentUser());
+  const [registry, setRegistry] = useState([]);
+
+  // The column inventory comes from the API so the grant UI and the server-side
+  // redaction are driven by the same list.
+  useEffect(() => {
+    let isMounted = true;
+    staffApi
+      .getColumnRegistry()
+      .then((data) => {
+        if (isMounted && Array.isArray(data)) setRegistry(data);
+      })
+      .catch((err) => console.warn('[permissions] column registry unavailable:', err?.message));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const applyProfile = useCallback((fresh) => {
     if (!fresh) return;
@@ -214,6 +284,19 @@ export function PermissionsProvider({ children }) {
 
   const value = useMemo(() => {
     const can = (module, action = 'view') => isPermissionGranted(user, module, action);
+    const columnsByModule = registry.reduce((acc, entry) => {
+      acc[entry.module] = entry.columns;
+      return acc;
+    }, {});
+
+    // Structural columns (S/No., Actions) are not grantable, so they are always
+    // kept; only ids the registry actually lists can be withheld.
+    const canSeeColumn = (module, columnId) => {
+      const defs = columnsByModule[module];
+      if (!defs || !defs.some((def) => def.id === columnId)) return true;
+      return isPermissionColumnVisible(user, module, columnId);
+    };
+
     return {
       user,
       role: user?.role || 'support',
@@ -221,12 +304,16 @@ export function PermissionsProvider({ children }) {
       isPrimaryAdmin: Boolean(user?.isPrimaryAdmin),
       permissions: user?.permissions || [],
       can,
+      canSeeColumn,
+      visibleColumns: (module, list = []) => list.filter((column) => canSeeColumn(module, column.id)),
+      columnsByModule,
+      columnRegistry: registry,
       refresh,
       // The cached session is enough to render immediately; a signed-in admin
       // never has to wait on the network to see their own navigation.
       isReady: Boolean(user)
     };
-  }, [user, refresh]);
+  }, [user, refresh, registry]);
 
   return <PermissionsContext.Provider value={value}>{children}</PermissionsContext.Provider>;
 }

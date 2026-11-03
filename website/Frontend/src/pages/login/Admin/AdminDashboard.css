@@ -1347,6 +1347,15 @@ input:checked + .adm-slider:before {
   box-shadow: 0 18px 40px -8px rgba(99, 102, 241, 0.2);
 }
 
+/* Reference-only provider cards: no pointer affordance, no lift. */
+.solution-hero-card.is-read-only,
+.solution-hero-card.is-read-only:hover {
+  cursor: default;
+  transform: none;
+  border-color: #e0edff;
+  box-shadow: var(--adm-shadow-card);
+}
+
 .solution-center-logo-box {
   width: 86px;
   height: 86px;

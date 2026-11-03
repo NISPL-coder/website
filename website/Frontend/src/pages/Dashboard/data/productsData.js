@@ -567,6 +567,58 @@ export function hydrateCatalogWithPricing(list) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   CTRL-S RATED-4 CLOUD — PER-USER SERVER CONFIGURATION MATRIX
+   Flat ₹500 per concurrent user per month; the machine grows with the user count.
+───────────────────────────────────────────────────────────────────────────── */
+export const CTRL_S_RATE_PER_USER_PER_MONTH = 500;
+
+export const CTRL_S_USER_CONFIGURATIONS = [
+  { users: 1, cpu: '2 Core', ram: '3 GB', storage: '50 GB' },
+  { users: 2, cpu: '3 Core', ram: '3 GB', storage: '50 GB' },
+  { users: 3, cpu: '4 Core', ram: '4 GB', storage: '100 GB' },
+  { users: 4, cpu: '4 Core', ram: '6 GB', storage: '100 GB' },
+  { users: 5, cpu: '4 Core', ram: '8 GB', storage: '100 GB' },
+  { users: 6, cpu: '4 Core', ram: '9 GB', storage: '100 GB' },
+  { users: 7, cpu: '4 Core', ram: '10 GB', storage: '100 GB' },
+  { users: 8, cpu: '4 Core', ram: '12 GB', storage: '100 GB' },
+  { users: 9, cpu: '4 Core', ram: '13 GB', storage: '100 GB' },
+  { users: 10, cpu: '6 Core', ram: '12 GB', storage: '100 GB' },
+  { users: 12, cpu: '8 Core', ram: '16 GB', storage: '150 GB' },
+  { users: 15, cpu: '8 Core', ram: '20 GB', storage: '150 GB' },
+  { users: 20, cpu: '8 Core', ram: '24 GB', storage: '200 GB' },
+  { users: 30, cpu: '8 Core', ram: '32 GB', storage: '300 GB' }
+];
+
+export function buildCtrlSPlans(ratePerUserPerMonth = CTRL_S_RATE_PER_USER_PER_MONTH) {
+  return CTRL_S_USER_CONFIGURATIONS.map((config) => {
+    const label = `${config.users} User${config.users > 1 ? 's' : ''}`;
+    return {
+      id: `ctrls-${config.users}-user`,
+      tier: label,
+      tierName: label,
+      users: config.users,
+      userBadge: `${config.cpu} / ${config.ram} / ${config.storage}`,
+      name: `CtrlS Cloud Server — ${label}`,
+      monthlyPrice: config.users * ratePerUserPerMonth,
+      isPopular: config.users === 5,
+      popularBadge: 'Most Popular',
+      theme: 'default',
+      specs: [
+        { label: 'CPU', value: config.cpu },
+        { label: 'RAM', value: config.ram },
+        { label: 'Storage', value: `${config.storage} SSD` },
+        { label: 'Data Transfer', value: 'Unlimited' },
+        { label: 'Dedicated IP', value: '1 IP' }
+      ],
+      features: [
+        'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy',
+        'Windows Server licence, dedicated enterprise SSD array & daily backup image'
+      ]
+    };
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    CLOUD PROVIDERS & 4-TIER PACKS (STARTER, SILVER, GOLD, PREMIUM)
 ───────────────────────────────────────────────────────────────────────────── */
 export const CLOUD_PROVIDERS = [
@@ -691,109 +743,9 @@ export const CLOUD_PROVIDERS = [
     logoType: 'ctrls',
     logo: ctrlsLogo,
     gradient: 'from-cyan-500/10 to-blue-500/10',
-    plans: [
-      {
-        id: 'ctrls-starter',
-        tier: 'Starter',
-        tierName: 'Starters',
-        userBadge: '2 + 1 FREE USER',
-        name: 'CtrlS Cloud Server — Starter Pack',
-        monthlyPrice: 999,
-        originalPrice: 1110,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'CPU', value: '2 Core' },
-          { label: 'RAM', value: '3 GB' },
-          { label: 'Storage', value: '60 GB SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' },
-          { label: 'Dedicated IP', value: '1 IP' }
-        ],
-        features: [
-          'Tier-4 CtrlS Kolkata Datacenter hosting',
-          'N+N dual power feed redundancy',
-          'Dedicated enterprise SSD storage array',
-          'Active DDoS protection and firewall'
-        ]
-      },
-      {
-        id: 'ctrls-silver',
-        tier: 'Silver',
-        tierName: 'Silver',
-        userBadge: '3 + 1 FREE USER',
-        name: 'CtrlS Cloud Server — Silver Pack',
-        monthlyPrice: 1499,
-        originalPrice: 1665,
-        discountText: 'Save 10% annually',
-        isPopular: true,
-        popularBadge: 'Most Popular',
-        theme: 'blue',
-        specs: [
-          { label: 'CPU', value: '2 Core' },
-          { label: 'RAM', value: '4 GB' },
-          { label: 'Storage', value: '60 GB SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' },
-          { label: 'Dedicated IP', value: '1 IP' }
-        ],
-        features: [
-          'Tier-4 CtrlS high compute performance',
-          'Carrier-neutral high speed network pipe',
-          'Dedicated Windows Server environment',
-          'Automated daily backup image retention'
-        ]
-      },
-      {
-        id: 'ctrls-gold',
-        tier: 'Gold',
-        tierName: 'Gold',
-        userBadge: '5 + 1 FREE USER',
-        name: 'CtrlS Cloud Server — Gold Pack',
-        monthlyPrice: 2499,
-        originalPrice: 2777,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'CPU', value: '2 Core' },
-          { label: 'RAM', value: '8 GB' },
-          { label: 'Storage', value: '100 GB SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' },
-          { label: 'Dedicated IP', value: '1 IP' }
-        ],
-        features: [
-          '8 GB ECC RAM for intensive database workloads',
-          'High IOPS enterprise NVMe/SSD cluster',
-          'Sub-2ms ultra-low latency connectivity',
-          'Dedicated SLA monitoring & instant alerts'
-        ]
-      },
-      {
-        id: 'ctrls-premium',
-        tier: 'Premium',
-        tierName: 'Premium',
-        userBadge: '10 + 2 FREE USER',
-        name: 'CtrlS Cloud Server — Premium Pack',
-        monthlyPrice: 4999,
-        originalPrice: 5554,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'gold',
-        specs: [
-          { label: 'CPU', value: '4 Core' },
-          { label: 'RAM', value: '10 GB' },
-          { label: 'Storage', value: '100 GB SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' },
-          { label: 'Dedicated IP', value: '1 IP' }
-        ],
-        features: [
-          '4 Dedicated vCPU cores with zero noisy neighbor',
-          '100 GB enterprise storage with hot snapshots',
-          'Layered military-grade perimeter security',
-          'Direct senior systems engineer hotline'
-        ]
-      }
-    ]
+    billingModel: 'per_user',
+    ratePerUserPerMonth: CTRL_S_RATE_PER_USER_PER_MONTH,
+    plans: buildCtrlSPlans()
   },
   {
     id: 'azure-cloud',

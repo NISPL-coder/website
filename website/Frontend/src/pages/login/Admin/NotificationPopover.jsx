@@ -16,11 +16,12 @@ import {
   RefreshCw,
   Clock,
   Sparkles,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from 'lucide-react';
 import './NotificationPopover.css';
 
-const formatTimeAgo = (dateStr) => {
+export const formatTimeAgo = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
@@ -41,7 +42,7 @@ const formatTimeAgo = (dateStr) => {
   });
 };
 
-const getNotificationMeta = (item) => {
+export const getNotificationMeta = (item) => {
   const type = item.type || 'system';
 
   switch (type) {
@@ -78,6 +79,24 @@ const getNotificationMeta = (item) => {
         badge: 'Renewal Due',
         badgeClass: 'adm-notif-tag-amber'
       };
+    case 'payment_due_soon':
+    case 'payment_due':
+      return {
+        icon: AlertTriangle,
+        color: '#f97316',
+        bg: '#fff7ed',
+        badge: 'Payment Due Soon',
+        badgeClass: 'adm-notif-tag-amber'
+      };
+    case 'customer_query':
+    case 'support_ticket':
+      return {
+        icon: MessageSquare,
+        color: '#0284c7',
+        bg: '#f0f9ff',
+        badge: 'Customer Query',
+        badgeClass: 'adm-notif-tag-cyan'
+      };
     case 'customer_created':
       return {
         icon: UserPlus,
@@ -85,6 +104,23 @@ const getNotificationMeta = (item) => {
         bg: '#eff6ff',
         badge: 'Customer Created',
         badgeClass: 'adm-notif-tag-customer'
+      };
+    case 'customer_registered':
+      return {
+        icon: UserPlus,
+        color: '#2563eb',
+        bg: '#eff6ff',
+        badge: 'Customer Registered',
+        badgeClass: 'adm-notif-tag-customer'
+      };
+    case 'admin_created':
+    case 'staff_created':
+      return {
+        icon: UserCheck,
+        color: '#6366f1',
+        bg: '#eef2ff',
+        badge: 'Staff Account',
+        badgeClass: 'adm-notif-tag-purple'
       };
     case 'customer_updated':
       return {
@@ -157,6 +193,8 @@ export default function NotificationPopover({
   onDelete,
   onClearAll,
   onRefresh,
+  onOpenItem,
+  onViewAll,
   isLoading = false
 }) {
   const popoverRef = useRef(null);
@@ -195,7 +233,7 @@ export default function NotificationPopover({
       case 'contract':
         return notifications.filter((n) => (n.type || '').includes('contract') && n.type !== 'contract_renewal');
       case 'renewal':
-        return notifications.filter((n) => n.type === 'contract_renewal' || (n.title || '').toLowerCase().includes('renewal'));
+        return notifications.filter((n) => n.type === 'contract_renewal' || n.type === 'payment_due_soon' || n.type === 'payment_due' || (n.title || '').toLowerCase().includes('renewal') || (n.title || '').toLowerCase().includes('due'));
       default:
         return notifications;
     }
@@ -332,8 +370,12 @@ export default function NotificationPopover({
             return (
               <div
                 key={item._id || item.id}
-                className={`adm-notif-item ${!item.read ? 'is-unread' : ''}`}
+                className={`adm-notif-item ${!item.read ? 'is-unread' : ''} ${onOpenItem ? 'is-openable' : ''}`}
                 onClick={() => {
+                  if (onOpenItem) {
+                    onOpenItem(item);
+                    return;
+                  }
                   if (!item.read && onMarkAsRead) {
                     onMarkAsRead(item._id || item.id);
                   }
@@ -445,6 +487,19 @@ export default function NotificationPopover({
         <span className="adm-notif-footer-text">
           <Clock size={12} /> Live stream: Customer, Contract, Payment & Renewal events
         </span>
+
+        {onViewAll && (
+          <button
+            type="button"
+            className="adm-notif-view-all"
+            onClick={() => {
+              onClose();
+              onViewAll();
+            }}
+          >
+            View all
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,12 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, Menu, X, ShieldAlert } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  ShieldAlert,
+  LayoutDashboard,
+  Users,
+  FileText,
+  CreditCard,
+  Package,
+  ReceiptText,
+  FileUp,
+  RefreshCw,
+  UserCheck,
+  Activity,
+  Bell
+} from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
-import './AdminDashboard.css';
+
+// Shared console chrome (header + navigation rail + notification bell)
+import ConsoleShell from './ConsoleShell';
 
 // Components & Modular Sections
-import AdminSidebar from './AdminSidebar';
 import OverviewSection from './OverviewSection';
 import CustomerSection from './CustomerSection';
 import ContractSection from './ContractSection';
@@ -15,6 +28,7 @@ import ProductSection from './ProductSection';
 import ReceiptSection from './ReceiptSection';
 import UserAccessSection from './UserAccessSection';
 import ActivityLogsSection from './ActivityLogsSection';
+import NotificationsSection from './NotificationsSection';
 
 // Dedicated Separate Create Pages (Replacing Modals with /create URLs)
 import CreateCustomerPage from './CreateCustomerPage';
@@ -22,13 +36,11 @@ import CreateContractPage from './CreateContractPage';
 import CreatePaymentPage from './CreatePaymentPage';
 import CreateProductPage from './CreateProductPage';
 
-// Admin Tools: Profile Menu, Profile Page, CSV Import & Sangam CRM Sync
-import AdminProfileMenu from './AdminProfileMenu';
+// Admin Tools: Profile Page, CSV Import & Sangam CRM Sync
 import ProfilePage from './ProfilePage';
 import ImportCsvPage from './ImportCsvPage';
 import SangamSyncPage from './SangamSyncPage';
 import { authApi } from '../../../services/authApi';
-import './AdminTools.css';
 
 // Initial Datasets
 import {
@@ -40,8 +52,9 @@ import {
 } from './adminData';
 import { customerApi } from '../../../services/customerApi';
 import { notificationApi } from '../../../services/notificationApi';
-import NotificationPopover from './NotificationPopover';
 import { contractApi } from '../../../services/contractApi';
+import { paymentApi } from '../../../services/paymentApi';
+import { productApi } from '../../../services/productApi';
 import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
 
 // Which permission module unlocks each admin view
@@ -107,12 +120,7 @@ export default function AdminDashboard(props) {
 function AdminDashboardShell({ userSession, onSignOut }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { can, isReady } = usePermissions();
-
-  // Desktop sidebar collapsed state
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  // Mobile drawer open state
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { can, isReady, user: liveUser } = usePermissions();
 
   // Derive active view from current URL pathname
   const activeNav = useMemo(() => {
@@ -122,6 +130,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (path === '/admin/customer' || path.startsWith('/admin/customer')) return 'customer';
     if (path.includes('/admin/user-access') || path.includes('/admin/staff')) return 'user-access';
     if (path.includes('/admin/activity-logs') || path.includes('/admin/activity_logs')) return 'activity-logs';
+    if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
     if (path.includes('/admin/profile')) return 'profile';
@@ -162,26 +171,11 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (target) navigate(target[1], { replace: true });
   }, [isReady, can, location.pathname, navigate]);
 
-  // Customer parent menu expandable state
-  const isCustomerRelated =
-    activeNav === 'customer' || activeNav === 'contract' || activeNav === 'payment';
-  const [isCustomerOpen, setIsCustomerOpen] = useState(() => isCustomerRelated);
-
-  // Automatically expand Customer submenu when child route or customer page is active
-  useEffect(() => {
-    if (isCustomerRelated) {
-      setIsCustomerOpen(true);
-    }
-  }, [isCustomerRelated]);
-
   // Global search & refresh states
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Close the mobile drawer whenever the route changes
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [location.pathname]);
+  // Bumped after a manual sync so the shell's bell re-reads the live stream.
+  const [notifRefreshKey, setNotifRefreshKey] = useState(0);
 
   // Handle removed receipt/product create page redirects
   useEffect(() => {
@@ -193,26 +187,6 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     }
   }, [location.pathname, navigate]);
 
-  // Close the mobile drawer on Escape key press
-  useEffect(() => {
-    if (!isMobileOpen) return undefined;
-    const handleKey = (e) => {
-      if (e.key === 'Escape') setIsMobileOpen(false);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [isMobileOpen]);
-
-  // Prevent background scrolling while the mobile drawer is open
-  useEffect(() => {
-    if (!isMobileOpen) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isMobileOpen]);
-
   // Persistent Datasets in State
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
   const [customerStats, setCustomerStats] = useState(null);
@@ -221,47 +195,53 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [receipts, setReceipts] = useState(INITIAL_RECEIPTS);
 
-  // Live Notifications State
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isNotifLoading, setIsNotifLoading] = useState(false);
-
-  const loadNotifications = React.useCallback(async () => {
-    try {
-      setIsNotifLoading(true);
-      const data = await notificationApi.getNotifications();
-      if (data && Array.isArray(data.notifications)) {
-        setNotifications(data.notifications);
-        setUnreadCount(typeof data.unreadCount === 'number' ? data.unreadCount : 0);
-      }
-    } catch (err) {
-      console.warn('Failed to load notifications:', err);
-    } finally {
-      setIsNotifLoading(false);
-    }
-  }, []);
-
+  // Dynamic Customer Payment Due Date Check: generates notification if payment is coming soon or pending
   useEffect(() => {
-    loadNotifications();
-    const timer = setInterval(loadNotifications, 25000);
+    if (!payments || !payments.length) return;
+    const now = new Date();
 
-    // Listen to real-time notification events dispatched across the app
-    const handleNewNotif = (event) => {
-      if (event.detail) {
-        const notif = event.detail;
-        setNotifications((prev) => [notif, ...prev.filter((n) => (n._id || n.id) !== (notif._id || notif.id))]);
-        setUnreadCount((prev) => prev + 1);
+    payments.forEach((p) => {
+      const expDateStr = p.expectedPaymentDate || p.dueDate;
+      const isPending = p.status === 'Pending' || p.status === 'Overdue';
+      let isComingSoon = false;
+
+      if (expDateStr) {
+        const expDate = new Date(expDateStr);
+        if (!isNaN(expDate.getTime())) {
+          const daysRemaining = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+          // If due within next 14 days or due today/overdue
+          if (daysRemaining <= 14) {
+            isComingSoon = true;
+          }
+        }
       }
-    };
 
-    window.addEventListener('nispl_new_notification', handleNewNotif);
-
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('nispl_new_notification', handleNewNotif);
-    };
-  }, [loadNotifications]);
+      if (isComingSoon || isPending) {
+        const dueId = `payment_due_${p.id || p.invoiceNumber || p.invoiceRef}`;
+        // The backend treats entityId as an idempotency key, so re-raising a due
+        // payment on the next poll cannot flood the stream with duplicates.
+        notificationApi.createNotification({
+          type: 'payment_due_soon',
+          title: 'Customer Payment Due Soon',
+          message: `Customer payment of ${p.pendingPayment || p.receivedAmount || p.amount || 'dues'} from ${p.accountName || p.company || p.customer || 'Customer'} is due on ${expDateStr || 'upcoming billing cycle'}.`,
+          severity: 'warning',
+          entityType: 'payment',
+          entityId: dueId,
+          user: {
+            name: p.name || p.customer,
+            company: p.accountName || p.company
+          },
+          metadata: {
+            paymentId: p.id,
+            invoiceNumber: p.invoiceNumber || p.invoiceRef,
+            expectedPaymentDate: expDateStr,
+            amount: p.pendingPayment || p.amount,
+            status: p.status
+          }
+        });
+      }
+    });
+  }, [payments]);
 
   // Dynamic Contract Renewal Check: generates renewal notifications for expiring agreements
   useEffect(() => {
@@ -282,62 +262,28 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
       if (isExpiringStatus || isNearExpiry) {
         const renewalId = `renewal_${c.id || c.contractCode || c._id}`;
-        const stored = localStorage.getItem('nispl_admin_notifications_store') || '';
-        if (!stored.includes(renewalId)) {
-          notificationApi.createNotification({
-            type: 'contract_renewal',
-            title: 'Contract Renewal Due',
-            message: `Contract "${c.name || c.contractCode}" for ${c.company} is due for renewal on ${c.expiryDate || 'upcoming cycle'}.`,
-            severity: 'warning',
-            entityType: 'contract',
-            entityId: renewalId,
-            user: {
-              name: c.customer || c.primaryContact?.name || c.company,
-              company: c.company,
-              email: c.email || c.primaryContact?.email
-            },
-            metadata: {
-              contractCode: c.contractCode || c.id,
-              expiryDate: c.expiryDate,
-              serviceTier: c.serviceTier || c.tier,
-              value: c.contractValue
-            }
-          });
-        }
+        notificationApi.createNotification({
+          type: 'contract_renewal',
+          title: 'Contract Renewal Due',
+          message: `Contract "${c.name || c.contractCode}" for ${c.company} is due for renewal on ${c.expiryDate || 'upcoming cycle'}.`,
+          severity: 'warning',
+          entityType: 'contract',
+          entityId: renewalId,
+          user: {
+            name: c.customer || c.primaryContact?.name || c.company,
+            company: c.company,
+            email: c.email || c.primaryContact?.email
+          },
+          metadata: {
+            contractCode: c.contractCode || c.id,
+            expiryDate: c.expiryDate,
+            serviceTier: c.serviceTier || c.tier,
+            value: c.contractValue
+          }
+        });
       }
     });
   }, [contracts]);
-
-  const handleMarkAsRead = async (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === id || n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-    await notificationApi.markAsRead(id);
-  };
-
-  const handleMarkAllAsRead = async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    setUnreadCount(0);
-    toast.success('All notifications marked as read');
-    await notificationApi.markAllAsRead();
-  };
-
-  const handleDeleteNotif = async (id) => {
-    const target = notifications.find((n) => n._id === id || n.id === id);
-    setNotifications((prev) => prev.filter((n) => n._id !== id && n.id !== id));
-    if (target && !target.read) {
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    }
-    await notificationApi.deleteNotification(id);
-  };
-
-  const handleClearAllNotif = async () => {
-    setNotifications([]);
-    setUnreadCount(0);
-    toast.success('All notifications cleared');
-    await notificationApi.clearAll();
-  };
 
   // Load live customers & contracts with Sangam CRM synchronization status from backend
   useEffect(() => {
@@ -359,6 +305,19 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         }
       });
     }
+    if (can('payment', 'view')) {
+      paymentApi.getPayments().then((data) => {
+        if (isMounted && data && Array.isArray(data) && data.length) {
+          setPayments(data);
+        }
+      });
+    }
+    // Load live product catalog from database
+    productApi.getProducts().then((data) => {
+      if (isMounted && data && Array.isArray(data) && data.length) {
+        setProducts(data);
+      }
+    });
     return () => {
       isMounted = false;
     };
@@ -369,6 +328,106 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     userSession?.name || currentUser?.name || userSession?.user || 'NISPL Administrator';
   const adminEmail =
     userSession?.email || currentUser?.email || userSession?.user || 'admin@netinfotechsystem.in';
+  // liveUser is the /users/me response, so a role change shows up without a sign-out.
+  const adminRole = liveUser?.role || currentUser?.role || userSession?.role || '';
+  const adminIsPrimaryAdmin = Boolean(
+    liveUser?.isPrimaryAdmin ?? currentUser?.isPrimaryAdmin ?? userSession?.isPrimaryAdmin
+  );
+
+  // The full stream page is an administrator tool, not an RBAC module.
+  const isAdminPortal = adminRole === 'admin';
+
+  // The bell owns the unread count; the navigation rail mirrors it.
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  useEffect(() => {
+    const handleUnread = (event) => setUnreadNotifCount(event.detail?.count || 0);
+    window.addEventListener('nispl_unread_notifications', handleUnread);
+    return () => window.removeEventListener('nispl_unread_notifications', handleUnread);
+  }, []);
+
+  // Notification the bell deep-linked us to, if any
+  const focusNotificationId = useMemo(
+    () => new URLSearchParams(location.search).get('focus') || '',
+    [location.search]
+  );
+
+  // Navigation rail — only the modules this account has actually been granted.
+  const navItems = useMemo(() => {
+    const items = [];
+
+    if (can('overview')) {
+      items.push({ id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/admin/overview' });
+    }
+
+    const canCustomer = can('customer');
+    const canContract = can('contract');
+    const canPayment = can('payment');
+    if (canCustomer || canContract || canPayment) {
+      const submenu = [];
+      if (canContract) {
+        submenu.push({ id: 'contract', label: 'Contract', icon: FileText, path: '/admin/customer/contract', title: 'Customer Contracts' });
+      }
+      if (canPayment) {
+        submenu.push({ id: 'payment', label: 'Payment', icon: CreditCard, path: '/admin/customer/payment', title: 'Customer Payments' });
+      }
+      items.push({
+        id: 'customer',
+        label: 'Customer',
+        icon: Users,
+        title: 'Customer Listing & Management',
+        // A manager granted only a child module still needs a working parent entry
+        path: canCustomer ? '/admin/customer' : canContract ? '/admin/customer/contract' : '/admin/customer/payment',
+        submenu: submenu.length ? submenu : undefined
+      });
+    }
+
+    if (can('product')) {
+      items.push({ id: 'product', label: 'Product', icon: Package, path: '/admin/product', title: 'Product Catalog & Availability' });
+    }
+    if (can('receipt')) {
+      items.push({ id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/admin/receipt', title: 'Payment Receipts' });
+    }
+
+    const canImportCsv = can('import_csv') || can('data_tools');
+    const canSangamSync = can('sangam_sync') || can('data_tools');
+    if (canImportCsv) {
+      items.push({ id: 'import-csv', group: 'Data Tools', label: 'Import CSV', icon: FileUp, path: '/admin/import-csv', title: 'Bulk Import Customers via CSV' });
+    }
+    if (canSangamSync) {
+      items.push({ id: 'sangam-sync', group: canImportCsv ? undefined : 'Data Tools', label: 'Sangam Sync', icon: RefreshCw, path: '/admin/sangam-sync', title: 'Sangam CRM Synchronization Status' });
+    }
+
+    const canUserAccess = can('user_access');
+    const canActivityLogs = can('activity_logs');
+    if (canUserAccess) {
+      items.push({ id: 'user-access', group: 'Administration', label: 'User Access', icon: UserCheck, path: '/admin/user-access', title: 'User Access & Staff Permissions' });
+    }
+    if (canActivityLogs) {
+      items.push({ id: 'activity-logs', group: canUserAccess ? undefined : 'Administration', label: 'Activity Logs', icon: Activity, path: '/admin/activity-logs', title: 'Admin Activity Logs & Audit Trail' });
+    }
+    if (isAdminPortal) {
+      items.push({
+        id: 'notifications',
+        group: canUserAccess || canActivityLogs ? undefined : 'Administration',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/admin/notifications',
+        badge: unreadNotifCount,
+        title: 'Full Notification Stream & Event Details'
+      });
+    }
+
+    return items;
+  }, [can, isAdminPortal, unreadNotifCount]);
+
+  const sidebarEmptyNote =
+    !can('user_access') &&
+    !can('activity_logs') &&
+    !can('import_csv') &&
+    !can('sangam_sync') &&
+    !can('data_tools')
+      ? 'No modules have been granted to your account yet.'
+      : '';
 
   // Manual Refresh Telemetry & Sangam CRM Sync
   const handleRefresh = async () => {
@@ -387,7 +446,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
       if (liveContracts && Array.isArray(liveContracts)) {
         setContracts(liveContracts);
       }
-      loadNotifications();
+      setNotifRefreshKey((prev) => prev + 1);
       toast.success('Live administrative records & Sangam CRM telemetry synchronized!', {
         style: {
           borderRadius: '12px',
@@ -404,111 +463,28 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   };
 
   return (
-    <div className="adm-dashboard-viewport">
+    <>
       <Toaster position="top-right" />
 
-      {/* =========================================================================
-         TOP FIXED NAVBAR / HEADER (Aligned with 260px Sidebar)
-         ========================================================================= */}
-      <header className="adm-header">
-        {/* Left Brand Area — Exactly 260px wide (matching sidebar right border) */}
-        <div className={`adm-header-left ${isCollapsed ? 'collapsed' : ''}`}>
-          <button
-            type="button"
-            className="adm-mobile-menu-btn"
-            onClick={() => setIsMobileOpen(!isMobileOpen)}
-            aria-label="Toggle Navigation Drawer"
-          >
-            {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-
-          <Link to="/admin/overview" className="adm-brand-link" title="Net Infotech System">
-            <img src={logoImg} alt="NISPL Cloud Tech" className="adm-brand-logo" />
-            </Link>
-        </div>
-
-        {/* Header Main Bar — Starts at 260px, perfectly aligned with the main content below */}
-        <div className="adm-header-main">
-          {/* Center Search & Live NOC Heartbeat */}
-          <div className="adm-header-center">
-            <div className="adm-search-box">
-              <Search size={16} className="adm-search-icon" />
-              <input
-                type="text"
-                placeholder="Search contracts, payments, products, receipts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="adm-search-input"
-              />
-            </div>
-
-          </div>
-
-          {/* Right Actions */}
-          <div className="adm-header-right">
-
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className={`adm-header-icon-btn ${isNotifOpen ? 'is-active' : ''}`}
-                title="Notifications & Activity Stream"
-                onClick={() => setIsNotifOpen((prev) => !prev)}
-                aria-expanded={isNotifOpen}
-              >
-                <Bell size={17} />
-                {unreadCount > 0 && (
-                  <span className="adm-badge-count">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                )}
-              </button>
-
-              <NotificationPopover
-                isOpen={isNotifOpen}
-                onClose={() => setIsNotifOpen(false)}
-                notifications={notifications}
-                unreadCount={unreadCount}
-                onMarkAsRead={handleMarkAsRead}
-                onMarkAllAsRead={handleMarkAllAsRead}
-                onDelete={handleDeleteNotif}
-                onClearAll={handleClearAllNotif}
-                onRefresh={loadNotifications}
-                isLoading={isNotifLoading}
-              />
-            </div>
-
-            <AdminProfileMenu name={adminName} email={adminEmail} onSignOut={onSignOut} />
-          </div>
-        </div>
-      </header>
-
-      {/* =========================================================================
-         BODY LAYOUT: SIDEBAR + MAIN SECTION CONTENT
-         ========================================================================= */}
-      <div className="adm-body-wrapper">
-        {/* Modular Sidebar Component */}
-        <AdminSidebar
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          isMobileOpen={isMobileOpen}
-          setIsMobileOpen={setIsMobileOpen}
-          isCustomerOpen={isCustomerOpen}
-          setIsCustomerOpen={setIsCustomerOpen}
-          activeNav={activeNav}
-          adminName={adminName}
-          adminEmail={adminEmail}
-          onSignOut={onSignOut}
-        />
-
-        {/* Mobile Drawer Backdrop — closes the off-canvas sidebar on tap */}
-        {isMobileOpen && (
-          <div
-            className="adm-mobile-backdrop"
-            onClick={() => setIsMobileOpen(false)}
-            aria-hidden="true"
-          />
-        )}
-
-        {/* Main Routed View Container */}
-        <main className="adm-main-content">
+      <ConsoleShell
+        brandTo="/admin/overview"
+        searchPlaceholder="Search contracts, payments, products, receipts..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        navItems={navItems}
+        activeNav={activeNav}
+        sidebarAriaLabel="Admin Navigation Hierarchy"
+        sidebarEmptyNote={sidebarEmptyNote}
+        notificationsPath={isAdminPortal ? '/admin/notifications' : undefined}
+        profile={{
+          name: adminName,
+          email: adminEmail,
+          role: adminRole,
+          isPrimaryAdmin: adminIsPrimaryAdmin
+        }}
+        onSignOut={onSignOut}
+        refreshKey={notifRefreshKey}
+      >
           {/* 1. DEDICATED SEPARATE /CREATE PAGES */}
           {blockedCreate ? (
             <NoAccessCard moduleName={createModule} action="create" target={allowedTarget} />
@@ -632,10 +608,25 @@ function AdminDashboardShell({ userSession, onSignOut }) {
               {activeNav === 'activity-logs' && (
                 <ActivityLogsSection />
               )}
+
+              {activeNav === 'notifications' &&
+                (isAdminPortal ? (
+                  <NotificationsSection focusId={focusNotificationId} />
+                ) : (
+                  <div className="adm-noaccess">
+                    <div className="adm-noaccess-icon">
+                      <ShieldAlert size={26} />
+                    </div>
+                    <h3>Administrators only</h3>
+                    <p>
+                      The complete notification stream is available to administrator accounts. Staff
+                      roles keep their filtered alerts in the header bell.
+                    </p>
+                  </div>
+                ))}
             </>
             ))}
-        </main>
-      </div>
-    </div>
+      </ConsoleShell>
+    </>
   );
 }

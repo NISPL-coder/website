@@ -382,3 +382,37 @@ html {
   opacity: 1;
   transform: translateY(0) translateX(0) scale(1);
 }
+
+/* Password fields that ship their own reveal button must not also show the
+   browser-painted one, or the input renders two eye icons. Each pseudo-element
+   gets its own rule because an engine that does not recognise one of them drops
+   the entire selector list it appears in. */
+.ebolt-input-wrap:has(.ebolt-eye-toggle) .ebolt-input::-ms-reveal,
+.cust-input-wrapper:has(.cust-password-toggle) .cust-text-input::-ms-reveal,
+.portal-input-wrapper:has(.portal-toggle-pwd) .portal-input::-ms-reveal {
+  display: none !important;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.ebolt-input-wrap:has(.ebolt-eye-toggle) .ebolt-input::-ms-clear,
+.cust-input-wrapper:has(.cust-password-toggle) .cust-text-input::-ms-clear,
+.portal-input-wrapper:has(.portal-toggle-pwd) .portal-input::-ms-clear {
+  display: none !important;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.ebolt-input-wrap:has(.ebolt-eye-toggle) .ebolt-input::-webkit-credentials-auto-fill-button,
+.cust-input-wrapper:has(.cust-password-toggle) .cust-text-input::-webkit-credentials-auto-fill-button,
+.portal-input-wrapper:has(.portal-toggle-pwd) .portal-input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}

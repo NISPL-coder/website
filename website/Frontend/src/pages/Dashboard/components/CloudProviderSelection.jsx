@@ -84,6 +84,10 @@ function AzureIcon({ size = 44, className = '' }) {
   );
 }
 
+// Only CtrlS is transactable today; the hyperscale cards stay visible for
+// reference until their catalog is live, so they must not open a plans view.
+export const READ_ONLY_CLOUD_PROVIDERS = ['aws-cloud', 'azure-cloud'];
+
 export default function CloudProviderSelection({ onSelectProvider, onBack }) {
   const providers = [
     {
@@ -93,7 +97,6 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
       logoType: 'aws',
       badge: 'Hyperscale Cloud',
       badgeClass: 'amber',
-      exploreText: 'Explore AWS Plans',
       highlights: ['Dedicated vCPU Xeon Compute', 'Auto-Scaling EC2 Instances', '99.99% Global High Availability']
     },
     {
@@ -113,7 +116,6 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
       logoType: 'azure',
       badge: 'Hyperscale Cloud',
       badgeClass: 'indigo',
-      exploreText: 'Explore Azure Plans',
       highlights: ['Azure Virtual Windows Desktops', 'Microsoft Enterprise Security SLA', 'Instant Automated Backup Sync']
     }
   ];
@@ -142,22 +144,25 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
 
       {/* ── 2. 3 Provider Cards (FlowMail Card Theme) ────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-        {providers.map((p) => (
+        {providers.map((p) => {
+          const isReadOnly = READ_ONLY_CLOUD_PROVIDERS.includes(p.id);
+          return (
           <div
             key={p.id}
-            role="button"
-            tabIndex={0}
+            role={isReadOnly ? 'group' : 'button'}
+            tabIndex={isReadOnly ? -1 : 0}
             className="flowmail-card flowmail-provider-box"
-            onClick={() => onSelectProvider(p.id)}
+            onClick={isReadOnly ? undefined : () => onSelectProvider(p.id)}
             onKeyDown={(e) => {
+              if (isReadOnly) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onSelectProvider(p.id);
               }
             }}
-            aria-label={`Select ${p.name}`}
+            aria-label={isReadOnly ? `${p.name} - coming soon` : `Select ${p.name}`}
             style={{
-              cursor: 'pointer',
+              cursor: isReadOnly ? 'default' : 'pointer',
               padding: '32px 26px',
               display: 'flex',
               flexDirection: 'column',
@@ -211,15 +216,23 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
             <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
-                className="flowmail-btn-primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '10px 18px' }}
+                className={isReadOnly ? 'flowmail-btn-secondary' : 'flowmail-btn-primary'}
+                disabled={isReadOnly}
+                title={isReadOnly ? 'Not available for ordering yet' : undefined}
+                style={{
+                  width: '100%',
+                  justifyContent: 'center',
+                  padding: '10px 18px',
+                  ...(isReadOnly ? { opacity: 0.6, cursor: 'not-allowed' } : null)
+                }}
               >
-                <span>{p.exploreText}</span>
-                <ArrowRight size={15} />
+                <span>{isReadOnly ? 'Coming soon' : p.exploreText}</span>
+                {!isReadOnly && <ArrowRight size={15} />}
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

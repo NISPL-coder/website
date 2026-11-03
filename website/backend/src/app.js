@@ -12,6 +12,11 @@ import contractRoutes from './routes/contractRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import activityLogRoutes from './routes/activityLogRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import permissionRoutes from './routes/permissionRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
@@ -39,7 +44,17 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    // Sent by the portal services; omitting these makes the browser block the preflight
+    'X-Session-Id',
+    'X-User-Role',
+    'X-Refreshed-Token'
+  ]
 }));
 app.options('*', cors());
 app.use(express.json({ limit: '1mb' }));
@@ -78,6 +93,16 @@ app.use('/api/v1/staff', staffRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/v1/activity-logs', activityLogRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/v1/cart', cartRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/v1/permissions', permissionRoutes);
+app.use('/api/permissions', permissionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

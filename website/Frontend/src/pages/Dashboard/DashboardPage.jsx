@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import DashboardSidebar from '../login/customer/sidebar';
-import DashboardNavbar from './components/DashboardNavbar';
+import { Toaster, toast } from 'react-hot-toast';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  ReceiptText,
+  LifeBuoy
+} from 'lucide-react';
+import ConsoleShell from '../login/Admin/ConsoleShell';
+import ProfilePage from '../login/Admin/ProfilePage';
 import CloudPortalOverview from '../login/customer/overview';
-import CustomerProfileCard from './components/CustomerProfileCard';
-import DashboardStats from './components/DashboardStats';
-import CloudInstancesSection from './components/CloudInstancesSection';
 import ProductsSection from '../login/customer/product';
 import CartSection from '../login/customer/cart';
 import PaymentSection from './components/PaymentSection';
@@ -17,18 +21,8 @@ import { useRenewalToasts } from './components/RemindersPanel';
 import { customerAuthService } from '../CustomerRegister/services/customerAuthService';
 import { authApi } from '../../services/authApi';
 import { cartApi } from '../../services/cartApi';
-import { INITIAL_NOTIFICATIONS, INITIAL_INVOICES } from './data/mockDashboardData';
+import { INITIAL_INVOICES } from './data/mockDashboardData';
 import './Dashboard.css';
-
-const PATH_TO_NAV = {
-  '/customer/overview': 'overview',
-  '/customer/product': 'products',
-  '/customer/products': 'products',
-  '/customer/cart': 'cart',
-  '/customer/receipt': 'receipt',
-  '/customer/payment': 'payment',
-  '/customer/help': 'help'
-};
 
 const NAV_TO_PATH = {
   overview: '/customer/overview',
@@ -36,7 +30,8 @@ const NAV_TO_PATH = {
   cart: '/customer/cart',
   receipt: '/customer/receipt',
   payment: '/customer/payment',
-  help: '/customer/help'
+  help: '/customer/help',
+  profile: '/customer/profile'
 };
 
 export default function DashboardPage({ onSignOut: propOnSignOut }) {
@@ -49,14 +44,13 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     if (pathname.includes('/customer/receipt')) return 'receipt';
     if (pathname.includes('/customer/payment')) return 'payment';
     if (pathname.includes('/customer/help')) return 'help';
+    if (pathname.includes('/customer/profile')) return 'profile';
     return 'overview';
   };
 
   // State
   const [customer, setCustomer] = useState(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
+
   // Options: 'overview' | 'products' | 'payment' | 'cart' | 'receipt'
   const [activeNav, setActiveNav] = useState(() => getNavFromPath(location.pathname));
 
@@ -64,18 +58,11 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     setActiveNav(getNavFromPath(location.pathname));
   }, [location.pathname]);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
-  const [notifications] = useState(INITIAL_NOTIFICATIONS);
+  const [searchTerm, setSearchTerm] = useState('');
   const [receipts, setReceipts] = useState(INITIAL_INVOICES);
 
-  // Cart State (Backed by live API)
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 'prod-tss-single',
-      name: 'TSS Renewal (Single User)',
-      basePrice: 4500,
-      quantity: 1
-    }
-  ]);
+  // Cart mirrors the backend cart for this account
+  const [cartItems, setCartItems] = useState([]);
   const [fulfillmentMode, setFulfillmentMode] = useState('digital');
 
   // Load active customer session and sync initial cart from backend API
@@ -111,11 +98,16 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
   const handleSelectNav = (navId) => {
     setActiveNav(navId);
-    setIsMobileSidebarOpen(false);
     const targetPath = NAV_TO_PATH[navId];
     if (targetPath && location.pathname !== targetPath) {
       navigate(targetPath);
     }
+  };
+
+  // The header search filters the solution catalogue, so it pulls the user there.
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    if (value && activeNav !== 'products') handleSelectNav('products');
   };
 
   const handleSignOut = () => {
@@ -151,8 +143,11 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
       if (updated?.items) {
         setCartItems(updated.items);
       }
+      // The customer asked for the cart immediately after adding
+      handleSelectNav('cart');
     } catch (e) {
       console.warn('Add to cart API sync fallback:', e);
+      toast.error('Cart service unreachable — the item is held locally until the API is back.');
     }
   };
 
@@ -220,8 +215,19 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   );
   const payableAmount = subtotal > 0 ? Math.round(subtotal * 1.18) : 5310;
 
+  const navItems = useMemo(
+    () => [
+      { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/customer/overview' },
+      { id: 'products', label: 'Products', icon: Package, path: '/customer/product' },
+      { id: 'cart', label: 'Cart', icon: ShoppingCart, path: '/customer/cart', badge: cartItems.length },
+      { id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/customer/receipt' },
+      { id: 'help', label: 'Help Center', icon: LifeBuoy, path: '/customer/help', group: 'Support' }
+    ],
+    [cartItems.length]
+  );
+
   return (
-    <div className="cust-dash-layout">
+    <>
       {/* React Hot Toast — positioned top-right, wide enough for renewal cards */}
       <Toaster
         position="top-right"
@@ -232,41 +238,24 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           }
         }}
       />
-      {/* 1. Left Sidebar Navigation - ONLY: Overview, Products, Payment, Cart, Receipt */}
-      <DashboardSidebar
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+
+      <ConsoleShell
+        brandTo="/customer/overview"
+        searchPlaceholder="Search products, plans, receipts..."
+        searchValue={searchTerm}
+        onSearchChange={handleSearchChange}
+        navItems={navItems}
         activeNav={activeNav}
-        onSelectNav={handleSelectNav}
+        onNavigate={(item) => handleSelectNav(item.id)}
+        sidebarAriaLabel="Customer Portal Navigation"
+        profile={{
+          name: customer?.name || 'NISPL Customer',
+          email: customer?.email || '',
+          role: customer?.role || 'customer',
+          profilePath: '/customer/profile'
+        }}
         onSignOut={handleSignOut}
-        customer={customer}
-        cartCount={cartItems.length}
-        isMobileOpen={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
-      />
-
-      {/* Mobile Drawer Backdrop */}
-      {isMobileSidebarOpen && (
-        <div
-          className="cliento-sidebar-mobile-backdrop"
-          onClick={() => setIsMobileSidebarOpen(false)}
-          aria-label="Close sidebar backdrop"
-        />
-      )}
-
-      {/* 2. Main Content Area */}
-      <div className="cust-dash-main-area">
-        {/* Top Navbar */}
-        <DashboardNavbar
-          customer={customer}
-          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          notifications={notifications}
-          onSignOut={handleSignOut}
-          activeNav={activeNav}
-        />
-
-        {/* Dashboard Dynamic Tab Contents */}
-        <main className="cust-dash-content-body animate-fade-in">
+      >
           {/* TAB 1: OVERVIEW */}
           {activeNav === 'overview' && (
             <CloudPortalOverview
@@ -282,6 +271,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
                 onAddToCart={handleAddToCart}
                 onGoToCart={() => handleSelectNav('cart')}
                 cartItemIds={cartItems.map((c) => c.id)}
+                externalSearch={searchTerm}
               />
             </div>
           )}
@@ -327,8 +317,15 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               <HelpSection customer={customer} />
             </div>
           )}
-        </main>
-      </div>
+          {/* TAB 7: PROFILE (same account page the console uses) */}
+          {activeNav === 'profile' && (
+            <ProfilePage
+              adminName={customer?.name}
+              adminEmail={customer?.email}
+              portalName="NISPL Customer Portal"
+            />
+          )}
+      </ConsoleShell>
 
       {/* Support & Inquiry Modal */}
       <SupportTicketModal
@@ -336,6 +333,6 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
         onClose={() => setIsSupportModalOpen(false)}
         customer={customer}
       />
-    </div>
+    </>
   );
 }
