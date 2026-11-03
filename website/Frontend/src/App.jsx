@@ -7,15 +7,16 @@ import NetworkBackground from './components/background/NetworkBackground';
 import SEOManager from './components/SEO/SEOManager';
 import './App.css';
 
-// Safe lazy-loader that gracefully reloads if a stale chunk hash fails after a new deployment
+// Safe lazy-loader that gracefully reloads if a stale chunk hash fails after a new deployment.
+// Shares the guard key with the bootstrap script in index.html so one tab reloads at most once.
 function lazyWithRetry(componentImport) {
   return lazy(async () => {
     try {
       return await componentImport();
     } catch (error) {
-      const pageHasRefreshed = sessionStorage.getItem('chunk_retry_refreshed');
+      const pageHasRefreshed = sessionStorage.getItem('nispl_asset_reload');
       if (!pageHasRefreshed) {
-        sessionStorage.setItem('chunk_retry_refreshed', 'true');
+        sessionStorage.setItem('nispl_asset_reload', '1');
         window.location.reload();
         return { default: () => null };
       }

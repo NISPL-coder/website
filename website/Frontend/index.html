@@ -56,8 +56,35 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
     <meta name="theme-color" content="#060911" />
 
-    <!-- Preload Critical LCP Brand Logo -->
-    <link rel="preload" as="image" href="/logo.webp" type="image/webp" fetchpriority="high" />
+    <!-- A deploy deletes the hashed chunks an already-open tab is referencing, and the
+         SPA fallback answers those requests with index.html, which the browser refuses
+         as a module. Reload once so the fresh document points at the new hashes. -->
+    <script>
+      (function () {
+        var KEY = 'nispl_asset_reload';
+        var read = function () { try { return sessionStorage.getItem(KEY); } catch (e) { return '1'; } };
+        var write = function (value) { try { value ? sessionStorage.setItem(KEY, value) : sessionStorage.removeItem(KEY); } catch (e) {} };
+
+        window.addEventListener('error', function (event) {
+          var node = event.target;
+          if (read() || !node || !node.tagName) return;
+          var tag = node.tagName.toLowerCase();
+          if (tag !== 'script' && tag !== 'link') return;
+          if ((node.src || node.href || '').indexOf('/assets/') === -1) return;
+          write('1');
+          window.location.reload();
+        }, true);
+
+        // Only arm a second recovery once the app has really rendered, so a
+        // permanently broken document cannot reload in a loop.
+        window.addEventListener('load', function () {
+          setTimeout(function () {
+            var root = document.getElementById('root');
+            if (root && root.children.length > 0) write('');
+          }, 4000);
+        });
+      })();
+    </script>
 
     <!-- Non-Render-Blocking Google Fonts: Outfit, Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
