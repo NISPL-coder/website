@@ -201,6 +201,8 @@ function MainApp() {
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/customer-login" element={<LoginPage lockedPortal="customer" />} />
+          <Route path="/customer/login" element={<LoginPage lockedPortal="customer" />} />
+          <Route path="/customer_login" element={<LoginPage lockedPortal="customer" />} />
           <Route path="/customer-register" element={<CustomerRegisterPage />} />
           <Route path="/customer_register" element={<CustomerRegisterPage />} />
           {/* All routes fallback directly to the official Homepage */}

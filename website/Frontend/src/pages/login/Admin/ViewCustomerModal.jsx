@@ -13,7 +13,12 @@ import {
   MapPin,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Key,
+  Eye,
+  EyeOff,
+  Copy,
+  Check
 } from 'lucide-react';
 import { customerApi } from '../../../services/customerApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
@@ -46,6 +51,9 @@ export default function ViewCustomerModal({
   }, [isOpen, onClose]);
 
   if (!isOpen || !customer) return null;
+
+  const [showPw, setShowPw] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
 
   const crm = customer.sangamCrm || {};
   const crmStatus = crm.status || 'pending';
@@ -288,6 +296,127 @@ export default function ViewCustomerModal({
                 <span>Retry Sync</span>
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Customer Portal Credentials & Access */}
+        <div
+          style={{
+            background: '#faf5ff',
+            border: '1px solid #e9d5ff',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '22px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Key size={18} color="#7c3aed" />
+              <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
+                Customer Portal Login Credentials
+              </span>
+            </div>
+            <a
+              href="/customer/login"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                fontSize: '0.75rem',
+                color: '#7c3aed',
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span>Test Portal Login</span>
+              <ExternalLink size={11} />
+            </a>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '14px',
+              fontSize: '0.84rem'
+            }}
+          >
+            <div>
+              <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Login Username / ID:</span>
+              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
+                {customer.customerId || customer.id}
+              </span>
+            </div>
+
+            <div>
+              <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Login Email:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                  {customer.loginEmail || customer.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(customer.loginEmail || customer.email);
+                    toast.success('Copied login email to clipboard!');
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7c3aed', padding: '2px' }}
+                  title="Copy Login Email"
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Password:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    background: '#fef3c7',
+                    color: '#92400e',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #fde68a'
+                  }}
+                >
+                  {showPw ? (customer.password || customer.portalPassword || 'Customer@12345') : '••••••••••'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '2px' }}
+                  title={showPw ? 'Hide Password' : 'Show Password'}
+                >
+                  {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pw = customer.password || customer.portalPassword || 'Customer@12345';
+                    navigator.clipboard.writeText(pw);
+                    setCopied(true);
+                    toast.success('Copied password to clipboard!');
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#16a34a' : '#7c3aed', padding: '2px' }}
+                  title={copied ? 'Copied' : 'Copy Password'}
+                >
+                  {copied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Last Login:</span>
+              <span style={{ fontWeight: 600, color: customer.lastLoginAt ? '#059669' : '#94a3b8' }}>
+                {customer.lastLoginAt ? new Date(customer.lastLoginAt).toLocaleString('en-IN') : 'Never logged in'}
+              </span>
+            </div>
           </div>
         </div>
 

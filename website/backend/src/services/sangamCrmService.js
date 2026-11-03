@@ -400,11 +400,151 @@ class SangamCrmService {
   }
 
   /**
+   * Format contact data into exact supported Sangam CRM Contact fields
+   */
+  mapContactData(contact) {
+    const firstName = (contact.firstName || contact.first_name || '').trim();
+    const lastName = (contact.lastName || contact.last_name || contact.name || '').trim();
+    const email = (contact.email || '').trim().toLowerCase();
+    const phone = (contact.phone || contact.mobile || '').trim();
+    const title = (contact.designation || contact.title || '').trim();
+    const accountName = (contact.accountName || contact.account_name || contact.company || '').trim();
+
+    const description = [
+      title ? `Designation: ${title}` : '',
+      accountName ? `Account: ${accountName}` : '',
+      'Imported via NISPL Admin Contacts CSV'
+    ].filter(Boolean).join(' | ');
+
+    return {
+      first_name: firstName || 'Contact',
+      last_name: lastName || firstName || 'Member',
+      phone: phone,
+      email: email,
+      title: title,
+      description: description,
+      assigned_user_id: '2'
+    };
+  }
+
+  /**
+   * Create or Update a Contact in Sangam CRM (Contact module)
+   * @param {Object} contact - Contact data
+   * @param {string} [targetAccountId] - Optional CRM Record ID of the Account
+   * @returns {Promise<{success: boolean, recordId: string, message: string, rawResponse: any}>}
+   */
+  async createOrUpdateContact(contact, targetAccountId = null) {
+    const endpoint = `${this.apiBase.replace(/\/+$/, '')}/save-data`;
+    const fieldList = this.mapContactData(contact);
+
+    const existingId = contact.sangamCrm?.recordId || contact.recordId;
+    if (existingId && !existingId.startsWith('SGM-CNT-') && existingId.length > 10) {
+      fieldList.attach = { id: existingId };
+    }
+
+    const payload = {
+      module_name: 'Contact',
+      field_name_list: fieldList
+    };
+
+    if (targetAccountId && !String(targetAccountId).startsWith('SGM-ACC-')) {
+      payload.related_models = [
+        {
+          account_contact: [
+            {
+              attach: [{ id: targetAccountId }],
+              data: []
+            }
+          ]
+        }
+      ];
+      console.log(`[SangamCRM] Linking Contact "${fieldList.first_name} ${fieldList.last_name}" to Account ID: ${targetAccountId}`);
+    }
+
+    console.log(`[SangamCRM] Dispatching Contact save for: "${fieldList.first_name} ${fieldList.last_name}" (${fieldList.email})`);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+
+      const responseText = await response.text();
+      let responseJson;
+      try {
+        responseJson = JSON.parse(responseText);
+      } catch (parseErr) {
+        throw new Error(`Sangam CRM returned non-JSON response (HTTP ${response.status}): ${responseText.substring(0, 180)}`);
+      }
+
+      if (!response.ok || (responseJson.status && responseJson.status !== 200)) {
+        const errorMsg = responseJson.message || responseJson.error_message || `HTTP ${response.status} Error`;
+        console.error(`[SangamCRM] Contact API Failure (${response.status}):`, errorMsg);
+        return {
+          success: false,
+          recordId: null,
+          message: errorMsg,
+          rawResponse: responseJson
+        };
+      }
+
+      const returnedId =
+        responseJson.response_data?.id ||
+        responseJson.id ||
+        responseJson.data?.id ||
+        `SGM-CNT-${Date.now()}`;
+
+      console.log(`[SangamCRM] Successfully synced Contact "${fieldList.first_name} ${fieldList.last_name}". Record ID: ${returnedId}`);
+
+      return {
+        success: true,
+        recordId: String(returnedId),
+        message: responseJson.message || 'Contact Data Inserted Successfully',
+        rawResponse: responseJson
+      };
+    } catch (err) {
+      clearTimeout(timeout);
+      const isTimeout = err.name === 'AbortError';
+      const errorMessage = isTimeout
+        ? 'Sangam CRM API connection timed out after 15 seconds.'
+        : `Network error connecting to Sangam CRM: ${err.message}`;
+
+      console.error('[SangamCRM] Exception occurred during Contact sync:', errorMessage);
+
+      return {
+        success: false,
+        recordId: null,
+        message: errorMessage,
+        rawResponse: null
+      };
+    }
+  }
+
+  /**
    * Helper to build direct URL to the company in Sangam CRM web interface
    */
   getCompanyWebUrl(recordId) {
     if (!recordId) return `${this.crmUrl.replace(/\/+$/, '')}/accounts`;
     return `${this.crmUrl.replace(/\/+$/, '')}/accounts`;
+  }
+
+  /**
+   * Helper to build direct URL to the contact in Sangam CRM web interface
+   */
+  getContactWebUrl(recordId) {
+    if (!recordId) return `${this.crmUrl.replace(/\/+$/, '')}/contacts`;
+    return `${this.crmUrl.replace(/\/+$/, '')}/contacts`;
   }
 
   /**

@@ -97,9 +97,55 @@ export const customerApi = {
   },
 
   /**
-   * Trigger or retry synchronization of an existing customer to Sangam CRM
-   * @param {string} customerId - e.g. CUST-8821
+   * Bulk import companies from CSV, sync to Sangam CRM Account, and generate dashboard credentials
+   * @param {Array<Object>} companies
    */
+  async importCompanies(companies) {
+    const res = await fetch(`${API_BASE_URL}/import-companies`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({ companies })
+    });
+    authApi._handleRefreshedToken(res);
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Bulk companies import failed.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Bulk companies import failed.');
+    }
+    return data;
+  },
+
+  /**
+   * Bulk import contacts from CSV, link to accounts, sync to Sangam CRM Contact, and generate credentials
+   * @param {Array<Object>} contacts
+   */
+  async importContacts(contacts) {
+    const res = await fetch(`${API_BASE_URL}/import-contacts`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({ contacts })
+    });
+    authApi._handleRefreshedToken(res);
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Bulk contacts import failed.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Bulk contacts import failed.');
+    }
+    return data;
+  },
+
   /**
    * Update an existing customer record and sync to Sangam CRM
    * @param {string} customerId

@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   customerId: { type: String, unique: true, sparse: true, trim: true },
   password: { type: String, required: true, select: false },
+  portalPassword: { type: String, default: '' },
   role: { type: String, enum: ['admin', 'manager', 'support', 'partner', 'customer'], required: true, index: true },
   isPrimaryAdmin: { type: Boolean, default: false },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

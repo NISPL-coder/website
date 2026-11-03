@@ -159,6 +159,7 @@ export default function LoginPage({ lockedPortal }) {
 
     try {
       const response = await authApi.login({
+        identifier: email.trim(),
         email: email.trim(),
         password,
         portal: activePortal
@@ -166,13 +167,20 @@ export default function LoginPage({ lockedPortal }) {
 
       setIsLoading(false);
 
-      if (activePortal === 'customer') {
-        navigate('/customer/dashboard');
+      const userRole = response?.user?.role || response?.role;
+
+      if (userRole === 'customer' || activePortal === 'customer') {
+        navigate('/customer/overview');
         return;
       }
 
-      if (activePortal === 'admin') {
+      if (['admin', 'manager', 'support'].includes(userRole) || activePortal === 'admin') {
         navigate('/admin/overview');
+        return;
+      }
+
+      if (userRole === 'partner' || activePortal === 'partner') {
+        navigate('/partner-dashboard');
         return;
       }
 

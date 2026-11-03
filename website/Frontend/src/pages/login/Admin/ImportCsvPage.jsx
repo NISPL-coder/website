@@ -6,25 +6,31 @@ import {
   CheckCircle2,
   XCircle,
   FileUp,
-  Trash2
+  Trash2,
+  Building2,
+  Users2,
+  Copy,
+  Check,
+  Key,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  ArrowRight,
+  Search,
+  Sparkles,
+  RefreshCw,
+  FileCheck2,
+  AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
 import { usePermissions } from './PermissionsContext';
 import './AdminTools.css';
 
-const EXPECTED_FIELDS = [
-  { key: 'name', label: 'Name', required: true, aliases: ['name', 'fullname', 'full name', 'contact name'] },
-  { key: 'email', label: 'Email', required: true, aliases: ['email', 'email address', 'mail'] },
-  { key: 'mobile', label: 'Mobile', required: true, aliases: ['mobile', 'phone', 'mobile number', 'contact', 'contact number'] },
-  { key: 'companyName', label: 'Company Name', required: true, aliases: ['companyname', 'company', 'organization', 'organisation', 'firm'] },
-  { key: 'plan', label: 'Subscribed Plan', required: false, aliases: ['plan', 'subscribedplan', 'subscribed plan', 'product'] },
-  { key: 'serverNode', label: 'Server Node', required: false, aliases: ['servernode', 'server node', 'node'] },
-  { key: 'mrr', label: 'Monthly MRR', required: false, aliases: ['mrr', 'monthlymrr', 'monthly mrr', 'monthly', 'price'] },
-  { key: 'status', label: 'Status', required: false, aliases: ['status', 'account status'] }
-];
-
-/* Minimal RFC-4180-style CSV parser (handles quoted cells & escaped quotes). */
+/* ------------------------------------------------------------------ *
+ * RFC-4180 CSV parser
+ * ------------------------------------------------------------------ */
 function parseCsvText(text) {
   const rows = [];
   let current = [''];
@@ -52,7 +58,6 @@ function parseCsvText(text) {
       rows.push(row);
       row = [''];
       current = row;
-      rows[rows.length - 1] = rows[rows.length - 1];
     } else {
       row[row.length - 1] += ch;
     }
@@ -62,333 +67,1057 @@ function parseCsvText(text) {
 }
 
 function normalizeHeader(header) {
-  return String(header || '').trim().toLowerCase().replace(/[^a-z]/g, '');
+  return String(header || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function mapHeaders(headerRow) {
-  const normalized = headerRow.map(normalizeHeader);
-  return EXPECTED_FIELDS.map((field) => {
-    const index = normalized.findIndex((h) => field.aliases.map(normalizeHeader).includes(h));
-    return { ...field, index };
-  });
-}
+/* ------------------------------------------------------------------ *
+ * Companies Field Specification (matching user's exact demo CSV)
+ * ------------------------------------------------------------------ */
+const COMPANY_FIELDS = [
+  { key: 'accountName', label: 'Account Name', required: true, aliases: ['accountname', 'accountnamerequired', 'company', 'companyname'] },
+  { key: 'email', label: 'Email', required: true, aliases: ['email', 'corporateemail', 'mail'] },
+  { key: 'phone', label: 'Phone', required: true, aliases: ['phone', 'phonerequired', 'mobile', 'contact'] },
+  { key: 'industry', label: 'Industry', required: false, aliases: ['industry', 'industrydd'] },
+  { key: 'tallySerialNo', label: 'Tally SL No', required: false, aliases: ['tallyslno', 'tallyserialno', 'tallysl', 'tally'] },
+  { key: 'addressStreet', label: 'Address Street', required: false, aliases: ['addressstreet', 'street'] },
+  { key: 'addressCountry', label: 'Address Country', required: false, aliases: ['addresscountry', 'country'] },
+  { key: 'addressState', label: 'Address State', required: false, aliases: ['addressstate', 'state'] },
+  { key: 'addressCity', label: 'Address City', required: false, aliases: ['addresscity', 'city'] },
+  { key: 'addressArea', label: 'Address Area', required: false, aliases: ['addressarea', 'area'] },
+  { key: 'addressPostalCode', label: 'Address Postal Code', required: false, aliases: ['addresspostalcode', 'postalcode', 'pincode', 'zip'] },
+  { key: 'accountStatus', label: 'Account Status', required: false, aliases: ['accountstatus', 'accountstatusdd', 'status'] },
+  { key: 'autoUpdatedAt', label: 'Auto Updated At', required: false, aliases: ['autoupdatedat', 'updatedat'] },
+  { key: 'gstin', label: 'GSTIN', required: false, aliases: ['gstin', 'gst', 'gstno'] },
+  { key: 'pan', label: 'PAN', required: false, aliases: ['pan', 'panno'] },
+  { key: 'website', label: 'Website', required: false, aliases: ['website', 'url'] }
+];
 
-function formatMrr(value) {
-  const raw = String(value ?? '').replace(/[^0-9.]/g, '');
-  const num = Number(raw);
-  if (!raw || Number.isNaN(num)) return '';
-  return `₹${num.toLocaleString('en-IN')}`;
-}
+/* ------------------------------------------------------------------ *
+ * Contacts Field Specification (matching user's exact demo CSV)
+ * ------------------------------------------------------------------ */
+const CONTACT_FIELDS = [
+  { key: 'firstName', label: 'First Name', required: true, aliases: ['firstname', 'first', 'fname'] },
+  { key: 'lastName', label: 'Last Name', required: false, aliases: ['lastname', 'last', 'lname', 'surname'] },
+  { key: 'accountName', label: 'Account Name', required: false, aliases: ['accountname', 'company', 'companyname', 'organization'] },
+  { key: 'phone', label: 'Phone', required: false, aliases: ['phone', 'mobile', 'phonenumber', 'contact'] },
+  { key: 'email', label: 'Email', required: true, aliases: ['email', 'emailaddress', 'mail'] },
+  { key: 'designation', label: 'Designation', required: false, aliases: ['designation', 'title', 'role', 'position'] }
+];
 
-function buildTemplateCsv() {
-  const header = EXPECTED_FIELDS.map((f) => f.label).join(',');
-  const sample = [
-    'Demo Traders Pvt. Ltd.,demo@example.com,9876543210,Demo Traders Pvt. Ltd.,Tally Prime Cloud + VPS Gold,CtrlS-KOL-NODE-01,15000,active',
-    '"Anand, Verma & Associates",anand@example.com,9123456780,AV Associates,Tally Prime Cloud + VPS Silver,CtrlS-KOL-NODE-01,9000,demo'
-  ].join('\n');
-  return `${header}\n${sample}`;
-}
+/* Demo templates matching user-provided files */
+const DEMO_COMPANIES_CSV = `Account Name (Required),Email,Phone (Required),Industry (DD),TALLY SL NO,Address Street,Address Country,Address State,Address City,Address Area,Address Postal_code,Account Status (DD),Auto Updated At,GSTIN,PAN,Website
+Wiley,georgette.kuhn@treutel.com,5498355808,Healthcare,Nash, Galaxy Street, India, Gujarat, Valsad, Landmark,123456,Active,3/11/2026 7:12,Damon,Bryce,nistally.sangamcrm.com
+Soledad,piper.morar@mosciski.info,6557310824,Hospitality,Jamir, Galaxy Street, India, Gujarat, Valsad, Landmark,123456,Inactive,3/11/2026 7:12,Tommie,Doyle,nistally.sangamcrm.com
+Major,cullen18@hotmail.com,9114883705,Electronics,Hugh, Galaxy Street, India, Gujarat, Valsad, Landmark,123456,Inactive,3/11/2026 7:12,Montana,Mitchel,nistally.sangamcrm.com
+Timothy,dave02@herman.biz,6187802553,Chemicals,Neil, Galaxy Street, India, Gujarat, Valsad, Landmark,123456,,3/11/2026 7:12,Ben,Coby,nistally.sangamcrm.com
+Robb,izulauf@gmail.com,9339589446,Communications,Roosevelt, Galaxy Street, India, Gujarat, Valsad, Landmark,123456,Inactive,3/11/2026 7:12,Dallin,Cristian,nistally.sangamcrm.com`;
+
+const DEMO_CONTACTS_CSV = `First Name,Last Name,Account Name,Phone,Email,Designation
+Domenico,Keshaun,,7556269487,stoltenberg.hubert@hansen.com,Mathias
+Jamir,Uriah,,7597555703,nolan.brown@yahoo.com,Leif
+Alvah,Julio,,6159729440,abelardo92@yahoo.com,Tatum
+Guy,Miller,,9240490510,kevin.flatley@hotmail.com,Edwardo
+Abe,Sylvester,,9047571021,esta.labadie@rutherford.biz,Keven`;
 
 export default function ImportCsvPage({ setCustomers }) {
   const { can } = usePermissions();
-  const canImport = can('customer', 'create');
-  const fileInputRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [fileName, setFileName] = useState('');
-  const [fieldMap, setFieldMap] = useState(null);
-  const [records, setRecords] = useState([]);
-  const [isImporting, setIsImporting] = useState(false);
-  const [progress, setProgress] = useState({ done: 0, total: 0 });
-  const [results, setResults] = useState(null);
+  const canImport = can('customer', 'create') || can('import_csv') || can('data_tools');
 
-  const missingRequired = useMemo(
-    () => (fieldMap ? fieldMap.filter((f) => f.required && f.index === -1) : []),
-    [fieldMap]
-  );
+  // Active section tab: 'companies' or 'contacts'
+  const [activeTab, setActiveTab] = useState('companies');
 
-  const handleFile = async (file) => {
+  // State for Companies
+  const fileInputCompRef = useRef(null);
+  const [isDraggingComp, setIsDraggingComp] = useState(false);
+  const [compFileName, setCompFileName] = useState('');
+  const [compFileSize, setCompFileSize] = useState('');
+  const [compRecords, setCompRecords] = useState([]);
+  const [isImportingComp, setIsImportingComp] = useState(false);
+  const [compResults, setCompResults] = useState(null);
+  const [compCredentials, setCompCredentials] = useState(null);
+
+  // State for Contacts
+  const fileInputContRef = useRef(null);
+  const [isDraggingCont, setIsDraggingCont] = useState(false);
+  const [contFileName, setContFileName] = useState('');
+  const [contFileSize, setContFileSize] = useState('');
+  const [contRecords, setContRecords] = useState([]);
+  const [isImportingCont, setIsImportingCont] = useState(false);
+  const [contResults, setContResults] = useState(null);
+  const [contCredentials, setContCredentials] = useState(null);
+
+  // State for password visibility toggles, clipboard feedback, and search filter
+  const [showPasswords, setShowPasswords] = useState({});
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [credSearchQuery, setCredSearchQuery] = useState('');
+
+  /* ------------------------------------------------------------------ *
+   * File Handlers: Companies
+   * ------------------------------------------------------------------ */
+  const handleCompaniesFile = async (file) => {
     if (!file) return;
     if (!/\.csv$/i.test(file.name)) {
-      toast.error('Please choose a .csv file.');
+      toast.error('Please choose a valid .csv file.');
       return;
     }
+
     try {
       const text = await file.text();
       const rows = parseCsvText(text);
       if (rows.length < 2) {
-        toast.error('The CSV file has no data rows.');
+        toast.error('The CSV file contains no data rows.');
         return;
       }
-      const map = mapHeaders(rows[0]);
-      const parsed = rows.slice(1).map((cells) => {
-        const record = {};
-        map.forEach((f) => {
-          record[f.key] = f.index >= 0 ? String(cells[f.index] ?? '').trim() : '';
-        });
-        record.mrr = formatMrr(record.mrr);
-        if (!record.status) record.status = 'active';
-        if (!record.serverNode) record.serverNode = 'CtrlS-KOL-NODE-01';
-        return record;
+
+      const headerRow = rows[0].map(normalizeHeader);
+      const map = COMPANY_FIELDS.map((f) => {
+        const index = headerRow.findIndex((h) => f.aliases.map(normalizeHeader).includes(h));
+        return { ...f, index };
       });
-      setFileName(file.name);
-      setFieldMap(map);
-      setRecords(parsed);
-      setResults(null);
-      setProgress({ done: 0, total: 0 });
-      toast.success(`Parsed ${parsed.length} record(s) from ${file.name}`);
+
+      const parsed = rows.slice(1).map((cells) => {
+        const item = {};
+        map.forEach((f) => {
+          item[f.key] = f.index >= 0 ? String(cells[f.index] ?? '').trim() : '';
+        });
+        return item;
+      });
+
+      setCompFileName(file.name);
+      setCompFileSize((file.size / 1024).toFixed(1) + ' KB');
+      setCompRecords(parsed);
+      setCompResults(null);
+      setCompCredentials(null);
+      toast.success(`Parsed ${parsed.length} company record(s) from ${file.name}`);
     } catch (err) {
-      toast.error(`Failed to read file: ${err.message}`);
+      toast.error(`Failed to read CSV file: ${err.message}`);
     }
   };
 
-  const validateRecord = (record) => {
-    if (!record.name) return 'Name is required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(record.email)) return 'Valid email is required';
-    if (!record.mobile) return 'Mobile is required';
-    if (!record.companyName) return 'Company name is required';
-    return null;
-  };
+  /* ------------------------------------------------------------------ *
+   * File Handlers: Contacts
+   * ------------------------------------------------------------------ */
+  const handleContactsFile = async (file) => {
+    if (!file) return;
+    if (!/\.csv$/i.test(file.name)) {
+      toast.error('Please choose a valid .csv file.');
+      return;
+    }
 
-  const handleImport = async () => {
-    if (!records.length || isImporting) return;
-    setIsImporting(true);
-    const importResults = [];
-    let succeeded = 0;
-
-    for (let i = 0; i < records.length; i += 1) {
-      const record = records[i];
-      const validationError = validateRecord(record);
-      if (validationError) {
-        importResults.push({ row: i + 2, company: record.companyName || record.name, ok: false, error: validationError });
-      } else {
-        try {
-          await customerApi.createCustomer({
-            name: record.name,
-            company: record.companyName,
-            email: record.email,
-            phone: record.mobile,
-            city: '',
-            address: {
-              street: '',
-              area: '',
-              city: '',
-              state: '',
-              country: 'India',
-              postalCode: '',
-              addressType: 'Billing'
-            },
-            plan: record.plan || 'Tally Prime Cloud + VPS Gold',
-            serverNode: record.serverNode || 'CtrlS-KOL-NODE-01',
-            status: record.status || 'active',
-            mrr: record.mrr || '₹15,000',
-            accountRelationship: 'Customer'
-          });
-          importResults.push({ row: i + 2, company: record.companyName, ok: true });
-          succeeded += 1;
-        } catch (err) {
-          importResults.push({ row: i + 2, company: record.companyName || record.name, ok: false, error: err.message });
-        }
+    try {
+      const text = await file.text();
+      const rows = parseCsvText(text);
+      if (rows.length < 2) {
+        toast.error('The CSV file contains no data rows.');
+        return;
       }
-      setProgress({ done: i + 1, total: records.length });
-    }
 
-    setResults({ total: records.length, succeeded, rows: importResults });
-    setIsImporting(false);
+      const headerRow = rows[0].map(normalizeHeader);
+      const map = CONTACT_FIELDS.map((f) => {
+        const index = headerRow.findIndex((h) => f.aliases.map(normalizeHeader).includes(h));
+        return { ...f, index };
+      });
 
-    const live = await customerApi.getCustomers();
-    if (live && Array.isArray(live)) setCustomers(live);
+      const parsed = rows.slice(1).map((cells) => {
+        const item = {};
+        map.forEach((f) => {
+          item[f.key] = f.index >= 0 ? String(cells[f.index] ?? '').trim() : '';
+        });
+        return item;
+      });
 
-    if (succeeded === records.length) {
-      toast.success(`All ${succeeded} customer(s) imported & synced to Sangam CRM.`);
-    } else {
-      toast.error(`Import finished: ${succeeded} succeeded, ${records.length - succeeded} failed.`);
+      setContFileName(file.name);
+      setContFileSize((file.size / 1024).toFixed(1) + ' KB');
+      setContRecords(parsed);
+      setContResults(null);
+      setContCredentials(null);
+      toast.success(`Parsed ${parsed.length} contact record(s) from ${file.name}`);
+    } catch (err) {
+      toast.error(`Failed to read CSV file: ${err.message}`);
     }
   };
 
-  const handleDownloadTemplate = () => {
-    const blob = new Blob([buildTemplateCsv()], { type: 'text/csv;charset=utf-8' });
+  /* ------------------------------------------------------------------ *
+   * Execute Import: Companies
+   * ------------------------------------------------------------------ */
+  const handleImportCompanies = async () => {
+    if (!compRecords.length || isImportingComp) return;
+    setIsImportingComp(true);
+    const toastId = toast.loading(`Importing ${compRecords.length} companies & generating credentials...`);
+
+    try {
+      const res = await customerApi.importCompanies(compRecords);
+      setCompResults(res);
+      setCompCredentials(res.credentials || []);
+      setIsImportingComp(false);
+
+      // Refresh global customer directory
+      const live = await customerApi.getCustomers();
+      if (live && Array.isArray(live) && setCustomers) setCustomers(live);
+
+      if (res.succeeded === compRecords.length) {
+        toast.success(`All ${res.succeeded} company record(s) imported & credentials generated!`, { id: toastId });
+      } else {
+        toast.success(
+          `Import finished: ${res.succeeded} succeeded, ${res.failed} failed. Credentials generated for active customers.`,
+          { id: toastId }
+        );
+      }
+    } catch (err) {
+      setIsImportingComp(false);
+      toast.error(`Import failed: ${err.message}`, { id: toastId });
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
+   * Execute Import: Contacts
+   * ------------------------------------------------------------------ */
+  const handleImportContacts = async () => {
+    if (!contRecords.length || isImportingCont) return;
+    setIsImportingCont(true);
+    const toastId = toast.loading(`Importing ${contRecords.length} contacts & generating credentials...`);
+
+    try {
+      const res = await customerApi.importContacts(contRecords);
+      setContResults(res);
+      setContCredentials(res.credentials || []);
+      setIsImportingCont(false);
+
+      // Refresh global customer directory
+      const live = await customerApi.getCustomers();
+      if (live && Array.isArray(live) && setCustomers) setCustomers(live);
+
+      if (res.succeeded === contRecords.length) {
+        toast.success(`All ${res.succeeded} contact record(s) imported & credentials generated!`, { id: toastId });
+      } else {
+        toast.success(
+          `Import finished: ${res.succeeded} succeeded, ${res.failed} failed. Credentials generated for active customers.`,
+          { id: toastId }
+        );
+      }
+    } catch (err) {
+      setIsImportingCont(false);
+      toast.error(`Import failed: ${err.message}`, { id: toastId });
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
+   * Helpers: Download CSV Templates
+   * ------------------------------------------------------------------ */
+  const downloadTemplate = (csvContent, filename) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'NISPL_Customer_Import_Template.csv';
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${filename}`);
   };
 
-  const handleReset = () => {
-    setFileName('');
-    setFieldMap(null);
-    setRecords([]);
-    setResults(null);
-    setProgress({ done: 0, total: 0 });
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  /* ------------------------------------------------------------------ *
+   * Helpers: Copy and Export Generated Credentials
+   * ------------------------------------------------------------------ */
+  const copySingleCredential = (cred, indexKey) => {
+    const text = `Customer ID / Username: ${cred.customerId}\nEmail: ${cred.email}\nPassword: ${cred.password}\nLogin URL: ${window.location.origin}/customer/login`;
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(indexKey);
+    toast.success(`Copied login credentials for "${cred.company || cred.name}"`);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
+
+  const copyAllCredentials = (credsList) => {
+    if (!credsList || !credsList.length) return;
+    const header = 'Company\tCustomer ID (Username)\tEmail\tPassword\tLogin URL\n';
+    const rows = credsList
+      .map(
+        (c) =>
+          `${c.company || c.name}\t${c.customerId}\t${c.email}\t${c.password}\t${window.location.origin}/customer/login`
+      )
+      .join('\n');
+    navigator.clipboard.writeText(header + rows);
+    toast.success(`Copied all ${credsList.length} customer credentials to clipboard!`);
+  };
+
+  const downloadCredentialsCsv = (credsList, filenamePrefix = 'NISPL_Customer_Credentials') => {
+    if (!credsList || !credsList.length) return;
+    const headers = ['Company', 'Name', 'Customer ID (Username)', 'Email', 'Password', 'Role', 'Status', 'Login URL'];
+    const rows = credsList.map((c) => [
+      `"${c.company || ''}"`,
+      `"${c.name || ''}"`,
+      `"${c.customerId || ''}"`,
+      `"${c.email || ''}"`,
+      `"${c.password || ''}"`,
+      `"${c.role || 'customer'}"`,
+      `"${c.status || 'active'}"`,
+      `"${window.location.origin}/customer/login"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filenamePrefix}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${credsList.length} customer credentials as CSV.`);
+  };
+
+  // Filtered credentials list based on search term
+  const activeCredentials = activeTab === 'companies' ? compCredentials : contCredentials;
+  const filteredCredentials = useMemo(() => {
+    if (!activeCredentials) return [];
+    if (!credSearchQuery.trim()) return activeCredentials;
+    const q = credSearchQuery.toLowerCase();
+    return activeCredentials.filter(
+      (c) =>
+        (c.company && c.company.toLowerCase().includes(q)) ||
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        (c.email && c.email.toLowerCase().includes(q)) ||
+        (c.customerId && c.customerId.toLowerCase().includes(q))
+    );
+  }, [activeCredentials, credSearchQuery]);
 
   return (
-    <div className="adm-table-card animate-fade-in">
-      <div className="adm-card-header">
-        <div className="adm-card-header-info">
-          <h1 className="adm-section-title">Import Customers (CSV)</h1>
-          <p className="adm-section-sub">
-            Bulk onboard customer accounts from a spreadsheet. Every imported record is automatically
-            synchronized to Sangam CRM Companies.
-          </p>
-        </div>
-        <div className="adm-card-header-action">
-          <button type="button" className="adm-btn-primary" style={{ background: '#ffffff', color: '#334155', border: '1px solid #e2e8f0' }} onClick={handleDownloadTemplate}>
-            <Download size={16} />
-            <span>Download Template</span>
-          </button>
+    <div className="animate-fade-in" style={{ padding: '0 2px' }}>
+      {/* =========================================================================
+         TOP HERO HEADER CARD
+         ========================================================================= */}
+      <div className="adm-import-header-card">
+        <div className="adm-import-header-top">
+          <div className="adm-import-header-title-box">
+            <div className="adm-import-header-icon-badge">
+              <FileSpreadsheet size={24} />
+            </div>
+            <div className="adm-import-title-text">
+              <h1>Bulk Import (CSV)</h1>
+              <p>
+                Seamlessly import Companies and Contacts into the database. Records are mapped,
+                synchronized in real-time with Sangam CRM, and automatically provisioned with Customer Portal login credentials.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Upload dropzone */}
-      <div
-        className={`adm-import-dropzone ${isDragging ? 'is-dragging' : ''}`}
-        onClick={() => fileInputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setIsDragging(false);
-          handleFile(e.dataTransfer.files?.[0]);
-        }}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
-      >
-        <span className="adm-import-dropzone-icon">
-          <Upload size={24} />
-        </span>
-        <p className="adm-import-dropzone-title">Drag &amp; drop your CSV here, or click to browse</p>
-        <p className="adm-import-dropzone-sub">
-          Required columns: Name, Email, Mobile, Company Name. Optional: Subscribed Plan, Server Node, Monthly MRR, Status.
-        </p>
-        {fileName && (
-          <span className="adm-import-file-chip">
-            <FileSpreadsheet size={14} color="#6366f1" />
-            {fileName} — {records.length} row(s)
-          </span>
-        )}
+      {/* =========================================================================
+         MODERN SEGMENTED NAVIGATION PILL BAR
+         ========================================================================= */}
+      <div className="adm-import-segmented-bar">
+        {/* Tab 1: Companies */}
+        <button
+          type="button"
+          className={`adm-import-segment-item ${activeTab === 'companies' ? 'active' : ''}`}
+          onClick={() => setActiveTab('companies')}
+        >
+          <div className="adm-import-segment-content">
+            <div className="adm-import-segment-icon">
+              <Building2 size={18} />
+            </div>
+            <div className="adm-import-segment-text">
+              <h4>
+                <span>Companies Upload</span>
+                {compRecords.length > 0 && (
+                  <span className="adm-import-segment-badge">{compRecords.length} Loaded</span>
+                )}
+              </h4>
+              <p>Account profiles, Tally Serial No, Address, GSTIN, PAN & Website</p>
+            </div>
+          </div>
+          <ArrowRight size={16} style={{ color: activeTab === 'companies' ? '#6366f1' : '#cbd5e1' }} />
+        </button>
+
+        {/* Tab 2: Contacts */}
+        <button
+          type="button"
+          className={`adm-import-segment-item ${activeTab === 'contacts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('contacts')}
+        >
+          <div className="adm-import-segment-content">
+            <div className="adm-import-segment-icon">
+              <Users2 size={18} />
+            </div>
+            <div className="adm-import-segment-text">
+              <h4>
+                <span>Contacts Upload</span>
+                {contRecords.length > 0 && (
+                  <span className="adm-import-segment-badge">{contRecords.length} Loaded</span>
+                )}
+              </h4>
+              <p>Individual personnel, Phone, Email, Designation & Portal Access</p>
+            </div>
+          </div>
+          <ArrowRight size={16} style={{ color: activeTab === 'contacts' ? '#6366f1' : '#cbd5e1' }} />
+        </button>
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv,text/csv"
-        style={{ display: 'none' }}
-        onChange={(e) => handleFile(e.target.files?.[0])}
-      />
 
-      {/* Column mapping feedback */}
-      {fieldMap && missingRequired.length > 0 && (
-        <div className="ebolt-alert-error" role="alert" style={{ marginTop: '14px' }}>
-          <XCircle size={15} style={{ flexShrink: 0 }} />
-          <span>
-            Missing required column(s): {missingRequired.map((f) => f.label).join(', ')}.
-            Please fix the CSV header row or download the template.
-          </span>
-        </div>
-      )}
+      {/* =========================================================================
+         SECTION 1: COMPANIES UPLOAD
+         ========================================================================= */}
+      {activeTab === 'companies' && (
+        <div className="animate-fade-in">
+          {/* File Input */}
+          <input
+            ref={fileInputCompRef}
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) handleCompaniesFile(e.target.files[0]);
+            }}
+          />
 
-      {/* Preview */}
-      {records.length > 0 && (
-        <div style={{ marginTop: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
-              Preview (first 5 of {records.length} rows)
-            </h3>
-            {!isImporting && (
-              <button
-                type="button"
-                className="adm-action-pill"
-                onClick={handleReset}
-                style={{ color: '#64748b', borderColor: '#e2e8f0' }}
+          {!compFileName ? (
+            /* Studio 2-Column: Upload Zone + Sample Template Card */
+            <div className="adm-import-grid">
+              {/* Left: Drag & Drop Zone */}
+              <div
+                className={`adm-import-dropzone ${isDraggingComp ? 'is-dragging' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingComp(true);
+                }}
+                onDragLeave={() => setIsDraggingComp(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingComp(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleCompaniesFile(e.dataTransfer.files[0]);
+                  }
+                }}
+                onClick={() => fileInputCompRef.current && fileInputCompRef.current.click()}
               >
-                <Trash2 size={12} />
-                <span>Clear</span>
-              </button>
-            )}
-          </div>
+                <div className="adm-import-dropzone-icon">
+                  <Upload size={26} />
+                </div>
+                <h3 className="adm-import-dropzone-title">Click or drag & drop Companies CSV</h3>
+                <p className="adm-import-dropzone-sub">
+                  Supports RFC-4180 standard .csv files with auto-detected headers.
+                </p>
+                <button
+                  type="button"
+                  className="adm-import-btn-browse"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputCompRef.current && fileInputCompRef.current.click();
+                  }}
+                >
+                  <FileUp size={15} style={{ color: '#6366f1' }} />
+                  <span>Browse CSV File</span>
+                </button>
+              </div>
 
-          <div className="adm-import-preview-table-wrap">
-            <table className="adm-import-preview-table">
-              <thead>
-                <tr>
-                  {EXPECTED_FIELDS.map((f) => (
-                    <th key={f.key}>
-                      {f.label}
-                      {f.required && <span style={{ color: '#ef4444' }}> *</span>}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {records.slice(0, 5).map((record, idx) => (
-                  <tr key={idx}>
-                    {EXPECTED_FIELDS.map((f) => (
-                      <td key={f.key}>{record[f.key] || <span style={{ color: '#cbd5e1' }}>—</span>}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              {/* Right: Requirements & Download Template */}
+              <div className="adm-import-guide-card">
+                <div>
+                  <div className="adm-import-guide-header">
+                    <h4 className="adm-import-guide-title">Companies CSV Specification</h4>
+                    <span className="adm-import-guide-meta">16 columns mapped</span>
+                  </div>
 
-          {/* Import action */}
-          {canImport ? (
-            <button
-              type="button"
-              className="adm-btn-primary"
-              onClick={handleImport}
-              disabled={isImporting || missingRequired.length > 0 || records.length === 0}
-              style={{ marginTop: '16px', width: '100%', height: '44px' }}
-            >
-              <FileUp size={16} />
-              <span>
-                {isImporting
-                  ? `Importing ${progress.done}/${progress.total}...`
-                  : `Import ${records.length} Customer Record(s)`}
-              </span>
-            </button>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 10px 0' }}>
+                    Required columns must be present in the CSV header row:
+                  </p>
+
+                  <div className="adm-import-chip-list">
+                    <span className="adm-import-col-chip required">Account Name *</span>
+                    <span className="adm-import-col-chip required">Email *</span>
+                    <span className="adm-import-col-chip required">Phone *</span>
+                    <span className="adm-import-col-chip">Industry</span>
+                    <span className="adm-import-col-chip">Tally SL NO</span>
+                    <span className="adm-import-col-chip">Address</span>
+                    <span className="adm-import-col-chip">City / State</span>
+                    <span className="adm-import-col-chip">GSTIN</span>
+                    <span className="adm-import-col-chip">PAN</span>
+                    <span className="adm-import-col-chip">Website</span>
+                  </div>
+
+                  <div className="adm-import-guide-note">
+                    <strong>Auto Sync & Credentials:</strong> Each company row is upserted into MongoDB,
+                    pushed to Sangam CRM Account module, and assigned a Customer Portal login ID and secure password.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="adm-import-template-download-btn"
+                  onClick={() => downloadTemplate(DEMO_COMPANIES_CSV, 'companies_import_template.csv')}
+                >
+                  <Download size={15} />
+                  <span>Download Companies Demo Template (.csv)</span>
+                </button>
+              </div>
+            </div>
           ) : (
-            <p className="adm-section-sub" style={{ marginTop: '16px' }}>
-              Your account can read customer records but cannot import them. Ask an administrator for
-              Add access on the Customer module.
-            </p>
+            /* File Loaded State Banner */
+            <div className="adm-import-file-card">
+              <div className="adm-import-file-details">
+                <div className="adm-import-file-icon">
+                  <FileCheck2 size={24} />
+                </div>
+                <div className="adm-import-file-text">
+                  <h4>
+                    <span>{compFileName}</span>
+                    <span className="adm-status-pill active" style={{ fontSize: '0.72rem' }}>
+                      {compRecords.length} Records Parsed
+                    </span>
+                  </h4>
+                  <p>
+                    File Size: {compFileSize} • All required company headers mapped successfully
+                  </p>
+                </div>
+              </div>
+
+              <div className="adm-import-file-actions">
+                <button
+                  type="button"
+                  className="adm-import-btn-clear"
+                  onClick={() => {
+                    setCompFileName('');
+                    setCompFileSize('');
+                    setCompRecords([]);
+                    setCompResults(null);
+                    setCompCredentials(null);
+                    if (fileInputCompRef.current) fileInputCompRef.current.value = '';
+                  }}
+                >
+                  <Trash2 size={14} />
+                  <span>Remove File</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="adm-import-btn-browse"
+                  onClick={() => fileInputCompRef.current && fileInputCompRef.current.click()}
+                >
+                  <RefreshCw size={14} />
+                  <span>Replace File</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="adm-btn-primary"
+                  onClick={handleImportCompanies}
+                  disabled={isImportingComp || !canImport}
+                  style={{ padding: '9px 18px', fontSize: '0.86rem' }}
+                >
+                  <FileUp size={16} />
+                  <span>
+                    {isImportingComp
+                      ? 'Importing & Generating Credentials...'
+                      : `Import ${compRecords.length} Companies & Generate Logins`}
+                  </span>
+                </button>
+              </div>
+            </div>
           )}
 
-          {isImporting && (
-            <div className="adm-import-progress-bar">
-              <div
-                className="adm-import-progress-fill"
-                style={{ width: progress.total ? `${(progress.done / progress.total) * 100}%` : '0%' }}
-              />
+          {/* Companies Preview Table */}
+          {compRecords.length > 0 && (
+            <div className="adm-import-preview-section">
+              <div className="adm-import-preview-header">
+                <div className="adm-import-preview-title">
+                  <FileSpreadsheet size={18} style={{ color: '#6366f1' }} />
+                  <span>Parsed Companies Preview ({compRecords.length} records ready)</span>
+                </div>
+                <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                  Showing first {Math.min(compRecords.length, 8)} records
+                </span>
+              </div>
+
+              <div className="adm-import-preview-table-wrap">
+                <table className="adm-import-preview-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>S/No.</th>
+                      <th>Account Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Industry</th>
+                      <th>Tally S/N</th>
+                      <th>Location</th>
+                      <th>Status</th>
+                      <th>GSTIN / PAN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {compRecords.slice(0, 8).map((rec, idx) => (
+                      <tr key={idx}>
+                        <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{idx + 1}</td>
+                        <td style={{ fontWeight: 700, color: '#0f172a' }}>{rec.accountName}</td>
+                        <td style={{ color: '#475569' }}>{rec.email}</td>
+                        <td style={{ fontFamily: 'monospace', color: '#334155' }}>{rec.phone}</td>
+                        <td>{rec.industry || '—'}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{rec.tallySerialNo || '—'}</td>
+                        <td>{[rec.addressCity, rec.addressState].filter(Boolean).join(', ') || '—'}</td>
+                        <td>
+                          <span className={`adm-status-pill ${rec.accountStatus?.toLowerCase() === 'inactive' ? 'inactive' : 'active'}`}>
+                            {rec.accountStatus || 'Active'}
+                          </span>
+                        </td>
+                        <td style={{ fontFamily: 'monospace', fontSize: '0.74rem' }}>
+                          {[rec.gstin, rec.pan].filter(Boolean).join(' / ') || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Generated Credentials Vault for Companies */}
+          {compCredentials && compCredentials.length > 0 && (
+            <div className="adm-creds-container">
+              <div className="adm-creds-header">
+                <div className="adm-creds-title-group">
+                  <div className="adm-creds-icon">
+                    <Key size={22} />
+                  </div>
+                  <div>
+                    <h3 className="adm-creds-title">Customer Login Credentials Generated</h3>
+                    <p className="adm-creds-subtitle">
+                      {compCredentials.length} customer accounts active and provisioned for login
+                    </p>
+                  </div>
+                </div>
+
+                <div className="adm-creds-actions">
+                  <button
+                    type="button"
+                    className="adm-creds-copy-btn"
+                    onClick={() => copyAllCredentials(compCredentials)}
+                  >
+                    <Copy size={13} />
+                    <span>Copy All Credentials</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="adm-btn-primary"
+                    style={{ fontSize: '0.78rem', padding: '7px 14px' }}
+                    onClick={() => downloadCredentialsCsv(compCredentials, 'NISPL_Companies_Credentials')}
+                  >
+                    <Download size={13} />
+                    <span>Download CSV</span>
+                  </button>
+
+                  <a
+                    href="/customer/login"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="adm-creds-copy-btn"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <ExternalLink size={13} />
+                    <span>Test Login Portal</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Filter bar */}
+              <div className="adm-creds-filter-bar">
+                <div className="adm-creds-search-input">
+                  <Search size={14} style={{ color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    placeholder="Search by company, customer ID, or email..."
+                    value={credSearchQuery}
+                    onChange={(e) => setCredSearchQuery(e.target.value)}
+                  />
+                </div>
+                <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                  Showing {filteredCredentials.length} of {compCredentials.length} credentials
+                </span>
+              </div>
+
+              <div className="adm-creds-table-wrap">
+                <table className="adm-creds-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>S/No.</th>
+                      <th>Company</th>
+                      <th>Customer ID (Username)</th>
+                      <th>Email (Username)</th>
+                      <th>Generated Password</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCredentials.map((c, i) => (
+                      <tr key={c.customerId || i}>
+                        <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{i + 1}</td>
+                        <td style={{ fontWeight: 700, color: '#0f172a' }}>{c.company}</td>
+                        <td>
+                          <span className="adm-creds-mono">{c.customerId}</span>
+                        </td>
+                        <td>{c.email}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span className="adm-creds-pw">
+                              {showPasswords[`comp-${i}`] ? c.password : '••••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                              onClick={() =>
+                                setShowPasswords((prev) => ({ ...prev, [`comp-${i}`]: !prev[`comp-${i}`] }))
+                              }
+                              title={showPasswords[`comp-${i}`] ? 'Hide' : 'Show'}
+                            >
+                              {showPasswords[`comp-${i}`] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="adm-status-pill active">{c.status || 'Active'}</span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className="adm-creds-copy-btn"
+                            onClick={() => copySingleCredential(c, `comp-${i}`)}
+                          >
+                            {copiedIndex === `comp-${i}` ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                            <span>{copiedIndex === `comp-${i}` ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Results */}
-      {results && (
-        <div style={{ marginTop: '18px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
-            Import Results — {results.succeeded} of {results.total} succeeded
-          </h3>
-          <div style={{ maxHeight: '260px', overflowY: 'auto', border: '1px solid #eef0f6', borderRadius: '12px', padding: '6px 14px' }}>
-            {results.rows.map((row, idx) => (
-              <div key={idx} className="adm-import-result-row">
-                {row.ok ? (
-                  <CheckCircle2 size={15} color="#059669" style={{ flexShrink: 0, marginTop: '1px' }} />
-                ) : (
-                  <XCircle size={15} color="#dc2626" style={{ flexShrink: 0, marginTop: '1px' }} />
-                )}
-                <span>
-                  <strong>Row {row.row}</strong> — {row.company}
-                  {!row.ok && <span style={{ color: '#dc2626' }}> ({row.error})</span>}
+      {/* =========================================================================
+         SECTION 2: CONTACTS UPLOAD
+         ========================================================================= */}
+      {activeTab === 'contacts' && (
+        <div className="animate-fade-in">
+          {/* File Input */}
+          <input
+            ref={fileInputContRef}
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) handleContactsFile(e.target.files[0]);
+            }}
+          />
+
+          {!contFileName ? (
+            /* Studio 2-Column: Upload Zone + Sample Template Card */
+            <div className="adm-import-grid">
+              {/* Left: Drag & Drop Zone */}
+              <div
+                className={`adm-import-dropzone ${isDraggingCont ? 'is-dragging' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingCont(true);
+                }}
+                onDragLeave={() => setIsDraggingCont(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingCont(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleContactsFile(e.dataTransfer.files[0]);
+                  }
+                }}
+                onClick={() => fileInputContRef.current && fileInputContRef.current.click()}
+              >
+                <div className="adm-import-dropzone-icon">
+                  <Upload size={26} />
+                </div>
+                <h3 className="adm-import-dropzone-title">Click or drag & drop Contacts CSV</h3>
+                <p className="adm-import-dropzone-sub">
+                  Supports RFC-4180 standard .csv files with auto-detected headers.
+                </p>
+                <button
+                  type="button"
+                  className="adm-import-btn-browse"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputContRef.current && fileInputContRef.current.click();
+                  }}
+                >
+                  <FileUp size={15} style={{ color: '#6366f1' }} />
+                  <span>Browse CSV File</span>
+                </button>
+              </div>
+
+              {/* Right: Requirements & Download Template */}
+              <div className="adm-import-guide-card">
+                <div>
+                  <div className="adm-import-guide-header">
+                    <h4 className="adm-import-guide-title">Contacts CSV Specification</h4>
+                    <span className="adm-import-guide-meta">6 columns mapped</span>
+                  </div>
+
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 10px 0' }}>
+                    Required columns must be present in the CSV header row:
+                  </p>
+
+                  <div className="adm-import-chip-list">
+                    <span className="adm-import-col-chip required">First Name *</span>
+                    <span className="adm-import-col-chip required">Email *</span>
+                    <span className="adm-import-col-chip">Last Name</span>
+                    <span className="adm-import-col-chip">Account Name</span>
+                    <span className="adm-import-col-chip">Phone</span>
+                    <span className="adm-import-col-chip">Designation</span>
+                  </div>
+
+                  <div className="adm-import-guide-note">
+                    <strong>Auto Link & Credentials:</strong> Contacts are automatically linked to matching companies
+                    in Sangam CRM, added to the customer contacts directory, and given active dashboard login credentials.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="adm-import-template-download-btn"
+                  onClick={() => downloadTemplate(DEMO_CONTACTS_CSV, 'contacts_import_template.csv')}
+                >
+                  <Download size={15} />
+                  <span>Download Contacts Demo Template (.csv)</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* File Loaded State Banner */
+            <div className="adm-import-file-card">
+              <div className="adm-import-file-details">
+                <div className="adm-import-file-icon">
+                  <FileCheck2 size={24} />
+                </div>
+                <div className="adm-import-file-text">
+                  <h4>
+                    <span>{contFileName}</span>
+                    <span className="adm-status-pill active" style={{ fontSize: '0.72rem' }}>
+                      {contRecords.length} Records Parsed
+                    </span>
+                  </h4>
+                  <p>
+                    File Size: {contFileSize} • All required contact headers mapped successfully
+                  </p>
+                </div>
+              </div>
+
+              <div className="adm-import-file-actions">
+                <button
+                  type="button"
+                  className="adm-import-btn-clear"
+                  onClick={() => {
+                    setContFileName('');
+                    setContFileSize('');
+                    setContRecords([]);
+                    setContResults(null);
+                    setContCredentials(null);
+                    if (fileInputContRef.current) fileInputContRef.current.value = '';
+                  }}
+                >
+                  <Trash2 size={14} />
+                  <span>Remove File</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="adm-import-btn-browse"
+                  onClick={() => fileInputContRef.current && fileInputContRef.current.click()}
+                >
+                  <RefreshCw size={14} />
+                  <span>Replace File</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="adm-btn-primary"
+                  onClick={handleImportContacts}
+                  disabled={isImportingCont || !canImport}
+                  style={{ padding: '9px 18px', fontSize: '0.86rem' }}
+                >
+                  <FileUp size={16} />
+                  <span>
+                    {isImportingCont
+                      ? 'Importing & Generating Credentials...'
+                      : `Import ${contRecords.length} Contacts & Generate Logins`}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Contacts Preview Table */}
+          {contRecords.length > 0 && (
+            <div className="adm-import-preview-section">
+              <div className="adm-import-preview-header">
+                <div className="adm-import-preview-title">
+                  <FileSpreadsheet size={18} style={{ color: '#6366f1' }} />
+                  <span>Parsed Contacts Preview ({contRecords.length} records ready)</span>
+                </div>
+                <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                  Showing first {Math.min(contRecords.length, 8)} records
                 </span>
               </div>
-            ))}
-          </div>
+
+              <div className="adm-import-preview-table-wrap">
+                <table className="adm-import-preview-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>S/No.</th>
+                      <th>Contact Name</th>
+                      <th>Account / Company</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Designation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contRecords.slice(0, 8).map((rec, idx) => (
+                      <tr key={idx}>
+                        <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{idx + 1}</td>
+                        <td style={{ fontWeight: 700, color: '#0f172a' }}>
+                          {[rec.firstName, rec.lastName].filter(Boolean).join(' ')}
+                        </td>
+                        <td>{rec.accountName || <span style={{ color: '#94a3b8' }}>— Auto Link —</span>}</td>
+                        <td style={{ color: '#475569' }}>{rec.email}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{rec.phone || '—'}</td>
+                        <td>{rec.designation || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Generated Credentials Vault for Contacts */}
+          {contCredentials && contCredentials.length > 0 && (
+            <div className="adm-creds-container">
+              <div className="adm-creds-header">
+                <div className="adm-creds-title-group">
+                  <div className="adm-creds-icon">
+                    <Key size={22} />
+                  </div>
+                  <div>
+                    <h3 className="adm-creds-title">Contact Login Credentials Generated</h3>
+                    <p className="adm-creds-subtitle">
+                      {contCredentials.length} contact accounts active and provisioned for login
+                    </p>
+                  </div>
+                </div>
+
+                <div className="adm-creds-actions">
+                  <button
+                    type="button"
+                    className="adm-creds-copy-btn"
+                    onClick={() => copyAllCredentials(contCredentials)}
+                  >
+                    <Copy size={13} />
+                    <span>Copy All Credentials</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="adm-btn-primary"
+                    style={{ fontSize: '0.78rem', padding: '7px 14px' }}
+                    onClick={() => downloadCredentialsCsv(contCredentials, 'NISPL_Contacts_Credentials')}
+                  >
+                    <Download size={13} />
+                    <span>Download CSV</span>
+                  </button>
+
+                  <a
+                    href="/customer/login"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="adm-creds-copy-btn"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <ExternalLink size={13} />
+                    <span>Test Login Portal</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Filter bar */}
+              <div className="adm-creds-filter-bar">
+                <div className="adm-creds-search-input">
+                  <Search size={14} style={{ color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    placeholder="Search by contact, company, or email..."
+                    value={credSearchQuery}
+                    onChange={(e) => setCredSearchQuery(e.target.value)}
+                  />
+                </div>
+                <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                  Showing {filteredCredentials.length} of {contCredentials.length} credentials
+                </span>
+              </div>
+
+              <div className="adm-creds-table-wrap">
+                <table className="adm-creds-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>S/No.</th>
+                      <th>Contact Name</th>
+                      <th>Account Name</th>
+                      <th>Customer ID (Username)</th>
+                      <th>Email (Username)</th>
+                      <th>Generated Password</th>
+                      <th>Designation</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCredentials.map((c, i) => (
+                      <tr key={c.customerId || i}>
+                        <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{i + 1}</td>
+                        <td style={{ fontWeight: 700, color: '#0f172a' }}>{c.name}</td>
+                        <td>{c.company}</td>
+                        <td>
+                          <span className="adm-creds-mono">{c.customerId}</span>
+                        </td>
+                        <td>{c.email}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span className="adm-creds-pw">
+                              {showPasswords[`cont-${i}`] ? c.password : '••••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                              onClick={() =>
+                                setShowPasswords((prev) => ({ ...prev, [`cont-${i}`]: !prev[`cont-${i}`] }))
+                              }
+                              title={showPasswords[`cont-${i}`] ? 'Hide' : 'Show'}
+                            >
+                              {showPasswords[`cont-${i}`] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                          </div>
+                        </td>
+                        <td>{c.designation || 'Customer'}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className="adm-creds-copy-btn"
+                            onClick={() => copySingleCredential(c, `cont-${i}`)}
+                          >
+                            {copiedIndex === `cont-${i}` ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                            <span>{copiedIndex === `cont-${i}` ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

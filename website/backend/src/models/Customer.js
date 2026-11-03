@@ -123,6 +123,40 @@ const customerSchema = new mongoose.Schema(
       uppercase: true,
       default: ''
     },
+    tallySerialNo: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    pan: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: ''
+    },
+    portalPassword: {
+      type: String,
+      default: ''
+    },
+    loginEmail: {
+      type: String,
+      default: ''
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null
+    },
+    contacts: [
+      {
+        firstName: { type: String, default: '' },
+        lastName: { type: String, default: '' },
+        name: { type: String, default: '' },
+        phone: { type: String, default: '' },
+        email: { type: String, default: '' },
+        designation: { type: String, default: '' },
+        sangamRecordId: { type: String, default: null }
+      }
+    ],
     sangamCrm: {
       status: {
         type: String,

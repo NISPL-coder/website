@@ -6,7 +6,9 @@ import {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  syncCustomerToSangam
+  syncCustomerToSangam,
+  importCompanies,
+  importContacts
 } from '../controllers/customerController.js';
 
 const router = express.Router();
@@ -18,6 +20,12 @@ router.get('/', requirePermission('customer', 'view'), getCustomers);
 
 // POST /api/customers - Create customer locally and automatically sync to Sangam CRM Companies
 router.post('/', requirePermission('customer', 'create'), createCustomer);
+
+// POST /api/customers/import-companies - Bulk import companies from CSV
+router.post('/import-companies', requirePermission('customer', 'create'), importCompanies);
+
+// POST /api/customers/import-contacts - Bulk import contacts from CSV
+router.post('/import-contacts', requirePermission('customer', 'create'), importContacts);
 
 // PUT /api/customers/:id - Update customer and sync to Sangam CRM
 router.put('/:id', requirePermission('customer', 'edit'), updateCustomer);

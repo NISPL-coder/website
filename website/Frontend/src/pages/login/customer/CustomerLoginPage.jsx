@@ -46,6 +46,7 @@ export default function CustomerLoginPage() {
 
     try {
       await authApi.login({
+        identifier: email.trim(),
         email: email.trim(),
         password,
         portal: 'customer'

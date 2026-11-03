@@ -40,20 +40,39 @@ async function issueSession(user, req, res) {
 }
 
 export async function login(req, res) {
-  const { identifier, password, portal } = req.body;
-  const user = await User.findByEmailOrCustomerId(identifier);
+  const rawIdentifier = req.body.identifier || req.body.email || req.body.username;
+  const { password, portal } = req.body;
+  const user = await User.findByEmailOrCustomerId(rawIdentifier);
 
   if (!user || !(await user.comparePassword(password))) {
     throw new HttpError(401, 'Invalid email/account ID or password.');
   }
   if (user.accountStatus !== 'active') throw new HttpError(403, 'Your account is not active. Contact an administrator.');
+
+  // Seamless role & portal routing:
+  // If a customer logs in from any page, route them to customer portal.
+  // If staff/admin logs in, route them to admin portal.
   const isAdminPortalUser = ['admin', 'manager', 'support'].includes(user.role);
-  if (portal === 'admin' ? !isAdminPortalUser : user.role !== portal) {
+  let resolvedPortal = portal;
+  if (user.role === 'customer') {
+    resolvedPortal = 'customer';
+  } else if (isAdminPortalUser) {
+    resolvedPortal = 'admin';
+  } else if (user.role === 'partner') {
+    resolvedPortal = 'partner';
+  } else if (portal && portal !== user.role) {
     throw new HttpError(403, `This account is not authorized for the ${portal} portal.`);
   }
 
   user.lastLoginAt = new Date();
   await user.save();
+
+  if (user.role === 'customer' && isMongoConnected()) {
+    Customer.findOneAndUpdate(
+      { $or: [{ email: user.email }, { customerId: user.customerId }] },
+      { $set: { lastLoginAt: user.lastLoginAt } }
+    ).catch(() => {});
+  }
 
   if (['admin', 'manager', 'support'].includes(user.role)) {
     await logActivity(req, {
@@ -67,7 +86,7 @@ export async function login(req, res) {
         name: user.name,
         email: user.email,
         role: user.role,
-        portal,
+        portal: resolvedPortal,
         loginTime: user.lastLoginAt
       },
       adminOverride: user
@@ -75,7 +94,15 @@ export async function login(req, res) {
   }
 
   const accessToken = await issueSession(user, req, res);
-  res.json({ success: true, message: 'Login successful.', accessToken, user: user.toSafeJSON() });
+  res.json({
+    success: true,
+    message: 'Login successful.',
+    accessToken,
+    user: user.toSafeJSON(),
+    role: user.role,
+    portal: resolvedPortal,
+    redirect: user.role === 'customer' ? '/customer/overview' : (isAdminPortalUser ? '/admin/overview' : '/partner-dashboard')
+  });
 }
 
 export async function registerCustomer(req, res) {
@@ -124,6 +151,7 @@ export async function registerCustomer(req, res) {
     name: cleanName,
     email: cleanEmail,
     password,
+    portalPassword: password,
     role: 'customer',
     customerId,
     accountStatus: 'active'
@@ -136,6 +164,8 @@ export async function registerCustomer(req, res) {
     name: cleanName,
     company: cleanCompany,
     email: cleanEmail,
+    loginEmail: cleanEmail,
+    portalPassword: password,
     phone: cleanPhone,
     gstNo: cleanGst,
     status: 'active',

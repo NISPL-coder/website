@@ -11,7 +11,11 @@ import {
   ExternalLink,
   RotateCw,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Copy,
+  Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -47,6 +51,16 @@ export default function CustomerSection({
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [syncingIds, setSyncingIds] = useState({});
+  const [showPasswords, setShowPasswords] = useState({});
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  const copyToClipboard = (text, key, label = 'Text') => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    toast.success(`Copied ${label} to clipboard!`);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   // Dynamic card stats from API (with seamless fallback to computed data)
   const apiStats = customerStats || customers?.stats;
@@ -112,6 +126,7 @@ export default function CustomerSection({
         c.name.toLowerCase().includes(q) ||
         c.company.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q) ||
+        (c.loginEmail && c.loginEmail.toLowerCase().includes(q)) ||
         c.id.toLowerCase().includes(q) ||
         sangamId.includes(q) ||
         sangamStatus.includes(q) ||
@@ -230,12 +245,23 @@ export default function CustomerSection({
 
   const columns = [
     {
+      id: 'sno',
+      name: 'S/No.',
+      width: '65px',
+      center: true,
+      cell: (_row, index) => (
+        <span style={{ fontWeight: 600, color: '#64748b', fontSize: '0.8rem' }}>
+          {index + 1}
+        </span>
+      )
+    },
+    {
       id: 'id',
       name: 'Customer ID',
       selector: (row) => row.id,
       sortable: true,
       sortFunction: compareText((row) => row.id),
-      width: '140px',
+      width: '135px',
       cell: (cust) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
       )
@@ -246,7 +272,7 @@ export default function CustomerSection({
       selector: (row) => row.company,
       sortable: true,
       sortFunction: compareText((row) => row.company),
-      minWidth: '200px',
+      minWidth: '190px',
       grow: 1.1,
       cell: (cust) => (
         <div>
@@ -256,18 +282,161 @@ export default function CustomerSection({
       )
     },
     {
-      id: 'email',
-      name: 'Contact Details',
-      selector: (row) => row.email,
+      id: 'loginEmail',
+      name: 'Login Email',
+      selector: (row) => row.loginEmail || row.email,
       sortable: true,
-      sortFunction: compareText((row) => row.email),
-      minWidth: '220px',
-      grow: 1,
+      sortFunction: compareText((row) => row.loginEmail || row.email),
+      minWidth: '210px',
+      cell: (cust) => {
+        const email = cust.loginEmail || cust.email || '—';
+        const isCopied = copiedKey === `email-${cust.id}`;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 500 }}>{email}</span>
+            {email !== '—' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(email, `email-${cust.id}`, 'Login email');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isCopied ? '#16a34a' : '#94a3b8',
+                  padding: '2px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+                title={isCopied ? 'Copied' : 'Copy Email'}
+              >
+                {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+              </button>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'password',
+      name: 'Password',
+      selector: (row) => row.password || row.portalPassword || '',
+      sortable: false,
+      minWidth: '175px',
+      cell: (cust) => {
+        const pw = cust.password || cust.portalPassword || '••••••••';
+        const isVisible = showPasswords[cust.id];
+        const isCopied = copiedKey === `pw-${cust.id}`;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                fontWeight: 600,
+                fontSize: '0.78rem',
+                background: '#fef3c7',
+                color: '#92400e',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: '1px solid #fde68a',
+                letterSpacing: isVisible ? '0.02em' : '0.12em'
+              }}
+            >
+              {isVisible ? pw : '••••••••'}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPasswords((prev) => ({ ...prev, [cust.id]: !prev[cust.id] }));
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#64748b',
+                padding: '2px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+              title={isVisible ? 'Hide Password' : 'Show Password'}
+            >
+              {isVisible ? <EyeOff size={13} /> : <Eye size={13} />}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(pw, `pw-${cust.id}`, 'Password');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: isCopied ? '#16a34a' : '#94a3b8',
+                padding: '2px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+              title={isCopied ? 'Copied' : 'Copy Password'}
+            >
+              {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+            </button>
+          </div>
+        );
+      }
+    },
+    {
+      id: 'lastLogin',
+      name: 'Last Login',
+      selector: (row) => row.lastLoginAt,
+      sortable: true,
+      sortFunction: compareDate((row) => row.lastLoginAt),
+      minWidth: '160px',
+      cell: (cust) => {
+        if (!cust.lastLoginAt) {
+          return (
+            <span
+              style={{
+                fontSize: '0.72rem',
+                color: '#94a3b8',
+                background: '#f1f5f9',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: '1px solid #e2e8f0',
+                fontWeight: 500
+              }}
+            >
+              Never logged in
+            </span>
+          );
+        }
+        const d = new Date(cust.lastLoginAt);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#0f172a' }}>
+              {d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+            <span style={{ fontSize: '0.70rem', color: '#64748b' }}>
+              {d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      id: 'phone',
+      name: 'Phone / Mobile',
+      selector: (row) => row.phone,
+      sortable: true,
+      sortFunction: compareText((row) => row.phone),
+      minWidth: '140px',
       cell: (cust) => (
-        <div>
-          <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
-        </div>
+        <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#475569' }}>
+          {cust.phone || '—'}
+        </span>
       )
     },
     {
