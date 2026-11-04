@@ -36,25 +36,25 @@
     },
     {
       "key": "customerId",
-      "value": "CUST-1001",
+      "value": "CUST-9679",
       "type": "string",
       "description": "Active customer record identifier or Mongo ID"
     },
     {
       "key": "contractId",
-      "value": "CNT-2026-8801",
+      "value": "CTR-2026-8829",
       "type": "string",
       "description": "Active contract agreement identifier or Mongo ID"
     },
     {
       "key": "paymentId",
-      "value": "PAY-2026-9001",
+      "value": "PAY-2026-8808",
       "type": "string",
       "description": "Payment / invoice identifier or Mongo ID"
     },
     {
       "key": "productId",
-      "value": "ctrls-5-user",
+      "value": "ctrls-1-user",
       "type": "string",
       "description": "Product catalog SKU or ID"
     },
@@ -745,7 +745,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerId\": \"CUST-9021\",\n  \"name\": \"Debashis Banerjee\",\n  \"company\": \"Kolkata FinTech Solutions Pvt Ltd\",\n  \"email\": \"debashis@kolkatafintech.in\",\n  \"phone\": \"+91 98310 99887\",\n  \"alternatePhone\": \"+91 33 2289 4400\",\n  \"website\": \"https://kolkatafintech.in\",\n  \"industry\": \"Financial Services\",\n  \"accountRelationship\": \"Customer\",\n  \"plan\": \"Tally Prime Cloud + VPS Platinum\",\n  \"serverNode\": \"CtrlS-KOL-NODE-02\",\n  \"status\": \"active\",\n  \"mrr\": \"₹24,500\",\n  \"registered\": \"2026-11-04\",\n  \"address\": {\n    \"street\": \"Sector V, Salt Lake Electronics Complex\",\n    \"area\": \"Bidhannagar\",\n    \"city\": \"Kolkata\",\n    \"state\": \"West Bengal\",\n    \"country\": \"India\",\n    \"postalCode\": \"700091\",\n    \"addressType\": \"Headquarters\"\n  },\n  \"gstNo\": \"19AAACK8971G1ZS\",\n  \"portalPassword\": \"SecureClient@12345\"\n}"
+              "raw": "{\n  \"customerId\": \"CUST-9679\",\n  \"name\": \"demo\",\n  \"company\": \"demo\",\n  \"email\": \"demo@gmail.com\",\n  \"phone\": \"9876543210\",\n  \"alternatePhone\": \"+91 33 2289 4400\",\n  \"website\": \"https://nispl.in\",\n  \"industry\": \"IT & Cloud Services\",\n  \"accountRelationship\": \"Customer\",\n  \"plan\": \"Tally Prime Cloud + VPS Gold\",\n  \"serverNode\": \"CtrlS-KOL-NODE-01\",\n  \"status\": \"active\",\n  \"mrr\": \"₹6,500\",\n  \"registered\": \"2026-10-31\",\n  \"address\": {\n    \"street\": \"Sector V, Salt Lake Electronics Complex\",\n    \"area\": \"Bidhannagar\",\n    \"city\": \"Kolkata\",\n    \"state\": \"West Bengal\",\n    \"country\": \"India\",\n    \"postalCode\": \"700091\",\n    \"addressType\": \"Headquarters\"\n  },\n  \"gstNo\": null,\n  \"portalPassword\": \"SecureClient@12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/customers",
@@ -971,7 +971,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"contractId\": \"CNT-2026-9050\",\n  \"name\": \"Annual Cloud Infrastructure & Tally Prime SLA\",\n  \"company\": \"Kolkata FinTech Solutions Pvt Ltd\",\n  \"customer\": \"Debashis Banerjee\",\n  \"email\": \"debashis@kolkatafintech.in\",\n  \"service\": \"Cloud Hosting & Tally On Cloud\",\n  \"contractType\": \"Subscription\",\n  \"subscriptionPeriod\": \"1 Year\",\n  \"productCategory\": \"Software\",\n  \"totalContractValue\": \"₹2,94,000\",\n  \"value\": \"₹2,94,000\",\n  \"startDate\": \"2026-11-01\",\n  \"endDate\": \"2027-10-31\",\n  \"expiryDate\": \"2027-10-31\",\n  \"status\": \"Active\",\n  \"slaTier\": \"Tier-1 Priority NOC 99.99%\",\n  \"description\": \"Enterprise high-availability cloud hosting package with daily automated snapshots.\"\n}"
+              "raw": "{\n  \"contractId\": \"CTR-2026-8829\",\n  \"name\": \"Tally on Clouds\",\n  \"company\": \"demo\",\n  \"customer\": \"demo\",\n  \"email\": \"demo@gmail.com\",\n  \"service\": \"Tally on Clouds\",\n  \"contractType\": \"AMC\",\n  \"subscriptionPeriod\": \"1 Year\",\n  \"productCategory\": \"Service\",\n  \"totalContractValue\": \"₹6,500\",\n  \"value\": \"₹6,500\",\n  \"startDate\": \"2026-10-31\",\n  \"endDate\": \"2027-10-31\",\n  \"expiryDate\": \"2027-10-31\",\n  \"status\": \"Active\",\n  \"slaTier\": \"Tier-4 CtrlS Kolkata NOC 99.99%\",\n  \"description\": \"Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, Windows Server license & daily backup.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/contracts",
@@ -1131,7 +1131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"paymentId\": \"PAY-2026-9051\",\n  \"invoiceNumber\": \"INV-2026-0442\",\n  \"customer\": \"Debashis Banerjee\",\n  \"company\": \"Kolkata FinTech Solutions Pvt Ltd\",\n  \"accountName\": \"Kolkata FinTech Solutions Pvt Ltd\",\n  \"email\": \"debashis@kolkatafintech.in\",\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": \"₹24,500\",\n  \"receivedAmount\": \"₹24,500\",\n  \"pendingPayment\": \"₹0\",\n  \"paymentMethod\": \"NEFT Wire\",\n  \"method\": \"NEFT Wire\",\n  \"invoiceDate\": \"2026-11-04\",\n  \"date\": \"2026-11-04\",\n  \"paymentReceivedDate\": \"2026-11-04\",\n  \"expectedPaymentDate\": \"2026-11-15\",\n  \"status\": \"Received\",\n  \"solutionCategory\": \"Cloud Hosting\",\n  \"notes\": \"November monthly recurring hosting payment received via HDFC NEFT transaction.\"\n}"
+              "raw": "{\n  \"paymentId\": \"PAY-2026-8808\",\n  \"invoiceNumber\": \"INV-2026-1051\",\n  \"customer\": \"demo\",\n  \"company\": \"demo\",\n  \"accountName\": \"demo\",\n  \"email\": \"demo@gmail.com\",\n  \"customerId\": \"CUST-9679\",\n  \"amount\": \"₹6,500\",\n  \"receivedAmount\": \"₹6,500\",\n  \"pendingPayment\": \"₹0\",\n  \"paymentMethod\": \"UPI / Scan & Pay\",\n  \"method\": \"UPI / Scan & Pay\",\n  \"invoiceDate\": \"2026-11-04\",\n  \"date\": \"2026-11-04\",\n  \"paymentReceivedDate\": \"2026-11-04\",\n  \"expectedPaymentDate\": null,\n  \"status\": \"Received\",\n  \"solutionCategory\": \"Service\",\n  \"notes\": \"Subscription renewal fee received via UPI / Scan & Pay.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/payments",
@@ -1313,7 +1313,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productId\": \"ctrls-15-enterprise\",\n  \"name\": \"Tally on Cloud - Enterprise 15-User Dedicated VPS\",\n  \"category\": \"Cloud Hosting\",\n  \"provider\": \"ctrls-cloud\",\n  \"ipAddress\": \"103.115.220.88\",\n  \"sku\": \"SKU-NIS-TALLY-15U\",\n  \"price\": \"₹7,499\",\n  \"monthlyPrice\": 7499,\n  \"frequency\": \"/ month\",\n  \"description\": \"High-performance compute node for up to 15 concurrent Tally Prime users with NVMe storage.\",\n  \"userBadge\": \"15 Users\",\n  \"serverConfiguration\": \"8 vCPU / 32 GB ECC RAM / 500 GB NVMe SSD\",\n  \"cores\": \"8 vCPU\",\n  \"ram\": \"32 GB ECC RAM\",\n  \"storage\": \"500 GB Enterprise NVMe\",\n  \"users\": 15,\n  \"tier\": \"Platinum\",\n  \"available\": true,\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"productId\": \"ctrls-1-user\",\n  \"name\": \"CtrlS Cloud Server — 1 User (2 core/3 GB/50 GB)\",\n  \"category\": \"Cloud Hosting\",\n  \"provider\": \"ctrls-cloud\",\n  \"ipAddress\": \"103.115.220.12\",\n  \"sku\": \"SKU-CTRLS-01U\",\n  \"price\": \"₹500\",\n  \"monthlyPrice\": 500,\n  \"frequency\": \"/ month\",\n  \"description\": \"Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 2 core, 3 GB RAM, 50 GB SSD, Windows Server license & daily backup.\",\n  \"userBadge\": \"1 User\",\n  \"serverConfiguration\": \"2 core/3 GB/50 GB\",\n  \"cores\": \"2 core\",\n  \"ram\": \"3 GB\",\n  \"storage\": \"50 GB\",\n  \"users\": 1,\n  \"tier\": \"Tier-4\",\n  \"available\": true,\n  \"status\": \"active\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products",
@@ -2029,7 +2029,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": \"ctrls-5-user\",\n  \"name\": \"Tally on Cloud - 5 Users (CtrlS Datacenter)\",\n  \"basePrice\": 3500,\n  \"quantity\": 1,\n  \"sku\": \"SKU-NIS-TALLY-05U\",\n  \"category\": \"Cloud Hosting\",\n  \"billingCycle\": \"Annual (Save 15%)\",\n  \"image\": \"https://example.com/tally-cloud.png\"\n}"
+              "raw": "{\n  \"id\": \"sub-cloud-service-1793792000\",\n  \"name\": \"Cloud Services - CtrlS 1 User (2 core/3 GB/50 GB) (1 Month)\",\n  \"product\": \"Cloud Services\",\n  \"planName\": \"CtrlS 1 User (2 core/3 GB/50 GB)\",\n  \"basePrice\": 500,\n  \"price\": 500,\n  \"quantity\": 1,\n  \"customerEmail\": \"demo@gmail.com\",\n  \"salesPerson\": \"Nilmoni Ghosal\",\n  \"period\": \"1 Month\",\n  \"duration\": \"1 Month\",\n  \"durationMonths\": 1,\n  \"startDate\": \"2026-11-04\",\n  \"endDate\": \"04-12-2026\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/cart/add",
@@ -2309,7 +2309,89 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"account\": {\n      \"customerId\": \"CUST-DEMO-01\",\n      \"name\": \"Demo Customer\",\n      \"company\": \"demo\",\n      \"email\": \"demo@gmail.com\",\n      \"phone\": \"+91 98300 12345\",\n      \"plan\": \"Tally on Clouds\",\n      \"status\": \"active\",\n      \"serverNode\": \"CtrlS-KOL-NODE-01\",\n      \"gstNo\": \"19AAACD1234E1Z5\",\n      \"registered\": \"2026-11-04\"\n    },\n    \"kpi\": {\n      \"activeProducts\": 1,\n      \"totalPaid\": 6500,\n      \"totalPending\": 0,\n      \"pendingInvoices\": 0,\n      \"renewalName\": \"Tally on Clouds\",\n      \"renewalDate\": \"2027-10-31\",\n      \"renewalDaysLeft\": 361\n    },\n    \"products\": [\n      {\n        \"id\": \"cnt-tally-cloud-01\",\n        \"name\": \"Tally on Clouds\",\n        \"category\": \"Cloud Hosting\",\n        \"contractType\": \"AMC\",\n        \"status\": \"Active\",\n        \"startDate\": \"2026-11-04\",\n        \"expiryDate\": \"2027-10-31\",\n        \"daysLeft\": 361,\n        \"amount\": 6500,\n        \"amountLabel\": \"₹6,500 / 1 year\",\n        \"expired\": false,\n        \"source\": \"contract\"\n      }\n    ],\n    \"payments\": [\n      {\n        \"id\": \"pay-2026-001\",\n        \"invoiceNumber\": \"INV-2026-001\",\n        \"service\": \"Tally on Clouds\",\n        \"date\": \"2026-11-04\",\n        \"dueDate\": \"2026-11-04\",\n        \"daysLeft\": 0,\n        \"amount\": 6500,\n        \"received\": 6500,\n        \"pending\": 0,\n        \"status\": \"Received\",\n        \"paymentMethod\": \"UPI / Net Banking\"\n      }\n    ],\n    \"entitlements\": [\n      {\n        \"name\": \"Tally on Clouds\",\n        \"productId\": \"ctrls-5-user\",\n        \"source\": \"subscription\",\n        \"contractId\": \"cnt-tally-cloud-01\",\n        \"expiryDate\": \"2027-10-31\"\n      }\n    ],\n    \"recentPayments\": [\n      {\n        \"id\": \"pay-2026-001\",\n        \"invoiceNumber\": \"INV-2026-001\",\n        \"service\": \"Tally on Clouds\",\n        \"date\": \"2026-11-04\",\n        \"dueDate\": \"2026-11-04\",\n        \"daysLeft\": 0,\n        \"amount\": 6500,\n        \"received\": 6500,\n        \"pending\": 0,\n        \"status\": \"Received\",\n        \"paymentMethod\": \"UPI / Net Banking\"\n      }\n    ],\n    \"reminder\": null,\n    \"identityMatched\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"account\": {\n      \"customerId\": \"CUST-9679\",\n      \"name\": \"demo\",\n      \"company\": \"demo\",\n      \"email\": \"demo@gmail.com\",\n      \"phone\": \"9876543210\",\n      \"plan\": \"Tally Prime Cloud + VPS Gold\",\n      \"status\": \"active\",\n      \"serverNode\": \"CtrlS-KOL-NODE-01\",\n      \"gstNo\": null,\n      \"registered\": \"2026-10-31\"\n    },\n    \"kpi\": {\n      \"activeProducts\": 1,\n      \"totalPaid\": 6500,\n      \"totalPending\": 0,\n      \"pendingInvoices\": 0,\n      \"renewalName\": \"Tally on Clouds\",\n      \"renewalDate\": \"2027-10-31\",\n      \"renewalDaysLeft\": 361\n    },\n    \"products\": [\n      {\n        \"id\": \"CTR-2026-8829\",\n        \"name\": \"Tally on Clouds\",\n        \"category\": \"Service\",\n        \"contractType\": \"AMC\",\n        \"status\": \"Active\",\n        \"startDate\": \"2026-10-31\",\n        \"expiryDate\": \"2027-10-31\",\n        \"daysLeft\": 361,\n        \"amount\": 6500,\n        \"amountLabel\": \"₹6500 / 1 year\",\n        \"expired\": false,\n        \"source\": \"contract\"\n      }\n    ],\n    \"payments\": [\n      {\n        \"id\": \"PAY-2026-8808\",\n        \"invoiceNumber\": \"INV-2026-1051\",\n        \"service\": \"Tally on Clouds\",\n        \"date\": \"2026-11-04\",\n        \"dueDate\": null,\n        \"daysLeft\": null,\n        \"amount\": 6500,\n        \"received\": 6500,\n        \"pending\": 0,\n        \"status\": \"Received\",\n        \"paymentMethod\": \"UPI / Scan & Pay\"\n      }\n    ],\n    \"entitlements\": [\n      {\n        \"name\": \"Tally on Clouds\",\n        \"productId\": null,\n        \"source\": \"subscription\",\n        \"contractId\": \"CTR-2026-8829\",\n        \"expiryDate\": \"2027-10-31\"\n      }\n    ],\n    \"recentPayments\": [\n      {\n        \"id\": \"PAY-2026-8808\",\n        \"invoiceNumber\": \"INV-2026-1051\",\n        \"service\": \"Tally on Clouds\",\n        \"date\": \"2026-11-04\",\n        \"dueDate\": null,\n        \"daysLeft\": null,\n        \"amount\": 6500,\n        \"received\": 6500,\n        \"pending\": 0,\n        \"status\": \"Received\",\n        \"paymentMethod\": \"UPI / Scan & Pay\"\n      }\n    ],\n    \"reminder\": null,\n    \"identityMatched\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Pay Customer Portal Dues (/dashboard/payments)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"UPI / Scan & Pay\",\n  \"invoiceNumber\": \"INV-2026-1051\",\n  \"contractId\": \"CTR-2026-8829\",\n  \"settleAll\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dashboard",
+                "payments"
+              ]
+            },
+            "description": "Records and reconciles an online portal dues payment for the authenticated customer."
+          },
+          "response": [
+            {
+              "name": "200 OK - Payment Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"method\": \"UPI / Scan & Pay\",\n  \"invoiceNumber\": \"INV-2026-1051\",\n  \"contractId\": \"CTR-2026-8829\",\n  \"settleAll\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/dashboard/payments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "dashboard",
+                    "payments"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"settledCount\": 1,\n    \"totalSettled\": 6500,\n    \"status\": \"Received\",\n    \"receiptId\": \"PAY-2026-8808\"\n  }\n}"
             }
           ]
         },
@@ -2387,7 +2469,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"query\": \"tally\",\n    \"groups\": [\n      {\n        \"key\": \"products\",\n        \"label\": \"Products & plans\",\n        \"items\": [\n          {\n            \"id\": \"cnt-tally-cloud-01\",\n            \"title\": \"Tally on Clouds\",\n            \"subtitle\": \"AMC · Renews 31 Oct 2027\",\n            \"meta\": \"Active\",\n            \"amount\": 6500,\n            \"target\": \"products\"\n          }\n        ]\n      },\n      {\n        \"key\": \"payments\",\n        \"label\": \"Payments & receipts\",\n        \"items\": [\n          {\n            \"id\": \"pay-2026-001\",\n            \"title\": \"INV-2026-001\",\n            \"subtitle\": \"Tally on Clouds · 04 Nov 2026\",\n            \"meta\": \"Received\",\n            \"amount\": 6500,\n            \"target\": \"receipt\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"query\": \"tally\",\n    \"groups\": [\n      {\n        \"key\": \"products\",\n        \"label\": \"Products & plans\",\n        \"items\": [\n          {\n            \"id\": \"CTR-2026-8829\",\n            \"title\": \"Tally on Clouds\",\n            \"subtitle\": \"AMC · Renews 31 Oct 2027\",\n            \"meta\": \"Active\",\n            \"amount\": 6500,\n            \"target\": \"products\"\n          }\n        ]\n      },\n      {\n        \"key\": \"payments\",\n        \"label\": \"Payments & receipts\",\n        \"items\": [\n          {\n            \"id\": \"PAY-2026-8808\",\n            \"title\": \"INV-2026-1051\",\n            \"subtitle\": \"Tally on Clouds · 04 Nov 2026\",\n            \"meta\": \"Received\",\n            \"amount\": 6500,\n            \"target\": \"receipt\"\n          }\n        ]\n      }\n    ]\n  }\n}"
             }
           ]
         }
