@@ -76,9 +76,7 @@ const PRODUCT_TYPE_CONFIG = {
 };
 
 const CLOUD_PROVIDER_OPTIONS = [
-  { value: 'ctrls-cloud', label: 'CtrlS Cloud Server (Tier-4 Datacenter)' },
-  { value: 'aws-cloud', label: 'Amazon Web Services (AWS)' },
-  { value: 'azure-cloud', label: 'Microsoft Azure' }
+  { value: 'ctrls-cloud', label: 'CtrlS Cloud Server (Tier-4 Datacenter)' }
 ];
 
 const AVAILABILITY_OPTIONS = [

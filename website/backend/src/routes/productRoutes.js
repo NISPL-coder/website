@@ -6,22 +6,17 @@ import {
   deleteProduct
 } from '../controllers/productController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { requirePermission } from '../middleware/permission.js';
 
 const router = express.Router();
 
-// Lenient auth: populates req.user if valid token provided, but does not block requests
-const permissiveAuth = (req, res, next) => {
-  const header = req.headers.authorization || '';
-  if (!header || !header.startsWith('Bearer ')) {
-    return next();
-  }
-  authenticate(req, res, () => next());
-};
-
+// Catalog reads stay public so the pricing pages work for visitors.
 router.get('/', getProducts);
-router.post('/', permissiveAuth, createProduct);
-router.put('/:id', permissiveAuth, updateProduct);
-router.patch('/:id', permissiveAuth, updateProduct);
-router.delete('/:id', permissiveAuth, deleteProduct);
+
+// Every write needs a signed-in admin holding the matching product grant.
+router.post('/', authenticate, requirePermission('product', 'create'), createProduct);
+router.put('/:id', authenticate, requirePermission('product', 'edit'), updateProduct);
+router.patch('/:id', authenticate, requirePermission('product', 'edit'), updateProduct);
+router.delete('/:id', authenticate, requirePermission('product', 'delete'), deleteProduct);
 
 export default router;

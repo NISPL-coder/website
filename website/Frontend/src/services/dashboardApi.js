@@ -1,4 +1,5 @@
 import { authApi } from './authApi';
+import { getSessionId } from './cartApi';
 
 const isLocalhost = Boolean(
   typeof window !== 'undefined' && (
@@ -60,6 +61,57 @@ export const dashboardApi = {
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Failed to fetch your account overview.');
+    }
+
+    return data.data;
+  },
+
+  /**
+   * Search this customer's own records (products, plans, receipts).
+   * Scoped server-side to the signed-in account, so it can only return its rows.
+   */
+  async searchPortal(query) {
+    const token = authApi.getAuthToken();
+    const res = await fetch(
+      `${API_BASE_URL}/search?${new URLSearchParams({ q: query }).toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : null)
+        }
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to search your account.');
+    }
+
+    return data.data;
+  },
+
+  /**
+   * Record a real payment for the signed-in account. Pass an invoiceNumber to
+   * settle an open invoice, a contractId to renew a subscription, or neither to
+   * check out the account's cart. The server prices and writes the ledger row.
+   */
+  async submitPayment(payload = {}) {
+    const token = authApi.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/payments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Lets the server find a cart that was started before this login.
+        'x-session-id': getSessionId(),
+        ...(token ? { Authorization: `Bearer ${token}` } : null)
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Payment could not be recorded. Please try again.');
     }
 
     return data.data;

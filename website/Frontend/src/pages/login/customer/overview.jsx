@@ -66,39 +66,78 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction }) {
   );
 }
 
-export default function CloudPortalOverview({ customer, onNavigateTab, onOpenSupport }) {
-  const [view, setView] = useState({ status: 'loading', data: null, error: '' });
+export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onOpenSupport }) {
+  const [view, setView] = useState(() => ({
+    status: portalData ? 'ready' : 'loading',
+    data: portalData || null,
+    error: ''
+  }));
 
   const load = useCallback(async () => {
-    setView((prev) => ({ ...prev, status: 'loading', error: '' }));
+    if (!portalData) {
+      setView((prev) => ({ ...prev, status: 'loading', error: '' }));
+    }
     try {
       const data = await dashboardApi.getMyOverview();
       setView({ status: 'ready', data, error: '' });
     } catch (err) {
-      setView({
-        status: 'error',
-        data: null,
-        error: err?.message || 'Unable to load your account overview.'
-      });
+      if (!portalData) {
+        setView({
+          status: 'error',
+          data: null,
+          error: err?.message || 'Unable to load your account overview.'
+        });
+      }
     }
-  }, []);
+  }, [portalData]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (portalData) {
+      setView({ status: 'ready', data: portalData, error: '' });
+    } else {
+      load();
+    }
+  }, [portalData, load]);
 
   const goTo = (tab) => {
     if (onNavigateTab) onNavigateTab(tab);
   };
 
   const data = view.data;
+  const account = data?.account || {};
   const kpi = data?.kpi || {};
-  const payments = data?.recentPayments || [];
-  const products = data?.products || [];
+  const payments = (data?.recentPayments && data.recentPayments.length > 0)
+    ? data.recentPayments
+    : (data?.payments || []);
+  const products = (data?.products && data.products.length > 0)
+    ? data.products
+    : (data?.entitlements || []).map((e) => ({
+        id: e.contractId || e.productId || e.name,
+        name: e.name,
+        category: 'Service',
+        contractType: 'AMC',
+        expiryDate: e.expiryDate,
+        daysLeft: e.daysLeft ?? null,
+        status: 'Active',
+        source: 'subscription'
+      }));
   const reminder = data?.reminder || null;
 
   const greeting =
-    data?.account?.company || customer?.companyName || customer?.company || customer?.name || 'there';
+    account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
+
+  // The portal's account row is the billing identity printed on the invoice.
+  const billing = {
+    ...customer,
+    companyName: account?.company || customer?.companyName || customer?.company || account?.name || 'Customer',
+    name: account?.name || customer?.name || 'Customer',
+    email: account?.email || customer?.email || '',
+    phone: account?.phone || customer?.phone || '',
+    gstNo: account?.gstNo || customer?.gstNo || '',
+    customerId: account?.customerId || customer?.customerId || '',
+    serverNode: account?.serverNode || customer?.serverNode || '',
+    plan: account?.plan || customer?.plan || ''
+  };
 
   const handleReceiptDownload = (payment) => {
     try {
@@ -109,11 +148,12 @@ export default function CloudPortalOverview({ customer, onNavigateTab, onOpenSup
           date: formatDate(payment.date),
           expiryDate: payment.dueDate ? formatDate(payment.dueDate) : '',
           service: payment.service,
-          paymentMode: payment.paymentMethod || 'Online Banking',
-          baseAmount: String(payment.amount),
-          totalAmount: String(payment.amount)
+          paymentMode: payment.paymentMethod || '—',
+          baseAmount: formatINR(payment.amount),
+          totalAmount: formatINR(payment.amount),
+          status: payment.status
         },
-        customer
+        billing
       );
     } catch (err) {
       console.warn('Receipt generation failed:', err);
@@ -131,10 +171,6 @@ export default function CloudPortalOverview({ customer, onNavigateTab, onOpenSup
             Manage your products, payments and stay updated with your account.
           </p>
         </div>
-        <button type="button" className="flowmail-btn-primary" onClick={onOpenSupport}>
-          <Headphones size={15} />
-          <span>Get Support</span>
-        </button>
       </section>
 
       {view.status === 'loading' && (
@@ -333,13 +369,13 @@ export default function CloudPortalOverview({ customer, onNavigateTab, onOpenSup
                       product.expiryDate ? `Valid till ${formatDate(product.expiryDate)}` : 'Validity not recorded'
                     ].filter(Boolean);
                     return (
-                      <div key={product.id} className="flowmail-product-row">
+                      <div key={product.id || product.name} className="flowmail-product-row">
                         <span className="flowmail-product-icon">
                           <Package size={16} />
                         </span>
                         <div className="flowmail-product-info">
                           <span className="flowmail-product-name">{product.name}</span>
-                          <span className="flowmail-product-meta">{metaParts.join(' • ')}</span>
+                          <span className="flowmail-product-meta">{metaParts.join(' · ')}</span>
                         </div>
                         <span className={`flowmail-status-badge ${product.expired ? 'overdue' : 'active'}`}>
                           {product.expired ? 'Expired' : product.status || 'Active'}

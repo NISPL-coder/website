@@ -59,8 +59,30 @@ export function calculatePricing({ basePrice, discountPercent = 0, gstRate = GST
   };
 }
 
+/**
+ * Ledger entitlements name plans as free text, so a card is "current" when the
+ * catalogue id matches or a normalised name of the card equals an owned name.
+ */
+export function findOwnedPlan(entitlements, { id, names = [] } = {}) {
+  const list = entitlements || [];
+  if (!list.length) return null;
+
+  const key = (value) =>
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+
+  const byId = list.find((entry) => entry.productId && entry.productId === id);
+  if (byId) return byId;
+
+  const wanted = names.map(key).filter(Boolean);
+  return list.find((entry) => wanted.includes(key(entry.name))) || null;
+}
+
 export default {
   calculatePricing,
   formatINR,
+  findOwnedPlan,
   GST_RATE_DEFAULT
 };

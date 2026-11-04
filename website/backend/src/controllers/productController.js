@@ -6,6 +6,74 @@ import { redactRecords } from '../utils/columnPermissions.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
+// Custom plans are quoted per concurrent user, so the catalog price is derived
+// here instead of trusting the request body.
+const deriveCustomPlan = (payload) => {
+  if (payload.isCustomPlan !== true) return {};
+
+  const users = Math.floor(Number(payload.users));
+  const pricePerUser = Number(payload.pricePerUser);
+
+  if (!Number.isFinite(users) || users < 1) {
+    return { error: 'A custom plan needs a user count of at least 1.' };
+  }
+  if (!Number.isFinite(pricePerUser) || pricePerUser <= 0) {
+    return { error: 'A custom plan needs a per-user monthly price above ₹0.' };
+  }
+
+  const dedicated = payload.serverType === 'dedicated';
+  const monthlyBase = Math.round(users * pricePerUser);
+
+  return {
+    fields: {
+      users,
+      pricePerUser,
+      monthlyPrice: monthlyBase,
+      price: `₹${monthlyBase.toLocaleString('en-IN')}`,
+      frequency: '/ month',
+      tier: payload.tier || `${users} User`,
+      serverType: dedicated ? 'dedicated' : 'shared',
+      userBadge: dedicated ? 'Dedicated Server' : 'Shared Server'
+    }
+  };
+};
+
+// Demo plans are time-boxed trials, so the duration is required and a ₹0 price
+// is published as FREE rather than a monthly rate.
+const deriveDemoPlan = (payload) => {
+  if (payload.isDemoPlan !== true) return {};
+
+  const duration = String(payload.duration || '').trim();
+  const amount = Number(payload.priceAmount);
+
+  if (!duration) {
+    return { error: 'A demo plan needs a duration (e.g. 1 Week).' };
+  }
+  if (!Number.isFinite(amount) || amount < 0) {
+    return { error: 'A demo plan price must be ₹0 or more.' };
+  }
+
+  return {
+    fields: {
+      duration,
+      users: 1,
+      monthlyPrice: amount,
+      price: amount === 0 ? 'FREE' : `₹${amount.toLocaleString('en-IN')}`,
+      frequency: '',
+      category: 'Trial',
+      provider: 'demo',
+      tier: '',
+      userBadge: '',
+      serverType: '',
+      pricePerUser: 0,
+      isCustomPlan: false
+    }
+  };
+};
+
+const planFields = (payload) =>
+  payload.isDemoPlan === true ? deriveDemoPlan(payload) : deriveCustomPlan(payload);
+
 export const getProducts = async (req, res) => {
   try {
     const { category, provider, status, available } = req.query;
@@ -62,13 +130,19 @@ export const getProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const payload = req.body;
+    const derived = planFields(payload);
+    if (derived.error) {
+      return res.status(400).json({ success: false, error: derived.error });
+    }
+
     const productId = payload.productId || payload.id || `PROD-${Date.now()}`;
     const newProductData = {
       ...payload,
+      ...derived.fields,
       productId,
       id: productId,
       sku: payload.sku || productId,
-      ipAddress: payload.ipAddress || '103.115.220.44',
+      ipAddress: payload.ipAddress === undefined ? '103.115.220.44' : payload.ipAddress,
       available: payload.available !== false,
       status: payload.available === false ? 'inactive' : 'active'
     };
@@ -81,18 +155,20 @@ export const createProduct = async (req, res) => {
     const list = getProductsFromFile();
     saveProductsToFile([newProductData, ...list]);
 
+    const ipNote = newProductData.ipAddress ? ` with IP ${newProductData.ipAddress}` : '';
+
     await logActivity(req, {
       action: 'PRODUCT_CREATED',
       category: 'product',
       resource: 'Product',
       resourceId: productId,
-      details: `Product ${newProductData.name} (${newProductData.category}) created with IP ${newProductData.ipAddress}`
+      details: `Product ${newProductData.name} (${newProductData.category}) created${ipNote}`
     });
 
     await logNotification({
       type: 'product_created',
       title: 'Product Added to Catalog',
-      message: `${newProductData.name} added to catalog with IP ${newProductData.ipAddress}.`,
+      message: `${newProductData.name} added to catalog${ipNote}.`,
       severity: 'info',
       entityType: 'product',
       entityId: productId,
@@ -112,7 +188,11 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const derived = planFields(req.body);
+    if (derived.error) {
+      return res.status(400).json({ success: false, error: derived.error });
+    }
+    const updates = { ...req.body, ...derived.fields };
 
     if (updates.available !== undefined) {
       updates.status = updates.available ? 'active' : 'inactive';

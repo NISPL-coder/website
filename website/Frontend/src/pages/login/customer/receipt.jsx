@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Receipt,
   Download,
@@ -22,13 +22,33 @@ import {
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
 
-export default function ReceiptSection({ receipts = [], customer }) {
+export default function ReceiptSection({ receipts = [], customer, account, externalSearch = '' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [downloadingId, setDownloadingId] = useState(null);
   const rowsPerPage = 5;
+
+  // The account record is the billing identity on the invoice, so the PDF uses
+  // whatever the portal has on file and leaves the rest blank.
+  const billing = useMemo(
+    () => ({
+      ...customer,
+      companyName: account?.company || customer?.companyName || customer?.company || account?.name,
+      name: account?.name || customer?.name,
+      email: account?.email || customer?.email,
+      gstNo: account?.gstNo || customer?.gstNo || '',
+      customerId: account?.customerId || customer?.customerId || ''
+    }),
+    [customer, account]
+  );
+
+  // The console header search hands over the term a result was opened with.
+  useEffect(() => {
+    setSearchQuery(externalSearch);
+    setCurrentPage(1);
+  }, [externalSearch]);
 
   // Aggregate Metrics for FlowMail KPI Cards
   const { totalPaidNum, totalTaxNum } = useMemo(() => {
@@ -98,7 +118,7 @@ export default function ReceiptSection({ receipts = [], customer }) {
   const handleDownloadPdf = (rec) => {
     setDownloadingId(rec.id);
     try {
-      generateReceiptPdf(rec, customer);
+      generateReceiptPdf(rec, billing);
     } catch (err) {
       console.error('PDF Generation failed:', err);
     } finally {
@@ -262,7 +282,7 @@ export default function ReceiptSection({ receipts = [], customer }) {
         >
           <div>
             <h3 className="flowmail-card-title">Tax Invoice Registry</h3>
-            <p className="flowmail-card-subtitle">Official verified invoices for {customer?.companyName || 'Corporate Account'}</p>
+            <p className="flowmail-card-subtitle">Official verified invoices for {billing.companyName || 'this account'}</p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -385,7 +405,7 @@ export default function ReceiptSection({ receipts = [], customer }) {
                           {rec.service}
                         </div>
                         <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block' }}>
-                          SAC: {rec.sacCode || '998313'} &nbsp;&bull;&nbsp; GST: {rec.gstRate || '18%'} ({rec.taxAmount})
+                          {rec.sacCode ? `SAC: ${rec.sacCode}  •  ` : ''}GST: {rec.taxAmount}
                         </span>
                       </td>
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>

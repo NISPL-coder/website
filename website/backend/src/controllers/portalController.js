@@ -2,6 +2,9 @@ import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
 import Contract from '../models/Contract.js';
 import Payment from '../models/Payment.js';
+import Cart from '../models/Cart.js';
+import Product, { getProductsFromFile } from '../models/Product.js';
+import { logNotification } from '../services/notificationService.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -51,12 +54,109 @@ const collectIdentityValues = (user, customer) => {
   return [...new Set(values.filter((v) => typeof v === 'string' && v.trim()).map((v) => v.trim()))];
 };
 
-const mapContract = (contract) => {
+const findAccountRecord = async (user) => {
+  if (!isMongoConnected()) return null;
+  if (user?.customerId) {
+    const byCustomerId = await Customer.findOne({ customerId: user.customerId }).lean();
+    if (byCustomerId) return byCustomerId;
+  }
+  if (user?.email) return Customer.findOne({ email: user.email }).lean();
+  return null;
+};
+
+/* ── Product naming ───────────────────────────────────────────────────────
+   Contracts and payments store the product as free text typed by whoever
+   raised it, so the portal resolves it against the catalogue and falls back
+   to a readable form rather than echoing "tally on clouds".
+───────────────────────────────────────────────────────────────────────── */
+const normalizeKey = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const ACRONYMS = {
+  aws: 'AWS',
+  azure: 'Azure',
+  gcp: 'GCP',
+  noc: 'NOC',
+  sla: 'SLA',
+  vps: 'VPS',
+  ssl: 'SSL',
+  tls: 'TLS',
+  erp: 'ERP',
+  crm: 'CRM',
+  api: 'API',
+  vm: 'VM',
+  os: 'OS',
+  ai: 'AI',
+  ml: 'ML',
+  tss: 'TSS',
+  gst: 'GST',
+  ip: 'IP',
+  id: 'ID',
+  saas: 'SaaS',
+  ctrls: 'CtrlS'
+};
+
+const MINOR_WORDS = new Set(['on', 'and', 'for', 'the', 'of', 'in', 'with', 'to', 'a', 'an', 'at', 'by']);
+
+const humanize = (text) =>
+  text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word, index) => {
+      const clean = word.toLowerCase().replace(/[.,;:!?]+$/, '');
+      if (ACRONYMS[clean]) return ACRONYMS[clean];
+      if (index > 0 && MINOR_WORDS.has(clean)) return clean;
+      return clean.charAt(0).toUpperCase() + clean.slice(1);
+    })
+    .join(' ');
+
+const CATALOGUE_TTL_MS = 10 * 60 * 1000;
+let catalogueCache = { at: 0, byKey: new Map() };
+
+const loadCatalogue = async () => {
+  if (catalogueCache.byKey.size && Date.now() - catalogueCache.at < CATALOGUE_TTL_MS) return catalogueCache;
+
+  let rows = [];
+  if (isMongoConnected()) {
+    rows = await Product.find({}).lean().catch(() => []);
+  }
+  if (!rows.length) rows = getProductsFromFile();
+
+  const byKey = new Map();
+  rows.forEach((row) => {
+    [row.productId, row.id, row.name].forEach((key) => {
+      const normalized = normalizeKey(key);
+      if (normalized && !byKey.has(normalized)) byKey.set(normalized, row);
+    });
+  });
+
+  catalogueCache = { at: Date.now(), byKey };
+  return catalogueCache;
+};
+
+const resolveDisplayName = async (raw, fallback = 'Subscription') => {
+  const text = String(raw || '').trim();
+  if (!text) return fallback;
+
+  const catalogue = await loadCatalogue();
+  const match = catalogue.byKey.get(normalizeKey(text));
+  if (match?.name) return match.name;
+
+  // Only re-case text that was typed in lower case; anything already mixed is
+  // left exactly as the admin wrote it.
+  if (text === text.toLowerCase()) return humanize(text);
+  return text;
+};
+
+const mapContract = async (contract) => {
   const expiry = toDate(contract.expiryDate) || toDate(contract.endDate);
   const start = toDate(contract.startDate);
   return {
     id: contract.contractId || String(contract._id),
-    name: contract.name || contract.service || contract.productCategory || 'Subscription',
+    name: await resolveDisplayName(contract.name || contract.service || contract.productCategory, 'Subscription'),
     category: contract.productCategory || null,
     contractType: contract.contractType || null,
     status: contract.status || null,
@@ -70,7 +170,7 @@ const mapContract = (contract) => {
   };
 };
 
-const mapPayment = (payment) => {
+const mapPayment = async (payment) => {
   const date = toDate(payment.invoiceDate) || toDate(payment.date) || toDate(payment.createdAt);
   const due = toDate(payment.expectedPaymentDate);
   const status = String(payment.status || '').trim();
@@ -85,7 +185,10 @@ const mapPayment = (payment) => {
   return {
     id: payment.paymentId || payment.id || String(payment._id),
     invoiceNumber: payment.invoiceNumber || payment.invoiceRef || payment.paymentId || null,
-    service: payment.solutionCategory || payment.productName || payment.service || 'Services',
+    service: await resolveDisplayName(
+      payment.solutionCategory || payment.productName || payment.service,
+      'Services'
+    ),
     date: isoDate(date),
     dueDate: isoDate(due),
     daysLeft: daysUntil(due),
@@ -102,7 +205,31 @@ const pickRenewal = (products) =>
     .filter((product) => product.expiryDate && product.daysLeft !== null && product.daysLeft >= 0)
     .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
 
-const pickReminder = (payments, renewal) => {
+// A renewal only asks for money once the term is actually coming up and nothing
+// has been booked against that term yet — a contract valid for another year is
+// information, not a demand.
+const RENEWAL_REMINDER_WINDOW_DAYS = 45;
+
+const isTermPaid = (product, payments) => {
+  const key = normalizeKey(product.name);
+  if (!key) return false;
+
+  return payments.some(
+    (payment) =>
+      PAID_STATUSES.has(String(payment.status || '').toLowerCase()) &&
+      normalizeKey(payment.service) === key &&
+      (!product.startDate || !payment.date || payment.date >= product.startDate)
+  );
+};
+
+const pickRenewalReminder = (products, payments) =>
+  products
+    .filter((product) => product.expiryDate && product.daysLeft !== null && product.amount > 0)
+    .filter((product) => product.daysLeft <= RENEWAL_REMINDER_WINDOW_DAYS)
+    .filter((product) => !isTermPaid(product, payments))
+    .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
+
+const pickReminder = (payments, products) => {
   const dues = payments
     .filter((payment) => payment.pending > 0)
     .sort((a, b) => {
@@ -124,35 +251,207 @@ const pickReminder = (payments, renewal) => {
     };
   }
 
+  const renewal = pickRenewalReminder(products, payments);
   if (renewal) {
     return {
       kind: 'renewal',
+      contractId: renewal.id,
       title: renewal.name,
       invoiceNumber: null,
       amount: renewal.amount,
       dueDate: renewal.expiryDate,
       daysLeft: renewal.daysLeft,
-      overdue: false
+      overdue: renewal.daysLeft < 0
     };
   }
 
   return null;
 };
 
+// What the account already owns, resolved back to catalogue rows so the Products
+// page can mark the plan the customer actually paid for.
+const resolveCatalogueId = async (name) => {
+  const catalogue = await loadCatalogue();
+  return catalogue.byKey.get(normalizeKey(name))?.productId || null;
+};
+
+const buildEntitlements = async (products, payments) => {
+  const byKey = new Map();
+
+  const remember = async (name, meta) => {
+    const key = normalizeKey(name);
+    if (!key || byKey.has(key)) return;
+    byKey.set(key, { name, productId: await resolveCatalogueId(name), ...meta });
+  };
+
+  for (const product of products) {
+    if (product.expired) continue;
+    await remember(product.name, {
+      source: 'subscription',
+      contractId: product.source === 'contract' ? product.id : null,
+      expiryDate: product.expiryDate
+    });
+  }
+
+  for (const payment of payments) {
+    if (!PAID_STATUSES.has(String(payment.status || '').toLowerCase())) continue;
+    await remember(payment.service, { source: 'purchase', date: payment.date });
+  }
+
+  return [...byKey.values()];
+};
+
+// The header search scans a wider window than it shows, so the strongest title
+// matches survive ranking rather than whichever rows Mongo happened to return.
+const SEARCH_SCAN_LIMIT = 12;
+const SEARCH_GROUP_LIMIT = 5;
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const formatLabelDate = (iso) => {
+  if (!iso) return null;
+  const date = toDate(iso);
+  if (!date) return null;
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const rankByTitle = (items, query) => {
+  const needle = query.toLowerCase();
+  const score = (title) => {
+    const value = String(title || '').toLowerCase();
+    if (value === needle) return 0;
+    if (value.startsWith(needle)) return 1;
+    if (value.includes(needle)) return 2;
+    return 3;
+  };
+  return [...items]
+    .sort((a, b) => score(a.title) - score(b.title) || String(a.title).localeCompare(String(b.title)))
+    .slice(0, SEARCH_GROUP_LIMIT);
+};
+
+export const searchCustomerPortal = async (req, res) => {
+  try {
+    const query = String(req.query.q || '').trim().slice(0, 60);
+    const groups = [];
+
+    if (query.length < 3) {
+      return res.json({ success: true, data: { query, groups } });
+    }
+
+    const user = req.user || {};
+    const customer = await findAccountRecord(user);
+    const identity = collectIdentityValues(user, customer);
+
+    if (!isMongoConnected() || identity.length === 0) {
+      return res.json({ success: true, data: { query, groups } });
+    }
+
+    const rx = new RegExp(escapeRegex(query), 'i');
+    const scope = buildIdentityMatch(identity);
+
+    const [contracts, paymentRows] = await Promise.all([
+      Contract.find({
+        $and: [
+          scope,
+          {
+            $or: [
+              { name: rx },
+              { service: rx },
+              { productCategory: rx },
+              { contractType: rx },
+              { contractId: rx },
+              { status: rx },
+              { value: rx },
+              { totalContractValue: rx }
+            ]
+          }
+        ]
+      })
+        .limit(SEARCH_SCAN_LIMIT)
+        .lean(),
+      Payment.find({
+        $and: [
+          scope,
+          {
+            $or: [
+              { invoiceNumber: rx },
+              { invoiceRef: rx },
+              { paymentId: rx },
+              { productName: rx },
+              { service: rx },
+              { solutionCategory: rx },
+              { paymentMethod: rx },
+              { status: rx },
+              { amount: rx },
+              { receivedAmount: rx },
+              { pendingPayment: rx }
+            ]
+          }
+        ]
+      })
+        .limit(SEARCH_SCAN_LIMIT)
+        .lean()
+    ]);
+
+    const productItems = rankByTitle(
+      (await Promise.all(contracts.map(mapContract))).map((product) => ({
+        id: product.id,
+        title: product.name,
+        subtitle: [
+          product.contractType || product.category || 'Subscription',
+          product.expiryDate
+            ? `Renews ${formatLabelDate(product.expiryDate)}`
+            : 'Validity not recorded'
+        ].join(' · '),
+        meta: product.status,
+        amount: product.amount,
+        target: 'products'
+      })),
+      query
+    );
+
+    // Same fallback as the overview: the account row itself names the subscribed plan.
+    if (productItems.length === 0 && customer?.plan && rx.test(customer.plan)) {
+      productItems.push({
+        id: customer.customerId || 'account-plan',
+        title: await resolveDisplayName(customer.plan, 'Account plan'),
+        subtitle: 'Plan running on this account',
+        meta: customer.status || 'Active',
+        amount: parseAmount(customer.mrr),
+        target: 'products'
+      });
+    }
+
+    const paymentItems = rankByTitle(
+      (await Promise.all(paymentRows.map(mapPayment))).map((payment) => ({
+        id: payment.id,
+        title: payment.invoiceNumber || payment.service,
+        subtitle: [payment.service, formatLabelDate(payment.date)].filter(Boolean).join(' · '),
+        meta: payment.status,
+        amount: payment.pending || payment.received || payment.amount,
+        target: 'receipt'
+      })),
+      query
+    );
+
+    if (productItems.length > 0) {
+      groups.push({ key: 'products', label: 'Products & plans', items: productItems });
+    }
+    if (paymentItems.length > 0) {
+      groups.push({ key: 'payments', label: 'Payments & receipts', items: paymentItems });
+    }
+
+    res.json({ success: true, data: { query, groups } });
+  } catch (err) {
+    console.error('Error searching customer portal:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 export const getCustomerOverview = async (req, res) => {
   try {
     const user = req.user || {};
-    let customer = null;
-
-    if (isMongoConnected()) {
-      if (user.customerId) {
-        customer = await Customer.findOne({ customerId: user.customerId }).lean();
-      }
-      if (!customer && user.email) {
-        customer = await Customer.findOne({ email: user.email }).lean();
-      }
-    }
-
+    const customer = await findAccountRecord(user);
     const identity = collectIdentityValues(user, customer);
 
     let products = [];
@@ -164,8 +463,8 @@ export const getCustomerOverview = async (req, res) => {
         Contract.find(match).lean(),
         Payment.find(match).lean()
       ]);
-      products = contracts.map(mapContract);
-      payments = paymentRows.map(mapPayment);
+      products = await Promise.all(contracts.map(mapContract));
+      payments = await Promise.all(paymentRows.map(mapPayment));
     }
 
     products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
@@ -176,7 +475,7 @@ export const getCustomerOverview = async (req, res) => {
       products = [
         {
           id: customer.customerId || 'account-plan',
-          name: customer.plan,
+          name: await resolveDisplayName(customer.plan, 'Account plan'),
           category: null,
           contractType: null,
           status: customer.status || 'active',
@@ -193,10 +492,11 @@ export const getCustomerOverview = async (req, res) => {
 
     payments.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-    const totalPaid = payments.reduce((sum, payment) => sum + payment.received, 0);
-    const totalPending = payments.reduce((sum, payment) => sum + payment.pending, 0);
+    const totalPaid = payments.reduce((sum, payment) => sum + (payment.received || 0), 0);
+    const totalPending = payments.reduce((sum, payment) => sum + (payment.pending || 0), 0);
     const renewal = pickRenewal(products);
     const activeProducts = products.filter((product) => !product.expired).length;
+    const entitlements = await buildEntitlements(products, payments);
 
     res.json({
       success: true,
@@ -206,7 +506,7 @@ export const getCustomerOverview = async (req, res) => {
           name: customer?.name || user.name || null,
           company: customer?.company || user.company || null,
           email: customer?.email || user.email || null,
-          phone: customer?.phone || null,
+          phone: customer?.phone || user.phone || null,
           plan: customer?.plan || null,
           status: customer?.status || null,
           serverNode: customer?.serverNode || null,
@@ -223,13 +523,278 @@ export const getCustomerOverview = async (req, res) => {
           renewalDaysLeft: renewal?.daysLeft ?? null
         },
         products,
+        payments,
+        entitlements,
         recentPayments: payments.slice(0, 5),
-        reminder: pickReminder(payments, renewal),
+        reminder: pickReminder(payments, products),
         identityMatched: identity.length > 0 && Boolean(customer)
       }
     });
   } catch (err) {
     console.error('Error building customer overview:', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/* ── Checkout ─────────────────────────────────────────────────────────────
+   A payment only counts once it is on the ledger, otherwise the dashboard,
+   receipts and reminders keep showing the state from before the customer paid.
+   Amounts come from the quote stored on the account's own cart, never from the
+   request body, so the client cannot set what it owes.
+───────────────────────────────────────────────────────────────────────── */
+const GST_RATE = 0.18;
+const MAX_LINE_QUANTITY = 99;
+
+const roundMoney = (value) => Math.round(Number(value) || 0);
+
+const inr = (value) => `₹${roundMoney(value).toLocaleString('en-IN')}`;
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+const nextReference = async (field, prefix) => {
+  const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+  const latest = await Payment.findOne({ [field]: pattern }).sort({ [field]: -1 }).lean();
+  const tail = parseInt(String(latest?.[field] || '').split('-').pop(), 10);
+  return `${prefix}${Number.isFinite(tail) ? tail + 1 : 1001}`;
+};
+
+const findAccountCart = async (user, req) => {
+  const own = await Cart.findOne({ 'account.userId': user._id }).sort({ updatedAt: -1 });
+  if (own) return own;
+
+  const sessionId = String(req.headers['x-session-id'] || '').trim();
+  if (!sessionId) return null;
+
+  const bySession = await Cart.findOne({ sessionId });
+  const sameAccount =
+    String(bySession?.account?.email || '').toLowerCase() === String(user.email || '').toLowerCase();
+  return sameAccount ? bySession : null;
+};
+
+const createAccountPayment = async ({ user, customer, method, total, label }) => {
+  const year = new Date().getFullYear();
+  const invoiceNumber = await nextReference('invoiceNumber', `INV-${year}-`);
+  const paymentId = await nextReference('paymentId', `PAY-${year}-`);
+  const amountText = inr(total);
+  const accountName = customer?.company || user.company || customer?.name || user.name || user.email || '';
+
+  return Payment.create({
+    paymentId,
+    invoiceNumber,
+    customer: customer?.name || accountName,
+    company: accountName,
+    email: user.email || customer?.email || '',
+    customerId: user.customerId || customer?.customerId || '',
+    amount: amountText,
+    receivedAmount: amountText,
+    pendingPayment: '₹0',
+    paymentMethod: method,
+    invoiceDate: todayIso(),
+    paymentReceivedDate: todayIso(),
+    status: 'Received',
+    solutionCategory: label
+  });
+};
+
+const notifyPaymentReceived = (user, customer, payment) =>
+  logNotification({
+    type: 'payment_received',
+    title: 'Payment Received',
+    message: `${payment.amount} received from ${payment.company} via ${payment.paymentMethod}.`,
+    severity: 'success',
+    entityType: 'payment',
+    entityId: payment.invoiceNumber,
+    user: {
+      name: customer?.name || user.name,
+      email: user.email,
+      role: user.role,
+      company: payment.company
+    },
+    metadata: { invoiceNumber: payment.invoiceNumber, source: 'customer_portal' }
+  });
+
+export const payPortalDues = async (req, res) => {
+  try {
+    if (!isMongoConnected()) {
+      return res
+        .status(503)
+        .json({ success: false, error: 'Payments need the ledger database, which is offline right now.' });
+    }
+
+    const user = req.user;
+    const customer = await findAccountRecord(user);
+    const identity = collectIdentityValues(user, customer);
+
+    if (!identity.length) {
+      return res.status(400).json({
+        success: false,
+        error: 'This login is not linked to a NISPL account yet, so payments cannot be recorded.'
+      });
+    }
+
+    const scope = buildIdentityMatch(identity);
+    const method = String(req.body?.method || '').trim().slice(0, 60) || 'Online Banking';
+    const invoiceNumber = String(req.body?.invoiceNumber || '').trim();
+    const contractId = String(req.body?.contractId || '').trim();
+    const settleAll = Boolean(req.body?.settleAll);
+
+    // A row is settled for the balance the portal showed the customer, which is
+    // the stored pending amount and falls back to amount minus what is received.
+    const outstandingOf = (payment) => {
+      const pending = parseAmount(payment.pendingPayment);
+      const received = parseAmount(payment.receivedAmount);
+      return pending || Math.max(parseAmount(payment.amount) - received, 0);
+    };
+
+    const settleRow = async (payment) => {
+      if (PAID_STATUSES.has(String(payment.status || '').toLowerCase())) {
+        return { settled: false, outstanding: 0 };
+      }
+
+      const outstanding = outstandingOf(payment);
+      if (outstanding <= 0) return { settled: false, outstanding: 0 };
+
+      payment.status = 'Received';
+      payment.receivedAmount = inr(parseAmount(payment.receivedAmount) + outstanding);
+      payment.pendingPayment = '₹0';
+      payment.paymentReceivedDate = todayIso();
+      if (!payment.paymentMethod) payment.paymentMethod = method;
+      await payment.save();
+
+      await notifyPaymentReceived(user, customer, payment);
+      return { settled: true, outstanding };
+    };
+
+    // 1. Settle an open invoice already on this account.
+    if (invoiceNumber) {
+      const payment = await Payment.findOne({
+        $and: [scope, { $or: [{ invoiceNumber }, { invoiceRef: invoiceNumber }, { paymentId: invoiceNumber }] }]
+      });
+
+      if (!payment) {
+        return res.status(404).json({ success: false, error: 'That invoice is not on your account.' });
+      }
+
+      const { settled, outstanding } = await settleRow(payment);
+
+      return res.json({
+        success: true,
+        data: {
+          alreadySettled: !settled,
+          payment: await mapPayment(payment.toObject()),
+          totals: { total: settled ? outstanding : 0 }
+        }
+      });
+    }
+
+    // 2. Settle every open invoice on the account in one transaction.
+    if (settleAll) {
+      const rows = await Payment.find({
+        $and: [scope, { status: { $regex: '^(pending|overdue|unpaid)$', $options: 'i' } }]
+      });
+
+      const settledPayments = [];
+      let total = 0;
+
+      for (const row of rows) {
+        const { settled, outstanding } = await settleRow(row);
+        if (!settled) continue;
+        total += outstanding;
+        settledPayments.push(await mapPayment(row.toObject()));
+      }
+
+      if (!settledPayments.length) {
+        return res.status(400).json({ success: false, error: 'No invoice on your account is open right now.' });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          alreadySettled: false,
+          payments: settledPayments,
+          payment: settledPayments[0],
+          totals: { subtotal: total, gst: 0, total, lines: [] }
+        }
+      });
+    }
+
+    // 3. Renew a subscription the account holds.
+    if (contractId) {
+      const contract = await Contract.findOne({
+        $and: [scope, { $or: [{ contractId }, { id: contractId }] }]
+      }).lean();
+
+      if (!contract) {
+        return res.status(404).json({ success: false, error: 'That subscription is not on your account.' });
+      }
+
+      const total = parseAmount(contract.value || contract.totalContractValue);
+      if (!total) {
+        return res.status(400).json({
+          success: false,
+          error: 'The renewal value is not recorded, so it cannot be paid online yet.'
+        });
+      }
+
+      const created = await createAccountPayment({
+        user,
+        customer,
+        method,
+        total,
+        label: await resolveDisplayName(contract.name || contract.service, 'Subscription renewal')
+      });
+      await notifyPaymentReceived(user, customer, created);
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          payment: await mapPayment(created.toObject()),
+          totals: { subtotal: total, gst: 0, total, lines: [] }
+        }
+      });
+    }
+
+    // 4. Check out the account's own cart.
+    const cart = await findAccountCart(user, req);
+    if (!cart || !cart.items.length) {
+      return res.status(400).json({ success: false, error: 'Your cart is empty.' });
+    }
+
+    const lines = await Promise.all(
+      cart.items.map(async (item) => ({
+        name: await resolveDisplayName(item.name, 'Plan'),
+        quantity: Math.min(Math.max(roundMoney(item.quantity) || 1, 1), MAX_LINE_QUANTITY),
+        basePrice: roundMoney(item.basePrice)
+      }))
+    );
+
+    if (lines.some((line) => line.basePrice <= 0)) {
+      return res.status(400).json({
+        success: false,
+        error: 'One of the cart items has no price recorded. Contact support to complete this payment.'
+      });
+    }
+
+    const subtotal = lines.reduce((sum, line) => sum + line.basePrice * line.quantity, 0);
+    const gst = roundMoney(subtotal * GST_RATE);
+    const total = subtotal + gst;
+    const label = lines.length === 1 ? lines[0].name : `${lines[0].name} + ${lines.length - 1} more`;
+
+    const created = await createAccountPayment({ user, customer, method, total, label });
+
+    cart.items = [];
+    cart.markModified('items');
+    await cart.save();
+
+    await notifyPaymentReceived(user, customer, created);
+
+    res.status(201).json({
+      success: true,
+      data: { payment: await mapPayment(created.toObject()), totals: { subtotal, gst, total, lines } }
+    });
+  } catch (err) {
+    console.error('Error recording customer payment:', err);
+    const status = err.statusCode || (err.name === 'ValidationError' ? 400 : 500);
+    res.status(status).json({ success: false, error: err.message });
   }
 };

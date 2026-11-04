@@ -84,21 +84,11 @@ function AzureIcon({ size = 44, className = '' }) {
   );
 }
 
-// Only CtrlS is transactable today; the hyperscale cards stay visible for
-// reference until their catalog is live, so they must not open a plans view.
-export const READ_ONLY_CLOUD_PROVIDERS = ['aws-cloud', 'azure-cloud'];
+// CtrlS is our exclusive Tier-4 cloud infrastructure partner
+export const READ_ONLY_CLOUD_PROVIDERS = [];
 
 export default function CloudProviderSelection({ onSelectProvider, onBack }) {
   const providers = [
-    {
-      id: 'aws-cloud',
-      name: 'Amazon Web Services (AWS)',
-      oneLiner: 'Scalable Enterprise Hyperscale Cloud Compute & EC2',
-      logoType: 'aws',
-      badge: 'Hyperscale Cloud',
-      badgeClass: 'amber',
-      highlights: ['Dedicated vCPU Xeon Compute', 'Auto-Scaling EC2 Instances', '99.99% Global High Availability']
-    },
     {
       id: 'ctrls-cloud',
       name: 'CtrlS Cloud Server',
@@ -108,15 +98,6 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
       badgeClass: 'positive',
       exploreText: 'Explore CtrlS Cloud',
       highlights: ['CtrlS Rated-4 Kolkata Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote']
-    },
-    {
-      id: 'azure-cloud',
-      name: 'Microsoft Azure',
-      oneLiner: 'Scalable Enterprise Hyperscale Cloud Instances',
-      logoType: 'azure',
-      badge: 'Hyperscale Cloud',
-      badgeClass: 'indigo',
-      highlights: ['Azure Virtual Windows Desktops', 'Microsoft Enterprise Security SLA', 'Instant Automated Backup Sync']
     }
   ];
 

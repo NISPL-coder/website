@@ -20,7 +20,8 @@ import SupportTicketModal from './components/SupportTicketModal';
 import { customerAuthService } from '../CustomerRegister/services/customerAuthService';
 import { authApi } from '../../services/authApi';
 import { cartApi } from '../../services/cartApi';
-import { INITIAL_INVOICES } from './data/mockDashboardData';
+import { dashboardApi } from '../../services/dashboardApi';
+import { formatINR } from './utils/pricingUtils';
 import './Dashboard.css';
 
 const NAV_TO_PATH = {
@@ -32,6 +33,105 @@ const NAV_TO_PATH = {
   help: '/customer/help',
   profile: '/customer/profile'
 };
+
+const formatReceiptDate = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+// The receipt ledger is this account's own payment rows, so the invoice a
+// search result names is the invoice the Receipt tab then shows.
+const toReceiptRows = (payments = []) =>
+  payments.map((payment) => ({
+    id: payment.invoiceNumber || payment.id,
+    service: payment.service,
+    date: formatReceiptDate(payment.date),
+    expiryDate: formatReceiptDate(payment.dueDate),
+    paymentMode: payment.paymentMethod || '—',
+    totalAmount: formatINR(payment.amount),
+    taxAmount: 'Not separately recorded',
+    status: payment.status || (payment.pending > 0 ? 'Pending' : 'Paid')
+  }));
+
+// Portal sections the header search can jump to. Record matches come from the
+// API; these are the pages themselves, matched on the words customers use.
+const SEARCH_PAGES = [
+  { target: 'overview', title: 'Overview', subtitle: 'Products, payments and renewals at a glance', keywords: 'overview home dashboard summary start' },
+  { target: 'products', title: 'Products & plans', subtitle: 'Browse and buy NISPL plans', keywords: 'product products plan plans catalogue buy store tally cloud subscription' },
+  { target: 'cart', title: 'Cart', subtitle: 'Items waiting for checkout', keywords: 'cart checkout basket order items' },
+  { target: 'payment', title: 'Payment', subtitle: 'Pay a pending invoice', keywords: 'payment pay invoice due amount gateway make' },
+  { target: 'receipt', title: 'Receipts', subtitle: 'Invoices and payment history', keywords: 'receipt receipts invoice invoices history download gst bill' },
+  { target: 'help', title: 'Help Center', subtitle: 'Support, FAQs and contact', keywords: 'help support faq contact ticket raise issue' },
+  { target: 'profile', title: 'Profile', subtitle: 'Account and company details', keywords: 'profile account details company address contact password' }
+];
+
+// A section only qualifies when the term names it: title match or one of its
+// own keywords. Descriptions never decide, so "payment" does not list every
+// page that happens to mention payments.
+const pageRelevance = (page, term) => {
+  const title = page.title.toLowerCase();
+  const words = page.keywords.split(' ');
+  if (title === term) return 0;
+  if (title.startsWith(term)) return 1;
+  if (words.includes(term)) return 2;
+  if (title.includes(term)) return 3;
+  return -1;
+};
+
+const buildPagesGroup = (term) => {
+  const needle = term.toLowerCase();
+  const items = SEARCH_PAGES.map((page) => ({ page, score: pageRelevance(page, needle) }))
+    .filter(({ score }) => score >= 0 && score <= 3)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 3)
+    .map(({ page }) => ({ ...page, id: `page-${page.target}`, trailing: 'Page', seed: term }));
+
+  return items.length ? [{ key: 'pages', label: 'Go to', items }] : [];
+};
+
+// Plans the account already owns, straight from the ledger, so the catalogue
+// always shows what is running before anything new is bought.
+function CurrentPlansStrip({ entitlements = [] }) {
+  if (!entitlements.length) return null;
+
+  return (
+    <div
+      className="flowmail-card"
+      style={{
+        padding: '14px 18px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        flexWrap: 'wrap'
+      }}
+    >
+      <span
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: '700',
+          color: '#64748b',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase'
+        }}
+      >
+        Active on your account
+      </span>
+      {entitlements.map((entitlement) => (
+        <span
+          key={entitlement.productId || entitlement.name}
+          className="flowmail-trend-pill positive"
+          style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+        >
+          {entitlement.name}
+          {entitlement.expiryDate ? ` • valid till ${formatReceiptDate(entitlement.expiryDate)}` : ''}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function DashboardPage({ onSignOut: propOnSignOut }) {
   const navigate = useNavigate();
@@ -70,11 +170,42 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [receipts, setReceipts] = useState(INITIAL_INVOICES);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  // Term handed to the section a search result opened, so it lands pre-filtered.
+  const [sectionSearch, setSectionSearch] = useState('');
+  const [receipts, setReceipts] = useState([]);
 
   // Cart mirrors the backend cart for this account
   const [cartItems, setCartItems] = useState([]);
+  const [cartSummary, setCartSummary] = useState(null);
   const [fulfillmentMode, setFulfillmentMode] = useState('digital');
+
+  // The account's own ledger from /api/dashboard/me: KPIs, products, payments, reminder
+  const [portal, setPortal] = useState(null);
+  const [isLedgerLoading, setIsLedgerLoading] = useState(true);
+
+  const applyCartPayload = (cartData) => {
+    if (!cartData) return;
+    if (Array.isArray(cartData.items)) setCartItems(cartData.items);
+    if (cartData.summary) setCartSummary(cartData.summary);
+    if (cartData.fulfillmentMode) setFulfillmentMode(cartData.fulfillmentMode);
+  };
+
+  const syncPortal = async () => {
+    try {
+      const data = await dashboardApi.getMyOverview();
+      setPortal(data);
+      // The receipt ledger is this account's own payment rows.
+      setReceipts(toReceiptRows(data?.payments));
+      return data;
+    } catch (err) {
+      console.warn('Account ledger API fallback:', err?.message);
+      return null;
+    } finally {
+      setIsLedgerLoading(false);
+    }
+  };
 
   // Load active customer session and sync initial cart from backend API
   useEffect(() => {
@@ -92,19 +223,14 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     const syncInitialCart = async () => {
       try {
-        const cartData = await cartApi.getCart();
-        if (cartData && Array.isArray(cartData.items)) {
-          setCartItems(cartData.items);
-          if (cartData.fulfillmentMode) {
-            setFulfillmentMode(cartData.fulfillmentMode);
-          }
-        }
+        applyCartPayload(await cartApi.getCart());
       } catch (err) {
         console.warn('Initial cart sync fallback:', err);
       }
     };
 
     syncInitialCart();
+    syncPortal();
   }, []);
 
   const handleSelectNav = (navId) => {
@@ -115,10 +241,53 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     }
   };
 
-  // The header search filters the solution catalogue, so it pulls the user there.
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-    if (value && activeNav !== 'products') handleSelectNav('products');
+  const handleSearchChange = (value) => setSearchTerm(value);
+
+  // Dropdown results: portal pages matched locally, records matched by the
+  // account-scoped search API.
+  useEffect(() => {
+    const term = searchTerm.trim();
+    if (term.length < 3) {
+      setSearchResults([]);
+      setIsSearchLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setIsSearchLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await dashboardApi.searchPortal(term);
+        if (cancelled) return;
+        const recordGroups = (data?.groups || []).map((group) => ({
+          ...group,
+          items: group.items.map((item) => ({
+            ...item,
+            seed: item.title,
+            trailing: item.amount ? formatINR(item.amount) : item.meta || '—'
+          }))
+        }));
+        setSearchResults([...buildPagesGroup(term), ...recordGroups]);
+      } catch (err) {
+        console.warn('Portal search API unreachable:', err?.message);
+        if (!cancelled) setSearchResults(buildPagesGroup(term));
+      } finally {
+        if (!cancelled) setIsSearchLoading(false);
+      }
+    }, 260);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
+  const handleSearchResultSelect = (item) => {
+    if (!item?.target) return;
+    setSectionSearch(item.seed || searchTerm.trim());
+    setSearchTerm('');
+    handleSelectNav(item.target);
   };
 
   const handleSignOut = () => {
@@ -148,9 +317,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     // 2. Real-time API Sync
     try {
       const updated = await cartApi.addToCart(product);
-      if (updated?.items) {
-        setCartItems(updated.items);
-      }
+      applyCartPayload(updated);
       // The customer asked for the cart immediately after adding
       handleSelectNav('cart');
     } catch (e) {
@@ -171,10 +338,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     // API Sync
     try {
-      const updated = await cartApi.updateQuantity(id, newQty);
-      if (updated?.items) {
-        setCartItems(updated.items);
-      }
+      applyCartPayload(await cartApi.updateQuantity(id, newQty));
     } catch (e) {
       console.warn('Update quantity API sync fallback:', e);
     }
@@ -186,10 +350,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     // API Sync
     try {
-      const updated = await cartApi.removeItem(id);
-      if (updated?.items) {
-        setCartItems(updated.items);
-      }
+      applyCartPayload(await cartApi.removeItem(id));
     } catch (e) {
       console.warn('Remove item API sync fallback:', e);
     }
@@ -205,23 +366,68 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   };
 
   // Payment Handlers
-  const handlePaymentSuccess = async (newReceipt) => {
-    setReceipts((prev) => [newReceipt, ...prev]);
-    // Clear cart both locally and in backend database
+  const handlePaymentSuccess = async () => {
+    // The server already emptied the cart for a cart checkout, so both the
+    // ledger and the cart are re-read rather than patched locally.
     setCartItems([]);
+    setCartSummary(null);
+    await syncPortal();
     try {
-      await cartApi.clearCart();
+      applyCartPayload(await cartApi.getCart());
     } catch (e) {
-      console.warn('Clear cart API sync fallback:', e);
+      console.warn('Cart re-sync after payment fallback:', e);
     }
   };
 
-  // Calculate cart total for payment screen
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.basePrice * (item.quantity || 1),
-    0
-  );
-  const payableAmount = subtotal > 0 ? Math.round(subtotal * 1.18) : 5310;
+  // What this account can pay right now, in priority order: a quoted cart, then
+  // open invoices on the ledger, then the nearest renewal.
+  const checkout = useMemo(() => {
+    const grand = Math.round(Number(cartSummary?.grandTotal) || 0);
+    if (cartItems.length > 0 && grand > 0) {
+      return {
+        mode: 'cart',
+        label: cartItems.length === 1 ? cartItems[0].name : `${cartItems.length} items in your cart`,
+        amount: grand,
+        subtotal: Math.round(Number(cartSummary?.subtotal) || 0),
+        gst: Math.round(Number(cartSummary?.gstAmount) || 0)
+      };
+    }
+
+    const kpi = portal?.kpi || {};
+    const totalPending = Math.round(Number(kpi.totalPending) || 0);
+    if (totalPending > 0) {
+      const reminder = portal?.reminder;
+      const openCount = Math.max(Number(kpi.pendingInvoices) || 1, 1);
+      const invoice = reminder?.kind === 'payment' ? reminder.invoiceNumber : null;
+      return {
+        mode: 'dues',
+        label: invoice
+          ? openCount === 1
+            ? `Invoice ${invoice}`
+            : `Invoice ${invoice} + ${openCount - 1} more`
+          : 'Open invoices on your account',
+        invoiceCount: openCount,
+        amount: totalPending,
+        subtotal: totalPending,
+        gst: 0
+      };
+    }
+
+    const renewal = portal?.reminder?.kind === 'renewal' ? portal.reminder : null;
+    if (renewal?.contractId && renewal.amount > 0) {
+      const total = Math.round(renewal.amount);
+      return {
+        mode: 'renewal',
+        label: `Renewal: ${renewal.title}`,
+        contractId: renewal.contractId,
+        amount: total,
+        subtotal: total,
+        gst: 0
+      };
+    }
+
+    return { mode: 'none', amount: 0, subtotal: 0, gst: 0 };
+  }, [cartItems, cartSummary, portal]);
 
   const navItems = useMemo(
     () => [
@@ -252,13 +458,16 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
         searchPlaceholder="Search products, plans, receipts..."
         searchValue={searchTerm}
         onSearchChange={handleSearchChange}
+        searchResults={searchResults}
+        isSearchLoading={isSearchLoading}
+        onSearchResultSelect={handleSearchResultSelect}
         navItems={navItems}
         activeNav={activeNav}
         onNavigate={(item) => handleSelectNav(item.id)}
         sidebarAriaLabel="Customer Portal Navigation"
         profile={{
-          name: customer?.name || 'NISPL Customer',
-          email: customer?.email || '',
+          name: customer?.name || portal?.account?.name || portal?.account?.company || 'NISPL Customer',
+          email: customer?.email || portal?.account?.email || '',
           role: customer?.role || 'customer',
           profilePath: '/customer/profile'
         }}
@@ -268,6 +477,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           {activeNav === 'overview' && (
             <CloudPortalOverview
               customer={customer}
+              portalData={portal}
               onNavigateTab={handleSelectNav}
               onOpenSupport={() => setIsSupportModalOpen(true)}
             />
@@ -277,10 +487,13 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           {activeNav === 'products' && (
             <div className="flowmail-overview-container animate-fade-in">
               <ProductsSection
+                customer={customer}
+                account={portal?.account}
                 onAddToCart={handleAddToCart}
                 onGoToCart={() => handleSelectNav('cart')}
                 cartItemIds={cartItems.map((c) => c.id)}
-                externalSearch={searchTerm}
+                entitlements={portal?.entitlements}
+                externalSearch={sectionSearch}
               />
             </div>
           )}
@@ -289,10 +502,13 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           {activeNav === 'payment' && (
             <div className="flowmail-overview-container animate-fade-in">
               <PaymentSection
-                pendingAmount={payableAmount}
-                onPaymentSuccess={handlePaymentSuccess}
+                checkout={checkout}
+                account={portal?.account}
                 customer={customer}
+                loading={isLedgerLoading}
+                onPaymentSuccess={handlePaymentSuccess}
                 onViewReceipts={() => handleSelectNav('receipt')}
+                onBrowseProducts={() => handleSelectNav('products')}
               />
             </div>
           )}
@@ -316,7 +532,12 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           {/* TAB 5: RECEIPT */}
           {activeNav === 'receipt' && (
             <div className="flowmail-overview-container animate-fade-in">
-              <ReceiptSection receipts={receipts} customer={customer} />
+              <ReceiptSection
+                receipts={receipts}
+                customer={customer}
+                account={portal?.account}
+                externalSearch={sectionSearch}
+              />
             </div>
           )}
 

@@ -13,99 +13,19 @@ import {
   Server,
   ShieldCheck,
   Zap,
-  Globe
+  Globe,
+  Percent
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 import tallyLogo from '../../../assets/partners/tally.png';
 import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { compactSelectStyles } from './reactSelectStyles';
-import { READ_ONLY_CLOUD_PROVIDERS } from '../../Dashboard/components/CloudProviderSelection';
 import AdminDataTable from './AdminDataTable';
+import CustomPricingPage from './CustomPricingPage';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
-
-// Authentic Official Amazon Web Services (AWS) SVG Icon
-function AwsIcon({ size = 46, className = '' }) {
-  return (
-    <svg
-      width={size * 1.3}
-      height={size}
-      viewBox="0 0 100 60"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-label="Amazon Web Services"
-    >
-      <path
-        d="M26.8 31.7c-1.4 1.2-3.2 1.8-5.3 1.8-4.2 0-6.8-2.6-6.8-6.6 0-4.4 3-6.7 8.3-7l3.8-.2v-1.8c0-2.2-1.4-3.5-3.9-3.5-2 0-3.6.8-4.9 2l-2.6-3.8c2-2 4.8-3.1 8-3.1 5.3 0 8.6 2.9 8.6 8v15.2h-5.2v-1zm0-4v-4.4l-3 .2c-2.9.2-4.2 1.4-4.2 3.2 0 1.8 1.1 2.9 3.1 2.9 1.7 0 3-.6 4.1-1.9z"
-        fill="#232F3E"
-      />
-      <path
-        d="M50.5 33.2h-5.4l-4.9-17h5.5l2.6 11.3 2.7-11.3h5.1l2.7 11.3 2.7-11.3h5.4l-5 17h-5.6l-2.9-10.7-2.9 10.7z"
-        fill="#232F3E"
-      />
-      <path
-        d="M83.4 18.2c-1.4-1-3.2-1.5-5-1.5-2.2 0-3.6.9-3.6 2.2 0 1.3 1 2 3.3 2.5l3.1.8c4.4 1.1 6.5 3.1 6.5 6.4 0 4.1-3.5 6.5-8.6 6.5-3.1 0-5.9-1-8.1-2.7l2.8-4c1.7 1.3 3.5 2 5.4 2 2.3 0 3.7-.9 3.7-2.3 0-1.3-1.1-2-3.4-2.6l-3-.8c-4.2-1.1-6.3-3-6.3-6.2 0-4 3.4-6.2 7.9-6.2 2.7 0 5.3.8 7.3 2.2l-2 4.2z"
-        fill="#232F3E"
-      />
-      <path
-        d="M20.2 40.5c16.3 10.8 37.4 11.2 54.8 1.1"
-        stroke="#FF9900"
-        strokeWidth="3.4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M81.5 37.2l-9.8 4.2 4.2-4.8-1.2-6.2 6.8 6.8z"
-        fill="#FF9900"
-      />
-    </svg>
-  );
-}
-
-// Authentic Official Microsoft Azure SVG Icon
-function AzureIcon({ size = 44, className = '' }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 96 96"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-label="Microsoft Azure"
-    >
-      <defs>
-        <linearGradient id="azure_svg_adm_g1" x1="12" y1="84" x2="68" y2="28" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#114A8B" />
-          <stop offset="1" stopColor="#0669BC" />
-        </linearGradient>
-        <linearGradient id="azure_svg_adm_g2" x1="39" y1="48" x2="84" y2="84" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0078D4" />
-          <stop offset="0.9" stopColor="#5EA0EF" />
-        </linearGradient>
-        <linearGradient id="azure_svg_adm_g3" x1="38" y1="12" x2="84" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0078D4" />
-          <stop offset="1" stopColor="#3B82F6" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M59.4 12H38.7c-2.4 0-4.6 1.4-5.6 3.6L12.5 60.5c-1.4 3 0.8 6.5 4.1 6.5h20.7c2.4 0 4.6-1.4 5.6-3.6l12.6-26.9L73 67h18.9L59.4 12z"
-        fill="url(#azure_svg_adm_g1)"
-      />
-      <path
-        d="M37.3 67h38.2c2.4 0 4.5-1.4 5.5-3.6l10.5-22.4c1.4-3-0.8-6.5-4.1-6.5H66.8L37.3 67z"
-        fill="url(#azure_svg_adm_g2)"
-      />
-      <path
-        d="M59.4 12H38.7c-2.4 0-4.6 1.4-5.6 3.6L20.6 42.1 48 58.7l15-28.8L59.4 12z"
-        fill="url(#azure_svg_adm_g3)"
-        opacity="0.85"
-      />
-    </svg>
-  );
-}
 
 export default function ProductSection({ products, setProducts }) {
   const { can, visibleColumns } = usePermissions();
@@ -114,35 +34,27 @@ export default function ProductSection({ products, setProducts }) {
 
   // Navigation State derived from URL query parameters
   const selectedCategory = searchParams.get('category'); // null | 'tally' | 'cloud'
-  const requestedCloudProvider = searchParams.get('provider'); // null | 'ctrls-cloud' | 'aws-cloud' | 'azure-cloud'
-  // AWS & Azure are reference-only cards, so a stale or hand-typed link to them
-  // lands back on the picker instead of an editable table.
-  const selectedCloudProvider = READ_ONLY_CLOUD_PROVIDERS.includes(requestedCloudProvider)
-    ? null
-    : requestedCloudProvider;
+  const requestedCloudProvider = searchParams.get('provider');
+  const selectedView = searchParams.get('view'); // null | 'custom-pricing'
+  // Directly resolves to ctrls-cloud when cloud is selected (skips middle provider selection)
+  const selectedCloudProvider = selectedCategory === 'cloud'
+    ? (requestedCloudProvider || 'ctrls-cloud')
+    : null;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
 
-  const updateRoute = (cat, prov = null) => {
+  const updateRoute = (cat, prov = null, view = null) => {
     const params = new URLSearchParams();
     if (cat) params.set('category', cat);
     if (prov) params.set('provider', prov);
+    if (view) params.set('view', view);
     const queryString = params.toString();
     navigate(queryString ? `/admin/product?${queryString}` : '/admin/product');
   };
 
   // Provider configuration matching the customer portal
   const CLOUD_PROVIDERS_CONFIG = [
-    {
-      id: 'aws-cloud',
-      name: 'Amazon Web Services (AWS)',
-      oneLiner: 'Scalable Enterprise Hyperscale Cloud Compute & EC2',
-      badge: 'Hyperscale Cloud',
-      badgeClass: 'amber',
-      highlights: ['Dedicated vCPU Xeon Compute', 'Auto-Scaling EC2 Instances', '99.99% Global High Availability'],
-      filter: (p) => p.provider === 'aws-cloud' || p.id?.includes('aws')
-    },
     {
       id: 'ctrls-cloud',
       name: 'CtrlS Cloud Server',
@@ -152,15 +64,6 @@ export default function ProductSection({ products, setProducts }) {
       exploreText: 'Manage CtrlS Cloud',
       highlights: ['CtrlS Rated-4 Kolkata Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote'],
       filter: (p) => p.provider === 'ctrls-cloud' || p.id?.startsWith('ctrls-')
-    },
-    {
-      id: 'azure-cloud',
-      name: 'Microsoft Azure',
-      oneLiner: 'Scalable Enterprise Hyperscale Cloud Instances',
-      badge: 'Hyperscale Cloud',
-      badgeClass: 'indigo',
-      highlights: ['Azure Virtual Windows Desktops', 'Microsoft Enterprise Security SLA', 'Instant Automated Backup Sync'],
-      filter: (p) => p.provider === 'azure-cloud' || p.id?.includes('azure')
     }
   ];
 
@@ -359,6 +262,15 @@ export default function ProductSection({ products, setProducts }) {
           >
             {prod.tier || `${prod.users || 1} User`}
           </span>
+          {prod.isCustomPlan && (
+            <span
+              className="adm-status-pill info"
+              style={{ fontSize: '0.66rem', padding: '2px 8px', fontWeight: 700 }}
+              title="Created with custom pricing"
+            >
+              Custom
+            </span>
+          )}
         </div>
       )
     },
@@ -401,7 +313,14 @@ export default function ProductSection({ products, setProducts }) {
       sortFunction: compareText((row) => row.ipAddress || ''),
       minWidth: '185px',
       cell: (prod) => {
-        const ip = prod.ipAddress || (prod.specs?.find((s) => s.label?.toLowerCase().includes('ip'))?.value) || '103.115.220.41';
+        const ip = prod.ipAddress || (prod.specs?.find((s) => s.label?.toLowerCase().includes('ip'))?.value) || '';
+        if (!ip) {
+          return (
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
+              Unassigned
+            </span>
+          );
+        }
         return (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
             <span
@@ -563,7 +482,14 @@ export default function ProductSection({ products, setProducts }) {
       sortFunction: compareText((row) => row.ipAddress || ''),
       minWidth: '185px',
       cell: (prod) => {
-        const ip = prod.ipAddress || (prod.specs?.find((s) => s.label?.toLowerCase().includes('ip'))?.value) || '103.115.220.41';
+        const ip = prod.ipAddress || (prod.specs?.find((s) => s.label?.toLowerCase().includes('ip'))?.value) || '';
+        if (!ip) {
+          return (
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
+              Unassigned
+            </span>
+          );
+        }
         return (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
             <span
@@ -697,9 +623,16 @@ export default function ProductSection({ products, setProducts }) {
   return (
     <>
       {/* =========================================================================
+         VIEW 0: CUSTOM PRICING MANAGER (STANDARD TIERS + CUSTOM PER-USER PLANS)
+         ========================================================================= */}
+      {selectedView === 'custom-pricing' && (
+        <CustomPricingPage products={products} setProducts={setProducts} />
+      )}
+
+      {/* =========================================================================
          VIEW 1: INITIAL 2-CARD SOLUTION CATEGORY SELECTION (TALLY VS CLOUD)
          ========================================================================= */}
-      {selectedCategory === null && (
+      {selectedCategory === null && selectedView !== 'custom-pricing' && (
         <div className="adm-table-card animate-fade-in">
           {/* Header */}
           <div className="adm-card-header">
@@ -772,11 +705,11 @@ export default function ProductSection({ products, setProducts }) {
                 role="button"
                 tabIndex={0}
                 className="solution-hero-card cloud-theme"
-                onClick={() => updateRoute('cloud')}
+                onClick={() => updateRoute('cloud', 'ctrls-cloud')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    updateRoute('cloud');
+                    updateRoute('cloud', 'ctrls-cloud');
                   }
                 }}
               >
@@ -818,220 +751,10 @@ export default function ProductSection({ products, setProducts }) {
       )}
 
       {/* =========================================================================
-         VIEW 2: CLOUD PROVIDER SELECTION (AWS, CTRLS CLOUD SERVER, AZURE)
-         Matches user screenshot & customer's CloudProviderSelection component
-         ========================================================================= */}
-      {selectedCategory === 'cloud' && !selectedCloudProvider && (
-        <div className="adm-table-card animate-fade-in">
-          {/* Header */}
-          <div className="adm-card-header">
-            <div className="adm-card-header-info">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 className="adm-section-title">Select Cloud Platform</h1>
-              </div>
-              <p className="adm-section-sub">
-                Choose a cloud infrastructure provider below to view and manage cloud server tiers, IP allocations, and live availability.
-              </p>
-            </div>
-
-            <div className="adm-card-header-action">
-              <button
-                type="button"
-                className="adm-btn-secondary"
-                onClick={() => updateRoute(null)}
-                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                title="Return to Solution Category Selection"
-              >
-                <ArrowLeft size={14} />
-                <span>Back to Solutions</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 3 Cloud Provider Cards Grid */}
-          <div style={{ padding: '32px 28px 40px' }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: '24px',
-                width: '100%'
-              }}
-            >
-              {CLOUD_PROVIDERS_CONFIG.map((p) => {
-                const count = providerCounts[p.id] || 0;
-                const isReadOnly = READ_ONLY_CLOUD_PROVIDERS.includes(p.id);
-                return (
-                  <div
-                    key={p.id}
-                    role={isReadOnly ? 'group' : 'button'}
-                    tabIndex={isReadOnly ? -1 : 0}
-                    className={`solution-hero-card cloud-theme ${isReadOnly ? 'is-read-only' : ''}`}
-                    onClick={isReadOnly ? undefined : () => updateRoute('cloud', p.id)}
-                    onKeyDown={(e) => {
-                      if (isReadOnly) return;
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        updateRoute('cloud', p.id);
-                      }
-                    }}
-                    style={{
-                      padding: '32px 26px 28px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      alignItems: 'stretch',
-                      textAlign: 'left',
-                      minHeight: '380px'
-                    }}
-                  >
-                    <div>
-                      {/* Top Row: Provider Logo & Status Badge */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '20px'
-                        }}
-                      >
-                        <div style={{ height: '52px', display: 'flex', alignItems: 'center' }}>
-                          {p.id === 'aws-cloud' && <AwsIcon size={46} />}
-                          {p.id === 'ctrls-cloud' && (
-                            <img
-                              src={ctrlsLogo}
-                              alt="CtrlS Cloud Server"
-                              style={{ height: '42px', maxWidth: '140px', objectFit: 'contain' }}
-                              loading="lazy"
-                            />
-                          )}
-                          {p.id === 'azure-cloud' && <AzureIcon size={44} />}
-                        </div>
-
-                        <span
-                          className={`adm-status-pill ${p.badgeClass === 'positive' ? 'active' : 'indigo'}`}
-                          style={{
-                            fontSize: '0.72rem',
-                            padding: '3px 9px',
-                            fontWeight: 600,
-                            borderRadius: '999px',
-                            background: p.badgeClass === 'positive' ? '#dcfce7' : '#ede9fe',
-                            color: p.badgeClass === 'positive' ? '#15803d' : '#4338ca'
-                          }}
-                        >
-                          {p.badge}
-                        </span>
-                      </div>
-
-                      {/* Title & Description */}
-                      <h3
-                        style={{
-                          fontSize: '1.2rem',
-                          fontWeight: '700',
-                          color: '#0f172a',
-                          margin: '0 0 6px 0'
-                        }}
-                      >
-                        {p.name}
-                      </h3>
-                      <p
-                        style={{
-                          fontSize: '0.84rem',
-                          color: '#64748b',
-                          margin: '0 0 16px 0',
-                          lineHeight: 1.45
-                        }}
-                      >
-                        {p.oneLiner}
-                      </p>
-
-                      {/* Feature Highlights */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px',
-                          borderTop: '1px solid #f1f5f9',
-                          paddingTop: '16px',
-                          marginBottom: '20px'
-                        }}
-                      >
-                        {p.highlights.map((h, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              fontSize: '0.8rem',
-                              color: '#475569'
-                            }}
-                          >
-                            <CheckCircle2 size={14} color="#6366f1" style={{ flexShrink: 0 }} />
-                            <span>{h}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: Node Count & Action Button */}
-                    <div
-                      style={{
-                        paddingTop: '16px',
-                        borderTop: '1px solid #f1f5f9',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
-                          Catalog Provisioned
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            color: '#4f46e5',
-                            background: '#eef2ff',
-                            padding: '2px 8px',
-                            borderRadius: '999px'
-                          }}
-                        >
-                          {count} Node{count !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        className={isReadOnly ? 'adm-btn-secondary' : 'adm-btn-primary'}
-                        disabled={isReadOnly}
-                        title={isReadOnly ? 'Catalog not open for management yet' : undefined}
-                        style={{
-                          width: '100%',
-                          justifyContent: 'center',
-                          padding: '10px 16px',
-                          fontSize: '0.86rem',
-                          ...(isReadOnly ? { opacity: 0.6, cursor: 'not-allowed' } : null)
-                        }}
-                      >
-                        <span>{isReadOnly ? 'Coming soon' : p.exploreText}</span>
-                        {!isReadOnly && <ArrowRight size={15} />}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
          VIEW 3: DATA TABLE VIEW (CTRLS CLOUD SERVER OR SELECTED PROVIDER / TALLY)
          Replaces SKU with IP Address, Active/Inactive live toggle, dynamic API sync
          ========================================================================= */}
-      {(selectedCategory === 'tally' || (selectedCategory === 'cloud' && selectedCloudProvider)) && (
+      {(selectedCategory === 'tally' || selectedCategory === 'cloud') && selectedView !== 'custom-pricing' && (
         <div className="adm-table-card animate-fade-in">
           {/* Header */}
           <div className="adm-card-header">
@@ -1053,25 +776,27 @@ export default function ProductSection({ products, setProducts }) {
               <button
                 type="button"
                 className="adm-btn-secondary"
-                onClick={() => {
-                  if (selectedCategory === 'cloud') {
-                    updateRoute('cloud', null); // Back to 3 cloud providers
-                  } else {
-                    updateRoute(null); // Back to solutions
-                  }
-                }}
+                onClick={() => updateRoute(null)}
                 style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                title={
-                  selectedCategory === 'cloud'
-                    ? 'Return to Cloud Provider Selection'
-                    : 'Return to Solution Category Selection'
-                }
+                title="Return to Solution Category Selection"
               >
                 <ArrowLeft size={14} />
-                <span>
-                  {selectedCategory === 'cloud' ? 'Back to Cloud Platforms' : 'Back to Solutions'}
-                </span>
+                <span>Back to Solutions</span>
               </button>
+
+              {selectedCategory === 'cloud' &&
+                (can('product', 'create') || can('product', 'edit')) && (
+                  <button
+                    type="button"
+                    className="adm-btn-secondary"
+                    onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
+                    style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                    title="Open the custom pricing manager"
+                  >
+                    <Percent size={14} />
+                    <span>Custom Pricing</span>
+                  </button>
+                )}
 
               {can('product', 'create') && (
                 <button

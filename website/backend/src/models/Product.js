@@ -106,6 +106,30 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 1
     },
+    pricePerUser: {
+      type: Number,
+      default: 0
+    },
+    serverType: {
+      type: String,
+      default: '',
+      enum: ['', 'shared', 'dedicated']
+    },
+    isCustomPlan: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    isDemoPlan: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    duration: {
+      type: String,
+      default: '',
+      trim: true
+    },
     tier: {
       type: String,
       default: ''

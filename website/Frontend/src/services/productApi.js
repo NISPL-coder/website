@@ -54,7 +54,7 @@ export const productApi = {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to create product.');
+      throw new Error(data.error || data.message || 'Failed to create product.');
     }
     return data.data;
   },
@@ -70,7 +70,7 @@ export const productApi = {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to update product.');
+      throw new Error(data.error || data.message || 'Failed to update product.');
     }
     return data.data;
   },
@@ -92,7 +92,7 @@ export const productApi = {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to delete product.');
+      throw new Error(data.error || data.message || 'Failed to delete product.');
     }
     return true;
   }

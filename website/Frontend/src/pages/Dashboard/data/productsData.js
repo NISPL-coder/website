@@ -619,121 +619,112 @@ export function buildCtrlSPlans(ratePerUserPerMonth = CTRL_S_RATE_PER_USER_PER_M
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CLOUD PROVIDERS & 4-TIER PACKS (STARTER, SILVER, GOLD, PREMIUM)
+   CTRLS ENTERPRISE 4-TIER PACKS (STARTER, SILVER, GOLD, PREMIUM)
 ───────────────────────────────────────────────────────────────────────────── */
-export const CLOUD_PROVIDERS = [
+export const CTRLS_TIER_PLANS = [
   {
-    id: 'aws-cloud',
-    name: 'Amazon Web Services (AWS)',
-    badge: 'Global Hyperscale Cloud',
-    shortDesc: 'Scalable global cloud compute, high-availability EC2 instances & enterprise AWS infrastructure.',
-    accentColor: '#FF9900',
-    logoType: 'aws',
-    gradient: 'from-amber-500/10 to-orange-500/10',
-    plans: [
-      {
-        id: 'aws-starter',
-        tier: 'Starter',
-        tierName: 'Starters',
-        userBadge: 't3.small instance',
-        name: 'AWS Cloud — Starter (t3.small)',
-        monthlyPrice: 999,
-        originalPrice: 1110,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'Instance', value: 'AWS EC2 t3.small' },
-          { label: 'vCPU', value: '2 vCPU' },
-          { label: 'RAM', value: '3 GB' },
-          { label: 'Storage', value: '60 GB gp3 SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' }
-        ],
-        features: [
-          'Dedicated AWS Elastic Compute (EC2)',
-          'Automated AWS EBS snapshot backup',
-          'High availability 99.99% AWS SLA',
-          'Fast RDP / SSH access & firewall security'
-        ]
-      },
-      {
-        id: 'aws-silver',
-        tier: 'Silver',
-        tierName: 'Silver',
-        userBadge: 't3.medium instance',
-        name: 'AWS Cloud — Silver (t3.medium)',
-        monthlyPrice: 1499,
-        originalPrice: 1665,
-        discountText: 'Save 10% annually',
-        isPopular: true,
-        popularBadge: 'Most Popular',
-        theme: 'blue',
-        specs: [
-          { label: 'Instance', value: 'AWS EC2 t3.medium' },
-          { label: 'vCPU', value: '2 vCPU' },
-          { label: 'RAM', value: '4 GB' },
-          { label: 'Storage', value: '60 GB gp3 SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' }
-        ],
-        features: [
-          'High memory bandwidth for concurrent users',
-          'AWS IAM security & VPC network isolation',
-          '99.99% High-availability SLA',
-          'Automated data encryption & anti-ransomware'
-        ]
-      },
-      {
-        id: 'aws-gold',
-        tier: 'Gold',
-        tierName: 'Gold',
-        userBadge: 't3.large instance',
-        name: 'AWS Cloud — Gold (t3.large)',
-        monthlyPrice: 2499,
-        originalPrice: 2777,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'Instance', value: 'AWS EC2 t3.large' },
-          { label: 'vCPU', value: '2 vCPU' },
-          { label: 'RAM', value: '8 GB' },
-          { label: 'Storage', value: '100 GB gp3 SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' }
-        ],
-        features: [
-          'High-performance compute & 8 GB RAM',
-          'Expanded 100 GB gp3 SSD enterprise storage',
-          'Multi-branch synchronized company accounts',
-          'Priority 24/7 technical engineer support'
-        ]
-      },
-      {
-        id: 'aws-premium',
-        tier: 'Premium',
-        tierName: 'Premium',
-        userBadge: 't3.xlarge instance',
-        name: 'AWS Cloud — Premium (t3.xlarge)',
-        monthlyPrice: 4999,
-        originalPrice: 5554,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'gold',
-        specs: [
-          { label: 'Instance', value: 'AWS EC2 t3.xlarge' },
-          { label: 'vCPU', value: '4 vCPU' },
-          { label: 'RAM', value: '16 GB' },
-          { label: 'Storage', value: '150 GB gp3 SSD' },
-          { label: 'Data Transfer', value: 'Unlimited' }
-        ],
-        features: [
-          '4 vCPU enterprise compute speed',
-          'Dedicated Elastic IP & AWS WAF security',
-          'Dedicated account manager & 99.99% SLA',
-          'Automated cross-region disaster recovery snapshot'
-        ]
-      }
+    id: 'ctrls-starter-tier',
+    tier: 'Starter',
+    tierName: 'Starters',
+    userBadge: '1 - 2 Users / 2-3 Core / 3 GB RAM',
+    name: 'CtrlS Cloud Server — Starter',
+    monthlyPrice: 1000,
+    originalPrice: 1200,
+    discountText: 'Save 15% annually',
+    isPopular: false,
+    theme: 'default',
+    specs: [
+      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Compute', value: '2 - 3 Cores Dedicated' },
+      { label: 'Memory', value: '3 GB High-Speed RAM' },
+      { label: 'Storage', value: '50 GB Enterprise SSD' },
+      { label: 'SLA Uptime', value: '99.995% Guaranteed' }
+    ],
+    features: [
+      'Rated-4 Kolkata Datacenter hosting with N+N dual power feed',
+      'Windows Server license & automated daily backup snapshot',
+      'High-speed remote desktop with low-latency Bengal routing'
     ]
   },
+  {
+    id: 'ctrls-silver-tier',
+    tier: 'Silver',
+    tierName: 'Silver',
+    userBadge: '3 - 5 Users / 4 Core / 8 GB RAM',
+    name: 'CtrlS Cloud Server — Silver',
+    monthlyPrice: 2500,
+    originalPrice: 2800,
+    discountText: 'Save 10% annually',
+    isPopular: true,
+    popularBadge: 'Most Popular',
+    theme: 'blue',
+    specs: [
+      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Compute', value: '4 Core High-Compute CPU' },
+      { label: 'Memory', value: '8 GB DDR4 Dedicated RAM' },
+      { label: 'Storage', value: '100 GB NVMe SSD' },
+      { label: 'SLA Uptime', value: '99.995% Guaranteed' }
+    ],
+    features: [
+      'Optimized for concurrent Tally accounting & ERP voucher posting',
+      'Daily automated backup snapshot with 15-day restore point',
+      'Dedicated static IP and hardware firewall protection'
+    ]
+  },
+  {
+    id: 'ctrls-gold-tier',
+    tier: 'Gold',
+    tierName: 'Gold',
+    userBadge: '6 - 10 Users / 6 Core / 12 GB RAM',
+    name: 'CtrlS Cloud Server — Gold',
+    monthlyPrice: 5000,
+    originalPrice: 5500,
+    discountText: 'Save 10% annually',
+    isPopular: false,
+    theme: 'default',
+    specs: [
+      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Compute', value: '6 Core Xeon Scalable' },
+      { label: 'Memory', value: '12 GB Dedicated ECC RAM' },
+      { label: 'Storage', value: '100 GB NVMe Datacenter SSD' },
+      { label: 'SLA Uptime', value: '99.995% Guaranteed' }
+    ],
+    features: [
+      'Engineered for mid-to-large business accounting teams',
+      'Multi-branch concurrent sync with zero performance lag',
+      '24/7 priority enterprise engineering support'
+    ]
+  },
+  {
+    id: 'ctrls-premium-tier',
+    tier: 'Premium',
+    tierName: 'Premium',
+    userBadge: '12 - 30 Users / 8 Core / 32 GB RAM',
+    name: 'CtrlS Cloud Server — Premium Enterprise',
+    monthlyPrice: 15000,
+    originalPrice: 16500,
+    discountText: 'Save 10% annually',
+    isPopular: false,
+    theme: 'gold',
+    specs: [
+      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Compute', value: '8 Core Enterprise Xeon' },
+      { label: 'Memory', value: '32 GB Dedicated ECC RAM' },
+      { label: 'Storage', value: '300 GB Enterprise SSD Array' },
+      { label: 'SLA Uptime', value: '99.995% Guaranteed' }
+    ],
+    features: [
+      'Heavy workload multi-database & large company ledger consolidation',
+      'Dedicated VLAN isolation and custom reverse-DNS',
+      'Dedicated Account Manager & 15-minute response SLA'
+    ]
+  }
+];
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CLOUD PROVIDERS CATALOG (CTRLS TIER-4 HOSTING EXCLUSIVE)
+───────────────────────────────────────────────────────────────────────────── */
+export const CLOUD_PROVIDERS = [
   {
     id: 'ctrls-cloud',
     name: 'CtrlS Cloud server',
@@ -745,119 +736,8 @@ export const CLOUD_PROVIDERS = [
     gradient: 'from-cyan-500/10 to-blue-500/10',
     billingModel: 'per_user',
     ratePerUserPerMonth: CTRL_S_RATE_PER_USER_PER_MONTH,
-    plans: buildCtrlSPlans()
-  },
-  {
-    id: 'azure-cloud',
-    name: 'Microsoft azure',
-    badge: 'Enterprise Hyperscale Cloud',
-    shortDesc: 'Scalable Microsoft Azure enterprise cloud VMs, managed security, and high-availability architecture.',
-    accentColor: '#0078d4',
-    logoType: 'azure',
-    gradient: 'from-blue-600/10 to-sky-500/10',
-    plans: [
-      {
-        id: 'azure-starter',
-        tier: 'Starter',
-        tierName: 'Starters',
-        userBadge: '4 GB RAM PLAN',
-        name: 'Microsoft Azure — 4 GB RAM Plan',
-        monthlyPrice: 4499,
-        originalPrice: 4949,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'RAM', value: '4 GB Dedicated' },
-          { label: 'CPU', value: '2 Core' },
-          { label: 'Disk', value: '80 GB SSD' },
-          { label: 'Transfer', value: '4 TB' },
-          { label: 'Services', value: 'Managed' }
-        ],
-        features: [
-          'Microsoft Azure certified enterprise instance',
-          'Fully managed OS patching and security shields',
-          'Global high availability and SLA reliability',
-          'NISPL certified Azure architect assistance'
-        ]
-      },
-      {
-        id: 'azure-silver',
-        tier: 'Silver',
-        tierName: 'Silver',
-        userBadge: '8 GB RAM PLAN',
-        name: 'Microsoft Azure — 8 GB RAM Plan',
-        monthlyPrice: 7499,
-        originalPrice: 8249,
-        discountText: 'Save 10% annually',
-        isPopular: true,
-        popularBadge: 'Most Popular',
-        theme: 'blue',
-        specs: [
-          { label: 'RAM', value: '8 GB Dedicated' },
-          { label: 'CPU', value: '2 Core' },
-          { label: 'Disk', value: '160 GB SSD' },
-          { label: 'Transfer', value: '5 TB' },
-          { label: 'Services', value: 'Managed' }
-        ],
-        features: [
-          'Ideal for growing businesses & active ERP nodes',
-          '160 GB High-performance managed SSD disk',
-          '5 TB high-speed monthly data transfer',
-          'Automated daily Azure backup snapshots'
-        ]
-      },
-      {
-        id: 'azure-gold',
-        tier: 'Gold',
-        tierName: 'Gold',
-        userBadge: '16 GB RAM PLAN',
-        name: 'Microsoft Azure — 16 GB RAM Plan',
-        monthlyPrice: 10999,
-        originalPrice: 12099,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'default',
-        specs: [
-          { label: 'RAM', value: '16 GB Dedicated' },
-          { label: 'CPU', value: '4 Core' },
-          { label: 'Disk', value: '320 GB SSD' },
-          { label: 'Transfer', value: '7 TB' },
-          { label: 'Services', value: 'Managed' }
-        ],
-        features: [
-          '4 Core high-compute Azure enterprise VM',
-          '320 GB Premium SSD storage array',
-          '7 TB outbound data bandwidth included',
-          'Managed disaster recovery & 24/7 monitoring'
-        ]
-      },
-      {
-        id: 'azure-premium',
-        tier: 'Premium',
-        tierName: 'Premium',
-        userBadge: '32 GB RAM PLAN',
-        name: 'Microsoft Azure — 32 GB RAM Plan',
-        monthlyPrice: 19999,
-        originalPrice: 21449,
-        discountText: 'Save 10% annually',
-        isPopular: false,
-        theme: 'gold',
-        specs: [
-          { label: 'RAM', value: '32 GB Dedicated' },
-          { label: 'CPU', value: '8 Core' },
-          { label: 'Disk', value: '640 GB SSD' },
-          { label: 'Transfer', value: '8 TB' },
-          { label: 'Services', value: 'Managed' }
-        ],
-        features: [
-          '8 Core compute powerhouse for heavy workloads',
-          '640 GB enterprise SSD storage pool',
-          '8 TB unmetered high throughput pipe',
-          'Enterprise mission-critical SLA & dedicated architect'
-        ]
-      }
-    ]
+    plans: buildCtrlSPlans(),
+    tierPlans: CTRLS_TIER_PLANS
   }
 ];
 

@@ -17,7 +17,7 @@ const TOKEN_KEY = 'nispl_auth_token';
 const SESSION_ID_KEY = 'nispl_cart_session_id';
 
 // Generate or retrieve persistent guest/customer session ID
-const getSessionId = () => {
+export const getSessionId = () => {
   try {
     let sid = localStorage.getItem(SESSION_ID_KEY);
     if (!sid) {

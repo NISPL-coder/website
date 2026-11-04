@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CLOUD_PROVIDERS } from '../data/productsData';
-import { formatINR } from '../utils/pricingUtils';
+import { formatINR, findOwnedPlan } from '../utils/pricingUtils';
 import tallyLogo from '../../../assets/partners/tally.png';
 import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { productApi } from '../../../services/productApi';
@@ -24,7 +24,8 @@ export default function CloudPlansPricingView({
   providerId,
   onBack,
   onAddToCart,
-  cartItemIds = []
+  cartItemIds = [],
+  entitlements = []
 }) {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annually'
   const [justAddedId, setJustAddedId] = useState(null);
@@ -76,7 +77,8 @@ export default function CloudPlansPricingView({
 
         // Strict Active / Inactive check
         const isLive = p.available !== false && p.status !== 'inactive';
-        return matchesProv && isLive;
+        // Custom-priced plans are quoted by the admin team, not listed for self-serve.
+        return matchesProv && isLive && p.isCustomPlan !== true;
       });
 
       if (dbMatches.length > 0) {
@@ -278,6 +280,7 @@ export default function CloudPlansPricingView({
             const inCart = cartItemIds.includes(plan.id);
             const isAdded = justAddedId === plan.id;
             const isSilver = plan.tier?.toLowerCase() === 'silver' || plan.isPopular;
+            const owned = findOwnedPlan(entitlements, { id: plan.id, names: [plan.name] });
 
             const displayPrice = periodBasePrice(plan);
             const priceSuffix = isPerUser && billingCycle === 'annually' ? '/yr' : '/mo';
@@ -293,12 +296,43 @@ export default function CloudPlansPricingView({
                   justifyContent: 'space-between',
                   gap: '20px',
                   position: 'relative',
-                  border: isSilver ? '2px solid #6366f1' : '1px solid rgba(226, 232, 240, 0.85)',
-                  boxShadow: isSilver
+                  border: owned
+                    ? '2px solid #10b981'
+                    : isSilver
+                    ? '2px solid #6366f1'
+                    : '1px solid rgba(226, 232, 240, 0.85)',
+                  boxShadow: owned
+                    ? '0 12px 32px -4px rgba(16, 185, 129, 0.18), 0 4px 8px -2px rgba(16, 185, 129, 0.10)'
+                    : isSilver
                     ? '0 12px 32px -4px rgba(99, 102, 241, 0.15), 0 4px 8px -2px rgba(99, 102, 241, 0.08)'
                     : undefined
                 }}
               >
+                {owned && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      right: '18px',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: '#ffffff',
+                      fontSize: '0.7rem',
+                      fontWeight: '700',
+                      padding: '3px 12px',
+                      borderRadius: '999px',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.35)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <CheckCircle2 size={12} />
+                    <span>Current Plan</span>
+                  </div>
+                )}
+
                 {isSilver && (
                   <div
                     style={{

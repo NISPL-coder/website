@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -27,6 +27,9 @@ export default function ConsoleShell({
   searchPlaceholder = 'Search...',
   searchValue = '',
   onSearchChange,
+  searchResults,
+  isSearchLoading = false,
+  onSearchResultSelect,
   navItems,
   activeNav,
   onNavigate,
@@ -149,6 +152,77 @@ export default function ConsoleShell({
     await notificationApi.clearAll();
   };
 
+  // Global search dropdown: only portals that supply onSearchResultSelect get it,
+  // so the rest keep the plain filter-style input.
+  const hasSearchDropdown = Boolean(onSearchResultSelect);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [activeResult, setActiveResult] = useState(0);
+  const searchBoxRef = useRef(null);
+
+  const flatResults = useMemo(() => {
+    const list = [];
+    (searchResults || []).forEach((group) => {
+      (group.items || []).forEach((item) => {
+        list.push({
+          ...item,
+          groupKey: group.key,
+          flatIndex: list.length,
+          key: `${group.key}:${item.id ?? list.length}`
+        });
+      });
+    });
+    return list;
+  }, [searchResults]);
+
+  useEffect(() => {
+    setActiveResult(0);
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!searchValue) setIsSearchOpen(false);
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!isSearchOpen) return undefined;
+    const handlePointerDown = (event) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [isSearchOpen]);
+
+  const chooseSearchResult = (item) => {
+    if (!item) return;
+    onSearchResultSelect?.(item);
+    setIsSearchOpen(false);
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (!hasSearchDropdown) return;
+
+    if (event.key === 'Escape') {
+      setIsSearchOpen(false);
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      if (!flatResults.length) return;
+      event.preventDefault();
+      setIsSearchOpen(true);
+      setActiveResult((prev) => {
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        return (prev + step + flatResults.length) % flatResults.length;
+      });
+      return;
+    }
+    if (event.key === 'Enter') {
+      if (!isSearchOpen || !flatResults.length) return;
+      event.preventDefault();
+      chooseSearchResult(flatResults[activeResult]);
+    }
+  };
+
   // A portal that owns the full page gets the row click; others keep the
   // in-popover mark-as-read behaviour.
   const handleOpenNotification = (item) => {
@@ -177,16 +251,81 @@ export default function ConsoleShell({
 
         <div className="adm-header-main">
           <div className="adm-header-center">
-            <div className="adm-search-box">
+            <div className="adm-search-box" ref={searchBoxRef}>
               <Search size={16} className="adm-search-icon" />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
                 value={searchValue}
-                onChange={(e) => onSearchChange?.(e.target.value)}
+                onChange={(e) => {
+                  onSearchChange?.(e.target.value);
+                  if (hasSearchDropdown) setIsSearchOpen(true);
+                }}
+                onFocus={() => hasSearchDropdown && setIsSearchOpen(true)}
+                onKeyDown={handleSearchKeyDown}
                 className="adm-search-input"
                 aria-label={searchPlaceholder}
+                aria-expanded={hasSearchDropdown ? isSearchOpen : undefined}
+                aria-controls={hasSearchDropdown ? 'console-search-results' : undefined}
+                role={hasSearchDropdown ? 'combobox' : undefined}
+                aria-autocomplete={hasSearchDropdown ? 'list' : undefined}
               />
+
+              {hasSearchDropdown && isSearchOpen && (
+                <div
+                  id="console-search-results"
+                  className="adm-search-results"
+                  role="listbox"
+                  aria-label="Search results"
+                >
+                  {isSearchLoading && (
+                    <div className="adm-search-status">Searching your account…</div>
+                  )}
+
+                  {!isSearchLoading && !flatResults.length && (
+                    <div className="adm-search-status">
+                      {searchValue.trim().length < 2
+                        ? 'Start typing to search products, plans and receipts.'
+                        : `Nothing on your account matches “${searchValue.trim()}”.`}
+                    </div>
+                  )}
+
+                  {!isSearchLoading &&
+                    (searchResults || [])
+                      .filter((group) => group.items?.length)
+                      .map((group) => (
+                        <div className="adm-search-group" key={group.key}>
+                          {flatResults
+                            .filter((item) => item.groupKey === group.key)
+                            .map((item) => (
+                              <button
+                                type="button"
+                                key={item.key}
+                                role="option"
+                                aria-selected={activeResult === item.flatIndex}
+                                className={`adm-search-result ${
+                                  activeResult === item.flatIndex ? 'is-active' : ''
+                                }`}
+                                onMouseEnter={() => setActiveResult(item.flatIndex)}
+                                onClick={() => chooseSearchResult(item)}
+                                ref={(node) => {
+                                  if (node && activeResult === item.flatIndex) {
+                                    node.scrollIntoView({ block: 'nearest' });
+                                  }
+                                }}
+                              >
+                                <span className="adm-search-result-main">
+                                  <span className="adm-search-result-title">{item.title}</span>
+                                  {item.subtitle && (
+                                    <span className="adm-search-result-subtitle">{item.subtitle}</span>
+                                  )}
+                                </span>
+                              </button>
+                            ))}
+                        </div>
+                      ))}
+                </div>
+              )}
             </div>
           </div>
 

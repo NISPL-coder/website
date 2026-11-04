@@ -129,38 +129,46 @@ export function generateReceiptPdf(rec, customer) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10.5);
   doc.setTextColor(...darkTextColor);
-  doc.text(customer?.companyName || 'Enterprise Node Client', 18, 64);
+  doc.text(customer?.companyName || customer?.company || customer?.name || '—', 18, 64);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...mutedTextColor);
-  doc.text(`Contact Person: ${customer?.name || 'Authorized Representative'}`, 18, 69);
-  doc.text(`Email: ${customer?.email || 'accounts@client.in'}`, 18, 74);
-  doc.text(`Customer ID: ${customer?.customerId || 'NIS-CUST-849201'}`, 18, 79);
+  doc.text(`Contact Person: ${customer?.name || '—'}`, 18, 69);
+  doc.text(`Email: ${customer?.email || '—'}`, 18, 74);
+  doc.text(`Customer ID: ${customer?.customerId || '—'}`, 18, 79);
 
   // Right column inside Billed To box
   doc.text(`GSTIN / UIN:`, 115, 64);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkTextColor);
-  doc.text(`${customer?.gstNo || '19AAAAA0000A1Z5'}`, 140, 64);
+  doc.text(`${customer?.gstNo || 'Not on record'}`, 140, 64);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedTextColor);
   doc.text(`Payment Mode:`, 115, 69);
   doc.setTextColor(...darkTextColor);
-  doc.text(`${rec.paymentMode || 'Online Banking'}`, 140, 69);
+  doc.text(`${rec.paymentMode || '—'}`, 140, 69);
+
+  const ledgerStatus = String(rec.status || '').trim();
+  const isSettled = ['received', 'cleared', 'paid'].includes(ledgerStatus.toLowerCase());
 
   doc.setTextColor(...mutedTextColor);
   doc.text(`Payment Status:`, 115, 74);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(5, 150, 105);
-  doc.text(`PAID & VERIFIED`, 140, 74);
+  doc.setTextColor(...(isSettled ? [5, 150, 105] : [217, 119, 6]));
+  doc.text(isSettled ? 'PAID & VERIFIED' : (ledgerStatus || 'RECORDED').toUpperCase(), 140, 74);
 
   // 5. Line Items Table (jspdf-autotable)
-  const baseNum = parseFloat(rec.baseAmount?.replace(/[^\d.]/g, '') || '4500');
-  const cgstNum = parseFloat(rec.cgst?.replace(/[^\d.]/g, '') || '0');
-  const sgstNum = parseFloat(rec.sgst?.replace(/[^\d.]/g, '') || '0');
-  const totalNum = parseFloat(rec.totalAmount?.replace(/[^\d.]/g, '') || '5310');
+  // Amounts are read from the ledger row; nothing is invented when a field is missing.
+  const toNumber = (value) => {
+    const parsed = parseFloat(String(value ?? '').replace(/[^\d.]/g, ''));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const baseNum = toNumber(rec.baseAmount) || toNumber(rec.totalAmount);
+  const cgstNum = toNumber(rec.cgst);
+  const sgstNum = toNumber(rec.sgst);
+  const totalNum = toNumber(rec.totalAmount) || baseNum;
 
   autoTable(doc, {
     startY: 88,
@@ -170,7 +178,7 @@ export function generateReceiptPdf(rec, customer) {
       [
         '1',
         rec.service,
-        rec.sacCode || '998313',
+        rec.sacCode || '—',
         `${rec.date} to ${rec.expiryDate || 'N/A'}`,
         `₹${baseNum.toFixed(2)}`,
         `₹${baseNum.toFixed(2)}`

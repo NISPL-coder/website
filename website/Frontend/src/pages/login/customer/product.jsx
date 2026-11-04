@@ -34,6 +34,7 @@ import tallyLogo from '../../../assets/partners/tally.png';
 import SolutionCategorySelection from '../../Dashboard/components/SolutionCategorySelection';
 import CloudProviderSelection from '../../Dashboard/components/CloudProviderSelection';
 import CloudPlansPricingView from '../../Dashboard/components/CloudPlansPricingView';
+import NewSubscriptionView from '../../Dashboard/components/NewSubscriptionView';
 import TallyPrimePlansView from '../../Dashboard/components/TallyPrimePlansView';
 import ProductDetailsModal from '../../Dashboard/components/ProductDetailsModal';
 import {
@@ -46,9 +47,12 @@ import {
 import { formatINR } from '../../Dashboard/utils/pricingUtils';
 
 export default function ProductsSection({
+  customer,
+  account,
   onAddToCart,
   onGoToCart,
   cartItemIds = [],
+  entitlements = [],
   externalSearch = ''
 }) {
   // Navigation State: null = initial 2-card screen; 'tally' = Tally catalog; 'cloud' = Cloud flow
@@ -62,9 +66,28 @@ export default function ProductsSection({
   const [selectedSort, setSelectedSort] = useState('recommended');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'table'
 
-  // The console header owns the global search; mirror it into the local filter.
+  // The console header hands over a term when a search result opens this page.
+  // The catalogue only filters inside a chosen category, so land on the one
+  // that actually carries the plan.
   useEffect(() => {
     setSearchQuery(externalSearch);
+
+    const term = externalSearch.trim().toLowerCase();
+    if (!term) return;
+
+    const catalogueHasTerm = (list) =>
+      list.some((item) =>
+        [item.fullName, item.planName, item.shortDesc, item.categoryLabel]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(term))
+      );
+
+    setSelectedCategory((prev) => {
+      if (prev && catalogueHasTerm(prev === 'tally' ? TALLY_PRODUCTS : CLOUD_PRODUCTS)) return prev;
+      if (catalogueHasTerm(TALLY_PRODUCTS)) return 'tally';
+      if (catalogueHasTerm(CLOUD_PRODUCTS)) return 'cloud';
+      return prev;
+    });
   }, [externalSearch]);
 
   // Showcase Slider & Wishlist State (Matching User's Collection Design)
@@ -338,27 +361,19 @@ export default function ProductsSection({
   }
 
   /* ─────────────────────────────────────────────────────────────────────────
-     VIEW 2: CLOUD SOLUTIONS FLOW (3 PROVIDER BOXES -> 4 PACK TIERS)
+     VIEW 2: CLOUD SOLUTIONS FLOW (NEW SUBSCRIPTION VIEW)
   ───────────────────────────────────────────────────────────────────────── */
   if (selectedCategory === 'cloud') {
-    if (!selectedCloudProvider) {
-      return (
-        <CloudProviderSelection
-          onSelectProvider={(provId) => setSelectedCloudProvider(provId)}
-          onBack={() => {
-            setSelectedCategory(null);
-            setSelectedCloudProvider(null);
-          }}
-        />
-      );
-    }
-
     return (
-      <CloudPlansPricingView
-        providerId={selectedCloudProvider}
-        onBack={() => setSelectedCloudProvider(null)}
+      <NewSubscriptionView
+        customer={customer}
+        account={account}
+        onBack={() => {
+          setSelectedCategory(null);
+          setSelectedCloudProvider(null);
+        }}
         onAddToCart={handleAdd}
-        cartItemIds={cartItemIds}
+        onGoToCart={onGoToCart}
       />
     );
   }
