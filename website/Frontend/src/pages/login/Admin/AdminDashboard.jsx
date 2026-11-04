@@ -122,6 +122,17 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const location = useLocation();
   const { can, isReady, user: liveUser } = usePermissions();
 
+  // Authentication guard: ensure valid token & admin/staff privileges
+  useEffect(() => {
+    if (!authApi.isAuthenticated(['admin', 'manager', 'support'])) {
+      if (onSignOut) {
+        onSignOut();
+      } else {
+        navigate('/login?portal=admin', { replace: true });
+      }
+    }
+  }, [navigate, onSignOut]);
+
   // Derive active view from current URL pathname
   const activeNav = useMemo(() => {
     const path = location.pathname;

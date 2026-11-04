@@ -5,6 +5,8 @@ import CookieConsent from './components/CookieConsent/CookieConsent';
 import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
 import SEOManager from './components/SEO/SEOManager';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { authApi } from './services/authApi';
 import './App.css';
 
 // Safe lazy-loader that gracefully reloads if a stale chunk hash fails after a new deployment.
@@ -103,6 +105,18 @@ function MainApp() {
     '/help'
   ].some((path) => location.pathname.startsWith(path));
 
+  // Handle session cleanup on sign-out across all portals
+  const handleSignOut = (portal = 'admin') => {
+    authApi.clearAuthSession();
+    if (portal === 'customer') {
+      window.location.href = '/customer-login';
+    } else if (portal === 'partner') {
+      window.location.href = '/login?portal=partner';
+    } else {
+      window.location.href = '/login?portal=admin';
+    }
+  };
+
   // Keyboard shortcut: Ctrl + K or Cmd + K for global search palette
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -156,50 +170,50 @@ function MainApp() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           
-          {/* Customer Portal Routes with Sidebar & Header */}
-          <Route path="/customer/overview" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
-          <Route path="/customer/product" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
+          {/* Customer Portal Routes with Sidebar & Header (Protected) */}
+          <Route path="/customer/overview" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/product" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/products" element={<Navigate to="/customer/product" replace />} />
-          <Route path="/customer/cart" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
-          <Route path="/customer/receipt" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
-          <Route path="/customer/payment" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
-          <Route path="/customer/help" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
-          <Route path="/customer/profile" element={<Dashboard onSignOut={() => window.location.href = '/customer-login'} />} />
+          <Route path="/customer/cart" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/receipt" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/payment" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/help" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/profile" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/help" element={<Navigate to="/customer/help" replace />} />
           <Route path="/help-center" element={<Navigate to="/customer/help" replace />} />
           <Route path="/customer/dashboard" element={<Navigate to="/customer/overview" replace />} />
           <Route path="/customer" element={<Navigate to="/customer/overview" replace />} />
           <Route path="/dashboard" element={<Navigate to="/customer/overview" replace />} />
           
-          <Route path="/partner-dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
-          <Route path="/partner_dashboard" element={<PartnerDashboard onSignOut={() => window.location.href = '/login?portal=partner'} />} />
+          <Route path="/partner-dashboard" element={<ProtectedRoute allowedRoles={['partner']} redirectTo="/login?portal=partner"><PartnerDashboard onSignOut={() => handleSignOut('partner')} /></ProtectedRoute>} />
+          <Route path="/partner_dashboard" element={<ProtectedRoute allowedRoles={['partner']} redirectTo="/login?portal=partner"><PartnerDashboard onSignOut={() => handleSignOut('partner')} /></ProtectedRoute>} />
           
-          {/* Admin Portal Routes with Sidebar & Header */}
+          {/* Admin Portal Routes with Sidebar & Header (Protected) */}
           <Route path="/admin/create" element={<CreateAdminPage />} />
-          <Route path="/admin/overview" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer/contract/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer/payment/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer/contract" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer/payment" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/customer" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/overview" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer/contract/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer/payment/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer/contract" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer/payment" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/customer" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/customers" element={<Navigate to="/admin/customer" replace />} />
-          <Route path="/admin/product/tally/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/product/cloud/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/product/tally/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/product/cloud/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/product/create" element={<Navigate to="/admin/product" replace />} />
-          <Route path="/admin/product" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/product" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/products" element={<Navigate to="/admin/product" replace />} />
-          <Route path="/admin/receipt/create" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/receipt" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/receipt/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/receipt" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
-          <Route path="/admin/import-csv" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/sangam-sync" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/profile" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
-          <Route path="/admin/user-access" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/import-csv" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/sangam-sync" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/user-access" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/staff" element={<Navigate to="/admin/user-access" replace />} />
-          <Route path="/admin/activity-logs" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/activity-logs" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/activity_logs" element={<Navigate to="/admin/activity-logs" replace />} />
-          <Route path="/admin/notifications" element={<AdminDashboard onSignOut={() => window.location.href = '/login?portal=admin'} />} />
+          <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin_dashboard" element={<Navigate to="/admin/overview" replace />} />

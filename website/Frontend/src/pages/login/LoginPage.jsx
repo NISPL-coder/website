@@ -61,6 +61,21 @@ export default function LoginPage({ lockedPortal }) {
     }
   }, [lockedPortal, location.pathname, urlPortal]);
 
+  // If already authenticated with a valid token, redirect to active portal dashboard
+  useEffect(() => {
+    if (authApi.isAuthenticated()) {
+      const user = authApi.getCurrentUser();
+      const currentRole = user?.role;
+      if (currentRole === 'customer' && (activePortal === 'customer' || location.pathname === '/customer-login')) {
+        navigate('/customer/overview', { replace: true });
+      } else if (['admin', 'manager', 'support'].includes(currentRole) && activePortal === 'admin') {
+        navigate('/admin/overview', { replace: true });
+      } else if (currentRole === 'partner' && activePortal === 'partner') {
+        navigate('/partner-dashboard', { replace: true });
+      }
+    }
+  }, [activePortal, location.pathname, navigate]);
+
   const handleSelectPortal = (portalKey) => {
     if (isPortalLocked) return;
     if (portalKey === 'partner') {
@@ -228,6 +243,7 @@ export default function LoginPage({ lockedPortal }) {
         <PartnerDashboard 
           userSession={activeSession} 
           onSignOut={() => {
+            authApi.clearAuthSession();
             setActiveSession(null);
             setPassword('');
             setErrorMessage('');
@@ -240,6 +256,7 @@ export default function LoginPage({ lockedPortal }) {
         <AdminDashboard 
           userSession={activeSession} 
           onSignOut={() => {
+            authApi.clearAuthSession();
             setActiveSession(null);
             setPassword('');
             setErrorMessage('');

@@ -57,6 +57,18 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   useEffect(() => {
     setActiveNav(getNavFromPath(location.pathname));
   }, [location.pathname]);
+
+  // Authentication guard: ensure valid token & customer privileges
+  useEffect(() => {
+    if (!authApi.isAuthenticated(['customer'])) {
+      if (propOnSignOut) {
+        propOnSignOut();
+      } else {
+        navigate('/customer-login', { replace: true });
+      }
+    }
+  }, [navigate, propOnSignOut]);
+
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [receipts, setReceipts] = useState(INITIAL_INVOICES);

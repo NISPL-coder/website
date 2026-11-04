@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
+import { authApi } from '../../../services/authApi';
 import {
   LayoutDashboard,
   Layers,
@@ -2137,6 +2138,17 @@ export function PartnerSettingsView({ onBack }) {
    ========================================================================= */
 export default function PartnerDashboard({ userSession, onSignOut }) {
   const navigate = useNavigate();
+
+  // Authentication guard: ensure valid token & partner privileges
+  useEffect(() => {
+    if (!authApi.isAuthenticated(['partner'])) {
+      if (onSignOut) {
+        onSignOut();
+      } else {
+        navigate('/login?portal=partner', { replace: true });
+      }
+    }
+  }, [navigate, onSignOut]);
 
   // Sidebar navigation state
   const [activeNav, setActiveNav] = useState('dashboard');

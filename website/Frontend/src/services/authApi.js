@@ -195,6 +195,9 @@ export const authApi = {
     } catch (e) {
       console.error('Failed to store auth session:', e);
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('nispl_auth_change'));
+    }
   },
 
   getAuthToken() {
@@ -212,6 +215,69 @@ export const authApi = {
     } catch {
       return null;
     }
+  },
+
+  /**
+   * Validate token presence and check if it is expired (JWT check)
+   * @param {string} token 
+   * @returns {boolean}
+   */
+  isTokenValid(token) {
+    if (!token || typeof token !== 'string') return false;
+    const trimmed = token.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return false;
+
+    const parts = trimmed.split('.');
+    if (parts.length === 3) {
+      try {
+        const base64Url = parts[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const payload = JSON.parse(jsonPayload);
+        if (payload && payload.exp && typeof payload.exp === 'number') {
+          if (payload.exp * 1000 < Date.now()) {
+            return false;
+          }
+        }
+      } catch {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
+   * Check whether a user is logged in with a valid token and optional role requirement
+   * @param {string[]|string|null} allowedRoles 
+   * @returns {boolean}
+   */
+  isAuthenticated(allowedRoles = null) {
+    const token = this.getAuthToken();
+    if (!this.isTokenValid(token)) {
+      if (token) this.clearAuthSession();
+      return false;
+    }
+
+    const user = this.getCurrentUser();
+    if (!user) {
+      this.clearAuthSession();
+      return false;
+    }
+
+    if (allowedRoles) {
+      const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+      const userRole = user.role;
+      if (!roles.includes(userRole)) {
+        return false;
+      }
+    }
+
+    return true;
   },
 
   _handleRefreshedToken(res) {
@@ -334,6 +400,10 @@ export const authApi = {
       localStorage.removeItem(SESSION_KEY);
     } catch {
       // ignore
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('nispl_auth_change'));
+      window.dispatchEvent(new Event('nispl_session_expired'));
     }
   }
 };

@@ -22,6 +22,9 @@ export async function readApiError(res, fallback) {
   }
   const message = payload?.message || payload?.error;
   if (res.status === 403) return new Error(message || 'You do not have permission to perform this action.');
-  if (res.status === 401) return new Error('Your session has expired. Please sign in again.');
+  if (res.status === 401) {
+    authApi.clearAuthSession();
+    return new Error('Your session has expired. Please sign in again.');
+  }
   return new Error(message || fallback);
 }
