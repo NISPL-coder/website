@@ -17,7 +17,6 @@ import PaymentSection from './components/PaymentSection';
 import ReceiptSection from '../login/customer/receipt';
 import HelpSection from '../login/customer/help';
 import SupportTicketModal from './components/SupportTicketModal';
-import { useRenewalToasts } from './components/RemindersPanel';
 import { customerAuthService } from '../CustomerRegister/services/customerAuthService';
 import { authApi } from '../../services/authApi';
 import { cartApi } from '../../services/cartApi';
@@ -130,9 +129,6 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
       navigate('/customer-login');
     }
   };
-
-  // Fire plan renewal toast reminders on first load
-  useRenewalToasts(handleSelectNav);
 
   // Dynamic Cart Handlers with Backend API Sync
   const handleAddToCart = async (product) => {
@@ -273,6 +269,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
             <CloudPortalOverview
               customer={customer}
               onNavigateTab={handleSelectNav}
+              onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
 

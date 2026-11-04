@@ -490,7 +490,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         profile={{
           name: adminName,
           email: adminEmail,
-          role: adminRole,
+          role: adminRole || 'admin',
           isPrimaryAdmin: adminIsPrimaryAdmin
         }}
         onSignOut={onSignOut}

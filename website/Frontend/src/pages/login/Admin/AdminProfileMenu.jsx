@@ -90,10 +90,8 @@ export default function AdminProfileMenu({
         <span className="adm-profile-avatar">{getInitials(name)}</span>
         <span className="adm-profile-meta">
           <span className="adm-profile-name">{name}</span>
-          <span className="adm-profile-sub">
-            <span className="adm-profile-email">{email}</span>
-            <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
-          </span>
+          {email && <span className="adm-profile-email">{email}</span>}
+          <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
         </span>
         <ChevronDown size={14} className={`adm-profile-chevron ${isOpen ? 'rotate' : ''}`} />
       </button>

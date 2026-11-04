@@ -11371,6 +11371,16 @@
   color: #64748b;
 }
 
+.flowmail-status-badge.due {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.flowmail-status-badge.overdue {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .flowmail-row-menu {
   background: transparent;
   border: none;
@@ -11381,6 +11391,297 @@
 
 .flowmail-row-menu:hover {
   color: #0f172a;
+}
+
+/* ── Customer Account Overview (API-driven) ─────────────────────────────── */
+.flowmail-kpi-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.flowmail-kpi-note {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.flowmail-kpi-link {
+  background: transparent;
+  border: none;
+  color: #6366f1;
+  font-size: 0.78rem;
+  font-weight: 600 !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.flowmail-kpi-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.flowmail-overview-split {
+  display: grid;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.flowmail-split-payments {
+  grid-template-columns: 2.15fr 1fr;
+}
+
+.flowmail-split-products {
+  grid-template-columns: 1.6fr 1fr;
+}
+
+.flowmail-state-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 20px;
+  padding: 46px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+}
+
+.flowmail-state-text {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+}
+
+.flowmail-state-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #6366f1;
+  border-radius: 9999px;
+  animation: flowmail-spin 0.8s linear infinite;
+}
+
+@keyframes flowmail-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.flowmail-empty-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.84rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.flowmail-receipt-download {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 9px;
+  padding: 5px 7px;
+  cursor: pointer;
+  display: inline-flex;
+  transition: all 0.18s ease;
+}
+
+.flowmail-receipt-download:hover:not(:disabled) {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+}
+
+.flowmail-receipt-download:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.flowmail-reminder-card {
+  background: linear-gradient(160deg, #ffffff 0%, #f8faff 100%);
+}
+
+.flowmail-reminder-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+}
+
+.flowmail-reminder-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700 !important;
+}
+
+.flowmail-reminder-pill.is-overdue {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.flowmail-reminder-title {
+  font-size: 0.95rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.flowmail-reminder-amount {
+  font-size: 1.7rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.flowmail-reminder-meta {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.flowmail-reminder-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.flowmail-reminder-clear {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.flowmail-reminder-clear p {
+  font-size: 0.86rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.flowmail-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  max-height: 330px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.flowmail-product-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 8px;
+  border-radius: 14px;
+  transition: background 0.18s ease;
+}
+
+.flowmail-product-row:hover {
+  background: #f8fafc;
+}
+
+.flowmail-product-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #ede9fe;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flowmail-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.flowmail-product-name {
+  font-size: 0.88rem;
+  font-weight: 600 !important;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flowmail-product-meta {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.flowmail-product-open {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  display: flex;
+  padding: 2px;
+}
+
+.flowmail-product-open:hover {
+  color: #6366f1;
+}
+
+.flowmail-quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  flex: 1;
+  align-content: center;
+}
+
+.flowmail-quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+}
+
+.flowmail-quick-action:hover {
+  background: #ffffff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -6px rgba(99, 102, 241, 0.25);
 }
 
 /* ── AI Insights Widget ─────────────────────────────────────────────────── */
@@ -11729,6 +12030,9 @@
   }
   .flowmail-details-grid {
     grid-template-columns: 1fr;
+  }
+  .flowmail-overview-split {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -12330,6 +12634,7 @@
   .cust-portal-charts-grid,
   .cust-portal-two-col-grid,
   .pay-split-layout,
+  .flowmail-overview-split,
   .flowmail-cart-row,
   .flowmail-fulfill-grid {
     grid-template-columns: minmax(0, 1fr) !important;

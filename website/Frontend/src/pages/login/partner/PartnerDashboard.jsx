@@ -143,6 +143,8 @@ export function DashboardHeader({
             </div>
             <div className="pnd-profile-meta">
               <span className="pnd-partner-name">{partnerName}</span>
+              <span className="pnd-partner-email">{partnerEmail}</span>
+              <span className="pnd-partner-role-badge">Partner</span>
             </div>
             <ChevronDown size={14} className={`pnd-profile-chevron ${isProfileOpen ? 'rotate' : ''}`} />
           </button>

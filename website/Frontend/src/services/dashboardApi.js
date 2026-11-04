@@ -41,6 +41,28 @@ export const dashboardApi = {
     }
 
     return data.data;
+  },
+
+  /**
+   * Fetch the signed-in customer's own portal overview.
+   * Scoped server-side, so it only ever returns this account's records.
+   */
+  async getMyOverview() {
+    const token = authApi.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : null)
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to fetch your account overview.');
+    }
+
+    return data.data;
   }
 };
 

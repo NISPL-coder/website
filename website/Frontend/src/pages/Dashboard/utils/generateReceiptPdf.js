@@ -158,8 +158,8 @@ export function generateReceiptPdf(rec, customer) {
 
   // 5. Line Items Table (jspdf-autotable)
   const baseNum = parseFloat(rec.baseAmount?.replace(/[^\d.]/g, '') || '4500');
-  const cgstNum = parseFloat(rec.cgst?.replace(/[^\d.]/g, '') || '405');
-  const sgstNum = parseFloat(rec.sgst?.replace(/[^\d.]/g, '') || '405');
+  const cgstNum = parseFloat(rec.cgst?.replace(/[^\d.]/g, '') || '0');
+  const sgstNum = parseFloat(rec.sgst?.replace(/[^\d.]/g, '') || '0');
   const totalNum = parseFloat(rec.totalAmount?.replace(/[^\d.]/g, '') || '5310');
 
   autoTable(doc, {
@@ -251,23 +251,30 @@ export function generateReceiptPdf(rec, customer) {
   doc.setTextColor(...darkTextColor);
   doc.text(`₹${baseNum.toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 8, { align: 'right' });
 
-  // CGST
-  doc.setTextColor(...mutedTextColor);
-  doc.text('CGST @ 9%:', calcBoxX + 4, calcBoxY + 15);
-  doc.setTextColor(...darkTextColor);
-  doc.text(`₹${cgstNum.toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 15, { align: 'right' });
+  // CGST / SGST / Total GST — only when the record actually carries a split.
+  // Invoices booked from the payments ledger store a single billed total, so a
+  // rate must not be printed against a ₹0.00 amount.
+  if (cgstNum > 0 || sgstNum > 0) {
+    doc.setTextColor(...mutedTextColor);
+    doc.text('CGST @ 9%:', calcBoxX + 4, calcBoxY + 15);
+    doc.setTextColor(...darkTextColor);
+    doc.text(`₹${cgstNum.toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 15, { align: 'right' });
 
-  // SGST
-  doc.setTextColor(...mutedTextColor);
-  doc.text('SGST @ 9%:', calcBoxX + 4, calcBoxY + 22);
-  doc.setTextColor(...darkTextColor);
-  doc.text(`₹${sgstNum.toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 22, { align: 'right' });
+    doc.setTextColor(...mutedTextColor);
+    doc.text('SGST @ 9%:', calcBoxX + 4, calcBoxY + 22);
+    doc.setTextColor(...darkTextColor);
+    doc.text(`₹${sgstNum.toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 22, { align: 'right' });
 
-  // Total Tax
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Total GST (18%):', calcBoxX + 4, calcBoxY + 29);
-  doc.setTextColor(...darkTextColor);
-  doc.text(`₹${(cgstNum + sgstNum).toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 29, { align: 'right' });
+    doc.setTextColor(...mutedTextColor);
+    doc.text('Total GST (18%):', calcBoxX + 4, calcBoxY + 29);
+    doc.setTextColor(...darkTextColor);
+    doc.text(`₹${(cgstNum + sgstNum).toFixed(2)}`, calcBoxX + calcBoxW - 4, calcBoxY + 29, { align: 'right' });
+  } else {
+    doc.setTextColor(...mutedTextColor);
+    doc.text('GST:', calcBoxX + 4, calcBoxY + 15);
+    doc.setTextColor(...darkTextColor);
+    doc.text('Not separately recorded', calcBoxX + calcBoxW - 4, calcBoxY + 15, { align: 'right' });
+  }
 
   // Grand Total Line
   doc.setDrawColor(...primaryColor);

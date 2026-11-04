@@ -353,21 +353,37 @@
 }
 
 .pnd-partner-name {
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--pnd-text-main);
   text-transform: capitalize;
   line-height: 1.2;
 }
 
+.pnd-partner-email {
+  font-size: 0.68rem;
+  color: #64748b;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
 .pnd-partner-role-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--pnd-purple-primary);
-  background: var(--pnd-purple-soft);
-  padding: 1px 6px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a21caf;
+  background: #fdf4ff;
+  border: 1px solid #f5d0fe;
+  padding: 1px 7px;
   border-radius: var(--pnd-radius-pill);
-  margin-top: 2px;
+  margin-top: 3px;
+  line-height: 1.6;
+  display: inline-flex;
+  align-items: center;
 }
 
 .pnd-profile-chevron {
