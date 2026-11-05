@@ -11,6 +11,7 @@ import {
   isNotificationAllowedForRole
 } from '../../../services/notificationApi';
 import { authApi } from '../../../services/authApi';
+import { useIsMobile } from '../../../utils/useResponsive';
 import './AdminDashboard.css';
 import './AdminTools.css';
 
@@ -43,8 +44,11 @@ export default function ConsoleShell({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const searchInputRef = useRef(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -100,7 +104,20 @@ export default function ConsoleShell({
   useEffect(() => {
     setIsMobileOpen(false);
     setIsNotifOpen(false);
+    setIsMobileSearchOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isMobileSearchOpen) return undefined;
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsMobileSearchOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    searchInputRef.current?.focus();
+
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isMobileSearchOpen]);
 
   useEffect(() => {
     if (!isMobileOpen) return undefined;
@@ -197,6 +214,7 @@ export default function ConsoleShell({
     if (!item) return;
     onSearchResultSelect?.(item);
     setIsSearchOpen(false);
+    setIsMobileSearchOpen(false);
   };
 
   const handleSearchKeyDown = (event) => {
@@ -233,7 +251,7 @@ export default function ConsoleShell({
 
   return (
     <div className="adm-dashboard-viewport">
-      <header className="adm-header">
+      <header className={`adm-header${isMobile && isMobileSearchOpen ? ' has-mobile-search' : ''}`}>
         <div className="adm-header-left">
           <button
             type="button"
@@ -257,6 +275,7 @@ export default function ConsoleShell({
                 type="text"
                 placeholder={searchPlaceholder}
                 value={searchValue}
+                ref={searchInputRef}
                 onChange={(e) => {
                   onSearchChange?.(e.target.value);
                   if (hasSearchDropdown) setIsSearchOpen(true);
@@ -327,9 +346,30 @@ export default function ConsoleShell({
                 </div>
               )}
             </div>
+
+            <button
+              type="button"
+              className="adm-mobile-search-close"
+              onClick={() => setIsMobileSearchOpen(false)}
+              aria-label="Close search"
+              title="Close search"
+            >
+              <X size={18} />
+            </button>
           </div>
 
           <div className="adm-header-right">
+            <button
+              type="button"
+              className="adm-mobile-search-btn"
+              onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+              aria-label={searchPlaceholder}
+              title={searchPlaceholder}
+              aria-expanded={isMobileSearchOpen}
+            >
+              <Search size={17} />
+            </button>
+
             <div style={{ position: 'relative' }}>
               <button
                 type="button"

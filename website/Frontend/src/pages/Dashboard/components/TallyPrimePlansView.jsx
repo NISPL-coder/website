@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import tallyLogo from '../../../assets/partners/tally.png';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 export default function TallyPrimePlansView({
   onBack,
@@ -23,6 +24,8 @@ export default function TallyPrimePlansView({
 }) {
   const [justAddedId, setJustAddedId] = useState(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
   const [quoteForm, setQuoteForm] = useState({
     name: '',
     phone: '',
@@ -112,17 +115,14 @@ export default function TallyPrimePlansView({
     setJustAddedId(plan.id);
     toast.success(`Added TallyPrime ${plan.title} to Cart!`, {
       id: `cart-${plan.id}`,
-      icon: '🛒'
+      icon: ''
     });
     setTimeout(() => setJustAddedId(null), 1800);
   };
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
-    toast.success('Quotation request submitted! Our Tally engineer will contact you shortly.', {
-      icon: '📋',
-      duration: 4000
-    });
+    toast.success('Quotation request submitted! Our Tally engineer will contact you shortly.', { duration: 4000 });
     setIsQuoteModalOpen(false);
   };
 
@@ -154,7 +154,7 @@ export default function TallyPrimePlansView({
       </section>
 
       {/* ── 2. 3 Plan Cards (FlowMail Card Theme) ────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, 1fr)', gap: isMobile ? '20px 14px' : '24px' }}>
         {plans.map((plan) => {
           const inCart = !plan.isCustom && cartItemIds.includes(plan.id);
           const isAdded = justAddedId === plan.id;
@@ -164,9 +164,9 @@ export default function TallyPrimePlansView({
           return (
             <div
               key={plan.id}
-              className="flowmail-card"
+              className="flowmail-card tally-plan-card"
               style={{
-                padding: '32px 26px',
+                padding: isPhone ? '22px 16px' : '32px 26px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -277,8 +277,8 @@ export default function TallyPrimePlansView({
       </div>
 
       {/* ── 3. Bottom Footnote (FlowMail Card) ────────────────────── */}
-      <div className="flowmail-card" style={{ padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="flowmail-card" style={{ padding: isMobile ? '16px' : '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: isMobile ? '1 1 100%' : undefined }}>
           <div style={{
             width: '38px',
             height: '38px',
@@ -316,7 +316,7 @@ export default function TallyPrimePlansView({
       {/* ── 4. Customization Quotation Request Modal (FlowMail Modal Style) ── */}
       {isQuoteModalOpen && (
         <div className="flowmail-ai-backdrop" onClick={() => setIsQuoteModalOpen(false)}>
-          <div className="flowmail-ai-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
+          <div className="flowmail-ai-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: isMobile ? '100%' : '540px' }}>
             <div className="flowmail-ai-modal-header">
               <div className="flowmail-ai-modal-title-group">
                 <div className="flowmail-ai-badge-icon">
@@ -337,7 +337,7 @@ export default function TallyPrimePlansView({
               </button>
             </div>
 
-            <form onSubmit={handleQuoteSubmit} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleQuoteSubmit} style={{ padding: isPhone ? '16px' : '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: '#0f172a', marginBottom: '6px' }}>
                   Company / Contact Name *
@@ -360,7 +360,7 @@ export default function TallyPrimePlansView({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '600', color: '#0f172a', marginBottom: '6px' }}>
                     Mobile Number *
@@ -426,13 +426,13 @@ export default function TallyPrimePlansView({
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', flexDirection: isPhone ? 'column-reverse' : 'row', gap: '10px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                 <a
                   href={`https://wa.me/919330113000?text=Hi%20NISPL,%20I%20need%20Tally%20Customization:%20${encodeURIComponent(quoteForm.requirement)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flowmail-btn-secondary"
-                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: isPhone ? 'center' : undefined, gap: '6px' }}
                 >
                   <MessageSquare size={14} color="#10b981" />
                   <span>WhatsApp</span>

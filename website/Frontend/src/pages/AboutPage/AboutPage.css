@@ -900,4 +900,136 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .about-gallery-category-card {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+
+  .about-cat-header-strip {
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+  }
+
+  .about-main-expand-btn {
+    width: 44px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
+  }
+
+  .about-main-top-badges {
+    top: 12px;
+    left: 12px;
+    gap: 6px;
+  }
+
+  .about-main-cat-pill,
+  .about-main-counter-pill {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+  }
+
+  .about-main-caption-box {
+    padding: 14px;
+  }
+
+  .about-main-caption-title {
+    font-size: 1rem;
+  }
+
+  .about-main-caption-text {
+    font-size: 0.82rem;
+  }
+
+  .about-slider-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .about-slider-nav-prev {
+    left: 8px;
+  }
+
+  .about-slider-nav-next {
+    right: 8px;
+  }
+
+  .about-lightbox-backdrop {
+    padding: 10px;
+  }
+
+  .about-lightbox-content {
+    border-radius: 16px;
+  }
+
+  .about-lightbox-close-btn {
+    width: 40px;
+    height: 40px;
+    top: 10px;
+    right: 10px;
+  }
+
+  .about-lightbox-image-stage {
+    max-height: 52vh;
+    max-height: 52dvh;
+  }
+
+  .about-lightbox-img {
+    max-height: 52vh;
+    max-height: 52dvh;
+  }
+
+  .about-lightbox-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .about-lightbox-prev {
+    left: 10px;
+  }
+
+  .about-lightbox-next {
+    right: 10px;
+  }
+
+  .about-lightbox-footer {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .about-cta-card {
+    padding: 32px 18px;
+  }
+
+  .about-cta-desc {
+    font-size: 0.95rem;
+  }
+
+  .about-thumbs-grid {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .about-cat-title {
+    font-size: 1.2rem;
+  }
+
+  .about-cta-title {
+    font-size: 1.5rem;
+  }
+
+  .about-lightbox-nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .about-lightbox-prev {
+    left: 6px;
+  }
+
+  .about-lightbox-next {
+    right: 6px;
+  }
 }

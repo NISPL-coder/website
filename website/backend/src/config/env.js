@@ -15,6 +15,19 @@ if (process.env.JWT_ACCESS_SECRET.length < 32 || process.env.JWT_REFRESH_SECRET.
   throw new Error('JWT secrets must each be at least 32 characters long.');
 }
 
+const rawTestMode = process.env.RAZORPAY_TEST_MODE;
+const isTestMode = rawTestMode !== undefined
+  ? (String(rawTestMode).trim().toLowerCase() === 'true' || String(rawTestMode).trim() === '1')
+  : Boolean((process.env.RAZORPAY_KEY_ID || '').startsWith('rzp_test_'));
+
+const razorpayKeyId = isTestMode
+  ? (process.env.RAZORPAY_TEST_KEY_ID || process.env.RAZORPAY_KEY_ID || '').trim()
+  : (process.env.RAZORPAY_LIVE_KEY_ID || process.env.RAZORPAY_KEY_ID || '').trim();
+
+const razorpayKeySecret = isTestMode
+  ? (process.env.RAZORPAY_TEST_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || '').trim()
+  : (process.env.RAZORPAY_LIVE_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || '').trim();
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 4000),
@@ -40,9 +53,10 @@ export const env = {
   SANGAM_CRM_URL: process.env.SANGAM_CRM_URL || 'https://nistally.sangamcrm.com/',
   SANGAM_CRM_API_BASE: process.env.SANGAM_CRM_API_BASE || 'https://nistally.sangamcrm.com/api/v1/',
   SANGAM_CRM_TOKEN: process.env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6',
-  RAZORPAY_KEY_ID: (process.env.RAZORPAY_KEY_ID || '').trim(),
-  RAZORPAY_KEY_SECRET: (process.env.RAZORPAY_KEY_SECRET || '').trim(),
+  RAZORPAY_TEST_MODE: isTestMode,
+  RAZORPAY_KEY_ID: razorpayKeyId,
+  RAZORPAY_KEY_SECRET: razorpayKeySecret,
   RAZORPAY_CURRENCY: (process.env.RAZORPAY_CURRENCY || 'INR').trim().toUpperCase(),
   RAZORPAY_WEBHOOK_SECRET: (process.env.RAZORPAY_WEBHOOK_SECRET || '').trim(),
-  RAZORPAY_ENABLED: Boolean((process.env.RAZORPAY_KEY_ID || '').trim() && (process.env.RAZORPAY_KEY_SECRET || '').trim())
+  RAZORPAY_ENABLED: Boolean(razorpayKeyId && razorpayKeySecret)
 };

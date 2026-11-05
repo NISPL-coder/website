@@ -158,11 +158,14 @@ const waitForIntentToFinish = async (intent, timeoutMs = 5000) => {
 ───────────────────────────────────────────────────────────────────────── */
 export const getRazorpayConfig = (req, res) => {
   const enabled = isRazorpayConfigured();
+  const isTestMode = Boolean(env.RAZORPAY_TEST_MODE);
 
   res.json({
     success: true,
     data: {
       enabled,
+      isTestMode,
+      mode: isTestMode ? 'test' : 'live',
       keyId: enabled ? env.RAZORPAY_KEY_ID : null,
       currency: env.RAZORPAY_CURRENCY,
       maxAmount: MAX_GATEWAY_RUPEES,

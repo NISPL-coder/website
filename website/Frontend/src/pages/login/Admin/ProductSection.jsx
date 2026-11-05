@@ -193,7 +193,6 @@ export default function ProductSection({ products, setProducts }) {
           : `${target.name} is now Inactive (Hidden from Customer Portal).`,
         {
           id: `toggle-${productId}`,
-          icon: nextAvailable ? '✅' : '⏸️',
           style: {
             borderRadius: '10px',
             background: '#0f172a',

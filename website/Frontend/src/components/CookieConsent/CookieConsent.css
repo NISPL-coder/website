@@ -10,7 +10,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: auto;
-  max-width: min(840px, calc(100vw - 340px));
+  max-width: min(840px, max(320px, calc(100vw - 340px)));
   z-index: 99999;
   animation: nis-banner-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -497,7 +497,8 @@
 @media (max-width: 1040px) {
   .nis-cookie-banner {
     max-width: calc(100% - 32px);
-    bottom: 16px;
+    /* clear of the floating WhatsApp action pinned bottom-left */
+    bottom: 110px;
   }
 }
 
@@ -521,7 +522,8 @@
 
 @media (max-width: 520px) {
   .nis-cookie-banner {
-    bottom: 10px;
+    /* the WhatsApp action sits at bottom 22-74px here */
+    bottom: 92px;
     width: calc(100% - 16px);
   }
 
@@ -532,16 +534,37 @@
 
   .nis-cookie-banner-actions {
     display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     width: 100%;
   }
 
   .nis-cookie-btn {
+    min-width: 0;
+    min-height: 44px;
     padding: 7px 4px;
     font-size: 0.76rem;
     text-align: center;
     justify-content: center;
+  }
+
+  .nis-cookie-modal {
+    max-height: 88dvh;
+  }
+
+  .nis-cookie-modal-icon-badge {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nis-cookie-modal-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nis-cookie-floating-trigger {
+    width: 44px;
+    height: 44px;
   }
 
   .nis-cookie-modal-footer {

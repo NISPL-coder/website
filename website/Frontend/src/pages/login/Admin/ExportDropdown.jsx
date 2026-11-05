@@ -39,7 +39,6 @@ export default function ExportDropdown({
       if (type === 'excel') {
         exportToExcel(formattedData, fullFileName);
         toast.success(`Exported ${data.length} ${itemLabel} to Excel (.xlsx)!`, {
-          icon: '📊',
           style: {
             borderRadius: '12px',
             background: '#0f172a',
@@ -50,7 +49,6 @@ export default function ExportDropdown({
       } else if (type === 'csv') {
         exportToCsv(formattedData, fullFileName);
         toast.success(`Exported ${data.length} ${itemLabel} to CSV (.csv)!`, {
-          icon: '📄',
           style: {
             borderRadius: '12px',
             background: '#0f172a',

@@ -124,6 +124,18 @@
   flex-shrink: 0;
 }
 
+/* Revealed by the ≤992px header rules; hidden on desktop layouts. */
+.adm-mobile-search-btn,
+.adm-mobile-search-close {
+  display: none;
+  background: #ffffff;
+  border: 1px solid var(--adm-border-input);
+  border-radius: var(--adm-radius-sm);
+  color: var(--adm-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .adm-brand-link {
   display: flex;
   align-items: center;
@@ -1569,6 +1581,12 @@ input:checked + .adm-slider:before {
   }
   .adm-mobile-menu-btn {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    flex-shrink: 0;
   }
   .adm-header-center {
     display: none;
@@ -1577,7 +1595,6 @@ input:checked + .adm-slider:before {
     padding: 20px 16px 36px;
   }
 }
-
 @media (max-width: 640px) {
   .adm-kpi-grid,
   .adm-products-grid {
@@ -2831,6 +2848,70 @@ input:checked + .adm-slider:before {
     justify-content: flex-start;
   }
 
+  .adm-mobile-search-btn,
+  .adm-mobile-search-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid var(--adm-border-input);
+    border-radius: var(--adm-radius-pill);
+    background: #ffffff;
+    color: var(--adm-text-muted);
+    cursor: pointer;
+  }
+
+  .adm-mobile-search-btn:hover,
+  .adm-mobile-search-btn[aria-expanded='true'],
+  .adm-mobile-search-close:hover {
+    color: var(--adm-purple);
+    border-color: var(--adm-purple);
+    background: var(--adm-purple-light);
+  }
+
+  .adm-mobile-search-close {
+    border-radius: var(--adm-radius-sm);
+  }
+
+  /* The header search is the console's only search field, so on touch layouts
+     it becomes a full-width bar over the header instead of being hidden. */
+  .adm-header.has-mobile-search .adm-header-center {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 12px;
+    background: #ffffff;
+    box-sizing: border-box;
+    z-index: 60;
+  }
+
+  .adm-header.has-mobile-search .adm-search-box {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .adm-header.has-mobile-search .adm-search-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .adm-header.has-mobile-search .adm-search-results {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: 100%;
+  }
+
   .adm-header-main {
     flex: 0 1 auto;
     padding: 0 14px 0 0;
@@ -2886,6 +2967,31 @@ input:checked + .adm-slider:before {
 @media (max-width: 768px) {
   .adm-main-content {
     padding: 16px 14px 32px;
+  }
+
+  /* 100vw/100vh overflow the frame once a scrollbar or a mobile URL bar is
+     present, so the rigid console frame switches to the real box. */
+  .adm-dashboard-viewport {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .adm-body-wrapper {
+    height: calc(100vh - var(--adm-header-height));
+    height: calc(100dvh - var(--adm-header-height));
+  }
+
+  .adm-table-responsive {
+    height: auto;
+    max-height: 68vh;
+    max-height: 68dvh;
+  }
+
+  .adm-header.has-mobile-search .adm-search-results {
+    max-height: 60vh;
   }
 
   /* Solutions (Tally / Cloud) cards stack into one column */
@@ -3073,6 +3179,91 @@ input:checked + .adm-slider:before {
     flex-direction: column;
     align-items: stretch;
   }
+
+  /* Toolbar controls stretch instead of pinning a 340px / 205px minimum */
+  .adm-search-box-toolbar {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .adm-search-box-toolbar .adm-search-input {
+    height: 44px;
+    padding-right: 44px;
+  }
+
+  .adm-search-clear {
+    width: 32px;
+    height: 32px;
+    right: 6px;
+  }
+
+  .adm-filter-select-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .adm-filter-select-wrap .react-select__control {
+    min-height: 44px;
+  }
+
+  .adm-select-filter {
+    height: 44px;
+  }
+
+  /* Availability switch: the tap target grows to a 40px tall track */
+  .adm-switch {
+    width: 56px;
+    height: 40px;
+  }
+
+  .adm-slider {
+    border-radius: 40px;
+  }
+
+  .adm-slider:before {
+    width: 32px;
+    height: 32px;
+    left: 4px;
+    bottom: 4px;
+  }
+
+  input:checked + .adm-slider:before {
+    transform: translateX(16px);
+  }
+
+  .adm-header-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .adm-user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-modal-header,
+  .adm-modal-body {
+    padding: 16px 18px;
+  }
+
+  .adm-modal-footer {
+    padding: 14px 18px;
+  }
+
+  .adm-modal-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .adm-modal-box {
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
 }
 
 /* ---------- Small phones (≤480px) ---------- */
@@ -3084,6 +3275,34 @@ input:checked + .adm-slider:before {
   .adm-brand-logo {
     height: 34px;
     max-width: 112px;
+  }
+
+  .adm-header-main {
+    padding: 0 8px 0 0;
+  }
+
+  .adm-header-right {
+    gap: 6px;
+  }
+
+  .adm-header.has-mobile-search .adm-header-center {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .adm-header.has-mobile-search .adm-search-input {
+    padding-left: 36px;
+  }
+
+  .adm-mobile-search-btn,
+  .adm-mobile-search-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-search-clear {
+    width: 36px;
+    height: 36px;
   }
 
   .adm-hero-title {
@@ -3198,4 +3417,63 @@ input:checked + .adm-slider:before {
   padding: 20px !important;
   box-sizing: border-box !important;
   animation: admFadeIn 0.2s ease;
+}
+
+/* Declared after the portal backdrop rule above so the viewport-unit sizing,
+   which is 100vw/100vh with !important there, yields to the visible box on
+   touch layouts. */
+@media (max-width: 768px) {
+  .adm-modal-backdrop-portal {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-modal-backdrop-portal {
+    padding: 8px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .adm-main-content {
+    padding: 10px 8px 24px;
+  }
+
+  .adm-card-header,
+  .adm-table-toolbar,
+  .adm-table-footer,
+  .adm-customer-summary-grid {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .adm-kpi-card,
+  .adm-chart-card,
+  .adm-product-card,
+  .adm-form-card {
+    padding: 14px 12px;
+  }
+
+  .adm-brand-logo {
+    max-width: 96px;
+  }
+
+  .adm-header-icon-btn,
+  .adm-mobile-menu-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-header-right {
+    gap: 5px;
+  }
+
+  .adm-select-filter {
+    min-width: 120px;
+  }
 }

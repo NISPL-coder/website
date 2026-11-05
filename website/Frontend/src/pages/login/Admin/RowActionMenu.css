@@ -123,3 +123,40 @@
   color: #ea580c;
 }
 
+/* ------------------------------------------------------------------ *
+ * Touch layouts: the dots trigger and the menu rows grow to a real
+ * tap target, and the portal panel is clamped to the visible viewport.
+ * ------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .adm-action-menu-wrap,
+  .adm-action-dots-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-action-dropdown {
+    min-width: 180px;
+    max-width: calc(100vw - 16px);
+    padding: 6px;
+  }
+
+  .adm-action-dropdown-item {
+    min-height: 44px;
+    padding: 11px 13px;
+    font-size: 0.86rem;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-action-menu-wrap,
+  .adm-action-dots-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .adm-action-dropdown-item {
+    font-size: 0.9rem;
+  }
+}
+

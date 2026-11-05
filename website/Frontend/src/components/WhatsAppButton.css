@@ -230,6 +230,14 @@
   }
 }
 
+/* The consent banner is lifted clear of this widget in CookieConsent.css; the
+   tooltip is suppressed only while the banner is on screen so neither overlaps. */
+@media (max-width: 1040px) {
+  body:has(.nis-cookie-banner) .nis-whatsapp-tooltip {
+    display: none;
+  }
+}
+
 @media print {
   .nis-whatsapp-widget {
     display: none !important;

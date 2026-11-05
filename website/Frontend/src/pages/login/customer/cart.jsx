@@ -25,6 +25,7 @@ import tallyPrimeImg from '../../../assets/Industries/Tally Prime and Tally on C
 import cloudHostingImg from '../../../assets/Industries/Clous Server & Hosting.webp';
 import itInfraImg from '../../../assets/Industries/IT infrastructure Managment.webp';
 import managedImg from '../../../assets/Industries/Managed IT services.webp';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 /* ── Fallback Add-ons Catalog (if offline) ────────────── */
 const FALLBACK_ADDONS = [
@@ -116,6 +117,8 @@ export default function CartSection({
   const [addonsList, setAddonsList] = useState(FALLBACK_ADDONS);
   const [activeAddonIndex, setActiveAddonIndex] = useState(0);
   const [isAddonHovered, setIsAddonHovered] = useState(false);
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   // Exactly 2 cards shown one after the other (WhatsApp Automation & Cloud Backup)
   const displayAddons = useMemo(() => {
@@ -216,7 +219,7 @@ export default function CartSection({
       });
       setJustAddedAddonId(addon.id);
       toast.success(`Added ${addon.name} to Cart!`, {
-        icon: '🛒',
+        icon: '',
         id: `addon-${addon.id}`
       });
       setTimeout(() => setJustAddedAddonId(null), 1500);
@@ -373,8 +376,8 @@ export default function CartSection({
                               onClick={() => onUpdateQuantity(item.id, qty - 1)}
                               aria-label="Decrease quantity"
                               style={{
-                                width: '26px',
-                                height: '26px',
+                                width: isMobile ? '40px' : '26px',
+                                height: isMobile ? '40px' : '26px',
                                 border: 'none',
                                 background: 'transparent',
                                 borderRadius: '8px',
@@ -387,7 +390,7 @@ export default function CartSection({
                             >
                               <Minus size={12} />
                             </button>
-                            <span style={{ width: '28px', textAlign: 'center', fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>
+                            <span style={{ width: isMobile ? '34px' : '28px', textAlign: 'center', fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>
                               {qty}
                             </span>
                             <button
@@ -395,8 +398,8 @@ export default function CartSection({
                               onClick={() => onUpdateQuantity(item.id, qty + 1)}
                               aria-label="Increase quantity"
                               style={{
-                                width: '26px',
-                                height: '26px',
+                                width: isMobile ? '40px' : '26px',
+                                height: isMobile ? '40px' : '26px',
                                 border: 'none',
                                 background: 'transparent',
                                 borderRadius: '8px',
@@ -423,8 +426,8 @@ export default function CartSection({
                             title="Remove item"
                             aria-label="Remove item"
                             style={{
-                              width: '28px',
-                              height: '28px',
+                              width: isMobile ? '40px' : '28px',
+                              height: isMobile ? '40px' : '28px',
                               borderRadius: '50%',
                               border: 'none',
                               background: '#f1f5f9',
@@ -455,7 +458,7 @@ export default function CartSection({
                   </div>
                 </div>
 
-                <div className="flowmail-fulfill-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                <div className="flowmail-fulfill-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'repeat(2, 1fr)', gap: isMobile ? '12px' : '16px' }}>
                   {/* Digital Mode */}
                   <div
                     onClick={() => handleSelectFulfillment('digital')}
@@ -635,7 +638,7 @@ export default function CartSection({
                       className="flowmail-dots-btn"
                       onClick={handlePrevAddon}
                       aria-label="Previous add-on"
-                      style={{ padding: '4px' }}
+                      style={{ padding: isMobile ? '12px' : '4px' }}
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -644,7 +647,7 @@ export default function CartSection({
                       className="flowmail-dots-btn"
                       onClick={handleNextAddon}
                       aria-label="Next add-on"
-                      style={{ padding: '4px' }}
+                      style={{ padding: isMobile ? '12px' : '4px' }}
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -732,7 +735,7 @@ export default function CartSection({
                               onClick={() => !inCart && handleAddAddon(addon)}
                               disabled={inCart}
                               style={{
-                                padding: '6px 14px',
+                                padding: isMobile ? '10px 16px' : '6px 14px',
                                 fontSize: '0.82rem',
                                 borderRadius: '10px',
                                 gap: '4px'
@@ -809,7 +812,7 @@ export default function CartSection({
             maxWidth: '760px',
             margin: '0 auto',
             width: '100%',
-            padding: '54px 32px 40px',
+            padding: isMobile ? '34px 18px 28px' : '54px 32px 40px',
             textAlign: 'center',
             alignItems: 'center',
             boxSizing: 'border-box'
@@ -844,11 +847,12 @@ export default function CartSection({
             onClick={onBrowseProducts}
             style={{
               alignSelf: 'center',
-              width: 'auto',
+              width: isMobile ? '100%' : 'auto',
               padding: '12px 30px',
               fontSize: '0.92rem',
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '10px',
               marginBottom: '32px'
             }}

@@ -432,6 +432,67 @@
   .adm-row-tooltip {
     animation: none;
   }
+
+  .adm-row-tooltip.is-sheet {
+    animation: none;
+  }
+}
+
+/* Tap-to-open variant: the same details, docked as a bottom sheet. */
+.adm-row-tooltip-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.adm-row-tooltip.is-sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  width: auto;
+  max-width: none;
+  max-height: 68dvh;
+  overflow-y: auto;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  pointer-events: auto;
+  animation: admRowSheetIn 0.18s ease-out;
+}
+
+.adm-row-tooltip.is-sheet .adm-row-tooltip-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  background: #0f172a;
+}
+
+.adm-row-tooltip-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(148, 163, 184, 0.16);
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+@keyframes admRowSheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -524,16 +585,26 @@
 
   .admin-datatable .adm-col-search {
     font-size: 16px;
-    height: 34px;
-  }
-
-  .admin-datatable .rdt_paginationRowLabel,
-  .admin-datatable .rdt_selectWrapper {
-    display: none;
+    height: 40px;
   }
 
   .admin-datatable .rdt_pagination {
+    flex-wrap: wrap;
     justify-content: center;
+    row-gap: 8px;
+  }
+
+  .admin-datatable .rdt_paginationRowLabel {
+    font-size: 0.74rem;
+  }
+
+  .admin-datatable .rdt_selectWrapper {
+    height: 36px;
+  }
+
+  .admin-datatable .rdt_paginationButton {
+    height: 40px;
+    width: 40px;
   }
 }
 

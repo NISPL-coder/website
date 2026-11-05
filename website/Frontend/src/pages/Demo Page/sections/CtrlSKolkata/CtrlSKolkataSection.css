@@ -733,3 +733,147 @@
     text-align: center;
   }
 }
+
+@media (max-width: 480px) {
+  .ctrls-kolkata-showcase {
+    padding: 48px 12px 56px 12px;
+  }
+
+  .ctrls-hero-card {
+    padding: 20px 14px 24px 14px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+  }
+
+  .ctrls-brand-row {
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    gap: 14px;
+  }
+
+  .ctrls-brand-lockup {
+    gap: 8px;
+  }
+
+  .ctrls-brand-wordmark {
+    font-size: 1.7rem;
+  }
+
+  .ctrls-brand-subtext {
+    font-size: 0.68rem;
+    padding-left: 10px;
+  }
+
+  .ctrls-alliance-badge {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+
+  .ctrls-main-headline {
+    font-size: 1.85rem;
+    margin-bottom: 14px;
+  }
+
+  .ctrls-main-subtitle {
+    font-size: 0.98rem;
+    margin-bottom: 22px;
+  }
+
+  .ctrls-hero-quick-specs {
+    width: 100%;
+    padding: 10px 14px;
+    gap: 12px 10px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .ctrls-qp-num {
+    font-size: 1.12rem;
+  }
+
+  .ctrls-qp-label {
+    font-size: 0.66rem;
+  }
+
+  .ctrls-hero-actions {
+    gap: 12px;
+  }
+
+  .ctrls-primary-btn,
+  .ctrls-outline-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ctrls-hud-badge {
+    padding: 5px 9px;
+    font-size: 0.66rem;
+  }
+
+  .ctrls-hud-badge.top-right {
+    top: 8px;
+    right: 8px;
+  }
+
+  .ctrls-hud-badge.bottom-left {
+    bottom: 8px;
+    left: 8px;
+  }
+
+  .ctrls-philosophy-box {
+    margin-bottom: 40px;
+  }
+
+  .ctrls-philosophy-desc {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .ctrls-metrics-grid {
+    gap: 14px;
+    margin-bottom: 44px;
+  }
+
+  .ctrls-metric-card {
+    padding: 20px 16px;
+  }
+
+  .ctrls-card-value {
+    font-size: 1.75rem;
+  }
+
+  .ctrls-card-title {
+    font-size: 1.02rem;
+  }
+
+  .ctrls-solutions-box {
+    padding: 16px 12px;
+  }
+
+  .ctrls-tabs-nav {
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+  }
+
+  .ctrls-tab-content-panel {
+    gap: 20px;
+  }
+
+  .ctrls-tab-heading {
+    font-size: 1.3rem;
+  }
+
+  .ctrls-tab-summary {
+    margin-bottom: 18px;
+  }
+
+  .ctrls-tab-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ctrls-point-item {
+    padding: 10px 12px;
+    font-size: 0.88rem;
+  }
+}

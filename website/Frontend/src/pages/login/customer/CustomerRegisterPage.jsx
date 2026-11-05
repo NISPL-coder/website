@@ -1143,7 +1143,7 @@ export default function CustomerRegisterPage() {
                                               <span className="cust-option-name">{opt.name}</span>
                                               {opt.offerBadge && (
                                                 <span className="cust-offer-badge">
-                                                  🎁 {opt.offerBadge}
+                                                  {opt.offerBadge}
                                                 </span>
                                               )}
                                             </div>
@@ -1297,7 +1297,7 @@ export default function CustomerRegisterPage() {
                     {priceDetails.discountPercent > 0 && (
                       <div style={{ marginTop: '6px' }}>
                         <span className="cust-badge-discount">
-                          🎉 {priceDetails.discountPercent}% Discount Applied
+                          {priceDetails.discountPercent}% Discount Applied
                         </span>
                       </div>
                     )}

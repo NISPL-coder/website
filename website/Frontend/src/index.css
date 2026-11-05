@@ -314,6 +314,17 @@ img { display: block; max-width: 100%; }
   border-radius: 4px;
 }
 
+/* iOS zooms into a text control on focus when its font-size resolves below
+   16px, which pushes the whole layout sideways. The rem side of max() keeps
+   any control already sized larger than 16px untouched. */
+@media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: max(16px, 0.9rem);
+  }
+}
+
 ::selection {
   background: rgba(2, 132, 199, 0.2);
   color: var(--text-main);

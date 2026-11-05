@@ -1,108 +1,18 @@
 {
   "info": {
-    "_postman_id": "nispl-backend-api-v3-collection",
+    "_postman_id": "869e0ccc-64e7-47df-b673-4c83772dd1d8",
     "name": "NISPL Cloud Tech - Structured API Collection",
     "description": "Structured Postman API Collection for Net Infotech System (NISPL) Enterprise Platform.\nOrganized into dedicated personas: Admin Portal, Customer Portal, and System & Health services.\nAll endpoints are verified against active frontend services and backend routes.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "59177886",
+    "_collection_link": "https://go.postman.co/collection/59177886-869e0ccc-64e7-47df-b673-4c83772dd1d8?source=collection_link"
   },
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{accessToken}}",
-        "type": "string"
-      }
-    ]
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:4000",
-      "type": "string",
-      "description": "Base API Server URL (http://localhost:4000 or production https://website-ebxf.onrender.com)"
-    },
-    {
-      "key": "accessToken",
-      "value": "",
-      "type": "string",
-      "description": "JWT Bearer Access Token (automatically populated after Admin or Customer login)"
-    },
-    {
-      "key": "adminToken",
-      "value": "",
-      "type": "string",
-      "description": "Admin JWT Bearer Access Token"
-    },
-    {
-      "key": "customerToken",
-      "value": "",
-      "type": "string",
-      "description": "Customer JWT Bearer Access Token"
-    },
-    {
-      "key": "customerEmail",
-      "value": "demo@gmail.com",
-      "type": "string",
-      "description": "Authenticated customer email used for scoping customer queries"
-    },
-    {
-      "key": "sessionId",
-      "value": "cart_session_nispl_demo_01",
-      "type": "string",
-      "description": "Client session identifier for Cart operations"
-    },
-    {
-      "key": "customerId",
-      "value": "CUST-9679",
-      "type": "string",
-      "description": "Active customer record identifier or Mongo ID"
-    },
-    {
-      "key": "contractId",
-      "value": "CTR-2026-8829",
-      "type": "string",
-      "description": "Active contract agreement identifier or Mongo ID"
-    },
-    {
-      "key": "paymentId",
-      "value": "PAY-2026-8808",
-      "type": "string",
-      "description": "Payment / invoice identifier or Mongo ID"
-    },
-    {
-      "key": "productId",
-      "value": "ctrls-1-user",
-      "type": "string",
-      "description": "Product catalog SKU or ID"
-    },
-    {
-      "key": "staffId",
-      "value": "",
-      "type": "string",
-      "description": "Staff account MongoDB ObjectId"
-    },
-    {
-      "key": "notificationId",
-      "value": "",
-      "type": "string",
-      "description": "Notification MongoDB ObjectId"
-    },
-    {
-      "key": "activityLogId",
-      "value": "",
-      "type": "string",
-      "description": "Activity log entry identifier"
-    }
-  ],
   "item": [
     {
       "name": "Admin",
-      "description": "All backend APIs supporting the NISPL Admin Portal, Staff Backoffice, and Operations Management.",
       "item": [
         {
           "name": "1. Authentication & Onboarding",
-          "description": "Admin initial onboarding, OTP verification, login, profile inspection, and session management.",
           "item": [
             {
               "name": "Get Admin Config & Existence Check",
@@ -130,7 +40,8 @@
                   ]
                 },
                 "description": "Checks whether a primary administrator has already been provisioned and returns the configured admin email."
-              }
+              },
+              "response": []
             },
             {
               "name": "Send Admin Onboarding OTP",
@@ -167,7 +78,8 @@
                   ]
                 },
                 "description": "Dispatches a 6-digit one-time verification password to the configured administrator inbox."
-              }
+              },
+              "response": []
             },
             {
               "name": "Verify OTP & Provision Admin",
@@ -204,7 +116,8 @@
                   ]
                 },
                 "description": "Verifies admin OTP and registers the primary administrator."
-              }
+              },
+              "response": []
             },
             {
               "name": "Admin Login",
@@ -214,12 +127,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "const response = pm.response.json();",
-                      "if (response.accessToken) {",
-                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
-                      "    pm.collectionVariables.set(\"adminToken\", response.accessToken);",
-                      "    console.log(\"[Auth] Admin accessToken saved successfully.\");",
-                      "}"
+                      "const response = pm.response.json();\nif (response.accessToken) {\n    pm.collectionVariables.set(\"accessToken\", response.accessToken);\n    pm.collectionVariables.set(\"adminToken\", response.accessToken);\n    console.log(\"[Auth] Admin accessToken saved successfully.\");\n}"
                     ]
                   }
                 }
@@ -241,7 +149,12 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"nispldeveloper@gmail.com\",\n  \"password\": \"AdminSecurePassword123!\",\n  \"portal\": \"admin\"\n}"
+                  "raw": "{\n  \"email\": \"nispldeveloper@gmail.com\",\n  \"password\": \"Admin@12345\",\n  \"portal\": \"admin\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
                 },
                 "url": {
                   "raw": "{{baseUrl}}/api/v1/auth/login",
@@ -256,7 +169,8 @@
                   ]
                 },
                 "description": "Authenticates an administrator with portal claim verification and returns a signed JWT."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Current Admin Profile (/me)",
@@ -281,7 +195,8 @@
                   ]
                 },
                 "description": "Returns the authenticated administrator's role, permissions, and session profile."
-              }
+              },
+              "response": []
             },
             {
               "name": "Change Admin Password",
@@ -315,7 +230,8 @@
                   ]
                 },
                 "description": "Changes the authenticated user password and invalidates active session tokens."
-              }
+              },
+              "response": []
             },
             {
               "name": "Refresh Admin Token",
@@ -355,7 +271,8 @@
                   ]
                 },
                 "description": "Refreshes the current access token."
-              }
+              },
+              "response": []
             },
             {
               "name": "Admin Logout",
@@ -380,13 +297,14 @@
                   ]
                 },
                 "description": "Clears session cookies and revokes refresh tokens."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Admin initial onboarding, OTP verification, login, profile inspection, and session management."
         },
         {
           "name": "2. Customer Management",
-          "description": "Customer directories, Sangam CRM synchronization, demo trial extensions, and bulk CSV ingestion.",
           "item": [
             {
               "name": "List Customers & Summary Stats",
@@ -410,7 +328,8 @@
                   ]
                 },
                 "description": "Retrieves complete customers roster with active contracts count, pending payments, and Sangam sync states."
-              }
+              },
+              "response": []
             },
             {
               "name": "Create Customer & Auto-Sync Sangam CRM",
@@ -442,7 +361,8 @@
                   ]
                 },
                 "description": "Creates a customer in MongoDB and triggers background synchronization with Sangam CRM."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Customer Record",
@@ -475,7 +395,8 @@
                   ]
                 },
                 "description": "Updates customer profile details and contact information."
-              }
+              },
+              "response": []
             },
             {
               "name": "Authorize Customer Demo Trial Extension",
@@ -509,7 +430,8 @@
                   ]
                 },
                 "description": "Admin action to permit an additional trial extension for a customer who has already used their one-time demo plan."
-              }
+              },
+              "response": []
             },
             {
               "name": "Retry / Trigger Sangam CRM Sync",
@@ -543,7 +465,8 @@
                   ]
                 },
                 "description": "Re-triggers CRM Account and Contact push to Sangam CRM API."
-              }
+              },
+              "response": []
             },
             {
               "name": "Bulk Import Companies from CSV",
@@ -576,7 +499,8 @@
                   ]
                 },
                 "description": "CSV import endpoint consumed by Admin Import CSV Data Tool."
-              }
+              },
+              "response": []
             },
             {
               "name": "Bulk Import Contacts from CSV",
@@ -609,7 +533,8 @@
                   ]
                 },
                 "description": "CSV contact importer consumed by Admin Data Tools."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Customer Record",
@@ -634,13 +559,14 @@
                   ]
                 },
                 "description": "Deletes a customer account from the MongoDB database."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer directories, Sangam CRM synchronization, demo trial extensions, and bulk CSV ingestion."
         },
         {
           "name": "3. Contract Management",
-          "description": "Service agreements, subscription terms, duration tracking, and Sangam contract synchronization.",
           "item": [
             {
               "name": "List Contracts with Sangam Status",
@@ -664,7 +590,8 @@
                   ]
                 },
                 "description": "Fetches contracts across customers with real-time Sangam contract sync indicators."
-              }
+              },
+              "response": []
             },
             {
               "name": "Create Contract & Sync to Sangam CRM",
@@ -696,7 +623,8 @@
                   ]
                 },
                 "description": "Provisions a contract and initiates asynchronous synchronization to Sangam CRM Contracts module."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Contract Agreement",
@@ -729,7 +657,8 @@
                   ]
                 },
                 "description": "Updates existing contract pricing, duration, or lifecycle state."
-              }
+              },
+              "response": []
             },
             {
               "name": "Retry / Trigger Sangam Contract Sync",
@@ -763,7 +692,8 @@
                   ]
                 },
                 "description": "Retries pushing contract payload into Sangam CRM."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Contract",
@@ -788,13 +718,14 @@
                   ]
                 },
                 "description": "Deletes a contract record from MongoDB."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Service agreements, subscription terms, duration tracking, and Sangam contract synchronization."
         },
         {
           "name": "4. Payment Management",
-          "description": "Invoicing, receipt tracking, clearance confirmations, and accounts reconciliation.",
           "item": [
             {
               "name": "List All Payments & Invoices",
@@ -818,7 +749,8 @@
                   ]
                 },
                 "description": "Returns receipts and clearance ledgers."
-              }
+              },
+              "response": []
             },
             {
               "name": "Record New Payment / Receipt",
@@ -850,7 +782,8 @@
                   ]
                 },
                 "description": "Creates an accounts ledger payment entry and dispatches audit notification."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Payment / Clearance Status",
@@ -883,7 +816,8 @@
                   ]
                 },
                 "description": "Updates reconciliation status on an invoice payment."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Payment Record",
@@ -908,13 +842,14 @@
                   ]
                 },
                 "description": "Deletes a payment record from the database."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Invoicing, receipt tracking, clearance confirmations, and accounts reconciliation."
         },
         {
           "name": "5. Product Management",
-          "description": "CtrlS Kolkata Tier-4 cloud nodes, dynamic pricing tiers, demo plans, and catalog availability.",
           "item": [
             {
               "name": "List Products Catalog",
@@ -927,7 +862,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/products?category=Cloud%20Hosting&provider=ctrls-cloud",
+                  "raw": "{{baseUrl}}/api/v1/products?category=Cloud Hosting&provider=ctrls-cloud",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -948,7 +883,8 @@
                   ]
                 },
                 "description": "Direct dynamic database query returning active cloud nodes and demo tiers."
-              }
+              },
+              "response": []
             },
             {
               "name": "Create Product / Custom Plan / Demo Plan",
@@ -980,7 +916,8 @@
                   ]
                 },
                 "description": "Creates and saves a standard, custom, or demo plan dynamically into MongoDB."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Catalog Product",
@@ -1013,7 +950,8 @@
                   ]
                 },
                 "description": "Updates an existing product's specs, pricing, or name."
-              }
+              },
+              "response": []
             },
             {
               "name": "Toggle Product Live Availability",
@@ -1046,7 +984,8 @@
                   ]
                 },
                 "description": "Switches live customer portal availability for the specified product node."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Catalog Product",
@@ -1071,13 +1010,14 @@
                   ]
                 },
                 "description": "Removes a product or custom pricing plan from the catalog."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "CtrlS Kolkata Tier-4 cloud nodes, dynamic pricing tiers, demo plans, and catalog availability."
         },
         {
           "name": "6. Staff & Access Control (RBAC)",
-          "description": "Internal staff directory, granular permissions matrix, and role assignment.",
           "item": [
             {
               "name": "List Staff & Access Permissions",
@@ -1101,7 +1041,8 @@
                   ]
                 },
                 "description": "Lists staff members, operational roles, and column view/edit privileges."
-              }
+              },
+              "response": []
             },
             {
               "name": "Create Staff Member",
@@ -1133,7 +1074,8 @@
                   ]
                 },
                 "description": "Provisions a new staff user with granular module permissions."
-              }
+              },
+              "response": []
             },
             {
               "name": "Toggle Staff Account Status",
@@ -1167,7 +1109,8 @@
                   ]
                 },
                 "description": "Activates or deactivates a staff member's login access."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Staff Permissions & Role",
@@ -1201,7 +1144,8 @@
                   ]
                 },
                 "description": "Updates RBAC permissions for a staff member."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Staff Member",
@@ -1226,7 +1170,8 @@
                   ]
                 },
                 "description": "Removes a staff member account."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get RBAC Column Registry",
@@ -1251,13 +1196,14 @@
                   ]
                 },
                 "description": "Returns schema field registry for granular role-based UI access control."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Internal staff directory, granular permissions matrix, and role assignment."
         },
         {
           "name": "7. Activity Logs & Audit Trail",
-          "description": "Administrative audit trail, forensic mutation logs, and search filters.",
           "item": [
             {
               "name": "List Activity Logs (Paginated & Filterable)",
@@ -1299,7 +1245,8 @@
                   ]
                 },
                 "description": "Queries administrative activity audit trail with optional category, actor, and date filters."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Single Activity Log by ID",
@@ -1324,13 +1271,14 @@
                   ]
                 },
                 "description": "Fetches full metadata and payload snapshot for a specific audit log entry."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Administrative audit trail, forensic mutation logs, and search filters."
         },
         {
           "name": "8. Notifications Center",
-          "description": "Admin alert broadcasts, operational notifications, and bulk clearance.",
           "item": [
             {
               "name": "List Notifications Stream",
@@ -1354,7 +1302,8 @@
                   ]
                 },
                 "description": "Fetches operational alerts and system notifications."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Notification Statistics",
@@ -1379,7 +1328,8 @@
                   ]
                 },
                 "description": "Returns unread counts and severity breakdown."
-              }
+              },
+              "response": []
             },
             {
               "name": "Mark Notification as Read",
@@ -1405,7 +1355,8 @@
                   ]
                 },
                 "description": "Marks a specific notification alert as read."
-              }
+              },
+              "response": []
             },
             {
               "name": "Mark All Notifications as Read",
@@ -1430,7 +1381,8 @@
                   ]
                 },
                 "description": "Batch updates all unread alerts to read."
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Notification",
@@ -1455,7 +1407,8 @@
                   ]
                 },
                 "description": "Deletes a single notification alert."
-              }
+              },
+              "response": []
             },
             {
               "name": "Clear All Notifications",
@@ -1479,13 +1432,14 @@
                   ]
                 },
                 "description": "Purges notification inbox."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Admin alert broadcasts, operational notifications, and bulk clearance."
         },
         {
           "name": "9. Dashboard Analytics",
-          "description": "Executive KPIs, revenue telemetry, contract breakdown, and customer health metrics.",
           "item": [
             {
               "name": "Admin Dashboard Executive Overview",
@@ -1520,19 +1474,20 @@
                   ]
                 },
                 "description": "Powers the primary Admin Dashboard cards, graphs, and contract status summaries."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Executive KPIs, revenue telemetry, contract breakdown, and customer health metrics."
         }
-      ]
+      ],
+      "description": "All backend APIs supporting the NISPL Admin Portal, Staff Backoffice, and Operations Management."
     },
     {
       "name": "Customer",
-      "description": "All endpoints consumed by the Customer Portal, Cloud Server Dashboard, Cart Checkout, and Client Self-Service.",
       "item": [
         {
           "name": "1. Authentication & Account",
-          "description": "Customer onboarding, self-registration, client login, password recovery, and session profile.",
           "item": [
             {
               "name": "Customer Self-Registration",
@@ -1587,7 +1542,8 @@
                   ]
                 },
                 "description": "Registers a customer account and establishes their customer portal profile."
-              }
+              },
+              "response": []
             },
             {
               "name": "Customer Login",
@@ -1642,7 +1598,8 @@
                   ]
                 },
                 "description": "Customer portal authentication returning JWT token with Customer role privileges."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Current Customer Profile (/me)",
@@ -1667,7 +1624,8 @@
                   ]
                 },
                 "description": "Fetches current authenticated customer's profile, company details, and subscription state."
-              }
+              },
+              "response": []
             },
             {
               "name": "Forgot Password Instructions",
@@ -1703,7 +1661,8 @@
                   ]
                 },
                 "description": "Sends password reset instructions and security token to the customer inbox."
-              }
+              },
+              "response": []
             },
             {
               "name": "Reset Password with Token",
@@ -1739,7 +1698,8 @@
                   ]
                 },
                 "description": "Validates verification token and updates customer account password."
-              }
+              },
+              "response": []
             },
             {
               "name": "Refresh Customer Token",
@@ -1779,7 +1739,8 @@
                   ]
                 },
                 "description": "Refreshes customer portal session access token."
-              }
+              },
+              "response": []
             },
             {
               "name": "Customer Logout",
@@ -1804,13 +1765,14 @@
                   ]
                 },
                 "description": "Signs out the customer and clears session credentials."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer onboarding, self-registration, client login, password recovery, and session profile."
         },
         {
           "name": "2. Portal & Dashboard",
-          "description": "Customer portal summary telemetry, remote desktop connectivity credentials, search, demo activation, and direct payment.",
           "item": [
             {
               "name": "Customer Portal Overview Telemetry",
@@ -1835,7 +1797,8 @@
                   ]
                 },
                 "description": "Returns client overview telemetry: active cloud nodes, demo trial usage flags (demoTrialUsed, demoExtensionAllowed), and billing status."
-              }
+              },
+              "response": []
             },
             {
               "name": "Customer Cloud Details & Credentials (/me)",
@@ -1860,7 +1823,8 @@
                   ]
                 },
                 "description": "Retrieves customer's cloud server connection specs, static IP address, RDP port, and license details."
-              }
+              },
+              "response": []
             },
             {
               "name": "Activate Demo Trial (Single-Use Validation)",
@@ -1893,7 +1857,8 @@
                   ]
                 },
                 "description": "Activates a complimentary demo plan. Enforces single-use trial policy unless explicitly authorized for extension by an admin."
-              }
+              },
+              "response": []
             },
             {
               "name": "Customer Portal Global Search",
@@ -1924,7 +1889,8 @@
                   ]
                 },
                 "description": "Provides unified instant search across customer products, subscriptions, and receipts."
-              }
+              },
+              "response": []
             },
             {
               "name": "Pay Customer Portal Dues",
@@ -1957,13 +1923,14 @@
                   ]
                 },
                 "description": "Allows customer to submit payment against outstanding dues directly from the customer portal."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer portal summary telemetry, remote desktop connectivity credentials, search, demo activation, and direct payment."
         },
         {
           "name": "3. Cart & Commerce",
-          "description": "Customer session cart, item configuration, add-ons, quantity modifications, and checkout fulfillment.",
           "item": [
             {
               "name": "Get Session Cart with Tax & Totals",
@@ -1991,7 +1958,8 @@
                   ]
                 },
                 "description": "Retrieves the active customer cart including subtotal, GST calculation, discounts, and line items."
-              }
+              },
+              "response": []
             },
             {
               "name": "Get Available Cart Addons",
@@ -2016,7 +1984,8 @@
                   ]
                 },
                 "description": "Lists recommended add-ons (extra RAM, dedicated IP, automated backup storage)."
-              }
+              },
+              "response": []
             },
             {
               "name": "Add Item to Cart",
@@ -2053,7 +2022,8 @@
                   ]
                 },
                 "description": "Adds a selected CtrlS Cloud tier or product to the session cart."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Cart Item Quantity",
@@ -2090,7 +2060,8 @@
                   ]
                 },
                 "description": "Modifies item quantity in the cart with dynamic subtotal recalculation."
-              }
+              },
+              "response": []
             },
             {
               "name": "Remove Item from Cart",
@@ -2127,7 +2098,8 @@
                   ]
                 },
                 "description": "Removes a specific line item from the active cart."
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Fulfillment Mode (Digital / Assisted)",
@@ -2164,7 +2136,8 @@
                   ]
                 },
                 "description": "Toggles provisioning fulfillment preference."
-              }
+              },
+              "response": []
             },
             {
               "name": "Clear Entire Cart",
@@ -2201,13 +2174,14 @@
                   ]
                 },
                 "description": "Clears all line items from the active session cart."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer session cart, item configuration, add-ons, quantity modifications, and checkout fulfillment."
         },
         {
           "name": "4. Subscriptions & Contracts",
-          "description": "Customer view of active subscriptions, plan specifications, and contract terms.",
           "item": [
             {
               "name": "Customer Active Subscriptions",
@@ -2237,13 +2211,14 @@
                   ]
                 },
                 "description": "Returns all active and historical contracts for the authenticated customer."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer view of active subscriptions, plan specifications, and contract terms."
         },
         {
           "name": "5. Invoices & Receipts",
-          "description": "Customer view of billing invoices, receipts, and Razorpay payment gateway checkout.",
           "item": [
             {
               "name": "Customer Invoices & Receipts List",
@@ -2273,114 +2248,14 @@
                   ]
                 },
                 "description": "Returns invoices and payment receipts associated with the customer account."
-              }
-            },
-            {
-              "name": "Get Razorpay Gateway Config",
-              "request": {
-                "auth": {
-                  "type": "noauth"
-                },
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/payments/razorpay/config",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "payments",
-                    "razorpay",
-                    "config"
-                  ]
-                },
-                "description": "Retrieves client-side publishable Razorpay Key ID, currency, and gateway operational status."
-              }
-            },
-            {
-              "name": "Create Razorpay Order",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Session-Id",
-                    "value": "{{sessionId}}"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"contractId\": \"{{contractId}}\",\n  \"amount\": 500,\n  \"method\": \"upi\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/payments/razorpay/order",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "payments",
-                    "razorpay",
-                    "order"
-                  ]
-                },
-                "description": "Opens a server-verified Razorpay order with server-calculated rupee pricing and customer prefill data."
-              }
-            },
-            {
-              "name": "Verify Razorpay Payment Signature",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"razorpay_order_id\": \"order_Qwer1234567890\",\n  \"razorpay_payment_id\": \"pay_Asdf0987654321\",\n  \"razorpay_signature\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/v1/payments/razorpay/verify",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "payments",
-                    "razorpay",
-                    "verify"
-                  ]
-                },
-                "description": "Verifies HMAC-SHA256 signature returned by Razorpay checkout modal before creating ledger payment record."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer view of billing invoices, receipts, and payment transactions."
         },
         {
           "name": "6. Notifications",
-          "description": "Customer portal alerts, renewal notifications, and provisioning updates.",
           "item": [
             {
               "name": "Customer Notifications Stream",
@@ -2404,7 +2279,8 @@
                   ]
                 },
                 "description": "Streams customer-scoped alerts, payment reminders, and trial expiration notices."
-              }
+              },
+              "response": []
             },
             {
               "name": "Mark Customer Notification as Read",
@@ -2430,15 +2306,17 @@
                   ]
                 },
                 "description": "Marks a customer notification as read."
-              }
+              },
+              "response": []
             }
-          ]
+          ],
+          "description": "Customer portal alerts, renewal notifications, and provisioning updates."
         }
-      ]
+      ],
+      "description": "All endpoints consumed by the Customer Portal, Cloud Server Dashboard, Cart Checkout, and Client Self-Service."
     },
     {
       "name": "System & Health",
-      "description": "Health checks, root service manifest, and runtime environment inspection.",
       "item": [
         {
           "name": "API Root & Service Manifest",
@@ -2463,7 +2341,8 @@
               ]
             },
             "description": "Returns backend runtime status, environment info, and top-level endpoints summary."
-          }
+          },
+          "response": []
         },
         {
           "name": "API Health Status (/api/health)",
@@ -2489,46 +2368,88 @@
               ]
             },
             "description": "Standard liveness check used by cloud orchestrators and monitoring probes."
-          }
-        },
-        {
-          "name": "Razorpay Webhook Listener",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Razorpay-Signature",
-                "value": "razorpay_webhook_signature_hex"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"entity\": \"event\",\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_Asdf0987654321\",\n        \"order_id\": \"order_Qwer1234567890\",\n        \"amount\": 50000,\n        \"currency\": \"INR\",\n        \"status\": \"captured\",\n        \"method\": \"upi\"\n      }\n    }\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/payments/razorpay/webhook",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "payments",
-                "razorpay",
-                "webhook"
-              ]
-            },
-            "description": "Asynchronous webhook receiver invoked by Razorpay servers to ensure ledger settlement."
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "Health checks, root service manifest, and runtime environment inspection."
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "description": "Base API Server URL (http://localhost:4000 or production https://website-ebxf.onrender.com)"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "description": "JWT Bearer Access Token (automatically populated after Admin or Customer login)"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "description": "Admin JWT Bearer Access Token"
+    },
+    {
+      "key": "customerToken",
+      "value": "",
+      "description": "Customer JWT Bearer Access Token"
+    },
+    {
+      "key": "customerEmail",
+      "value": "demo@gmail.com",
+      "description": "Authenticated customer email used for scoping customer queries"
+    },
+    {
+      "key": "sessionId",
+      "value": "cart_session_nispl_demo_01",
+      "description": "Client session identifier for Cart operations"
+    },
+    {
+      "key": "customerId",
+      "value": "CUST-9679",
+      "description": "Active customer record identifier or Mongo ID"
+    },
+    {
+      "key": "contractId",
+      "value": "CTR-2026-8829",
+      "description": "Active contract agreement identifier or Mongo ID"
+    },
+    {
+      "key": "paymentId",
+      "value": "PAY-2026-8808",
+      "description": "Payment / invoice identifier or Mongo ID"
+    },
+    {
+      "key": "productId",
+      "value": "ctrls-1-user",
+      "description": "Product catalog SKU or ID"
+    },
+    {
+      "key": "staffId",
+      "value": "",
+      "description": "Staff account MongoDB ObjectId"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "description": "Notification MongoDB ObjectId"
+    },
+    {
+      "key": "activityLogId",
+      "value": "",
+      "description": "Activity log entry identifier"
     }
   ]
 }

@@ -22,10 +22,63 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 768px) {
+  /* Row actions only appear on hover, so touch users need them pinned visible. */
+  .adm-notif-item-actions {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-notif-action-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-notif-row-action {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 @media (max-width: 540px) {
+  /* Anchored to the bell near the right edge, so it becomes a fixed sheet
+     inside the viewport instead of a panel that hangs off-screen. */
   .adm-notif-popover {
-    width: calc(100vw - 20px);
-    right: -50px;
+    position: fixed;
+    top: calc(var(--adm-header-height, 70px) + 6px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - var(--adm-header-height, 70px) - 16px);
+    max-height: calc(100dvh - var(--adm-header-height, 70px) - 16px);
+  }
+
+  .adm-notif-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-notif-header {
+    padding: 12px;
+  }
+
+  .adm-notif-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .adm-notif-tabs {
+    padding: 6px 10px;
+  }
+
+  .adm-notif-row-action {
+    width: 40px;
+    height: 40px;
   }
 }
 

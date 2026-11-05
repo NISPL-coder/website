@@ -8,11 +8,13 @@ import {
   ArrowRight,
   Receipt,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  FlaskConical
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { razorpayApi, loadRazorpayCheckout } from '../../../services/razorpayApi';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 const PAYMENT_METHODS = [
   {
@@ -81,6 +83,8 @@ export default function PaymentSection({
   const [paid, setPaid] = useState(null);
   const [error, setError] = useState('');
   const [gateway, setGateway] = useState(null);
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   // Which way the Pay button goes is decided by the server, so a deployment
   // without gateway keys keeps its existing bank-transfer flow.
@@ -118,6 +122,9 @@ export default function PaymentSection({
   // the limit inside Razorpay's own window.
   const maxOnline = Number(gateway?.maxAmount) || Infinity;
   const canPayOnline = gatewayEnabled && amount <= maxOnline;
+  const isTestMode = gateway?.isTestMode !== undefined
+    ? Boolean(gateway.isTestMode)
+    : (String(gateway?.keyId || '').startsWith('rzp_test_') || String(import.meta.env.VITE_RAZORPAY_TEST_MODE).toLowerCase() === 'true');
 
   // Tells the server which of the account's charges to price. The rupees
   // themselves are always read from the database, never from here.
@@ -209,7 +216,7 @@ export default function PaymentSection({
         modal: {
           ondismiss: () => {
             setIsProcessing(false);
-            toast('Payment window closed — nothing was charged.', { icon: 'ℹ️' });
+            toast('Payment window closed — nothing was charged.');
           }
         },
         handler: async (response) => {
@@ -220,7 +227,7 @@ export default function PaymentSection({
             if (err?.statusCode === 202) {
               // Captured at Razorpay, ledger still being written by the webhook.
               setError(err.message);
-              toast('Payment successful — your receipt is being generated.', { icon: '⏳' });
+              toast('Payment successful — your receipt is being generated.');
             } else {
               setError(err?.message || 'Your payment is confirmed but not recorded yet. Please contact support.');
               toast.error('We could not confirm this payment. Please contact support before trying again.');
@@ -276,7 +283,7 @@ export default function PaymentSection({
           </div>
         </section>
 
-        <div className="flowmail-card" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', textAlign: 'center', padding: '40px 32px' }}>
+        <div className="flowmail-card" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', textAlign: 'center', padding: isPhone ? '28px 18px' : '40px 32px' }}>
           <div style={{
             width: '68px',
             height: '68px',
@@ -298,12 +305,12 @@ export default function PaymentSection({
             Every invoice on this account is settled and your cart is empty, so there is nothing to pay right now.
           </p>
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="flowmail-btn-primary" onClick={onBrowseProducts} style={{ padding: '10px 22px' }}>
+          <div style={{ display: 'flex', flexDirection: isPhone ? 'column' : 'row', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button type="button" className="flowmail-btn-primary" onClick={onBrowseProducts} style={{ padding: '10px 22px', width: isPhone ? '100%' : undefined, justifyContent: isPhone ? 'center' : undefined }}>
               <ArrowRight size={15} />
               <span>Browse Products</span>
             </button>
-            <button type="button" className="flowmail-btn-secondary" onClick={onViewReceipts} style={{ padding: '10px 20px' }}>
+            <button type="button" className="flowmail-btn-secondary" onClick={onViewReceipts} style={{ padding: '10px 20px', width: isPhone ? '100%' : undefined, justifyContent: isPhone ? 'center' : undefined }}>
               <Receipt size={15} />
               <span>View Receipts</span>
             </button>
@@ -326,7 +333,7 @@ export default function PaymentSection({
           </div>
         </section>
 
-        <div className="flowmail-card" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', textAlign: 'center', padding: '40px 32px' }}>
+        <div className="flowmail-card" style={{ maxWidth: '640px', margin: '0 auto', width: '100%', textAlign: 'center', padding: isPhone ? '28px 18px' : '40px 32px' }}>
           <div style={{
             width: '68px',
             height: '68px',
@@ -351,7 +358,7 @@ export default function PaymentSection({
               : `${inr(paid?.amount)} received${paid?.count > 1 ? ` and ${paid.count} invoices settled` : ''}. The entry is on your account ledger.`}
           </p>
 
-          <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left', marginBottom: '24px' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '16px', padding: isPhone ? '14px 14px' : '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left', marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem' }}>
               <span style={{ color: '#64748b' }}>Invoice / Receipt No.</span>
               <span style={{ color: '#6366f1', fontWeight: '700' }} className="flowmail-receipt-id-badge">{paid?.ref}</span>
@@ -384,12 +391,12 @@ export default function PaymentSection({
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: isPhone ? 'column' : 'row', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="flowmail-btn-primary"
               onClick={onViewReceipts}
-              style={{ padding: '10px 22px' }}
+              style={{ padding: '10px 22px', width: isPhone ? '100%' : undefined, justifyContent: isPhone ? 'center' : undefined }}
             >
               <Receipt size={15} />
               <span>View &amp; Download Receipt</span>
@@ -402,7 +409,7 @@ export default function PaymentSection({
                 setPaid(null);
                 setError('');
               }}
-              style={{ padding: '10px 20px' }}
+              style={{ padding: '10px 20px', width: isPhone ? '100%' : undefined, justifyContent: isPhone ? 'center' : undefined }}
             >
               Make Another Payment
             </button>
@@ -432,7 +439,7 @@ export default function PaymentSection({
       </section>
 
       {/* ── 2-Column Payment Grid ─────────────────────────────── */}
-      <div className="pay-split-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) 385px', gap: '24px', alignItems: 'start' }}>
+      <div className="pay-split-layout" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1.45fr) 385px', gap: isMobile ? '16px' : '24px', alignItems: 'start' }}>
         {/* ── Left: Method Selection Card ─────────────────────── */}
         <div className="flowmail-card">
           <div className="flowmail-card-header-row" style={{ marginBottom: '18px' }}>
@@ -460,7 +467,93 @@ export default function PaymentSection({
 
           {canPayOnline ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '16px', padding: '18px 20px' }}>
+              {/* Razorpay Environment Mode Toggle Section */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '14px',
+                background: isTestMode ? '#fffbeb' : '#f0fdf4',
+                border: isTestMode ? '1.5px solid #fde68a' : '1.5px solid #bbf7d0',
+                boxShadow: isTestMode ? '0 1px 3px rgba(245, 158, 11, 0.1)' : '0 1px 3px rgba(34, 197, 94, 0.1)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    background: isTestMode ? '#fef3c7' : '#dcfce7',
+                    color: isTestMode ? '#d97706' : '#16a34a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {isTestMode ? <FlaskConical size={18} /> : <ShieldCheck size={18} />}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '700', color: isTestMode ? '#92400e' : '#166534' }}>
+                        Razorpay {isTestMode ? 'Test Mode (Sandbox)' : 'Live Production Mode'}
+                      </span>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '0.7rem',
+                        fontWeight: '700',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: isTestMode ? '#f59e0b' : '#22c55e',
+                        color: '#ffffff',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em'
+                      }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ffffff', display: 'inline-block' }} />
+                        {isTestMode ? 'Test ON' : 'Live ON'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: isTestMode ? '#b45309' : '#15803d', margin: '3px 0 0 0', lineHeight: 1.4 }}>
+                      {isTestMode
+                        ? 'Simulated payments active via RAZORPAY_TEST_MODE=true in .env. Test cards & UPI work without deducting real money.'
+                        : 'Live payments active via RAZORPAY_TEST_MODE=false in .env. Real bank cards and UPI accounts will be charged.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Visual Toggle Pill Indicator */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: '600', color: isTestMode ? '#b45309' : '#15803d' }}>
+                    {isTestMode ? 'TEST' : 'LIVE'}
+                  </span>
+                  <div
+                    title={`Controlled by RAZORPAY_TEST_MODE=${isTestMode ? 'true' : 'false'} in .env`}
+                    style={{
+                      width: '46px',
+                      height: '24px',
+                      borderRadius: '9999px',
+                      background: isTestMode ? '#f59e0b' : '#22c55e',
+                      position: 'relative',
+                      boxShadow: isTestMode ? '0 0 6px rgba(245, 158, 11, 0.4)' : '0 0 6px rgba(34, 197, 94, 0.4)'
+                    }}
+                  >
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      background: '#ffffff',
+                      position: 'absolute',
+                      top: '3px',
+                      left: isTestMode ? '25px' : '3px',
+                      transition: 'left 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.25)'
+                    }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '16px', padding: isPhone ? '14px 14px' : '18px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.94rem', fontWeight: '700', color: '#0f172a' }}>
                     Razorpay Secure Checkout
@@ -476,7 +569,7 @@ export default function PaymentSection({
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px 18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: isPhone ? '14px' : '14px 18px' }}>
                 {GATEWAY_GUARANTEES.map((point) => {
                   const Icon = point.icon;
                   return (

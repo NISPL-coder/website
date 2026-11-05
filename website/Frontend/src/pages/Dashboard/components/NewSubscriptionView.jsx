@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
 import { productApi } from '../../../services/productApi';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { formatINR } from '../utils/pricingUtils';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 /** Customers choose by capacity, so the datacenter brand is dropped from the label. */
 const stripProviderBrand = (name = '') =>
@@ -178,6 +179,7 @@ const specLine = (plan) =>
 function PlanSelect({ plans, selectedId, onChange, loading, errorMessage }) {
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const isMobile = useIsMobile();
   const wrapperRef = useRef(null);
   const triggerRef = useRef(null);
   const optionRefs = useRef([]);
@@ -259,11 +261,13 @@ function PlanSelect({ plans, selectedId, onChange, loading, errorMessage }) {
         aria-label="Plan name"
         style={{
           ...inputStyle,
-          height: '44px',
+          height: isMobile ? 'auto' : '44px',
+          minHeight: '44px',
           display: 'flex',
+          flexWrap: isMobile ? 'wrap' : 'nowrap',
           alignItems: 'center',
-          gap: '10px',
-          padding: '0 38px 0 12px',
+          gap: isMobile ? '4px 10px' : '10px',
+          padding: isMobile ? '8px 38px' : '0 38px 0 12px',
           textAlign: 'left',
           cursor: disabled ? 'not-allowed' : 'pointer',
           background: disabled ? '#f8fafc' : '#ffffff',
@@ -440,6 +444,8 @@ export default function NewSubscriptionView({
   // Current logged in customer identity
   const currentEmail = customer?.email || account?.email || 'demo@gmail.com';
   const currentName = customer?.company || customer?.name || account?.company || account?.name || 'demo';
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   const [customersList, setCustomersList] = useState([]);
 
@@ -686,11 +692,12 @@ export default function NewSubscriptionView({
             gap: '10px',
             background: 'none',
             border: 'none',
-            fontSize: '1.15rem',
+            fontSize: isPhone ? '1.05rem' : '1.15rem',
             fontWeight: 600,
             color: '#0f172a',
             cursor: 'pointer',
-            padding: '6px 8px',
+            padding: isPhone ? '10px 12px' : '6px 8px',
+            minHeight: isPhone ? '44px' : undefined,
             borderRadius: '6px',
             transition: 'color 0.15s ease'
           }}
@@ -713,12 +720,12 @@ export default function NewSubscriptionView({
           borderRadius: '10px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          padding: '28px 32px'
+          padding: isMobile ? '18px 16px' : '28px 32px'
         }}
       >
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '18px' : '22px' }}>
           {/* Row 1: Select Customer & Product */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: isMobile ? '16px' : '20px' }}>
             {/* Select Customer (No autofill) */}
             <div>
               <label style={labelStyle}>
@@ -791,7 +798,7 @@ export default function NewSubscriptionView({
                 gap: '10px'
               }}
             >
-              <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚠️</span>
+              <AlertTriangle size={20} color="#dc2626" style={{ flexShrink: 0, marginTop: "2px" }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
                   Single Demo Trial Policy (Trial Already Used)
@@ -817,7 +824,7 @@ export default function NewSubscriptionView({
                 gap: '10px'
               }}
             >
-              <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>✅</span>
+              <CheckCircle2 size={20} color="#059669" style={{ flexShrink: 0, marginTop: "2px" }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
                   Trial Extension Authorized by Administrator
@@ -830,9 +837,9 @@ export default function NewSubscriptionView({
           )}
 
           {/* Row 3: Plan Name, Unit Price, Quantity */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : '2fr 1fr 1fr', gap: isMobile ? '16px' : '20px' }}>
             {/* Plan Name (live catalog, no autofill) */}
-            <div>
+            <div style={{ gridColumn: isMobile ? '1 / -1' : undefined }}>
               <label style={labelStyle}>
                 Plan Name <span style={starStyle}>*</span>
               </label>
@@ -892,7 +899,7 @@ export default function NewSubscriptionView({
           </div>
 
           {/* Row 4: Amount & Description */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2.8fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : '1.2fr 2.8fr', gap: isMobile ? '16px' : '20px' }}>
             {/* Amount (Unit Price * Quantity * Duration) */}
             <div>
               <label style={labelStyle}>Amount</label>
@@ -937,8 +944,8 @@ export default function NewSubscriptionView({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '20px'
+              gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: isMobile ? '16px' : '20px'
             }}
           >
             {/* Plan Duration / Term (No autofill) */}
@@ -1082,7 +1089,8 @@ export default function NewSubscriptionView({
           <div
             style={{
               display: 'flex',
-              justifyContent: 'flex-start',
+              flexDirection: isPhone ? 'column' : 'row',
+              justifyContent: isPhone ? 'stretch' : 'flex-start',
               gap: '12px',
               marginTop: '10px',
               paddingTop: '16px',
@@ -1097,12 +1105,14 @@ export default function NewSubscriptionView({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
-                padding: '10px 24px',
+                padding: isPhone ? '12px 24px' : '10px 24px',
+                width: isPhone ? '100%' : undefined,
                 fontSize: '0.92rem',
                 fontWeight: 600,
                 cursor: plans.length === 0 || isDemoBlocked ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '8px',
                 boxShadow: '0 1px 2px rgba(79, 70, 229, 0.2)'
               }}
@@ -1129,7 +1139,8 @@ export default function NewSubscriptionView({
                 color: '#475569',
                 border: '1px solid #cbd5e1',
                 borderRadius: '6px',
-                padding: '10px 20px',
+                padding: isPhone ? '12px 20px' : '10px 20px',
+                width: isPhone ? '100%' : undefined,
                 fontSize: '0.92rem',
                 fontWeight: 500,
                 cursor: 'pointer'

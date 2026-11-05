@@ -19,7 +19,9 @@ import {
   ChevronDown,
   X, 
   LogOut, 
-  Sparkles
+  Sparkles,
+  Shield,
+  Handshake
 } from 'lucide-react';
 import './LoginPage.css';
 
@@ -303,35 +305,26 @@ export default function LoginPage({ lockedPortal }) {
           <p className="ebolt-card-subtitle">
             {activePortal === 'customer' || location.pathname === '/customer-login'
               ? 'Access your cloud instances, remote Tally licenses & support.'
-              : 'Make a new doc to bring your words, data, and teams together. For free'}
+              : activePortal === 'partner'
+                ? 'Access your partner deal desk, payouts and enablement.'
+                : 'Access the NISPL operations console.'}
           </p>
 
           {/* Error Notice */}
           {errorMessage && (
-            <div className="ebolt-alert-error" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+            <div className="ebolt-alert-error is-stacked" role="alert">
+              <div className="ebolt-alert-error-row">
+                <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
                 <span>{errorMessage}</span>
               </div>
               {errorMessage.includes('Customer Portal') && (
                 <button
                   type="button"
+                  className="ebolt-error-action-btn"
                   onClick={() => {
                     setErrorMessage('');
                     handleSelectPortal('customer');
                     navigate('/customer-login');
-                  }}
-                  style={{
-                    alignSelf: 'flex-start',
-                    marginTop: '4px',
-                    padding: '5px 12px',
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
                   }}
                 >
                   Go to Customer Portal &rarr;
@@ -340,22 +333,11 @@ export default function LoginPage({ lockedPortal }) {
               {errorMessage.includes('Admin Portal') && (
                 <button
                   type="button"
+                  className="ebolt-error-action-btn"
                   onClick={() => {
                     setErrorMessage('');
                     handleSelectPortal('admin');
                     navigate('/login?portal=admin');
-                  }}
-                  style={{
-                    alignSelf: 'flex-start',
-                    marginTop: '4px',
-                    padding: '5px 12px',
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
                   }}
                 >
                   Go to Admin Portal &rarr;
@@ -443,7 +425,7 @@ export default function LoginPage({ lockedPortal }) {
               </button>
             </div>
 
-            {/* Dark Primary Action Button: "Get Started" */}
+            {/* Dark Primary Action Button */}
             <button 
               type="submit" 
               className="ebolt-submit-btn"
@@ -452,7 +434,10 @@ export default function LoginPage({ lockedPortal }) {
               {isLoading ? (
                 <span className="ebolt-spinner" />
               ) : (
-                <span>Get Started</span>
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight size={16} />
+                </>
               )}
             </button>
             {socialNote && (
@@ -510,7 +495,7 @@ export default function LoginPage({ lockedPortal }) {
             <div className="ebolt-dialog-body">
               <div className="ebolt-session-user-box">
                 <span className="ebolt-user-icon">
-                  {activePortal === 'admin' ? '🛡️' : activePortal === 'partner' ? '🤝' : '☁️'}
+                  {activePortal === 'admin' ? <Shield size={20} /> : activePortal === 'partner' ? <Handshake size={20} /> : <Cloud size={20} />}
                 </span>
                 <div>
                   <span className="ebolt-user-email">{activeSession.user}</span>

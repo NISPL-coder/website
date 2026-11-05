@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
+import { useIsMobile } from '../../../utils/useResponsive';
 
 export default function ReceiptSection({ receipts = [], customer, account, externalSearch = '' }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +29,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
   const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [downloadingId, setDownloadingId] = useState(null);
+  const isMobile = useIsMobile();
   const rowsPerPage = 5;
 
   // The account record is the billing identity on the invoice, so the PDF uses
@@ -270,7 +272,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
         <div
           className="flowmail-card-header-row"
           style={{
-            padding: '18px 24px',
+            padding: isMobile ? '14px 16px' : '18px 24px',
             borderBottom: '1px solid #f1f5f9',
             margin: '0',
             display: 'flex',
@@ -285,9 +287,9 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
             <p className="flowmail-card-subtitle">Official verified invoices for {billing.companyName || 'this account'}</p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: isMobile ? '100%' : undefined }}>
             {/* FlowMail Pill Search Input */}
-            <div className="cliento-search-bar" style={{ width: '280px' }}>
+            <div className="cliento-search-bar" style={{ width: isMobile ? '100%' : '280px' }}>
               <Search size={15} className="cliento-search-icon" />
               <input
                 type="text"
@@ -305,7 +307,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
 
         {/* ── Empty State ─────────────────────────────────────────── */}
         {!filteredReceipts.length ? (
-          <div style={{ padding: '64px 20px', textAlign: 'center' }}>
+          <div style={{ padding: isMobile ? '36px 16px' : '64px 20px', textAlign: 'center' }}>
             <div style={{
               width: '60px',
               height: '60px',
@@ -437,7 +439,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
                           type="button"
                           className="flowmail-btn-secondary"
                           style={{
-                            padding: '6px 14px',
+                            padding: isMobile ? '10px 16px' : '6px 14px',
                             fontSize: '0.82rem',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -462,7 +464,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
             <div
               className="cliento-table-footer-row"
               style={{
-                padding: '16px 24px',
+                padding: isMobile ? '14px 14px' : '16px 24px',
                 background: '#ffffff',
                 borderTop: '1px solid #f1f5f9',
                 display: 'flex',

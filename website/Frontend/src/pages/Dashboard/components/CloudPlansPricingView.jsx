@@ -19,6 +19,7 @@ import { formatINR, findOwnedPlan } from '../utils/pricingUtils';
 import tallyLogo from '../../../assets/partners/tally.png';
 import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { productApi } from '../../../services/productApi';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 export default function CloudPlansPricingView({
   providerId,
@@ -31,6 +32,8 @@ export default function CloudPlansPricingView({
   const [justAddedId, setJustAddedId] = useState(null);
   const [liveProducts, setLiveProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   // Fetch live products from database
   useEffect(() => {
@@ -88,8 +91,8 @@ export default function CloudPlansPricingView({
               typeof p.monthlyPrice === 'number'
                 ? p.monthlyPrice
                 : typeof p.price === 'number'
-                ? p.price
-                : parseInt(String(p.price).replace(/[^0-9]/g, ''), 10) || 500;
+                  ? p.price
+                  : parseInt(String(p.price).replace(/[^0-9]/g, ''), 10) || 500;
 
             const uCount = p.users || (p.tier ? parseInt(p.tier.replace(/[^0-9]/g, ''), 10) : 1) || 1;
 
@@ -108,18 +111,18 @@ export default function CloudPlansPricingView({
               specs: p.specs && p.specs.length > 0
                 ? p.specs
                 : [
-                    { label: 'Server Configuration', value: serverConfig },
-                    { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
-                    { label: 'Static IP', value: p.ipAddress || '103.115.220.41' }
-                  ],
+                  { label: 'Server Configuration', value: serverConfig },
+                  { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+                  { label: 'Static IP', value: p.ipAddress || '103.115.220.41' }
+                ],
               features: p.features && p.features.length > 0
                 ? p.features
                 : [
-                    `Server Configuration: ${serverConfig}`,
-                    `CtrlS Tier-4 Datacenter hosting (Static IP: ${p.ipAddress || '103.115.220.41'})`,
-                    'Windows Server licence & daily snapshot backup',
-                    'N+N dual power feed redundancy'
-                  ],
+                  `Server Configuration: ${serverConfig}`,
+                  `CtrlS Tier-4 Datacenter hosting (Static IP: ${p.ipAddress || '103.115.220.41'})`,
+                  'Windows Server licence & daily snapshot backup',
+                  'N+N dual power feed redundancy'
+                ],
               isPopular: uCount === 5 || uCount === 10
             };
           })
@@ -163,7 +166,7 @@ export default function CloudPlansPricingView({
     setJustAddedId(plan.id);
     toast.success(`Added ${plan.name} to Cart!`, {
       id: `cart-${plan.id}`,
-      icon: '🛒'
+      icon: ''
     });
     setTimeout(() => setJustAddedId(null), 1800);
   };
@@ -176,7 +179,7 @@ export default function CloudPlansPricingView({
       {/* ── 1. Top Header Banner ────────────────── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <h2 className="flowmail-welcome-title">{provider.name} Hosting Plans</h2>
             <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.74rem' }}>
               Dedicated Compute
@@ -213,7 +216,7 @@ export default function CloudPlansPricingView({
                     ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)'
                     : 'transparent',
                 color: billingCycle === 'monthly' ? '#ffffff' : '#64748b',
-                padding: '6px 14px',
+                padding: isMobile ? '10px 16px' : '6px 14px',
                 borderRadius: '999px',
                 fontSize: '0.82rem',
                 fontWeight: '600',
@@ -233,7 +236,7 @@ export default function CloudPlansPricingView({
                     ? 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)'
                     : 'transparent',
                 color: billingCycle === 'annually' ? '#ffffff' : '#64748b',
-                padding: '6px 14px',
+                padding: isMobile ? '10px 16px' : '6px 14px',
                 borderRadius: '999px',
                 fontSize: '0.82rem',
                 fontWeight: '600',
@@ -275,7 +278,7 @@ export default function CloudPlansPricingView({
 
       {/* ── 2. Pricing Cards Grid (Strictly Active Plans Only) ───────────── */}
       {activePlans.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, 1fr)', gap: isMobile ? '14px' : '20px' }}>
           {activePlans.map((plan) => {
             const inCart = cartItemIds.includes(plan.id);
             const isAdded = justAddedId === plan.id;
@@ -290,7 +293,7 @@ export default function CloudPlansPricingView({
                 key={plan.id}
                 className="flowmail-card cloud-plan-card"
                 style={{
-                  padding: '28px 24px',
+                  padding: isPhone ? '20px 16px' : '28px 24px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -299,13 +302,13 @@ export default function CloudPlansPricingView({
                   border: owned
                     ? '2px solid #10b981'
                     : isSilver
-                    ? '2px solid #6366f1'
-                    : '1px solid rgba(226, 232, 240, 0.85)',
+                      ? '2px solid #6366f1'
+                      : '1px solid rgba(226, 232, 240, 0.85)',
                   boxShadow: owned
                     ? '0 12px 32px -4px rgba(16, 185, 129, 0.18), 0 4px 8px -2px rgba(16, 185, 129, 0.10)'
                     : isSilver
-                    ? '0 12px 32px -4px rgba(99, 102, 241, 0.15), 0 4px 8px -2px rgba(99, 102, 241, 0.08)'
-                    : undefined
+                      ? '0 12px 32px -4px rgba(99, 102, 241, 0.15), 0 4px 8px -2px rgba(99, 102, 241, 0.08)'
+                      : undefined
                 }}
               >
                 {owned && (
@@ -434,7 +437,7 @@ export default function CloudPlansPricingView({
                       + 18% GST ({billingCycle === 'annually' ? 'Billed annually' : 'Monthly'})
                     </span>
                   </div>
-                  
+
                   {/* Specs List */}
                   <div
                     style={{
@@ -480,8 +483,8 @@ export default function CloudPlansPricingView({
                       inCart
                         ? 'flowmail-btn-secondary'
                         : isSilver
-                        ? 'flowmail-btn-primary'
-                        : 'flowmail-btn-secondary'
+                          ? 'flowmail-btn-primary'
+                          : 'flowmail-btn-secondary'
                     }
                     style={{
                       width: '100%',
@@ -516,7 +519,7 @@ export default function CloudPlansPricingView({
         <div
           className="flowmail-card"
           style={{
-            padding: '48px 32px',
+            padding: isMobile ? '32px 18px' : '48px 32px',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',

@@ -217,3 +217,67 @@
 .about-lightbox-backdrop {
   z-index: 2147483000 !important;
 }
+
+/* ==========================================================================
+   Shared modal primitives on phones — these classes are used by dialogs all
+   over the site, so they are fixed once here instead of per screen.
+   ========================================================================== */
+@media (max-width: 640px) {
+  .nis-modal-backdrop {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .nis-invoice-modal {
+    max-height: 90vh;
+    border-radius: 14px;
+  }
+
+  .modal-header-bar {
+    padding: 14px 16px;
+  }
+
+  .modal-title-wrap {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .modal-main-title {
+    font-size: 1.02rem;
+  }
+
+  .modal-icon-badge {
+    width: 34px;
+    height: 34px;
+  }
+
+  .modal-close-btn {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+
+  .modal-body-scrollable {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .modal-footer-bar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .btn-cancel,
+  .btn-primary-action {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+}

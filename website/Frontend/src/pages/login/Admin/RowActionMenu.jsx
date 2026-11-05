@@ -48,12 +48,21 @@ export default function RowActionMenu({ onView, onEdit, onDelete, onPrint, modul
     const button = buttonRef.current;
     if (!button) return null;
     const rect = button.getBoundingClientRect();
-    const estimatedMenuHeight = menuItems.length * 34 + 24;
+    const isTouchLayout = window.innerWidth <= 768;
+    const estimatedMenuHeight = menuItems.length * (isTouchLayout ? 46 : 34) + 24;
+    const menuWidth = isTouchLayout ? 180 : 155;
     const spaceBelow = window.innerHeight - rect.bottom;
     const openAbove = spaceBelow < estimatedMenuHeight && rect.top > estimatedMenuHeight;
+    const maxRight = Math.max(8, window.innerWidth - menuWidth - 8);
+    const right = Math.min(window.innerWidth - rect.right, maxRight);
+    const top = Math.min(
+      rect.bottom + 6,
+      Math.max(8, window.innerHeight - estimatedMenuHeight - 8)
+    );
+
     return openAbove
-      ? { top: 'auto', bottom: window.innerHeight - rect.top + 6, right: window.innerWidth - rect.right }
-      : { top: rect.bottom + 6, bottom: 'auto', right: window.innerWidth - rect.right };
+      ? { top: 'auto', bottom: window.innerHeight - rect.top + 6, right }
+      : { top, bottom: 'auto', right };
   }, [menuItems.length]);
 
   const toggleMenu = useCallback((e) => {

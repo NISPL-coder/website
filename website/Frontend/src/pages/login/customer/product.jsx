@@ -214,7 +214,7 @@ export default function ProductsSection({
     setJustAddedId(product.id);
     toast.success(`Added ${product.name} to Cart!`, {
       id: `cart-${product.id}`,
-      icon: '🛒'
+      icon: ''
     });
     setTimeout(() => setJustAddedId(null), 1800);
   };
