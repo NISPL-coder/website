@@ -213,8 +213,15 @@ export default function NewSubscriptionView({
 
   const [customersList, setCustomersList] = useState([]);
   
-  // No autofill - all dropdowns default to "" ("Select from dropdown")
-  const [selectedCustomer, setSelectedCustomer] = useState('');
+  // Auto-select current customer from dropdown
+  const [selectedCustomer, setSelectedCustomer] = useState(currentEmail);
+
+  // Sync selected customer whenever currentEmail changes
+  useEffect(() => {
+    if (currentEmail) {
+      setSelectedCustomer(currentEmail);
+    }
+  }, [currentEmail]);
 
   // Auto-selected product: "Cloud Services" (Read only)
   const product = 'Cloud Services';
