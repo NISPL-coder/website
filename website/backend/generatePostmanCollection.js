@@ -9,7 +9,7 @@ const collection = {
   info: {
     _postman_id: "nispl-backend-api-v3-collection",
     name: "NISPL Cloud Tech - Structured API Collection",
-    description: "Structured Postman API Collection for Net Infotech System (NISPL) Enterprise Platform.\nOrganized into dedicated personas: Admin Portal, Customer Portal, and System & Health services.\nAll endpoints are verified against active frontend services and backend routes.",
+    description: "Structured Postman API Collection for Net Infotech System (NISPL) Enterprise Platform.\nOrganized into dedicated personas: Admin Portal, Customer Portal, and System & Health services.\nAll endpoints are verified against active frontend services and backend routes. Automated sync enabled.",
     schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   auth: {
