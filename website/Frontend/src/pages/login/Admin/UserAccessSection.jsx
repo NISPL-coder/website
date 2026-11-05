@@ -17,6 +17,7 @@ import {
 import toast from 'react-hot-toast';
 import { staffApi } from '../../../services/staffApi';
 import { authApi } from '../../../services/authApi';
+import { useIsPhone } from '../../../utils/useResponsive';
 import AdminDataTable from './AdminDataTable';
 import RowActionMenu from './RowActionMenu';
 import {
@@ -256,6 +257,7 @@ function PermissionMatrix({ matrix, onChange, columns, onColumnsChange, registry
 }
 
 export default function UserAccessSection() {
+  const isPhone = useIsPhone();
   const [staffList, setStaffList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
@@ -681,7 +683,13 @@ export default function UserAccessSection() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isPhone ? '1fr' : '1fr 1fr',
+                    gap: '14px'
+                  }}
+                >
                   <div className="usr-form-group">
                     <label className="usr-form-label">Role <span className="usr-req">*</span></label>
                     <select

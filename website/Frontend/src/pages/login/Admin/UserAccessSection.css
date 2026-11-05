@@ -491,10 +491,140 @@
   color: transparent;
 }
 
+@media (max-width: 768px) {
+  .usr-modal-backdrop {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    padding: 16px;
+  }
+
+  .usr-modal-card,
+  .usr-modal-card--wide {
+    max-width: 100%;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+@media (max-width: 640px) {
+  .usr-section-wrapper {
+    padding: 20px 16px 40px;
+  }
+
+  .usr-header-title {
+    font-size: 1.25rem;
+  }
+
+  .usr-add-btn,
+  .usr-btn-secondary,
+  .usr-btn-primary,
+  .usr-btn-danger {
+    min-height: 44px;
+  }
+
+  .usr-form-input,
+  .usr-form-select {
+    min-height: 44px;
+  }
+
+  .usr-password-wrap .usr-form-input {
+    padding-right: 48px;
+  }
+
+  .usr-password-eye {
+    width: 40px;
+    height: 40px;
+  }
+
+  .usr-modal-close {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .usr-modal-header,
+  .usr-modal-body,
+  .usr-modal-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .usr-column-item {
+    min-height: 44px;
+  }
+
+  .usr-columns-toggle {
+    min-height: 40px;
+  }
+}
+
 @media (max-width: 620px) {
   .usr-matrix-head,
   .usr-matrix-row {
     grid-template-columns: minmax(0, 1fr) repeat(4, 44px);
+  }
+
+  /* The checkbox itself stays compact; the cell around it becomes the tap target. */
+  .usr-matrix-cell {
+    padding: 14px 2px;
+  }
+
+  .usr-custom-checkbox {
+    width: 22px;
+    height: 22px;
+  }
+
+  .usr-matrix-module .usr-custom-checkbox {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .usr-section-wrapper {
+    padding: 16px 12px 32px;
+  }
+
+  .usr-modal-backdrop {
+    padding: 8px;
+  }
+
+  .usr-modal-card,
+  .usr-modal-card--wide {
+    max-height: calc(100dvh - 16px);
+    border-radius: 14px;
+  }
+
+  .usr-modal-header,
+  .usr-modal-body,
+  .usr-modal-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .usr-modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .usr-matrix-head,
+  .usr-matrix-row {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .usr-matrix-head {
+    font-size: 0.62rem;
+    letter-spacing: 0.01em;
+  }
+
+  .usr-matrix-module {
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+
+  .usr-columns-grid {
+    grid-template-columns: 1fr;
+    padding: 10px;
   }
 }
 

@@ -826,3 +826,124 @@ select.iz-input-underline option {
     max-width: calc(100% - 32px);
   }
 }
+
+@media (max-width: 480px) {
+  .iz-hero-section {
+    padding-top: 104px;
+    padding-bottom: 64px;
+  }
+
+  .iz-hero-content {
+    padding: 0 16px;
+  }
+
+  .iz-main-section {
+    padding: 28px 0 45px;
+  }
+
+  .iz-container {
+    padding: 0 16px;
+  }
+
+  .iz-form-card {
+    padding: 24px 16px;
+    border-radius: 20px;
+  }
+
+  .iz-card-title {
+    font-size: 1.25rem;
+    margin-bottom: 22px;
+  }
+
+  .iz-touch-items {
+    gap: 22px;
+  }
+
+  .iz-touch-item {
+    gap: 12px;
+  }
+
+  .iz-icon-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .iz-item-sub a {
+    overflow-wrap: anywhere;
+  }
+
+  .iz-captcha-box {
+    gap: 10px;
+  }
+
+  .iz-captcha-display {
+    min-width: 0;
+    flex: 1;
+    padding: 9px 12px;
+  }
+
+  .iz-captcha-text {
+    font-size: 1.2rem;
+    letter-spacing: 0.22em;
+  }
+
+  .iz-submit-btn {
+    align-self: stretch;
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .iz-reset-btn {
+    min-height: 44px;
+    padding: 12px 26px;
+  }
+
+  .iz-associates-section {
+    padding: 48px 0 56px;
+  }
+
+  .iz-associates-header {
+    margin-bottom: 32px;
+  }
+
+  .iz-associate-card {
+    padding: 20px 16px;
+  }
+
+  .iz-associate-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .iz-associate-name {
+    font-size: 1.05rem;
+  }
+
+  .iz-card-line {
+    font-size: 0.8rem;
+  }
+
+  .iz-card-line a {
+    overflow-wrap: anywhere;
+  }
+
+  .iz-map-frame {
+    height: 260px;
+  }
+
+  .iz-map-spotlight-card {
+    padding: 14px 16px;
+    margin: 12px;
+    max-width: calc(100% - 24px);
+  }
+
+  .iz-map-spotlight-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .iz-map-directions-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+}

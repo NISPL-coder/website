@@ -6,6 +6,7 @@ import './DateRangeFilter.css';
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const POPOVER_WIDTH = 320;
 const POPOVER_HEIGHT = 252;
+const MOBILE_POPOVER_HEIGHT = 340;
 
 /** "2026-10-31" -> "31 Oct 2026" */
 const formatDate = (value) => {
@@ -85,14 +86,17 @@ export default function DateRangeFilter({ from = '', to = '', onChange, label = 
     const rect = trigger.getBoundingClientRect();
     const width = Math.min(POPOVER_WIDTH, window.innerWidth - 24);
     const left = Math.min(Math.max(12, rect.right - width), window.innerWidth - width - 12);
+    const popoverHeight = window.innerWidth <= 640 ? MOBILE_POPOVER_HEIGHT : POPOVER_HEIGHT;
     const openAbove =
-      rect.bottom + POPOVER_HEIGHT + 16 > window.innerHeight &&
-      rect.top - POPOVER_HEIGHT - 8 > 12;
+      rect.bottom + popoverHeight + 16 > window.innerHeight &&
+      rect.top - popoverHeight - 8 > 12;
+    const rawTop = openAbove ? rect.top - popoverHeight - 8 : rect.bottom + 8;
+    const top = Math.min(rawTop, Math.max(12, window.innerHeight - popoverHeight - 12));
 
     setCoords({
       left,
       width,
-      top: openAbove ? rect.top - POPOVER_HEIGHT - 8 : rect.bottom + 8,
+      top,
     });
     setOpen(true);
   };

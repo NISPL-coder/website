@@ -192,4 +192,47 @@
   .adm-date-range-trigger {
     width: 100%;
   }
+
+  .adm-date-range-trigger {
+    min-width: 0;
+    height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .adm-date-range.is-active .adm-date-range-trigger {
+    padding-right: 44px;
+  }
+
+  .adm-date-range-clear {
+    width: 32px;
+    height: 32px;
+    right: 7px;
+  }
+
+  .adm-date-range-popover {
+    padding: 14px;
+    max-height: calc(100vh - 20px);
+    max-height: min(340px, calc(100dvh - 24px));
+  }
+
+  .adm-date-range-field input[type='date'] {
+    height: 44px;
+  }
+
+  .adm-date-range-actions {
+    gap: 10px;
+  }
+
+  .adm-date-range-btn {
+    height: 44px;
+    flex: 1;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .adm-date-range-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
 }

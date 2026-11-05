@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, ArrowLeft, Cloud, Server, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
 import tallyLogo from '../../../assets/partners/tally.png';
 import ctrlsLogo from '../../../assets/partners/ctrls.png';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 // Authentic Official Amazon Web Services (AWS) SVG Icon
 function AwsIcon({ size = 46, className = '' }) {
@@ -88,6 +89,8 @@ function AzureIcon({ size = 44, className = '' }) {
 export const READ_ONLY_CLOUD_PROVIDERS = [];
 
 export default function CloudProviderSelection({ onSelectProvider, onBack }) {
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
   const providers = [
     {
       id: 'ctrls-cloud',
@@ -102,7 +105,7 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
   ];
 
   return (
-    <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px' }}>
       {/* ── 1. Top Header Banner (FlowMail Style) ────────────────── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
@@ -124,7 +127,7 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
       </section>
 
       {/* ── 2. 3 Provider Cards (FlowMail Card Theme) ────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '14px' : '24px' }}>
         {providers.map((p) => {
           const isReadOnly = READ_ONLY_CLOUD_PROVIDERS.includes(p.id);
           return (
@@ -144,7 +147,7 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
             aria-label={isReadOnly ? `${p.name} - coming soon` : `Select ${p.name}`}
             style={{
               cursor: isReadOnly ? 'default' : 'pointer',
-              padding: '32px 26px',
+              padding: isPhone ? '22px 16px' : '32px 26px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',

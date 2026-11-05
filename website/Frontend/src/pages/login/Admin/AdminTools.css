@@ -1407,3 +1407,94 @@
   color: #1e293b;
   border-color: #94a3b8;
 }
+
+/* ------------------------------------------------------------------ *
+ * Mobile bands: profile chip dropdown, password tools, CSV import and
+ * the credentials tables step down without touching the desktop sheet.
+ * ------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .adm-profile-dropdown {
+    max-width: calc(100vw - 16px);
+  }
+
+  .adm-profile-dropdown-item {
+    min-height: 44px;
+  }
+
+  .adm-import-preview-table-wrap,
+  .adm-creds-table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-profile-pw-eye {
+    width: 40px;
+    height: 40px;
+    right: 4px;
+  }
+
+  .adm-profile-pw-input-wrap .adm-form-input {
+    padding-right: 50px;
+  }
+
+  .adm-creds-search-input {
+    width: 100%;
+  }
+
+  .adm-creds-search-input input {
+    min-height: 40px;
+  }
+
+  .adm-creds-filter-bar {
+    padding: 12px 16px;
+  }
+
+  .adm-creds-copy-btn {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+
+  .adm-import-btn-browse,
+  .adm-import-btn-clear,
+  .adm-import-template-download-btn {
+    min-height: 44px;
+  }
+
+  .adm-import-preview-section {
+    padding: 16px 14px;
+  }
+
+  .adm-import-col-chip {
+    padding: 5px 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-import-file-card,
+  .adm-creds-header {
+    padding: 16px;
+  }
+
+  .adm-creds-title-group {
+    gap: 10px;
+  }
+
+  .adm-creds-table th,
+  .adm-creds-table td,
+  .adm-import-preview-table th,
+  .adm-import-preview-table td {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .adm-creds-mono,
+  .adm-creds-pw {
+    padding: 4px 7px;
+    font-size: 0.78rem;
+  }
+
+  .adm-import-header-card {
+    padding: 16px 14px;
+  }
+}

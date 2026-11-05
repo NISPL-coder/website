@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import { notificationApi } from '../../../services/notificationApi';
 import { productApi } from '../../../services/productApi';
 import { customSelectStyles } from './reactSelectStyles';
+import { useIsPhone, useIsSmallPhone } from '../../../utils/useResponsive';
 
 // Official CtrlS Cloud Server Configuration Reference Matrix
 export const CTRLS_STANDARD_MATRIX = [

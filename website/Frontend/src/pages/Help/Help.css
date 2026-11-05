@@ -809,3 +809,107 @@
     padding: 30px 20px;
   }
 }
+
+@media (max-width: 480px) {
+  .help-page-root {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .help-nav-container {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+
+  .help-back-dashboard-btn,
+  .help-whatsapp-btn {
+    min-height: 44px;
+  }
+
+  .help-container {
+    padding: 0 16px;
+  }
+
+  .help-associates-wrap,
+  .help-ticket-section {
+    padding: 48px 0 56px;
+  }
+
+  .help-faq-section {
+    padding: 44px 0 56px;
+  }
+
+  .iz-associate-card {
+    padding: 20px 16px;
+  }
+
+  .iz-associate-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .iz-associate-name {
+    font-size: 1.05rem;
+  }
+
+  .iz-card-line {
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
+  .help-ticket-card {
+    padding: 24px 16px;
+    border-radius: 18px;
+  }
+
+  .help-ticket-header {
+    margin-bottom: 22px;
+  }
+
+  .help-ticket-title {
+    font-size: 1.45rem;
+  }
+
+  .help-form-grid {
+    gap: 18px;
+  }
+
+  .help-form-submit-row {
+    justify-content: stretch;
+  }
+
+  .help-submit-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .ticket-success-box {
+    padding: 22px 6px;
+  }
+
+  .ticket-success-title {
+    font-size: 1.2rem;
+  }
+
+  .ticket-new-btn {
+    min-height: 44px;
+    padding: 12px 22px;
+  }
+
+  .help-faq-title {
+    font-size: 1.55rem;
+  }
+
+  .help-faq-card {
+    padding: 14px 16px;
+  }
+
+  .help-faq-question {
+    font-size: 0.92rem;
+  }
+
+  .channel-action-btn {
+    min-height: 44px;
+  }
+}

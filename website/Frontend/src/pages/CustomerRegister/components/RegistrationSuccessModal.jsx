@@ -40,7 +40,7 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
           </p>
 
           <div className="ebolt-session-user-box" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div className="ebolt-success-row">
               <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Key size={14} /> Customer ID:
               </span>
@@ -49,7 +49,7 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div className="ebolt-success-row">
               <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <User size={14} /> Name:
               </span>
@@ -58,7 +58,7 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div className="ebolt-success-row">
               <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Building2 size={14} /> Company:
               </span>
@@ -68,7 +68,7 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
             </div>
 
             {customer.gstNo ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <div className="ebolt-success-row">
                 <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
                   GST No:
                 </span>
@@ -78,7 +78,7 @@ export default function RegistrationSuccessModal({ customer, onProceed }) {
               </div>
             ) : null}
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
+            <div className="ebolt-success-row" style={{ borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
               <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600 }}>
                 Cloud Status:
               </span>

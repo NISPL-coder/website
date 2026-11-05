@@ -131,7 +131,7 @@
   }
 
   .ebolt-home-pill-btn {
-    min-height: 38px;
+    min-height: 40px;
     padding: 0 12px;
     font-size: 0.76rem;
     gap: 4px;
@@ -291,6 +291,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.2;
+  text-align: center;
   cursor: pointer;
   transition: background 0.18s ease;
 }
@@ -751,6 +752,7 @@
   .ebolt-input {
     height: 50px;
     font-size: 16px;
+    padding-right: 52px;
   }
 
   .ebolt-select {
@@ -797,6 +799,7 @@
 
   .ebolt-dialog-card {
     max-width: 100%;
+    max-height: calc(100vh - 24px);
     max-height: 92dvh;
     overflow-y: auto;
     border-radius: 20px 20px 0 0;
@@ -889,7 +892,7 @@
 
   .ebolt-input {
     height: 48px;
-    padding: 0 44px 0 40px;
+    padding: 0 52px 0 40px;
   }
 
   .ebolt-input-icon {
@@ -1289,4 +1292,67 @@
   20%, 40%, 60%, 80% { transform: translateX(8px); }
 }
 .ebolt-shake { animation: ebolt-shake 0.5s ease-in-out; }
+
+/* The register-card, stepper and section-2 rules are declared after the
+   responsive blocks above, so their phone overrides have to live here. */
+@media (max-width: 640px) {
+  .ebolt-login-card.ebolt-register-card {
+    padding: 24px 20px 22px 20px;
+  }
+
+  .ebolt-top-right-back-btn {
+    top: 14px;
+    right: 14px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ebolt-login-card.ebolt-register-card {
+    padding: 56px 14px 20px 14px;
+  }
+
+  .ebolt-top-right-back-btn {
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+
+  .ebolt-stepper-track {
+    gap: 6px;
+  }
+
+  .ebolt-step-node {
+    min-height: 40px;
+    padding: 6px 8px;
+    gap: 6px;
+    font-size: 0.76rem;
+  }
+
+  .ebolt-step-bubble {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .ebolt-step-line {
+    width: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .ebolt-step-node {
+    font-size: 0.68rem;
+    padding: 6px 6px;
+  }
+
+  .ebolt-step-line {
+    width: 10px;
+  }
+
+  .ebolt-auto-expiry {
+    font-size: 0.85rem;
+  }
+}
 

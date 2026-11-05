@@ -21,6 +21,7 @@ import {
   Building2
 } from 'lucide-react';
 import { calculatePricing } from '../utils/pricingUtils';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 import tallyLogo from '../../../assets/partners/tally.png';
 
 export default function ProductDetailsModal({
@@ -45,6 +46,9 @@ export default function ProductDetailsModal({
     };
   }, [isOpen, onClose]);
 
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
+
   if (!isOpen || !product) return null;
 
   const isTally = product.category === 'software' || product.category === 'tss' || product.category === 'addons' || (product.fullName && product.fullName.includes('Tally'));
@@ -62,7 +66,7 @@ export default function ProductDetailsModal({
       <div
         className="flowmail-ai-modal animate-scale-up"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '640px' }}
+        style={{ maxWidth: isMobile ? '100%' : '640px' }}
       >
         {/* Modal Header */}
         <div className="flowmail-ai-modal-header">
@@ -110,7 +114,7 @@ export default function ProductDetailsModal({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="flowmail-ai-modal-body" style={{ maxHeight: '68vh', overflowY: 'auto' }}>
+        <div className="flowmail-ai-modal-body" style={{ maxHeight: isMobile ? '60vh' : '68vh', overflowY: 'auto' }}>
           {/* Hero Short Description */}
           <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '14px', padding: '14px 16px' }}>
             <p style={{ margin: 0, fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
@@ -122,7 +126,7 @@ export default function ProductDetailsModal({
           <h5 style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a', margin: '8px 0 0 0' }}>
             Plan Specifications &amp; Parameters
           </h5>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(2, 1fr)', gap: '10px' }}>
             {product.licenseType && (
               <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '10px 14px' }}>
                 <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>License Model</span>

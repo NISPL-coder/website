@@ -656,3 +656,120 @@
   color: #0f172a;
 }
 
+/* ------------------------------------------------------------------ *
+ * Mobile bands: the JSON inspector modal, the filter toolbar and every
+ * tap target step down to the viewport instead of the desktop frame.
+ * ------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .act-section-wrapper {
+    padding: 20px 16px 40px;
+  }
+
+  .act-header-title {
+    font-size: 1.25rem;
+  }
+
+  .act-modal-backdrop {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    padding: 16px;
+  }
+
+  .act-inspect-modal-card {
+    max-width: 100%;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+  }
+
+  .act-diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .act-details-cell {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .act-search-box {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .act-search-input {
+    height: 44px;
+  }
+
+  .act-filter-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+  }
+
+  .act-refresh-btn {
+    height: 44px;
+  }
+
+  .act-inspect-btn {
+    min-height: 40px;
+  }
+
+  .act-raw-toggle {
+    min-height: 40px;
+  }
+
+  .act-copy-btn {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+
+  .act-inspect-header,
+  .act-inspect-meta-grid,
+  .act-inspect-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .act-inspect-header {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    gap: 12px;
+  }
+
+  .act-json-container {
+    padding: 12px;
+    max-height: 46vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .act-section-wrapper {
+    padding: 16px 12px 32px;
+  }
+
+  .act-modal-backdrop {
+    padding: 8px;
+  }
+
+  .act-inspect-modal-card {
+    border-radius: 12px;
+    max-height: calc(100dvh - 16px);
+  }
+
+  .act-header-left {
+    width: 100%;
+  }
+
+  .act-header-bar,
+  .act-toolbar {
+    gap: 10px;
+  }
+
+  .act-diff-lines {
+    max-height: 40vh;
+    font-size: 0.74rem;
+  }
+}
+

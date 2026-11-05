@@ -58,9 +58,19 @@
 }
 
 @media (max-width: 640px) {
+  .cust-reg-viewport {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
   .cust-reg-card {
     padding: 16px 16px;
     border-radius: 14px;
+  }
+
+  .ebolt-modal-backdrop {
+    padding: 16px;
   }
 }
 
@@ -368,6 +378,14 @@
   z-index: 9999;
 }
 
+.ebolt-success-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
 /* Shake animation for registration errors */
 @keyframes ebolt-shake {
   0%, 100% { transform: translateX(0); }
@@ -375,4 +393,27 @@
   20%, 40%, 60%, 80% { transform: translateX(8px); }
 }
 .ebolt-shake { animation: ebolt-shake 0.5s ease-in-out; }
+
+/* Declared last so these phone overrides are not reverted by the base rules above. */
+@media (max-width: 480px) {
+  .ebolt-card-title {
+    font-size: 1.15rem;
+  }
+
+  .ebolt-success-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .ebolt-eye-btn {
+    min-width: 44px;
+    padding: 0 12px;
+  }
+
+  .ebolt-upload-badge {
+    min-height: 32px;
+    padding: 4px 10px;
+  }
+}
 
