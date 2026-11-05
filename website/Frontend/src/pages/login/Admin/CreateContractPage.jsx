@@ -1,22 +1,19 @@
 import { notificationApi } from '../../../services/notificationApi';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import {
-  ArrowLeft,
-  FileText,
   Calendar,
   Check,
   X,
-  CreditCard,
-  Building2,
-  Clock,
-  Layers,
   RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
 import { contractApi } from '../../../services/contractApi';
+import { productApi } from '../../../services/productApi';
+import { staffApi } from '../../../services/staffApi';
 
 const STATUS_OPTIONS = [
   { value: 'Active', label: 'Active' },
@@ -48,6 +45,70 @@ export default function CreateContractPage({ contracts, setContracts, customers 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // The catalogue and the staff list are fetched, never hardcoded: the product
+  // a contract is raised for is what a later receipt shows as "what was sold",
+  // and it must be the real product with the real name.
+  const [products, setProducts] = useState([]);
+  const [staff, setStaff] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    productApi
+      .getProducts()
+      .then((rows) => {
+        if (!cancelled) setProducts(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        if (!cancelled) setProducts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    staffApi
+      .getStaff()
+      .then((rows) => {
+        if (!cancelled) setStaff(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        // A manager without user_access:view still needs the field, so the
+        // creatable dropdown below falls back to typing the name.
+        if (!cancelled) setStaff([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const productOptions = useMemo(
+    () =>
+      products
+        .filter((p) => p.available !== false && p.status !== 'inactive')
+        .map((p) => ({
+          value: p.productId || p.id || '',
+          label: p.name || p.productId || '',
+          product: p
+        }))
+        .filter((o) => o.value && o.label),
+    [products]
+  );
+
+  const salesPersonOptions = useMemo(
+    () =>
+      staff
+        .filter((s) => s.accountStatus !== 'inactive')
+        .map((s) => {
+          const value = s.name || s.email || '';
+          const title = s.designation || s.role || '';
+          return { value, label: title ? `${value} (${title})` : value };
+        })
+        .filter((o) => o.value),
+    [staff]
+  );
+
   // Deduplicate account options by unique Customer Name / Company Name
   const accountOptions = useMemo(() => {
     const seen = new Set();
@@ -73,6 +134,8 @@ export default function CreateContractPage({ contracts, setContracts, customers 
   const [formState, setFormState] = useState({
     name: '',
     accountName: accountOptions[0]?.value || customers[0]?.company || customers[0]?.name || '',
+    productId: '',
+    salesPerson: '',
     status: 'Active',
     startDate: today,
     endDate: oneYearFromNow,
@@ -108,6 +171,31 @@ export default function CreateContractPage({ contracts, setContracts, customers 
       subscriptionPeriod: selectedPeriod,
       endDate: end.toISOString().split('T')[0]
     }));
+  };
+
+  // Choosing the plan fills the name and the listed price from the catalogue,
+  // but never overwrites anything the admin already typed.
+  const handleProductChange = (opt) => {
+    const product = opt?.product;
+
+    setFormState((prev) => {
+      const nameWasAutoFilled =
+        !prev.name.trim() || productOptions.some((o) => o.label === prev.name.trim());
+      const listedPrice =
+        Number(product?.monthlyPrice) ||
+        parseFloat(String(product?.price || '').split('/')[0].replace(/[^0-9.]/g, '')) ||
+        0;
+
+      return {
+        ...prev,
+        productId: opt ? opt.value : '',
+        name: product && nameWasAutoFilled ? product.name : prev.name,
+        totalContractValue:
+          product && listedPrice && !prev.totalContractValue.trim()
+            ? `₹${listedPrice.toLocaleString('en-IN')}`
+            : prev.totalContractValue
+      };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -151,7 +239,9 @@ export default function CreateContractPage({ contracts, setContracts, customers 
       email: matchedCustomer?.email || 'contracts@nispl.in',
       phone: matchedCustomer?.phone || '',
       service: `${formState.contractType} (${formState.subscriptionPeriod})`,
-      slaTier: 'Tier-1 Priority NOC 99.99%'
+      slaTier: 'Tier-1 Priority NOC 99.99%',
+      productId: formState.productId,
+      salesPerson: formState.salesPerson
     };
 
     try {
@@ -303,7 +393,27 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 />
               </div>
 
-              {/* 3. Status */}
+              {/* 3. Product / Plan */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Product / Plan <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={true}
+                  options={productOptions}
+                  value={productOptions.find((p) => p.value === formState.productId) || null}
+                  onChange={handleProductChange}
+                  placeholder={
+                    productOptions.length ? 'Select the plan being sold...' : 'No catalogue products loaded'
+                  }
+                  noOptionsMessage={() => 'No products in the catalogue'}
+                  classNamePrefix="react-select"
+                  required
+                />
+              </div>
+
+              {/* 4. Status */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
                   Status <span className="adm-required-star">*</span>
@@ -323,7 +433,34 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 />
               </div>
 
-              {/* 3. Start Date */}
+              {/* 5. Sales Person */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Sales Person <span className="adm-required-star">*</span>
+                </label>
+                <CreatableSelect
+                  styles={customSelectStyles}
+                  isSearchable={true}
+                  options={salesPersonOptions}
+                  value={
+                    formState.salesPerson
+                      ? { value: formState.salesPerson, label: formState.salesPerson }
+                      : null
+                  }
+                  onChange={(opt) =>
+                    setFormState({ ...formState, salesPerson: opt ? opt.value : '' })
+                  }
+                  onCreateOption={(text) => {
+                    const value = text.trim();
+                    if (value) setFormState({ ...formState, salesPerson: value });
+                  }}
+                  placeholder="Pick a team member or type a name..."
+                  classNamePrefix="react-select"
+                  required
+                />
+              </div>
+
+              {/* 6. Start Date */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
                   Start Date <span className="adm-required-star">*</span>

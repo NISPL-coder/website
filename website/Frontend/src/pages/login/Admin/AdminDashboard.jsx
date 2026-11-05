@@ -334,6 +334,20 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     };
   }, [can]);
 
+  // The receipt list is the payment ledger read back with its customer,
+  // subscription and product joined, so it reloads whenever money lands.
+  useEffect(() => {
+    if (!can('receipt', 'view')) return undefined;
+
+    let isMounted = true;
+    paymentApi.getReceipts().then((data) => {
+      if (isMounted && Array.isArray(data)) setReceipts(data);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [can, payments]);
+
   const currentUser = authApi.getCurrentUser();
   const adminName =
     userSession?.name || currentUser?.name || userSession?.user || 'NISPL Administrator';
@@ -517,6 +531,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setPayments={setPayments}
                   customers={customers}
                   contracts={contracts}
+                  products={products}
                 />
               )}
 
@@ -589,13 +604,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                 />
               )}
 
-              {activeNav === 'receipt' && (
-                <ReceiptSection
-                  receipts={receipts}
-                  setReceipts={setReceipts}
-                  payments={payments}
-                />
-              )}
+              {activeNav === 'receipt' && <ReceiptSection receipts={receipts} />}
 
               {activeNav === 'import-csv' && (
                 <ImportCsvPage setCustomers={setCustomers} />

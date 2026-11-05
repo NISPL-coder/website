@@ -37,6 +37,21 @@ export const paymentApi = {
     return [];
   },
 
+  async getReceipts() {
+    try {
+      const res = await fetch(`${BASE_URL}/receipts`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          return data.data;
+        }
+      }
+    } catch (err) {
+      console.warn('[paymentApi] Error fetching receipts:', err);
+    }
+    return [];
+  },
+
   async createPayment(payload) {
     const res = await fetch(BASE_URL, {
       method: 'POST',

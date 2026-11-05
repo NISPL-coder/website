@@ -61,14 +61,23 @@ export const MODULE_COLUMNS = {
     { id: 'available', label: 'Live Availability', fields: ['available', 'status'] }
   ],
   receipt: [
-    { id: 'id', label: 'Receipt No', fields: ['receiptNumber', 'invoiceNumber'] },
-    { id: 'company', label: 'Billed Organization', fields: ['company'] },
-    { id: 'baseAmount', label: 'Taxable Base', fields: ['baseAmount'] },
-    { id: 'taxAmount', label: '18% GST', fields: ['taxAmount'] },
-    { id: 'amount', label: 'Total Paid', fields: ['amount'] },
-    { id: 'date', label: 'Issue Date', fields: ['date'] },
-    { id: 'mode', label: 'Payment Channel', fields: ['mode', 'paymentMethod'] },
-    { id: 'status', label: 'Dispatch Status', fields: ['status'] }
+    { id: 'id', label: 'Receipt / Invoice No', fields: ['invoiceNumber', 'paymentId', 'id'] },
+    { id: 'customer', label: 'Customer & Billing Details', fields: ['customer'] },
+    { id: 'product', label: 'Product / Plan', fields: ['productName', 'product'] },
+    { id: 'items', label: 'Items Sold', fields: ['items', 'service'] },
+    { id: 'contract', label: 'Subscription', fields: ['contract', 'contractId'] },
+    { id: 'salesPerson', label: 'Sales Person', fields: ['salesPerson', 'raisedBy'] },
+    { id: 'amount', label: 'Amount Paid', fields: ['amount', 'amountLabel', 'receivedAmount'] },
+    { id: 'baseAmount', label: 'Taxable Value', fields: ['baseAmount'] },
+    { id: 'taxAmount', label: 'GST Split', fields: ['taxAmount', 'cgst', 'sgst', 'gstBasis'] },
+    { id: 'pending', label: 'Pending Payment', fields: ['pendingPayment'] },
+    { id: 'date', label: 'Dates', fields: ['date', 'invoiceDate', 'paymentReceivedDate', 'dueDate'] },
+    {
+      id: 'mode',
+      label: 'Payment Channel',
+      fields: ['paymentMode', 'paymentMethod', 'source', 'razorpayOrderId', 'razorpayPaymentId']
+    },
+    { id: 'status', label: 'Status', fields: ['status'] }
   ],
   user_access: [
     { id: 'name', label: 'Name', fields: ['name'] },

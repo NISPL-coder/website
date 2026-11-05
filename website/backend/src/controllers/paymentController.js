@@ -1,10 +1,295 @@
 import Payment, { getPaymentsFromFile, savePaymentsToFile } from '../models/Payment.js';
+import Customer from '../models/Customer.js';
+import Contract from '../models/Contract.js';
 import mongoose from 'mongoose';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
 import { redactRecords } from '../utils/columnPermissions.js';
+import { parseAmount, findCatalogueRow, resolveDisplayName, nextReference } from './portalController.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
+
+const GST_RATE = 0.18;
+
+const norm = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const inrText = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
+
+const isoDay = (...dates) => {
+  for (const value of dates) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+  }
+  return '';
+};
+
+// An email is a legal identifier and a product name is prose, so each record is
+// filed under both its exact text and its slug. Every side of a join is keyed
+// the same way, which is what lets "tally on clouds" and "Tally On Clouds"
+// resolve to one product.
+const identityKeys = (value) => {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return [];
+  const slug = norm(raw);
+  return slug === raw ? [raw] : [raw, slug];
+};
+
+const addLink = (map, values, record) => {
+  values.forEach((value) => {
+    identityKeys(value).forEach((key) => {
+      if (!map.has(key)) map.set(key, record);
+    });
+  });
+};
+
+const findLink = (map, values) => {
+  for (const value of values) {
+    for (const key of identityKeys(value)) {
+      const hit = map.get(key);
+      if (hit) return hit;
+    }
+  }
+  return null;
+};
+
+/* ── Receipt assembly ─────────────────────────────────────────────────────
+   The admin receipt list is the payment ledger seen whole: the money as it
+   was booked, plus the account it came from, the subscription it settled and
+   the product that was sold. Links are resolved once per request from the
+   same collections the rest of the console reads, so a receipt shows recorded
+   values and nothing invented.
+───────────────────────────────────────────────────────────────────────── */
+const gstSplit = (row, total) => {
+  const recordedBase = parseAmount(row.taxableAmount);
+  const recordedGst = parseAmount(row.gstAmount);
+
+  if (recordedBase && recordedGst) {
+    return {
+      baseAmount: recordedBase,
+      taxAmount: recordedGst,
+      gstBasis: row.gstBasis || 'Recorded when this payment was taken'
+    };
+  }
+
+  if (recordedBase) return { baseAmount: recordedBase, taxAmount: Math.max(total - recordedBase, 0), gstBasis: row.gstBasis || 'Taxable value recorded; GST is the balance' };
+  if (recordedGst) return { baseAmount: Math.max(total - recordedGst, 0), taxAmount: recordedGst, gstBasis: row.gstBasis || 'GST recorded; taxable value is the balance' };
+
+  // Legacy rows carry only the gross figure. Showing a split means deriving it,
+  // so the basis says exactly that instead of letting it read as a quote.
+  const base = total > 0 ? Math.round(total / (1 + GST_RATE)) : 0;
+  return {
+    baseAmount: base,
+    taxAmount: Math.max(total - base, 0),
+    gstBasis: row.gstBasis || `Not recorded on this payment — modelled at ${GST_RATE * 100}% of the gross for display`
+  };
+};
+
+const loadReceiptContext = async (rows) => {
+  const context = {
+    contracts: [],
+    contractById: new Map(),
+    customerByKey: new Map(),
+    catalogue: new Map()
+  };
+
+  if (!isMongoConnected()) return context;
+
+  const [customers, contracts] = await Promise.all([
+    Customer.find({}).lean().catch(() => []),
+    Contract.find({}).lean().catch(() => [])
+  ]);
+
+  context.contracts = contracts;
+  customers.forEach((c) => addLink(context.customerByKey, [c.email, c.loginEmail, c.customerId, c.company, c.name], c));
+  contracts.forEach((c) => addLink(context.contractById, [c.contractId, c.id], c));
+
+  // The ledger names a product as free text and a contract names it another
+  // way, so every wording gathered from both sides is resolved against the
+  // catalogue once per request rather than once per row.
+  const termKeys = new Set();
+  const collectTerms = (values) =>
+    values.forEach((v) => {
+      const key = norm(v);
+      if (key) termKeys.add(key);
+    });
+
+  rows.forEach((row) => collectTerms([row.solutionCategory, row.productName, row.service, row.contractId]));
+  contracts.forEach((c) => collectTerms([c.productId, c.name, c.service, c.productCategory]));
+
+  for (const key of termKeys) {
+    const product = await findCatalogueRow(key);
+    if (product) context.catalogue.set(key, product);
+  }
+
+  return context;
+};
+
+const matchContract = (row, context) => {
+  if (row.contractId) {
+    const hit = findLink(context.contractById, [row.contractId]);
+    if (hit) return hit;
+  }
+
+  // Without a stored link the only honest match is the one that names the same
+  // product under the same account; anything looser would guess.
+  const accountKeys = [row.email, row.company, row.customer, row.accountName]
+    .map(norm)
+    .filter(Boolean);
+  const termKeys = [row.solutionCategory, row.productName, row.service].map(norm).filter(Boolean);
+
+  for (const contract of context.contracts) {
+    const contractAccounts = [contract.email, contract.company, contract.customer].map(norm).filter(Boolean);
+    const contractTerms = [contract.name, contract.service, contract.productId].map(norm).filter(Boolean);
+    const sameAccount = accountKeys.some((k) => contractAccounts.includes(k));
+    const sameTerm = termKeys.some((k) => contractTerms.includes(k));
+    if (sameAccount && sameTerm) return contract;
+  }
+
+  return null;
+};
+
+const matchCustomer = (row, context) =>
+  findLink(context.customerByKey, [row.email, row.customerId, row.company, row.customer, row.accountName]);
+
+const fromProduct = (product) => ({
+  productId: product?.productId || product?.id || '',
+  sku: product?.sku || '',
+  category: product?.category || '',
+  provider: product?.provider || '',
+  users: Number(product?.users) || 0,
+  serverConfiguration: product?.serverConfiguration || '',
+  cores: product?.cores || '',
+  ram: product?.ram || '',
+  storage: product?.storage || ''
+});
+
+const receiptItems = async (row, contract, context, split) => {
+  if (Array.isArray(row.items) && row.items.length) {
+    return row.items.map((item) => ({ ...item }));
+  }
+
+  const rawLabel = row.solutionCategory || row.productName || row.service || contract?.name || '';
+  const product = context.catalogue.get(norm(rawLabel)) || context.catalogue.get(norm(contract?.productId));
+  const name = await resolveDisplayName(rawLabel, contract?.name || 'Subscription');
+
+  if (!product && !contract) {
+    // Nothing in the catalogue or the contracts names this charge. Show the
+    // line the ledger actually holds rather than dressing it up as a product.
+    return [
+      {
+        name,
+        quantity: 1,
+        basePrice: split.baseAmount,
+        gstAmount: split.taxAmount,
+        finalPrice: split.baseAmount + split.taxAmount
+      }
+    ];
+  }
+
+  return [
+    {
+      ...fromProduct(product),
+      name,
+      billingCycle: contract?.subscriptionPeriod || product?.frequency || '',
+      quantity: 1,
+      basePrice: split.baseAmount,
+      gstAmount: split.taxAmount,
+      finalPrice: split.baseAmount + split.taxAmount
+    }
+  ];
+};
+
+const buildReceipt = async (row, context) => {
+  const total = parseAmount(row.amount);
+  const received = parseAmount(row.receivedAmount) || (String(row.status || '').toLowerCase() === 'received' ? total : 0);
+  const pending = parseAmount(row.pendingPayment) || Math.max(total - received, 0);
+  const split = gstSplit(row, total);
+  const contract = matchContract(row, context);
+  const customer = matchCustomer(row, context);
+  const items = await receiptItems(row, contract, context, split);
+  const cgst = Math.round(split.taxAmount / 2);
+  const sgst = Math.max(split.taxAmount - cgst, 0);
+
+  return {
+    id: row.invoiceNumber || row.invoiceRef || row.paymentId || String(row._id),
+    paymentId: row.paymentId || row.id || null,
+    invoiceNumber: row.invoiceNumber || row.invoiceRef || null,
+    customer: {
+      name: customer?.name || row.customer || '',
+      company: customer?.company || row.company || row.accountName || '',
+      email: customer?.email || row.email || '',
+      customerId: customer?.customerId || row.customerId || '',
+      phone: customer?.phone || '',
+      gstNo: customer?.gstNo || '',
+      pan: customer?.pan || '',
+      address: Array.isArray(customer?.address) ? customer.address : []
+    },
+    salesPerson: row.salesPerson || contract?.salesPerson || '',
+    raisedBy: row.raisedBy?.name ? row.raisedBy : { name: '', email: '', role: '' },
+    items,
+    productName: items[0]?.name || '',
+    product: { ...fromProduct(items[0]), billingCycle: items[0]?.billingCycle || '' },
+    contractId: row.contractId || contract?.contractId || '',
+    contract: contract
+      ? {
+          id: contract.contractId || contract.id || '',
+          name: contract.name || '',
+          type: contract.contractType || '',
+          subscriptionPeriod: contract.subscriptionPeriod || '',
+          startDate: isoDay(contract.startDate),
+          endDate: isoDay(contract.expiryDate, contract.endDate),
+          value: contract.totalContractValue || contract.value || '',
+          status: contract.status || '',
+          slaTier: contract.slaTier || ''
+        }
+      : null,
+    amount: total,
+    amountLabel: row.amount || inrText(total),
+    receivedAmount: received,
+    pendingPayment: pending,
+    baseAmount: split.baseAmount,
+    taxAmount: split.taxAmount,
+    gstBasis: split.gstBasis,
+    cgst,
+    sgst,
+    date: isoDay(row.invoiceDate, row.date, row.createdAt),
+    invoiceDate: isoDay(row.invoiceDate, row.date, row.createdAt),
+    paymentReceivedDate: isoDay(row.paymentReceivedDate),
+    dueDate: isoDay(row.expectedPaymentDate),
+    paymentMode: row.paymentMethod || row.method || '',
+    paymentMethod: row.paymentMethod || row.method || '',
+    source: row.source || '',
+    status: row.status || '',
+    service: items.map((item) => item.name).join(', '),
+    solutionCategory: row.solutionCategory || '',
+    razorpayOrderId: row.razorpayOrderId || '',
+    razorpayPaymentId: row.razorpayPaymentId || ''
+  };
+};
+
+export const getReceipts = async (req, res) => {
+  try {
+    let rows = [];
+    if (isMongoConnected()) {
+      rows = await Payment.find({}).sort({ createdAt: -1 }).lean();
+    }
+    if (!rows.length) rows = getPaymentsFromFile();
+
+    const context = await loadReceiptContext(rows);
+    const receipts = await Promise.all(rows.map((row) => buildReceipt(row, context)));
+    const visible = redactRecords(req.user, 'receipt', receipts);
+
+    res.json({ success: true, count: visible.length, data: visible });
+  } catch (err) {
+    console.error('Error fetching receipts:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 
 export const getPayments = async (req, res) => {
   try {
@@ -28,19 +313,78 @@ export const getPayments = async (req, res) => {
   }
 };
 
+const cleanText = (value, max = 120) => String(value ?? '').trim().slice(0, max);
+
+// A receipt line is written once and must outlive catalogue edits, so each
+// field is taken from the request by name. Spreading the body would let a
+// caller set _id, createdAt or the gateway references directly.
+const cleanItems = (items) =>
+  (Array.isArray(items) ? items : [])
+    .slice(0, 50)
+    .map((item) => ({
+      productId: cleanText(item?.productId),
+      name: cleanText(item?.name),
+      sku: cleanText(item?.sku),
+      category: cleanText(item?.category),
+      provider: cleanText(item?.provider),
+      users: Number(item?.users) || 0,
+      serverConfiguration: cleanText(item?.serverConfiguration),
+      cores: cleanText(item?.cores),
+      ram: cleanText(item?.ram),
+      storage: cleanText(item?.storage),
+      billingCycle: cleanText(item?.billingCycle),
+      quantity: Math.min(Math.max(Number(item?.quantity) || 1, 1), 99),
+      basePrice: Math.round(Number(item?.basePrice) || 0),
+      gstAmount: Math.round(Number(item?.gstAmount) || 0),
+      finalPrice: Math.round(Number(item?.finalPrice) || 0)
+    }))
+    .filter((item) => item.name);
+
+const STATUSES = ['Received', 'Cleared', 'Pending', 'Overdue'];
+
 export const createPayment = async (req, res) => {
   try {
-    const payload = req.body;
-    const paymentId = payload.paymentId || payload.id || `PAY-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const p = req.body || {};
+    const year = new Date().getFullYear();
+    const today = new Date().toISOString().split('T')[0];
+    const company = cleanText(p.company || p.accountName || p.customer || p.name, 200);
+
+    if (!cleanText(p.amount)) {
+      return res.status(400).json({ success: false, error: 'Amount is required to record a payment.' });
+    }
+
+    const paymentId = cleanText(p.paymentId) || (await nextReference('paymentId', `PAY-${year}-`));
+    const invoiceNumber =
+      cleanText(p.invoiceNumber || p.invoiceRef) || (await nextReference('invoiceNumber', `INV-${year}-`));
 
     const newPaymentData = {
-      ...payload,
       paymentId,
-      id: paymentId,
-      accountName: payload.accountName || payload.company,
-      invoiceRef: payload.invoiceRef || payload.invoiceNumber,
-      date: payload.date || payload.invoiceDate || new Date().toISOString().split('T')[0],
-      method: payload.method || payload.paymentMethod || 'NEFT Wire'
+      invoiceNumber,
+      customer: cleanText(p.customer) || company,
+      company,
+      email: cleanText(p.email, 160),
+      customerId: cleanText(p.customerId),
+      amount: cleanText(p.amount),
+      receivedAmount: cleanText(p.receivedAmount) || cleanText(p.amount),
+      pendingPayment: p.pendingPayment === undefined ? '₹0' : cleanText(p.pendingPayment),
+      paymentMethod: cleanText(p.paymentMethod || p.method) || 'NEFT Wire',
+      invoiceDate: cleanText(p.invoiceDate || p.date) || today,
+      paymentReceivedDate: cleanText(p.paymentReceivedDate) || today,
+      expectedPaymentDate: cleanText(p.expectedPaymentDate),
+      status: STATUSES.includes(p.status) ? p.status : 'Received',
+      solutionCategory: cleanText(p.solutionCategory || p.productName || company, 200),
+      contractId: cleanText(p.contractId),
+      items: cleanItems(p.items),
+      taxableAmount: cleanText(p.taxableAmount),
+      gstAmount: cleanText(p.gstAmount),
+      gstBasis: cleanText(p.gstBasis, 240),
+      salesPerson: cleanText(p.salesPerson),
+      source: 'admin',
+      raisedBy: {
+        name: cleanText(req.user?.name),
+        email: cleanText(req.user?.email, 160),
+        role: cleanText(req.user?.role)
+      }
     };
 
     let savedPayment = newPaymentData;
@@ -50,7 +394,7 @@ export const createPayment = async (req, res) => {
 
     // Update fallback file
     const list = getPaymentsFromFile();
-    savePaymentsToFile([newPaymentData, ...list]);
+    savePaymentsToFile([{ ...newPaymentData, id: paymentId, invoiceRef: invoiceNumber }, ...list]);
 
     await logActivity(req, {
       action: 'PAYMENT_RECORDED',
@@ -64,7 +408,7 @@ export const createPayment = async (req, res) => {
       await logNotification({
         type: 'payment_received',
         title: 'Payment Received',
-        message: `Payment of ${newPaymentData.amount} received from ${newPaymentData.company} via ${newPaymentData.method}.`,
+        message: `Payment of ${newPaymentData.amount} received from ${newPaymentData.company} via ${newPaymentData.paymentMethod}.`,
         severity: 'success',
         entityType: 'payment',
         entityId: paymentId,
@@ -83,22 +427,71 @@ export const createPayment = async (req, res) => {
   }
 };
 
+const EDITABLE_TEXT_FIELDS = [
+  'customer',
+  'company',
+  'accountName',
+  'email',
+  'customerId',
+  'amount',
+  'receivedAmount',
+  'pendingPayment',
+  'paymentMethod',
+  'method',
+  'invoiceNumber',
+  'invoiceRef',
+  'invoiceDate',
+  'date',
+  'paymentReceivedDate',
+  'expectedPaymentDate',
+  'solutionCategory',
+  'contractId',
+  'taxableAmount',
+  'gstAmount',
+  'gstBasis',
+  'salesPerson'
+];
+
 export const updatePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const body = req.body || {};
+
+    // Named fields only, so an edit cannot rewrite the row's identity, its
+    // gateway references or who raised it.
+    const updates = {};
+    EDITABLE_TEXT_FIELDS.forEach((field) => {
+      if (body[field] === undefined) return;
+      updates[field] = cleanText(body[field], field.toLowerCase().includes('date') ? 40 : 200);
+    });
+    if (STATUSES.includes(body.status)) updates.status = body.status;
+    if (body.items !== undefined) updates.items = cleanItems(body.items);
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ success: false, error: 'No editable payment fields were sent.' });
+    }
+
+    const query = {
+      $or: [{ paymentId: id }, { id }, { invoiceNumber: id }, { _id: mongoose.isValidObjectId(id) ? id : null }]
+    };
 
     let updated = null;
     if (isMongoConnected()) {
-      updated = await Payment.findOneAndUpdate(
-        { $or: [{ paymentId: id }, { id: id }, { _id: mongoose.isValidObjectId(id) ? id : null }] },
-        updates,
-        { new: true }
-      ).lean();
+      updated = await Payment.findOneAndUpdate(query, { $set: updates }, { new: true }).lean();
     }
 
+    await logActivity(req, {
+      action: 'PAYMENT_UPDATED',
+      category: 'payment',
+      resource: 'Payment',
+      resourceId: id,
+      details: `Payment ${id} updated (${Object.keys(updates).join(', ')})`
+    });
+
     const list = getPaymentsFromFile();
-    const updatedList = list.map((p) => (p.paymentId === id || p.id === id ? { ...p, ...updates } : p));
+    const updatedList = list.map((p) =>
+      p.paymentId === id || p.id === id || p.invoiceNumber === id ? { ...p, ...updates } : p
+    );
     savePaymentsToFile(updatedList);
 
     res.json({

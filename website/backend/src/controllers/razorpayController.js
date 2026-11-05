@@ -52,7 +52,7 @@ const stampGatewayRefs = async (invoiceNumbers, { orderId, paymentId }) => {
   if (!invoiceNumbers.length) return;
   await Payment.updateMany(
     { invoiceNumber: { $in: invoiceNumbers } },
-    { $set: { razorpayOrderId: orderId, razorpayPaymentId: paymentId } }
+    { $set: { razorpayOrderId: orderId, razorpayPaymentId: paymentId, source: 'gateway' } }
   );
 };
 

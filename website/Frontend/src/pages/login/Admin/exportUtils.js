@@ -120,16 +120,27 @@ export function formatPaymentsForExport(payments) {
  */
 export function formatReceiptsForExport(receipts) {
   return receipts.map((r) => ({
-    'Receipt Number': r.id,
-    'Invoice Reference': r.invoiceRef,
-    'Client / Firm': r.company,
-    'Billing Signatory': r.client,
-    'Amount Received': r.amount,
-    'Base Amount (Excl. Tax)': r.baseAmount || '—',
-    '18% GST (CGST+SGST/IGST)': r.gstAmount || '—',
-    'Payment Mode': r.paymentMode,
-    'Settlement Date': r.date,
-    'Dispatch Status': (r.status || '').toUpperCase(),
-    'Receipt Certified By': r.issuedBy || 'Net Infotech System Pvt Ltd (NISPL)'
+    'Receipt / Invoice No': r.invoiceNumber || r.id || '—',
+    'Payment ID': r.paymentId || '—',
+    Organization: r.customer?.company || '—',
+    Client: r.customer?.name || '—',
+    'Customer Email': r.customer?.email || '—',
+    'Customer ID': r.customer?.customerId || '—',
+    GSTIN: r.customer?.gstNo || '—',
+    'Product / Plan': r.productName || '—',
+    'Sales Person': r.salesPerson || 'Not recorded',
+    Subscription: r.contract?.id || 'Unlinked',
+    'Subscription Term': r.contract?.subscriptionPeriod || '—',
+    'Taxable Value': r.baseAmount ?? '—',
+    '18% GST': r.taxAmount ?? '—',
+    CGST: r.cgst ?? '—',
+    SGST: r.sgst ?? '—',
+    'GST Basis': r.gstBasis || '—',
+    'Total Paid': r.amount ?? '—',
+    'Payment Mode': r.paymentMode || '—',
+    'Recorded Through': r.source || '—',
+    'Invoice Date': r.invoiceDate || '—',
+    'Received Date': r.paymentReceivedDate || r.date || '—',
+    Status: (r.status || '').toUpperCase()
   }));
 }

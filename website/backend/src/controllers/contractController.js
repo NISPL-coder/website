@@ -8,6 +8,28 @@ import mongoose from 'mongoose';
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 /**
+ * The next CTR code. Random four-digit codes collide, and a duplicate
+ * contractId would make every downstream lookup — payments and receipts
+ * included — resolve to the wrong subscription.
+ */
+const nextContractCode = async () => {
+  const prefix = `CTR-${new Date().getFullYear()}-`;
+  const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+
+  let latest = null;
+  if (isMongoConnected()) {
+    latest = await Contract.findOne({ contractId: pattern }).sort({ contractId: -1 }).lean();
+  } else {
+    latest = getContractsFromFile()
+      .filter((c) => String(c.contractId || '').startsWith(prefix))
+      .sort((a, b) => String(b.contractId).localeCompare(String(a.contractId)))[0] || null;
+  }
+
+  const tail = parseInt(String(latest?.contractId || '').split('-').pop(), 10);
+  return `${prefix}${Number.isFinite(tail) ? tail + 1 : 1000}`;
+};
+
+/**
  * Get all contracts with Sangam CRM sync statuses
  */
 export const getContracts = async (req, res) => {
@@ -63,7 +85,9 @@ export const createContract = async (req, res) => {
       endDate,
       status,
       slaTier,
-      description
+      description,
+      productId,
+      salesPerson
     } = req.body;
 
     // 1. Mandatory field validation
@@ -91,7 +115,16 @@ export const createContract = async (req, res) => {
     const rawVal = String(totalContractValue || value).trim();
     const formattedVal = rawVal.startsWith('₹') ? rawVal : `₹${rawVal}`;
 
-    const contractCode = `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const raisedBy = req.user
+      ? {
+          name: req.user.name || '',
+          email: req.user.email || '',
+          role: req.user.role || ''
+        }
+      : { name: '', email: '', role: '' };
+    const effectiveSalesPerson = String(salesPerson || '').trim() || raisedBy.name || raisedBy.email || '';
+
+    const contractCode = await nextContractCode();
 
     // 2. Resolve Account ID in Sangam CRM if linked customer is selected
     let resolvedAccountId = accountId || null;
@@ -163,6 +196,9 @@ export const createContract = async (req, res) => {
         status: status || 'Active',
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
+        productId: String(productId || '').trim(),
+        salesPerson: effectiveSalesPerson,
+        createdBy: raisedBy,
         sangamCrm: {
           status: 'pending',
           recordId: null,
@@ -194,6 +230,9 @@ export const createContract = async (req, res) => {
         status: status || 'Active',
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
+        productId: String(productId || '').trim(),
+        salesPerson: effectiveSalesPerson,
+        createdBy: raisedBy,
         sangamCrm: {
           status: 'pending',
           recordId: null,
@@ -402,7 +441,9 @@ export const updateContract = async (req, res) => {
       endDate,
       status,
       slaTier,
-      description
+      description,
+      productId,
+      salesPerson
     } = req.body;
 
     const formattedVal = totalContractValue
@@ -427,7 +468,9 @@ export const updateContract = async (req, res) => {
       ...(endDate && { endDate, expiryDate: endDate }),
       ...(status && { status }),
       ...(slaTier && { slaTier }),
-      ...(description !== undefined && { description })
+      ...(description !== undefined && { description }),
+      ...(productId !== undefined && { productId: String(productId).trim() }),
+      ...(salesPerson !== undefined && { salesPerson: String(salesPerson).trim() })
     };
 
     let savedContract = null;

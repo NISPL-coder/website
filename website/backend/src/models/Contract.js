@@ -119,6 +119,33 @@ const contractSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    // The catalogue entry this subscription was sold from. A receipt needs the
+    // product's own specifications, and free-text names drift over time.
+    productId: {
+      type: String,
+      default: '',
+      index: true
+    },
+    // Who booked the deal. A payment taken against this subscription inherits
+    // it, so the receipt names the same person the contract was raised with.
+    salesPerson: {
+      type: String,
+      default: ''
+    },
+    createdBy: {
+      name: {
+        type: String,
+        default: ''
+      },
+      email: {
+        type: String,
+        default: ''
+      },
+      role: {
+        type: String,
+        default: ''
+      }
+    },
     isDemoTrial: {
       type: Boolean,
       default: false

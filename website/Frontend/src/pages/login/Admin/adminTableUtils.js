@@ -105,3 +105,23 @@ export function compareText(getValue) {
       sensitivity: 'base',
     });
 }
+
+/**
+ * Map an admin receipt row to the flat shape the receipt PDF writer reads.
+ * @param {object} receipt
+ */
+export function toReceiptPdfRow(receipt) {
+  return {
+    id: receipt.invoiceNumber || receipt.id,
+    service: receipt.service || receipt.productName,
+    date: receipt.date,
+    expiryDate: receipt.contract?.endDate || '',
+    paymentMode: receipt.paymentMode,
+    baseAmount: receipt.baseAmount,
+    cgst: receipt.cgst,
+    sgst: receipt.sgst,
+    totalAmount: receipt.amount,
+    status: receipt.status,
+    sacCode: receipt.product?.category || ''
+  };
+}

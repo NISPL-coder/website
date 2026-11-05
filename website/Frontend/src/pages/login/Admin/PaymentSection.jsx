@@ -14,12 +14,12 @@ import { compareDate, compareNumber, compareText, isWithinDateRange } from './ad
 const getName = (row) => row.name || row.customer || '—';
 const getAccount = (row) => row.accountName || row.company || '—';
 const getInvoiceNumber = (row) => row.invoiceNumber || row.invoiceRef || '—';
-const getInvoiceDate = (row) => row.invoiceDate || '2026-10-15';
+const getInvoiceDate = (row) => row.invoiceDate || row.date || '—';
 const getReceivedAmount = (row) => row.receivedAmount || row.amount;
 const getPending = (row) => row.pendingPayment || '₹0';
 const getExpectedDate = (row) => row.expectedPaymentDate || '—';
 const getReceivedDate = (row) => row.paymentReceivedDate || row.date || '—';
-const getMethod = (row) => row.paymentMethod || row.method || 'NEFT Wire';
+const getMethod = (row) => row.paymentMethod || row.method || '—';
 const getFilterDate = (row) =>
   row.invoiceDate || row.date || row.paymentReceivedDate || row.expectedPaymentDate || row.createdAt;
 
@@ -189,23 +189,21 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       sortFunction: compareText((row) => row.status),
       width: '135px',
       cell: (p) => {
-        const isPaid = p.status === 'paid';
-        const isPartial = p.status === 'partial';
+        const isSettled = p.status === 'Received' || p.status === 'Cleared';
         return (
-          <span
-            className={`adm-status-pill ${isPaid ? 'active' : isPartial ? 'demo' : 'pending'}`}
-          >
-            {isPaid && <CheckCircle2 size={12} />}
-            {!isPaid && <Clock size={12} />}
+          <span className={`adm-status-pill ${isSettled ? 'active' : p.status === 'Overdue' ? 'demo' : 'pending'}`}>
+            {isSettled && <CheckCircle2 size={12} />}
+            {!isSettled && <Clock size={12} />}
             <span style={{ textTransform: 'capitalize' }}>{p.status}</span>
           </span>
         );
       },
       searchType: 'select',
       searchOptions: [
-        { value: 'paid', label: 'Paid' },
-        { value: 'partial', label: 'Partial' },
-        { value: 'pending', label: 'Pending' },
+        { value: 'Received', label: 'Received' },
+        { value: 'Cleared', label: 'Cleared' },
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Overdue', label: 'Overdue' },
       ]
     },
     {

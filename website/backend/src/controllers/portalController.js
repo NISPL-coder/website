@@ -136,12 +136,19 @@ const loadCatalogue = async () => {
   return catalogueCache;
 };
 
-const resolveDisplayName = async (raw, fallback = 'Subscription') => {
+export const findCatalogueRow = async (raw) => {
+  const text = String(raw || '').trim();
+  if (!text) return null;
+
+  const catalogue = await loadCatalogue();
+  return catalogue.byKey.get(normalizeKey(text)) || null;
+};
+
+export const resolveDisplayName = async (raw, fallback = 'Subscription') => {
   const text = String(raw || '').trim();
   if (!text) return fallback;
 
-  const catalogue = await loadCatalogue();
-  const match = catalogue.byKey.get(normalizeKey(text));
+  const match = await findCatalogueRow(text);
   if (match?.name) return match.name;
 
   // Only re-case text that was typed in lower case; anything already mixed is
@@ -158,6 +165,8 @@ const mapContract = async (contract) => {
     name: await resolveDisplayName(contract.name || contract.service || contract.productCategory, 'Subscription'),
     category: contract.productCategory || null,
     contractType: contract.contractType || null,
+    productId: contract.productId || null,
+    salesPerson: contract.salesPerson || null,
     status: contract.status || null,
     startDate: isoDate(start),
     expiryDate: isoDate(expiry),
@@ -195,7 +204,18 @@ export const mapPayment = async (payment) => {
     received: isPaid ? (received || amount) : received,
     pending,
     status: status || null,
-    paymentMethod: payment.paymentMethod || payment.method || null
+    paymentMethod: payment.paymentMethod || payment.method || null,
+    // What the money bought, frozen when the payment was taken. Legacy rows
+    // predate this and arrive with none of it, which the receipt UI shows as
+    // "not recorded" rather than filling in.
+    contractId: payment.contractId || null,
+    salesPerson: payment.salesPerson || null,
+    source: payment.source || null,
+    raisedBy: payment.raisedBy?.name ? payment.raisedBy : null,
+    taxableAmount: parseAmount(payment.taxableAmount),
+    gstAmount: parseAmount(payment.gstAmount),
+    gstBasis: payment.gstBasis || null,
+    lines: Array.isArray(payment.items) ? payment.items : []
   };
 };
 
@@ -568,7 +588,36 @@ const inr = (value) => `₹${roundMoney(value).toLocaleString('en-IN')}`;
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
-const nextReference = async (field, prefix) => {
+/* ── Receipt lines ────────────────────────────────────────────────────────
+   A receipt has to say what was sold even after the catalogue is edited, so
+   the product's identity and specifications are copied onto the payment when
+   money lands instead of being looked up again when an admin opens the row.
+───────────────────────────────────────────────────────────────────────── */
+const buildReceiptLine = (item, product) => {
+  const quantity = Math.min(Math.max(roundMoney(item.quantity) || 1, 1), MAX_LINE_QUANTITY);
+  const basePrice = roundMoney(item.basePrice);
+  const lineBase = basePrice * quantity;
+
+  return {
+    productId: product?.productId || item.productId || '',
+    name: product?.name || item.name || 'Plan',
+    sku: product?.sku || item.sku || product?.productId || '',
+    category: product?.category || item.category || '',
+    provider: product?.provider || '',
+    users: roundMoney(product?.users) || 0,
+    serverConfiguration: product?.serverConfiguration || '',
+    cores: product?.cores || '',
+    ram: product?.ram || '',
+    storage: product?.storage || '',
+    billingCycle: item.billingCycle || product?.frequency || '',
+    quantity,
+    basePrice,
+    gstAmount: roundMoney(lineBase * GST_RATE),
+    finalPrice: roundMoney(lineBase * (1 + GST_RATE))
+  };
+};
+
+export const nextReference = async (field, prefix) => {
   const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
   const latest = await Payment.findOne({ [field]: pattern }).sort({ [field]: -1 }).lean();
   const tail = parseInt(String(latest?.[field] || '').split('-').pop(), 10);
@@ -588,12 +637,25 @@ const findAccountCart = async (user, req) => {
   return sameAccount ? bySession : null;
 };
 
-const createAccountPayment = async ({ user, customer, method, total, label }) => {
+const createAccountPayment = async ({
+  user,
+  customer,
+  method,
+  total,
+  label,
+  lines = [],
+  contractId = '',
+  salesPerson = '',
+  subtotal = null,
+  gst = null,
+  gstBasis = ''
+}) => {
   const year = new Date().getFullYear();
   const invoiceNumber = await nextReference('invoiceNumber', `INV-${year}-`);
   const paymentId = await nextReference('paymentId', `PAY-${year}-`);
   const amountText = inr(total);
   const accountName = customer?.company || user.company || customer?.name || user.name || user.email || '';
+  const splitKnown = subtotal !== null && gst !== null;
 
   return Payment.create({
     paymentId,
@@ -609,7 +671,19 @@ const createAccountPayment = async ({ user, customer, method, total, label }) =>
     invoiceDate: todayIso(),
     paymentReceivedDate: todayIso(),
     status: 'Received',
-    solutionCategory: label
+    solutionCategory: label,
+    contractId,
+    items: lines,
+    taxableAmount: splitKnown ? inr(subtotal) : '',
+    gstAmount: splitKnown ? inr(gst) : '',
+    gstBasis,
+    salesPerson,
+    source: 'portal',
+    raisedBy: {
+      name: user?.name || customer?.name || '',
+      email: user?.email || '',
+      role: user?.role || 'customer'
+    }
   });
 };
 
@@ -744,15 +818,43 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
       throw checkoutError(400, 'The renewal value is not recorded, so it cannot be paid online yet.');
     }
 
+    const label = await resolveDisplayName(contract.name || contract.service, 'Subscription renewal');
+    const product = await findCatalogueRow(
+      contract.productId || contract.name || contract.service || contract.productCategory
+    );
+
+    // A renewal is billed as one lump sum, so the taxable head is derived from
+    // it at the same 18% the cart uses. gstBasis records that the split was
+    // calculated here rather than quoted line by line.
+    const taxable = roundMoney(total / (1 + GST_RATE));
+    const gstAmount = total - taxable;
+    const line = buildReceiptLine(
+      {
+        productId: contract.productId,
+        name: label,
+        sku: contract.productId,
+        category: contract.productCategory,
+        basePrice: taxable,
+        quantity: 1,
+        billingCycle: contract.subscriptionPeriod
+      },
+      product
+    );
+
     return {
       mode: 'renewal',
-      label: contract.name || contract.service || 'Subscription renewal',
+      label,
       amount: total,
       alreadySettled: false,
       snapshot: {
         contractId: contract.contractId || contract.id || contractId,
         total,
-        label: await resolveDisplayName(contract.name || contract.service, 'Subscription renewal')
+        subtotal: taxable,
+        gst: gstAmount,
+        lines: [line],
+        gstBasis: `Renewal value taken as GST-inclusive and split at ${GST_RATE * 100}%`,
+        salesPerson: contract.salesPerson || '',
+        label
       }
     };
   }
@@ -762,11 +864,12 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   if (!cart || !cart.items.length) throw checkoutError(400, 'Your cart is empty.');
 
   const lines = await Promise.all(
-    cart.items.map(async (item) => ({
-      name: await resolveDisplayName(item.name, 'Plan'),
-      quantity: Math.min(Math.max(roundMoney(item.quantity) || 1, 1), MAX_LINE_QUANTITY),
-      basePrice: roundMoney(item.basePrice)
-    }))
+    cart.items.map(async (item) => {
+      const product = await findCatalogueRow(item.productId || item.sku || item.name);
+      const line = buildReceiptLine(item, product);
+      if (!product) line.name = await resolveDisplayName(item.name, 'Plan');
+      return line;
+    })
   );
 
   if (lines.some((line) => line.basePrice <= 0)) {
@@ -785,7 +888,14 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
     label: lines.length === 1 ? lines[0].name : `${lines[0].name} + ${lines.length - 1} more`,
     amount: total,
     alreadySettled: false,
-    snapshot: { cartId: String(cart._id), lines, subtotal, gst, total }
+    snapshot: {
+      cartId: String(cart._id),
+      lines,
+      subtotal,
+      gst,
+      total,
+      gstBasis: `GST added at ${GST_RATE * 100}% on the quoted subtotal`
+    }
   };
 };
 
@@ -849,7 +959,13 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
       customer,
       method,
       total: snapshot.total,
-      label: snapshot.label
+      label: snapshot.label,
+      lines: snapshot.lines,
+      contractId: snapshot.contractId,
+      salesPerson: snapshot.salesPerson,
+      subtotal: snapshot.subtotal,
+      gst: snapshot.gst,
+      gstBasis: snapshot.gstBasis
     });
     await notifyPaymentReceived(user, customer, created);
 
@@ -857,7 +973,12 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
       statusCode: 201,
       data: {
         payment: await mapPayment(created.toObject()),
-        totals: { subtotal: snapshot.total, gst: 0, total: snapshot.total, lines: [] }
+        totals: {
+          subtotal: snapshot.subtotal,
+          gst: snapshot.gst,
+          total: snapshot.total,
+          lines: snapshot.lines
+        }
       }
     };
   }
@@ -867,7 +988,11 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
     customer,
     method,
     total: snapshot.total,
-    label: snapshot.label
+    label: snapshot.label,
+    lines: snapshot.lines,
+    subtotal: snapshot.subtotal,
+    gst: snapshot.gst,
+    gstBasis: snapshot.gstBasis
   });
 
   const cart = await Cart.findById(snapshot.cartId);
@@ -1081,6 +1206,7 @@ export const activateCustomerDemo = async (req, res) => {
       status: 'Active',
       slaTier: 'Demo Trial 99.99%',
       description: `Active ${planName} trial for ${duration} (valid until ${effectiveEndDate}).`,
+      productId,
       salesPerson
     };
 
