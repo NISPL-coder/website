@@ -1,5 +1,6 @@
 import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
+import Contract from '../models/Contract.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
@@ -1198,6 +1199,97 @@ export const importContacts = async (req, res) => {
   } catch (err) {
     console.error('[CustomerController] importContacts error:', err);
     return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const allowDemoExtension = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const additionalDays = Math.max(1, parseInt(req.body?.additionalDays || req.body?.days, 10) || 7);
+    const notes = String(req.body?.notes || 'Authorized by administrator').trim();
+
+    let customer = null;
+    if (isMongoConnected()) {
+      customer = await Customer.findOne({
+        $or: [
+          { customerId: id },
+          { _id: mongoose.isValidObjectId(id) ? id : null },
+          { email: id },
+          { email: new RegExp(`^${id}$`, 'i') }
+        ]
+      });
+    }
+
+    if (!customer) {
+      return res.status(404).json({ success: false, error: 'Customer not found.' });
+    }
+
+    customer.demoExtensionAllowed = true;
+    customer.demoExtensionDays = additionalDays;
+    await customer.save();
+
+    // If an existing trial contract exists, mark extensionAllowed = true and extensionDays on it too
+    if (isMongoConnected()) {
+      await Contract.updateMany(
+        {
+          $and: [
+            {
+              $or: [
+                { email: customer.email },
+                { email: new RegExp(`^${customer.email}$`, 'i') },
+                { customer: customer.name },
+                { company: customer.company }
+              ]
+            },
+            {
+              $or: [
+                { contractType: 'Trial' },
+                { productCategory: 'Trial' },
+                { isDemoTrial: true }
+              ]
+            }
+          ]
+        },
+        {
+          $set: {
+            extensionAllowed: true,
+            extensionDays: additionalDays
+          }
+        }
+      );
+    }
+
+    await logNotification({
+      type: 'demo_extension_authorized',
+      title: 'Demo Trial Extension Authorized',
+      message: `Administrator authorized ${additionalDays} additional trial days for ${customer.name || customer.company} (${customer.email}).`,
+      severity: 'info',
+      entityType: 'customer',
+      entityId: customer.customerId || customer.email,
+      metadata: { customerId: customer.customerId, email: customer.email, additionalDays, notes }
+    });
+
+    await logActivity(req, {
+      action: 'DEMO_EXTENSION_AUTHORIZED',
+      category: 'customer',
+      resource: 'Customer',
+      resourceId: customer.customerId,
+      details: `Authorized ${additionalDays} additional trial days for ${customer.email}. (${notes})`
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully authorized ${additionalDays} additional demo trial days for ${customer.name || customer.company}.`,
+      data: {
+        customerId: customer.customerId,
+        email: customer.email,
+        demoExtensionAllowed: true,
+        demoExtensionDays: additionalDays
+      }
+    });
+  } catch (err) {
+    console.error('Error authorizing demo extension:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 

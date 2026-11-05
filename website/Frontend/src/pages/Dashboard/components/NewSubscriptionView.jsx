@@ -1,151 +1,90 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { productApi } from '../../../services/productApi';
+import { dashboardApi } from '../../../services/dashboardApi';
+import { formatINR } from '../utils/pricingUtils';
 
-// Exact CtrlS User Configuration Matrix (₹500/- per person per month)
-export const CLOUD_SERVICES_PLANS = [
-  {
-    users: 1,
-    value: 'CtrlS 1 User (2 core/3 GB/50 GB)',
-    label: 'CtrlS 1 User (2 core / 3 GB / 50 GB) — ₹500/month',
-    cores: '2 core',
-    ram: '3 GB',
-    storage: '50 GB',
-    price: 500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 2 core, 3 GB RAM, 50 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 2,
-    value: 'CtrlS 2 User (3 core/3 GB/50 GB)',
-    label: 'CtrlS 2 User (3 core / 3 GB / 50 GB) — ₹1,000/month',
-    cores: '3 core',
-    ram: '3 GB',
-    storage: '50 GB',
-    price: 1000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 3 core, 3 GB RAM, 50 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 3,
-    value: 'CtrlS 3 User (4 core/4 GB/100 GB)',
-    label: 'CtrlS 3 User (4 core / 4 GB / 100 GB) — ₹1,500/month',
-    cores: '4 core',
-    ram: '4 GB',
-    storage: '100 GB',
-    price: 1500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 4 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 4,
-    value: 'CtrlS 4 User (4 core/6 GB/100 GB)',
-    label: 'CtrlS 4 User (4 core / 6 GB / 100 GB) — ₹2,000/month',
-    cores: '4 core',
-    ram: '6 GB',
-    storage: '100 GB',
-    price: 2000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 6 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 5,
-    value: 'CtrlS 5 User (4 core/8 GB/100 GB)',
-    label: 'CtrlS 5 User (4 core / 8 GB / 100 GB) — ₹2,500/month',
-    cores: '4 core',
-    ram: '8 GB',
-    storage: '100 GB',
-    price: 2500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 8 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 6,
-    value: 'CtrlS 6 User (4 core/9 GB/100 GB)',
-    label: 'CtrlS 6 User (4 core / 9 GB / 100 GB) — ₹3,000/month',
-    cores: '4 core',
-    ram: '9 GB',
-    storage: '100 GB',
-    price: 3000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 9 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 7,
-    value: 'CtrlS 7 User (4 core/10 GB/100 GB)',
-    label: 'CtrlS 7 User (4 core / 10 GB / 100 GB) — ₹3,500/month',
-    cores: '4 core',
-    ram: '10 GB',
-    storage: '100 GB',
-    price: 3500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 10 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 8,
-    value: 'CtrlS 8 User (4 core/12 GB/100 GB)',
-    label: 'CtrlS 8 User (4 core / 12 GB / 100 GB) — ₹4,000/month',
-    cores: '4 core',
-    ram: '12 GB',
-    storage: '100 GB',
-    price: 4000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 12 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 9,
-    value: 'CtrlS 9 User (4 core/13 GB/100 GB)',
-    label: 'CtrlS 9 User (4 core / 13 GB / 100 GB) — ₹4,500/month',
-    cores: '4 core',
-    ram: '13 GB',
-    storage: '100 GB',
-    price: 4500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 4 core, 13 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 10,
-    value: 'CtrlS 10 User (6 core/12 GB/100 GB)',
-    label: 'CtrlS 10 User (6 core / 12 GB / 100 GB) — ₹5,000/month',
-    cores: '6 core',
-    ram: '12 GB',
-    storage: '100 GB',
-    price: 5000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 6 core, 12 GB RAM, 100 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 12,
-    value: 'CtrlS 12 User (8 core/16 GB/150 GB)',
-    label: 'CtrlS 12 User (8 core / 16 GB / 150 GB) — ₹6,000/month',
-    cores: '8 core',
-    ram: '16 GB',
-    storage: '150 GB',
-    price: 6000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 8 core, 16 GB RAM, 150 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 15,
-    value: 'CtrlS 15 User (8 core/20 GB/150 GB)',
-    label: 'CtrlS 15 User (8 core / 20 GB / 150 GB) — ₹7,500/month',
-    cores: '8 core',
-    ram: '20 GB',
-    storage: '150 GB',
-    price: 7500,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 8 core, 20 GB RAM, 150 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 20,
-    value: 'CtrlS 20 User (8 core/24 GB/200 GB)',
-    label: 'CtrlS 20 User (8 core / 24 GB / 200 GB) — ₹10,000/month',
-    cores: '8 core',
-    ram: '24 GB',
-    storage: '200 GB',
-    price: 10000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 8 core, 24 GB RAM, 200 GB SSD, Windows Server license & daily backup.'
-  },
-  {
-    users: 30,
-    value: 'CtrlS 30 User (8 core/32 GB/300 GB)',
-    label: 'CtrlS 30 User (8 core / 32 GB / 300 GB) — ₹15,000/month',
-    cores: '8 core',
-    ram: '32 GB',
-    storage: '300 GB',
-    price: 15000,
-    desc: 'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 8 core, 32 GB RAM, 300 GB SSD, Windows Server license & daily backup.'
-  }
-];
+/** Customers choose by capacity, so the datacenter brand is dropped from the label. */
+const stripProviderBrand = (name = '') =>
+  name
+    .replace(/^ctrls\s+cloud\s+server\s*[—–-]?\s*/i, '')
+    .replace(/^ctrls\s+/i, '')
+    .trim();
+
+const toNumber = (value) => {
+  if (typeof value === 'number') return value;
+  const digits = String(value ?? '').replace(/[^0-9.]/g, '');
+  return digits ? Number(digits) : NaN;
+};
+
+/** CPU / RAM / SSD can arrive as flat fields, spec rows, or a "2 core/3 GB/50 GB" string. */
+const specBits = (product) => {
+  const fromSpecs = (label) =>
+    product.specs?.find((s) => String(s.label).toLowerCase() === label)?.value || '';
+  const cores = product.cores || fromSpecs('cpu');
+  const ram = product.ram || fromSpecs('ram');
+  const storage = product.storage || fromSpecs('storage');
+  if (cores && ram && storage) return { cores, ram, storage };
+
+  const parts = String(product.serverConfiguration || product.userBadge || '')
+    .split('/')
+    .map((part) => part.trim());
+  return {
+    cores: cores || parts[0] || '',
+    ram: ram || parts[1] || '',
+    storage: storage || parts[2] || ''
+  };
+};
+
+const buildPlans = (products = []) =>
+  products
+    .filter(
+      (p) =>
+        p.available !== false &&
+        p.status !== 'inactive' &&
+        p.provider !== 'tally' &&
+        p.category !== 'ERP Solutions'
+    )
+    .map((p) => {
+      const isDemo = Boolean(p.isDemoPlan || p.provider === 'demo' || p.category === 'Trial');
+      const isCustom = Boolean(p.isCustomPlan);
+      const users = Number(p.users) || toNumber(p.tier) || 1;
+      const { cores, ram, storage } = specBits(p);
+      const monthlyPrice = Number.isFinite(p.monthlyPrice)
+        ? p.monthlyPrice
+        : toNumber(p.price);
+
+      let displayName = p.name || '';
+      if (!isDemo && !isCustom) {
+        displayName = stripProviderBrand(p.name) || `${users} User`;
+      }
+
+      return {
+        id: p.productId || p.id || p._id,
+        name: displayName,
+        rawName: p.name,
+        users,
+        cores,
+        ram,
+        storage,
+        monthlyPrice: Number.isFinite(monthlyPrice) ? monthlyPrice : 0,
+        serverConfiguration: p.serverConfiguration || (cores && ram && storage ? `${cores}/${ram}/${storage}` : ''),
+        description: p.description || '',
+        isDemoPlan: isDemo,
+        isCustomPlan: isCustom,
+        duration: p.duration || (isDemo ? '7 Days' : ''),
+        badge: isDemo ? 'Trial / Demo' : isCustom ? 'Custom Plan' : ''
+      };
+    })
+    .sort((a, b) => {
+      // Demo plans first, then sorted by users and price
+      if (a.isDemoPlan && !b.isDemoPlan) return -1;
+      if (!a.isDemoPlan && b.isDemoPlan) return 1;
+      if (a.users !== b.users) return a.users - b.users;
+      return a.monthlyPrice - b.monthlyPrice;
+    });
 
 // Subscription Duration / Term options (1 month ... 12 months, 1 year, 2 year, 3 year)
 export const SUBSCRIPTION_DURATIONS = [
@@ -200,6 +139,297 @@ const calculateEndDate = (startStr, months) => {
   return `${d}-${m}-${y}`;
 };
 
+// Helper: Auto calculate end date (DD-MM-YYYY) for time-boxed Demo trials (days/weeks/months)
+export const calculateDemoEndDate = (startStr, durationStr = '7 Days') => {
+  if (!startStr) return '';
+  const parts = startStr.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return '';
+  const [year, month, day] = parts;
+  const targetDate = new Date(year, month - 1, day);
+
+  const lower = String(durationStr || '').toLowerCase().trim();
+  const match = lower.match(/^(\d+)\s*(day|week|month|year)s?/);
+  if (match) {
+    const count = parseInt(match[1], 10);
+    const unit = match[2];
+    if (unit === 'day') {
+      targetDate.setDate(targetDate.getDate() + count);
+    } else if (unit === 'week') {
+      targetDate.setDate(targetDate.getDate() + count * 7);
+    } else if (unit === 'month') {
+      targetDate.setMonth(targetDate.getMonth() + count);
+    } else if (unit === 'year') {
+      targetDate.setFullYear(targetDate.getFullYear() + count);
+    }
+  } else {
+    targetDate.setDate(targetDate.getDate() + 7);
+  }
+
+  const d = String(targetDate.getDate()).padStart(2, '0');
+  const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const y = targetDate.getFullYear();
+  return `${d}-${m}-${y}`;
+};
+
+const specLine = (plan) =>
+  [plan.cores, plan.ram, plan.storage].filter(Boolean).join(' · ');
+
+/** Capacity-first plan picker: name + hardware on the left, monthly rate on the right. */
+function PlanSelect({ plans, selectedId, onChange, loading, errorMessage }) {
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const wrapperRef = useRef(null);
+  const triggerRef = useRef(null);
+  const optionRefs = useRef([]);
+
+  const selected = plans.find((p) => p.id === selectedId) || null;
+  const disabled = loading || plans.length === 0;
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) optionRefs.current[highlight]?.scrollIntoView({ block: 'nearest' });
+  }, [open, highlight]);
+
+  const toggle = () => {
+    if (disabled) return;
+    setHighlight(Math.max(0, plans.findIndex((p) => p.id === selectedId)));
+    setOpen((prev) => !prev);
+  };
+
+  const choose = (plan) => {
+    onChange(plan);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setOpen(false);
+      return;
+    }
+    if (!open) {
+      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) {
+        event.preventDefault();
+        toggle();
+      }
+      return;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlight((i) => Math.min(i + 1, plans.length - 1));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlight((i) => Math.max(i - 1, 0));
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setHighlight(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      setHighlight(plans.length - 1);
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (plans[highlight]) choose(plans[highlight]);
+    }
+  };
+
+  const placeholderText = loading
+    ? 'Loading plans…'
+    : errorMessage || (plans.length === 0 ? 'No plans available' : 'Select a plan');
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={toggle}
+        onKeyDown={handleKeyDown}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Plan name"
+        style={{
+          ...inputStyle,
+          height: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '0 38px 0 12px',
+          textAlign: 'left',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          background: disabled ? '#f8fafc' : '#ffffff',
+          borderColor: open ? '#4f46e5' : '#cbd5e1',
+          boxShadow: open ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
+          transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
+        }}
+      >
+        {selected ? (
+          <>
+            <span style={{ fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>
+              {selected.name}
+            </span>
+            {selected.badge && (
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  background: selected.isDemoPlan ? '#fef3c7' : '#e0e7ff',
+                  color: selected.isDemoPlan ? '#b45309' : '#4338ca',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {selected.badge}
+              </span>
+            )}
+            {(selected.isDemoPlan ? (selected.duration ? `Trial · ${selected.duration}` : 'Trial') : specLine(selected)) && (
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  color: '#64748b',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  flex: 1
+                }}
+              >
+                {selected.isDemoPlan ? `Trial · ${selected.duration}` : specLine(selected)}
+              </span>
+            )}
+            <span style={{ marginLeft: 'auto', fontWeight: 600, color: selected.isDemoPlan ? '#059669' : '#4f46e5', whiteSpace: 'nowrap' }}>
+              {selected.isDemoPlan && selected.monthlyPrice === 0 ? 'FREE' : formatINR(selected.monthlyPrice)}
+              <span style={{ fontWeight: 500, color: '#94a3b8', fontSize: '0.78rem' }}>
+                {selected.isDemoPlan ? ` (${selected.duration || 'Trial'})` : ' /mo'}
+              </span>
+            </span>
+          </>
+        ) : (
+          <span style={{ color: '#94a3b8' }}>{placeholderText}</span>
+        )}
+        <ChevronDown
+          size={16}
+          style={{
+            position: 'absolute',
+            right: '12px',
+            color: '#64748b',
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.15s ease',
+            pointerEvents: 'none'
+          }}
+        />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Available cloud plans"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            right: 0,
+            zIndex: 60,
+            maxHeight: '320px',
+            overflowY: 'auto',
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            boxShadow: '0 12px 28px rgba(15, 23, 42, 0.14)'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              padding: '8px 14px',
+              background: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: '#64748b',
+              position: 'sticky',
+              top: 0
+            }}
+          >
+            <span>Plan · Configuration</span>
+            <span>Price / Term</span>
+          </div>
+          {plans.map((plan, index) => {
+            const isSelected = plan.id === selectedId;
+            return (
+              <div
+                key={plan.id}
+                ref={(node) => {
+                  optionRefs.current[index] = node;
+                }}
+                role="option"
+                aria-selected={isSelected}
+                onMouseEnter={() => setHighlight(index)}
+                onClick={() => choose(plan)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 14px',
+                  cursor: 'pointer',
+                  background: isSelected ? '#eef2ff' : highlight === index ? '#f8fafc' : '#ffffff',
+                  borderBottom: '1px solid #f1f5f9',
+                  transition: 'background 0.12s ease'
+                }}
+              >
+                <Check
+                  size={15}
+                  style={{
+                    color: '#4f46e5',
+                    opacity: isSelected ? 1 : 0,
+                    flexShrink: 0
+                  }}
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{plan.name}</span>
+                    {plan.isDemoPlan && (
+                      <span style={{ fontSize: '0.68rem', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Demo</span>
+                    )}
+                    {plan.isCustomPlan && (
+                      <span style={{ fontSize: '0.68rem', background: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Custom</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                    {plan.isDemoPlan
+                      ? `Demo Trial Period: ${plan.duration || '7 Days'}`
+                      : (specLine(plan) || plan.serverConfiguration || 'Configuration as quoted')}
+                  </div>
+                </div>
+                <div style={{ marginLeft: 'auto', textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: plan.isDemoPlan ? '#059669' : '#4f46e5' }}>
+                    {plan.isDemoPlan && plan.monthlyPrice === 0 ? 'FREE' : formatINR(plan.monthlyPrice)}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    {plan.isDemoPlan ? (plan.duration || 'Trial') : 'per month'}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NewSubscriptionView({
   customer,
   account,
@@ -212,7 +442,7 @@ export default function NewSubscriptionView({
   const currentName = customer?.company || customer?.name || account?.company || account?.name || 'demo';
 
   const [customersList, setCustomersList] = useState([]);
-  
+
   // Auto-select current customer from dropdown
   const [selectedCustomer, setSelectedCustomer] = useState(currentEmail);
 
@@ -226,27 +456,83 @@ export default function NewSubscriptionView({
   // Auto-selected product: "Cloud Services" (Read only)
   const product = 'Cloud Services';
 
-  // No autofill - Plan Name starts unselected
-  const [planName, setPlanName] = useState('');
-  const [unitPrice, setUnitPrice] = useState('');
+  // Live catalog from the products API (standard CtrlS, custom pricing & demo plans)
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [plansError, setPlansError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    productApi
+      .getProducts({ available: 'true' })
+      .then((list) => {
+        if (!isMounted) return;
+        setPlans(buildPlans(Array.isArray(list) ? list : []));
+      })
+      .catch(() => {
+        if (isMounted) setPlansError('Could not load plans. Please retry shortly.');
+      })
+      .finally(() => {
+        if (isMounted) setLoadingPlans(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const selectedPlan = useMemo(
+    () => plans.find((p) => p.id === selectedPlanId) || null,
+    [plans, selectedPlanId]
+  );
+
+  const unitPrice = selectedPlan ? selectedPlan.monthlyPrice : '';
+  const description = selectedPlan ? selectedPlan.description : '';
   const [quantity, setQuantity] = useState(1);
-  const [description, setDescription] = useState('');
+
+  // Single demo plan policy derived from customer account
+  const demoTrialUsed = Boolean(account?.demoTrialUsed);
+  const demoExtensionAllowed = Boolean(account?.demoExtensionAllowed);
+  const demoExtensionDays = Number(account?.demoExtensionDays || 7);
+  const isDemoBlocked = Boolean(selectedPlan?.isDemoPlan && demoTrialUsed && !demoExtensionAllowed);
 
   // No autofill - Plan Duration starts unselected
   const [selectedDurationKey, setSelectedDurationKey] = useState('');
   const [startDate, setStartDate] = useState(getTodayDateString);
 
+  // When a demo plan is selected, auto-lock duration to demo term & set quantity to 1
+  useEffect(() => {
+    if (selectedPlan) {
+      if (selectedPlan.isDemoPlan) {
+        setSelectedDurationKey('demo_term');
+        setQuantity(1);
+      } else if (selectedDurationKey === 'demo_term') {
+        setSelectedDurationKey('');
+      }
+    }
+  }, [selectedPlanId]);
+
   const selectedDuration = useMemo(() => {
+    if (selectedPlan?.isDemoPlan) {
+      return {
+        value: 'demo_term',
+        label: `${selectedPlan.duration || '7 Days'} Trial`,
+        months: 0
+      };
+    }
     return (
       SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
     );
-  }, [selectedDurationKey]);
+  }, [selectedDurationKey, selectedPlan]);
 
   // Auto-calculated End Date (DD-MM-YYYY) once duration is selected
   const endDate = useMemo(() => {
+    if (selectedPlan?.isDemoPlan) {
+      return calculateDemoEndDate(startDate, selectedPlan.duration || '7 Days');
+    }
     if (!selectedDuration) return '';
     return calculateEndDate(startDate, selectedDuration.months);
-  }, [startDate, selectedDuration]);
+  }, [startDate, selectedDuration, selectedPlan]);
 
   // Sales Person state: starts empty, error starts FALSE (no warning by default)
   const [salesPerson, setSalesPerson] = useState('');
@@ -269,40 +555,31 @@ export default function NewSubscriptionView({
     };
   }, []);
 
-  // Total Amount = unitPrice * quantity * durationMonths (0 if unselected)
+  // Total Amount = unitPrice * quantity * durationMonths (0 for free trial / unselected)
   const amount = useMemo(() => {
+    if (selectedPlan?.isDemoPlan) {
+      return Number(selectedPlan.monthlyPrice) || 0;
+    }
     if (!unitPrice || !selectedDuration) return 0;
     return (
       (Number(unitPrice) || 0) *
       (Number(quantity) || 1) *
       (Number(selectedDuration.months) || 1)
     );
-  }, [unitPrice, quantity, selectedDuration]);
+  }, [unitPrice, quantity, selectedDuration, selectedPlan]);
 
-  const handlePlanChange = (selectedVal) => {
-    setPlanName(selectedVal);
-    const matched = CLOUD_SERVICES_PLANS.find((p) => p.value === selectedVal);
-    if (matched) {
-      setUnitPrice(matched.price);
-      setDescription(matched.desc);
-    } else {
-      setUnitPrice('');
-      setDescription('');
-    }
-  };
+  const planLabel = selectedPlan
+    ? `${selectedPlan.name}${selectedPlan.cores ? ` (${[selectedPlan.cores, selectedPlan.ram, selectedPlan.storage].filter(Boolean).join('/')})` : ''}`
+    : '';
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedCustomer) {
       toast.error('Please select a customer from dropdown.');
       return;
     }
-    if (!planName) {
+    if (!selectedPlan) {
       toast.error('Please select a plan from dropdown.');
-      return;
-    }
-    if (!selectedDurationKey || !selectedDuration) {
-      toast.error('Please select a plan duration from dropdown.');
       return;
     }
     if (!salesPerson) {
@@ -311,26 +588,75 @@ export default function NewSubscriptionView({
       return;
     }
 
+    // Demo Trial activation branch: immediately activates the demo in DB for the customer for the demo period
+    if (selectedPlan.isDemoPlan) {
+      if (demoTrialUsed && !demoExtensionAllowed) {
+        toast.error(
+          'You have already used your free demo trial once. To extend your demo trial period, please contact administrator support.'
+        );
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const res = await dashboardApi.activateDemo({
+          customerEmail: selectedCustomer,
+          planName: selectedPlan.name,
+          productId: selectedPlan.id,
+          duration: selectedPlan.duration || '7 Days',
+          startDate,
+          endDate,
+          salesPerson
+        });
+
+        if (res && res.success) {
+          toast.success(
+            res.message ||
+              `Demo trial for ${selectedPlan.name} activated successfully until ${endDate}!`
+          );
+          if (onBack) onBack();
+        } else {
+          toast.error(res?.error || res?.message || 'Failed to activate demo trial.');
+        }
+      } catch (err) {
+        console.error('Failed to activate demo trial:', err);
+        const errMsg = err.response?.data?.error || err.message || 'Failed to activate demo trial.';
+        toast.error(errMsg);
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Standard / Custom subscription branch
+    if (!selectedDurationKey || !selectedDuration) {
+      toast.error('Please select a plan duration from dropdown.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     if (onAddToCart) {
       onAddToCart({
         id: `sub-cloud-service-${Date.now()}`,
-        name: `${product} - ${planName} (${selectedDuration.label})`,
-        planName,
+        productId: selectedPlan.id,
+        name: `${product} - ${planLabel} (${selectedDuration.label})`,
+        planName: planLabel,
         product,
         price: amount,
         basePrice: amount,
         customerEmail: selectedCustomer,
         salesPerson,
         quantity: Number(quantity) || 1,
+        users: selectedPlan.users,
+        serverConfiguration: selectedPlan.serverConfiguration,
         period: selectedDuration.label,
         duration: selectedDuration.label,
         durationMonths: selectedDuration.months,
         startDate,
         endDate
       });
-      toast.success(`Subscription for ${planName} (${selectedDuration.label}) added to cart!`);
+      toast.success(`Subscription for ${planLabel} (${selectedDuration.label}) added to cart!`);
       if (onGoToCart) {
         onGoToCart();
       }
@@ -450,29 +776,78 @@ export default function NewSubscriptionView({
             <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 600, color: '#1e293b' }}>Plan</h3>
           </div>
 
+          {/* Single Demo Policy Alert Banner */}
+          {selectedPlan?.isDemoPlan && isDemoBlocked && (
+            <div
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                color: '#991b1b',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px'
+              }}
+            >
+              <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                  Single Demo Trial Policy (Trial Already Used)
+                </div>
+                <div style={{ marginTop: '3px', color: '#b91c1c', lineHeight: 1.4 }}>
+                  Each customer account can use a demo trial once. To extend your demo trial period, an administrator must authorize additional trial days for your account. Please contact NISPL support.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedPlan?.isDemoPlan && demoTrialUsed && demoExtensionAllowed && (
+            <div
+              style={{
+                background: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                color: '#065f46',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px'
+              }}
+            >
+              <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>✅</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                  Trial Extension Authorized by Administrator
+                </div>
+                <div style={{ marginTop: '3px', color: '#047857', lineHeight: 1.4 }}>
+                  An administrator has approved {demoExtensionDays} additional demo trial days for your account. Click below to apply your extension.
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Row 3: Plan Name, Unit Price, Quantity */}
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '20px' }}>
-            {/* Plan Name (No autofill) */}
+            {/* Plan Name (live catalog, no autofill) */}
             <div>
               <label style={labelStyle}>
                 Plan Name <span style={starStyle}>*</span>
               </label>
-              <div style={selectWrapStyle}>
-                <select
-                  value={planName}
-                  onChange={(e) => handlePlanChange(e.target.value)}
-                  style={inputStyle}
-                  required
-                >
-                  <option value="">Select from dropdown</option>
-                  {CLOUD_SERVICES_PLANS.map((pl) => (
-                    <option key={pl.value} value={pl.value}>
-                      {pl.value}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={16} style={chevronStyle} />
-              </div>
+              <PlanSelect
+                plans={plans}
+                selectedId={selectedPlanId}
+                onChange={(plan) => setSelectedPlanId(plan.id)}
+                loading={loadingPlans}
+                errorMessage={plansError}
+              />
+              {!loadingPlans && plans.length > 0 && (
+                <span style={{ display: 'block', marginTop: '5px', fontSize: '0.75rem', color: '#94a3b8' }}>
+                  {plans.length} published plans · billed per month, per configuration
+                </span>
+              )}
             </div>
 
             {/* Unit Price (Auto populated based on selected plan - Read only) */}
@@ -484,7 +859,6 @@ export default function NewSubscriptionView({
                 type="text"
                 readOnly
                 value={unitPrice ? unitPrice : ''}
-                
                 style={{
                   ...inputStyle,
                   background: '#f8fafc',
@@ -503,9 +877,15 @@ export default function NewSubscriptionView({
               <input
                 type="number"
                 min="1"
-                value={quantity}
+                value={selectedPlan?.isDemoPlan ? 1 : quantity}
+                readOnly={Boolean(selectedPlan?.isDemoPlan)}
+                disabled={Boolean(selectedPlan?.isDemoPlan)}
                 onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                style={inputStyle}
+                style={{
+                  ...inputStyle,
+                  cursor: selectedPlan?.isDemoPlan ? 'not-allowed' : 'text',
+                  background: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
+                }}
                 required
               />
             </div>
@@ -529,16 +909,18 @@ export default function NewSubscriptionView({
               <label style={labelStyle}>Description</label>
               <textarea
                 rows={2}
+                readOnly
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Plan description will appear here..."
                 style={{
                   ...inputStyle,
-                  height: '40px',
+                  height: '44px',
                   paddingTop: '8px',
                   resize: 'vertical',
                   fontFamily: 'inherit',
-                  lineHeight: '1.3'
+                  lineHeight: '1.3',
+                  cursor: description ? 'not-allowed' : 'default',
+                  background: description ? '#f8fafc' : '#ffffff'
                 }}
               />
             </div>
@@ -568,15 +950,28 @@ export default function NewSubscriptionView({
                 <select
                   value={selectedDurationKey}
                   onChange={(e) => setSelectedDurationKey(e.target.value)}
-                  style={inputStyle}
+                  style={{
+                    ...inputStyle,
+                    cursor: selectedPlan?.isDemoPlan ? 'not-allowed' : 'pointer',
+                    background: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
+                  }}
+                  disabled={Boolean(selectedPlan?.isDemoPlan)}
                   required
                 >
-                  <option value="">Select from dropdown</option>
-                  {SUBSCRIPTION_DURATIONS.map((dur) => (
-                    <option key={dur.value} value={dur.value}>
-                      {dur.label}
+                  {selectedPlan?.isDemoPlan ? (
+                    <option value="demo_term">
+                      {selectedPlan.duration || '7 Days'} (Demo Trial)
                     </option>
-                  ))}
+                  ) : (
+                    <>
+                      <option value="">Select from dropdown</option>
+                      {SUBSCRIPTION_DURATIONS.map((dur) => (
+                        <option key={dur.value} value={dur.value}>
+                          {dur.label}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 <ChevronDown size={16} style={chevronStyle} />
               </div>
@@ -696,23 +1091,35 @@ export default function NewSubscriptionView({
           >
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || plans.length === 0 || isDemoBlocked}
               style={{
-                background: '#4f46e5',
+                background: plans.length === 0 || isDemoBlocked ? '#cbd5e1' : '#4f46e5',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px 24px',
                 fontSize: '0.92rem',
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: plans.length === 0 || isDemoBlocked ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 boxShadow: '0 1px 2px rgba(79, 70, 229, 0.2)'
               }}
             >
-              <span>Subscribe Now</span>
+              <span>
+                {isSubmitting
+                  ? selectedPlan?.isDemoPlan
+                    ? 'Activating Demo...'
+                    : 'Submitting...'
+                  : isDemoBlocked
+                  ? 'Demo Trial Already Used'
+                  : selectedPlan?.isDemoPlan
+                  ? demoExtensionAllowed
+                    ? `Extend Demo Trial (+${demoExtensionDays} Days)`
+                    : 'Activate Demo Trial'
+                  : 'Subscribe Now'}
+              </span>
             </button>
             <button
               type="button"

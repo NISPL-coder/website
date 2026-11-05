@@ -15,7 +15,10 @@ import {
   Eye,
   EyeOff,
   Copy,
-  Check
+  Check,
+  Edit3,
+  Trash2,
+  Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -60,6 +63,35 @@ export default function CustomerSection({
     setCopiedKey(key);
     toast.success(`Copied ${label} to clipboard!`);
     setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleAuthorizeDemoExtension = async (cust) => {
+    const daysStr = window.prompt(
+      `Authorize demo trial extension for ${cust.name || cust.company} (${cust.email}):\nEnter additional trial days:`,
+      '7'
+    );
+    if (!daysStr) return;
+    const days = parseInt(daysStr, 10);
+    if (isNaN(days) || days <= 0) {
+      toast.error('Please enter a valid positive number of days.');
+      return;
+    }
+
+    const toastId = toast.loading(`Authorizing ${days} extra trial days for ${cust.email}...`);
+    try {
+      const res = await customerApi.allowDemoExtension(cust.id || cust.customerId || cust.email, days);
+      toast.success(res.message || `Authorized ${days} additional days for ${cust.name || cust.company}!`, { id: toastId });
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id === cust.id || c.customerId === cust.customerId
+            ? { ...c, demoExtensionAllowed: true, demoExtensionDays: days }
+            : c
+        )
+      );
+    } catch (err) {
+      console.error('Failed to authorize demo extension:', err);
+      toast.error(err.message || 'Failed to authorize demo extension.', { id: toastId });
+    }
   };
 
   // Dynamic card stats from API (with seamless fallback to computed data)
@@ -476,30 +508,79 @@ export default function CustomerSection({
       selector: (row) => row.status,
       sortable: true,
       sortFunction: compareText((row) => row.status),
-      width: '145px',
+      minWidth: '175px',
       cell: (cust) => {
         const s = cust.status?.toLowerCase();
+        const hasTrial = cust.demoTrialUsed || s === 'demo' || cust.plan?.includes('Trial');
         return (
-          <>
-            {s === 'active' && (
-              <span className="adm-status-pill active">
-                <CheckCircle2 size={12} />
-                <span>Active</span>
-              </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              {s === 'active' && (
+                <span className="adm-status-pill active">
+                  <CheckCircle2 size={12} />
+                  <span>Active</span>
+                </span>
+              )}
+              {s === 'demo' && (
+                <span className="adm-status-pill demo">
+                  <Clock size={12} />
+                  <span>Demo Trial</span>
+                </span>
+              )}
+              {(s === 'inactive' || s === 'suspended') && (
+                <span className="adm-status-pill inactive">
+                  <XCircle size={12} />
+                  <span>Inactive</span>
+                </span>
+              )}
+            </div>
+
+            {/* Trial Extension Control Badge */}
+            {hasTrial && (
+              <div>
+                {cust.demoExtensionAllowed ? (
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      background: '#ecfdf5',
+                      color: '#059669',
+                      border: '1px solid #a7f3d0',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Trial extension approved by administrator"
+                  >
+                    +{cust.demoExtensionDays || 7}d Approved
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAuthorizeDemoExtension(cust);
+                    }}
+                    style={{
+                      background: '#fffbeb',
+                      color: '#b45309',
+                      border: '1px solid #fde68a',
+                      borderRadius: '4px',
+                      padding: '2px 8px',
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                    title="Click to authorize demo extension days for this customer"
+                  >
+                    + Allow Extension
+                  </button>
+                )}
+              </div>
             )}
-            {s === 'demo' && (
-              <span className="adm-status-pill demo">
-                <Clock size={12} />
-                <span>Demo Trial</span>
-              </span>
-            )}
-            {(s === 'inactive' || s === 'suspended') && (
-              <span className="adm-status-pill inactive">
-                <XCircle size={12} />
-                <span>Inactive</span>
-              </span>
-            )}
-          </>
+          </div>
         );
       },
       searchType: 'select',
@@ -638,13 +719,26 @@ export default function CustomerSection({
       cell: (cust) => (
         <RowActionMenu
           module="customer"
-          onView={() => setSelectedCustomer(cust)}
-          onEdit={() => setEditingCustomer(cust)}
-          onPrint={() => {
-            generateCustomerPdf(cust);
-            toast.success(`PDF generated for ${cust.company || cust.name}`);
-          }}
-          onDelete={() => setDeletingCustomer(cust)}
+          items={[
+            { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
+            can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
+            can('customer', 'edit') && {
+              label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
+              icon: Clock,
+              tone: 'amber',
+              onClick: () => handleAuthorizeDemoExtension(cust)
+            },
+            {
+              label: 'Print (PDF)',
+              icon: Printer,
+              tone: 'green',
+              onClick: () => {
+                generateCustomerPdf(cust);
+                toast.success(`PDF generated for ${cust.company || cust.name}`);
+              }
+            },
+            can('customer', 'delete') && { label: 'Delete', icon: Trash2, tone: 'red', danger: true, divider: true, onClick: () => setDeletingCustomer(cust) }
+          ].filter(Boolean)}
         />
       )
     }

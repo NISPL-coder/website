@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Product, { getProductsFromFile, saveProductsToFile } from '../models/Product.js';
+import Product from '../models/Product.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
 import { redactRecords } from '../utils/columnPermissions.js';
@@ -97,24 +97,6 @@ export const getProducts = async (req, res) => {
       products = await Product.find(filter).sort({ users: 1, createdAt: -1 }).lean();
     }
 
-    if (!products || products.length === 0) {
-      let list = getProductsFromFile();
-      if (category && category !== 'all') {
-        list = list.filter((p) => p.category?.toLowerCase().includes(category.toLowerCase()));
-      }
-      if (provider && provider !== 'all') {
-        list = list.filter((p) => p.provider === provider);
-      }
-      if (status && status !== 'all') {
-        list = list.filter((p) => p.status === status);
-      }
-      if (available !== undefined && available !== '') {
-        const isAvail = available === 'true';
-        list = list.filter((p) => p.available === isAvail);
-      }
-      products = list;
-    }
-
     const visible = redactRecords(req.user, 'product', products);
     res.json({
       success: true,
@@ -151,9 +133,6 @@ export const createProduct = async (req, res) => {
     if (isMongoConnected()) {
       saved = await Product.create(newProductData);
     }
-
-    const list = getProductsFromFile();
-    saveProductsToFile([newProductData, ...list]);
 
     const ipNote = newProductData.ipAddress ? ` with IP ${newProductData.ipAddress}` : '';
 
@@ -209,12 +188,6 @@ export const updateProduct = async (req, res) => {
       ).lean();
     }
 
-    const list = getProductsFromFile();
-    const updatedList = list.map((p) =>
-      p.productId === id || p.id === id ? { ...p, ...updates } : p
-    );
-    saveProductsToFile(updatedList);
-
     await logActivity(req, {
       action: 'PRODUCT_UPDATED',
       category: 'product',
@@ -242,10 +215,6 @@ export const deleteProduct = async (req, res) => {
         $or: [{ productId: id }, { id }, { _id: mongoose.isValidObjectId(id) ? id : null }]
       });
     }
-
-    const list = getProductsFromFile();
-    const updatedList = list.filter((p) => p.productId !== id && p.id !== id);
-    saveProductsToFile(updatedList);
 
     await logActivity(req, {
       action: 'PRODUCT_DELETED',

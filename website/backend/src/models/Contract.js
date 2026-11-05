@@ -74,7 +74,7 @@ const contractSchema = new mongoose.Schema(
     },
     contractType: {
       type: String,
-      enum: ['Subscription', 'AMC'],
+      enum: ['Subscription', 'AMC', 'Trial'],
       default: 'Subscription'
     },
     subscriptionPeriod: {
@@ -83,7 +83,7 @@ const contractSchema = new mongoose.Schema(
     },
     productCategory: {
       type: String,
-      enum: ['Software', 'Service', 'Hardware'],
+      enum: ['Software', 'Service', 'Hardware', 'Trial'],
       default: 'Software'
     },
     totalContractValue: {
@@ -118,6 +118,22 @@ const contractSchema = new mongoose.Schema(
     description: {
       type: String,
       default: ''
+    },
+    isDemoTrial: {
+      type: Boolean,
+      default: false
+    },
+    extensionAllowed: {
+      type: Boolean,
+      default: false
+    },
+    extensionDays: {
+      type: Number,
+      default: 0
+    },
+    trialUsed: {
+      type: Boolean,
+      default: false
     },
     sangamCrm: {
       status: {

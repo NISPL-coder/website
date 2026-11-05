@@ -705,6 +705,29 @@ const collection = {
           }
         },
         {
+          name: "Authorize Customer Demo Trial Extension",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Accept", value: "application/json" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                additionalDays: 7,
+                notes: "Authorized by admin"
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/v1/customers/{{customerId}}/allow-demo-extension",
+              host: ["{{baseUrl}}"],
+              path: ["api", "v1", "customers", "{{customerId}}", "allow-demo-extension"]
+            },
+            description: "Admin endpoint to authorize additional trial days for a specific customer, permitting them to extend their time-boxed demo plan under the single demo plan policy."
+          }
+        },
+        {
           name: "Delete Customer Record",
           request: {
             method: "DELETE",
@@ -1055,6 +1078,65 @@ const collection = {
               path: ["api", "v1", "products"]
             },
             description: "Adds a new server tier or software package to the catalog."
+          }
+        },
+        {
+          name: "Create Custom Pricing Plan (Admin)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Accept", value: "application/json" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                name: "Custom CtrlS Cloud - 5 Users",
+                users: 5,
+                pricePerUser: 500,
+                serverType: "shared",
+                isCustomPlan: true,
+                provider: "ctrls-cloud",
+                category: "Infrastructure",
+                available: true,
+                description: "Custom pricing plan — 5 users at ₹500 per user per month (Shared Server)."
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/v1/products",
+              host: ["{{baseUrl}}"],
+              path: ["api", "v1", "products"]
+            },
+            description: "Admin endpoint to create a dynamic custom pricing plan (saved in MongoDB/JSON and shown dynamically in customer subscription selection)."
+          }
+        },
+        {
+          name: "Create Demo Pricing Plan (Admin)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Accept", value: "application/json" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                name: "Demo Trial - 7 Days",
+                duration: "7 Days",
+                priceAmount: 0,
+                isDemoPlan: true,
+                provider: "demo",
+                category: "Trial",
+                available: true,
+                description: "Demo Trial - 7 Days trial — free of charge."
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/v1/products",
+              host: ["{{baseUrl}}"],
+              path: ["api", "v1", "products"]
+            },
+            description: "Admin endpoint to create a time-boxed demo plan with custom duration (e.g. 7 Days, 14 Days, 1 Month) that users can activate for trial."
           }
         },
         {
@@ -1930,6 +2012,87 @@ const collection = {
                       ]
                     }
                   ]
+                }
+              }, null, 2)
+            }
+          ]
+        },
+        {
+          name: "Activate Customer Demo Trial (/dashboard/activate-demo)",
+          request: {
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "Accept", value: "application/json" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                customerEmail: "demo@gmail.com",
+                planName: "Demo Trial - 7 Days",
+                productId: "demo-7-days",
+                duration: "7 Days",
+                startDate: "2026-11-05",
+                endDate: "12-11-2026",
+                salesPerson: "Online Customer Portal"
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/v1/dashboard/activate-demo",
+              host: ["{{baseUrl}}"],
+              path: ["api", "v1", "dashboard", "activate-demo"]
+            },
+            description: "Activates a time-boxed demo plan configured by Admin for the selected customer. Creates an active trial contract record with the demo expiry date and updates customer data for the demo period only."
+          },
+          response: [
+            {
+              name: "201 Created - Demo Activated",
+              originalRequest: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "Authorization", value: "Bearer {{accessToken}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    customerEmail: "demo@gmail.com",
+                    planName: "Demo Trial - 7 Days",
+                    duration: "7 Days",
+                    salesPerson: "Online Customer Portal"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/activate-demo",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "activate-demo"]
+                }
+              },
+              status: "Created",
+              code: 201,
+              _postman_previewlanguage: "json",
+              header: [{ key: "Content-Type", value: "application/json" }],
+              cookie: [],
+              body: JSON.stringify({
+                success: true,
+                message: "Demo trial for Demo Trial - 7 Days activated until 12-11-2026!",
+                data: {
+                  contractId: "CTR-DEMO-7391",
+                  name: "Demo Trial - 7 Days",
+                  service: "Demo Trial - 7 Days",
+                  customer: "demo",
+                  company: "demo",
+                  email: "demo@gmail.com",
+                  contractType: "Trial",
+                  subscriptionPeriod: "7 Days",
+                  productCategory: "Trial",
+                  totalContractValue: "₹0",
+                  startDate: "2026-11-05",
+                  endDate: "12-11-2026",
+                  expiryDate: "12-11-2026",
+                  status: "Active",
+                  slaTier: "Demo Trial 99.99%"
                 }
               }, null, 2)
             }

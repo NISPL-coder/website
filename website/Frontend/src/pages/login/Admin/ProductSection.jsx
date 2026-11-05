@@ -23,6 +23,7 @@ import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { compactSelectStyles } from './reactSelectStyles';
 import AdminDataTable from './AdminDataTable';
 import CustomPricingPage from './CustomPricingPage';
+import DemoPlanModal from './DemoPlanModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
@@ -43,6 +44,7 @@ export default function ProductSection({ products, setProducts }) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
 
   const updateRoute = (cat, prov = null, view = null) => {
     const params = new URLSearchParams();
@@ -63,7 +65,13 @@ export default function ProductSection({ products, setProducts }) {
       badgeClass: 'positive',
       exploreText: 'Manage CtrlS Cloud',
       highlights: ['CtrlS Rated-4 Kolkata Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote'],
-      filter: (p) => p.provider === 'ctrls-cloud' || p.id?.startsWith('ctrls-')
+      filter: (p) =>
+        p.provider === 'ctrls-cloud' ||
+        p.id?.startsWith('ctrls-') ||
+        p.isDemoPlan === true ||
+        p.provider === 'demo' ||
+        p.category === 'Trial' ||
+        p.isCustomPlan === true
     }
   ];
 
@@ -140,6 +148,9 @@ export default function ProductSection({ products, setProducts }) {
 
       return matchesSearch && matchesAvailability;
     }).sort((a, b) => {
+      // Demo plans prioritized at top of admin listing
+      if (a.isDemoPlan && !b.isDemoPlan) return -1;
+      if (!a.isDemoPlan && b.isDemoPlan) return 1;
       // Numerical sort on users/tier if available, else date/id
       if (typeof a.users === 'number' && typeof b.users === 'number') {
         return a.users - b.users;
@@ -247,10 +258,10 @@ export default function ProductSection({ products, setProducts }) {
     {
       id: 'user',
       name: 'User',
-      selector: (row) => row.users || 1,
+      selector: (row) => (row.isDemoPlan ? 0 : row.users || 1),
       sortable: true,
-      sortFunction: compareNumber((row) => row.users || 1),
-      minWidth: '130px',
+      sortFunction: compareNumber((row) => (row.isDemoPlan ? 0 : row.users || 1)),
+      minWidth: '160px',
       cell: (prod) => (
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
           <span
@@ -260,7 +271,7 @@ export default function ProductSection({ products, setProducts }) {
               color: '#0f172a'
             }}
           >
-            {prod.tier || `${prod.users || 1} User`}
+            {prod.isDemoPlan ? prod.name : (prod.tier || `${prod.users || 1} User`)}
           </span>
           {prod.isCustomPlan && (
             <span
@@ -269,6 +280,22 @@ export default function ProductSection({ products, setProducts }) {
               title="Created with custom pricing"
             >
               Custom
+            </span>
+          )}
+          {prod.isDemoPlan && (
+            <span
+              className="adm-status-pill warning"
+              style={{
+                background: '#fef3c7',
+                color: '#b45309',
+                border: '1px solid #fde68a',
+                fontSize: '0.66rem',
+                padding: '2px 8px',
+                fontWeight: 700
+              }}
+              title="Demo Trial Plan"
+            >
+              Demo ({prod.duration || 'Trial'})
             </span>
           )}
         </div>
@@ -283,7 +310,10 @@ export default function ProductSection({ products, setProducts }) {
       minWidth: '260px',
       grow: 1.4,
       cell: (prod) => {
-        const configStr = prod.serverConfiguration || prod.userBadge || '2 core/3 GB/50 GB';
+        const configStr =
+          prod.serverConfiguration ||
+          prod.userBadge ||
+          (prod.isDemoPlan ? `Demo Trial · ${prod.duration || '7 Days'}` : '2 core/3 GB/50 GB');
         return (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
             <span
@@ -291,9 +321,9 @@ export default function ProductSection({ products, setProducts }) {
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                 fontWeight: 600,
                 fontSize: '0.85rem',
-                color: '#4338ca',
-                background: '#ede9fe',
-                border: '1px solid #c7d2fe',
+                color: prod.isDemoPlan ? '#059669' : '#4338ca',
+                background: prod.isDemoPlan ? '#ecfdf5' : '#ede9fe',
+                border: prod.isDemoPlan ? '1px solid #a7f3d0' : '1px solid #c7d2fe',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 letterSpacing: '0.2px'
@@ -316,8 +346,8 @@ export default function ProductSection({ products, setProducts }) {
         const ip = prod.ipAddress || (prod.specs?.find((s) => s.label?.toLowerCase().includes('ip'))?.value) || '';
         if (!ip) {
           return (
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
-              Unassigned
+            <span style={{ fontSize: '0.78rem', color: prod.isDemoPlan ? '#059669' : '#94a3b8', fontStyle: 'italic' }}>
+              {prod.isDemoPlan ? 'Dynamic Trial IP' : 'Unassigned'}
             </span>
           );
         }
@@ -371,10 +401,12 @@ export default function ProductSection({ products, setProducts }) {
       sortFunction: compareNumber((row) => (typeof row.price === 'number' ? row.price : parseInt(String(row.price).replace(/[^0-9]/g, ''), 10) || 0)),
       minWidth: '160px',
       cell: (prod) => (
-        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
-          {prod.price}
+        <div style={{ fontWeight: 700, color: prod.isDemoPlan ? '#059669' : '#0f172a', fontSize: '0.94rem' }}>
+          {prod.isDemoPlan && (prod.monthlyPrice === 0 || prod.price === 'FREE' || !prod.price)
+            ? 'FREE'
+            : prod.price}
           <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500 }}>
-            {' '}{prod.frequency || '/ month'}
+            {' '}{prod.isDemoPlan ? `(${prod.duration || 'Trial'})` : (prod.frequency || '/ month')}
           </span>
         </div>
       )
@@ -786,16 +818,28 @@ export default function ProductSection({ products, setProducts }) {
 
               {selectedCategory === 'cloud' &&
                 (can('product', 'create') || can('product', 'edit')) && (
-                  <button
-                    type="button"
-                    className="adm-btn-secondary"
-                    onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
-                    style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                    title="Open the custom pricing manager"
-                  >
-                    <Percent size={14} />
-                    <span>Custom Pricing</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="adm-btn-secondary"
+                      onClick={() => setDemoModalOpen(true)}
+                      style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                      title="Create or configure a free demo trial plan"
+                    >
+                      <Plus size={14} />
+                      <span>Demo Plan</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="adm-btn-secondary"
+                      onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
+                      style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                      title="Open the custom pricing manager"
+                    >
+                      <Percent size={14} />
+                      <span>Custom Pricing</span>
+                    </button>
+                  </>
                 )}
 
               {can('product', 'create') && (
@@ -883,6 +927,31 @@ export default function ProductSection({ products, setProducts }) {
             scrollHeight="600px"
           />
         </div>
+      )}
+
+      {/* Demo Plan Modal */}
+      {demoModalOpen && (
+        <DemoPlanModal
+          onClose={() => setDemoModalOpen(false)}
+          onSaved={(saved) => {
+            setProducts((prev) => {
+              const exists = prev.some(
+                (p) =>
+                  (p.id && p.id === saved.id) ||
+                  (p.productId && p.productId === saved.productId)
+              );
+              if (exists) {
+                return prev.map((p) =>
+                  (p.id && p.id === saved.id) ||
+                  (p.productId && p.productId === saved.productId)
+                    ? { ...p, ...saved }
+                    : p
+                );
+              }
+              return [saved, ...prev];
+            });
+          }}
+        />
       )}
     </>
   );

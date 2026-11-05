@@ -8,7 +8,8 @@ import {
   deleteCustomer,
   syncCustomerToSangam,
   importCompanies,
-  importContacts
+  importContacts,
+  allowDemoExtension
 } from '../controllers/customerController.js';
 
 const router = express.Router();
@@ -35,5 +36,8 @@ router.delete('/:id', requirePermission('customer', 'delete'), deleteCustomer);
 
 // POST /api/customers/:id/sync - Trigger or retry sync to Sangam CRM
 router.post('/:id/sync', requirePermission('customer', 'edit'), syncCustomerToSangam);
+
+// POST /api/customers/:id/allow-demo-extension - Authorize trial extension for specific customer
+router.post('/:id/allow-demo-extension', requirePermission('customer', 'edit'), allowDemoExtension);
 
 export default router;

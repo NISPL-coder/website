@@ -100,6 +100,18 @@ const customerSchema = new mongoose.Schema(
       default: 'active',
       index: true
     },
+    demoTrialUsed: {
+      type: Boolean,
+      default: false
+    },
+    demoExtensionAllowed: {
+      type: Boolean,
+      default: false
+    },
+    demoExtensionDays: {
+      type: Number,
+      default: 0
+    },
     registered: {
       type: String,
       default: () => new Date().toISOString().split('T')[0]

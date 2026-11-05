@@ -115,6 +115,29 @@ export const dashboardApi = {
     }
 
     return data.data;
+  },
+
+  /**
+   * Activate a demo trial plan for the customer account.
+   * Creates an active contract record in the database for the demo time period only.
+   */
+  async activateDemo(payload = {}) {
+    const token = authApi.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/activate-demo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : null)
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to activate demo trial.');
+    }
+
+    return data;
   }
 };
 

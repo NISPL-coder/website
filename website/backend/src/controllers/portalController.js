@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import Customer from '../models/Customer.js';
-import Contract from '../models/Contract.js';
+import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Payment from '../models/Payment.js';
 import Cart from '../models/Cart.js';
-import Product, { getProductsFromFile } from '../models/Product.js';
+import Product from '../models/Product.js';
 import { logNotification } from '../services/notificationService.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -123,7 +123,6 @@ const loadCatalogue = async () => {
   if (isMongoConnected()) {
     rows = await Product.find({}).lean().catch(() => []);
   }
-  if (!rows.length) rows = getProductsFromFile();
 
   const byKey = new Map();
   rows.forEach((row) => {
@@ -469,6 +468,21 @@ export const getCustomerOverview = async (req, res) => {
 
     products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
 
+    if (products.length === 0) {
+      const fileContracts = getContractsFromFile();
+      const identityLower = identity.map((i) => String(i).toLowerCase());
+      const matched = fileContracts.filter((c) => {
+        const cEmail = String(c.email || '').toLowerCase();
+        const cCustomer = String(c.customer || '').toLowerCase();
+        const cCompany = String(c.company || '').toLowerCase();
+        return identityLower.some((id) => id && (cEmail.includes(id) || cCustomer.includes(id) || cCompany.includes(id) || id.includes(cEmail)));
+      });
+      if (matched.length > 0) {
+        products = await Promise.all(matched.map(mapContract));
+        products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
+      }
+    }
+
     // The account record still names the subscribed plan, so an account with no
     // contract rows is not the same as an account with nothing running.
     if (products.length === 0 && customer?.plan) {
@@ -511,7 +525,10 @@ export const getCustomerOverview = async (req, res) => {
           status: customer?.status || null,
           serverNode: customer?.serverNode || null,
           gstNo: customer?.gstNo || null,
-          registered: customer?.registered || null
+          registered: customer?.registered || null,
+          demoTrialUsed: Boolean(customer?.demoTrialUsed),
+          demoExtensionAllowed: Boolean(customer?.demoExtensionAllowed),
+          demoExtensionDays: Number(customer?.demoExtensionDays || 0)
         },
         kpi: {
           activeProducts,
@@ -796,5 +813,219 @@ export const payPortalDues = async (req, res) => {
     console.error('Error recording customer payment:', err);
     const status = err.statusCode || (err.name === 'ValidationError' ? 400 : 500);
     res.status(status).json({ success: false, error: err.message });
+  }
+};
+
+export const activateCustomerDemo = async (req, res) => {
+  try {
+    const user = req.user || {};
+    const customer = await findAccountRecord(user);
+    const targetEmail = (req.body?.customerEmail || user?.email || customer?.email || '').trim();
+
+    if (!targetEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Customer email is required to activate a demo.'
+      });
+    }
+
+    const planName = String(req.body?.planName || 'Demo Trial').trim();
+    const duration = String(req.body?.duration || '7 Days').trim();
+    const startDate = String(req.body?.startDate || isoDate(new Date())).trim();
+    const endDate = String(req.body?.endDate || '').trim();
+    const salesPerson = String(req.body?.salesPerson || 'Online Customer Portal').trim();
+    const productId = String(req.body?.productId || 'demo-plan').trim();
+
+    // Derive end date if missing
+    let effectiveEndDate = endDate;
+    if (!effectiveEndDate) {
+      const start = toDate(startDate) || new Date();
+      const end = new Date(start.getTime());
+      const dur = duration.toLowerCase();
+      if (dur.includes('day')) {
+        const days = parseInt(dur.replace(/[^0-9]/g, ''), 10) || 7;
+        end.setDate(end.getDate() + days);
+      } else if (dur.includes('week')) {
+        const weeks = parseInt(dur.replace(/[^0-9]/g, ''), 10) || 1;
+        end.setDate(end.getDate() + weeks * 7);
+      } else if (dur.includes('year')) {
+        const years = parseInt(dur.replace(/[^0-9]/g, ''), 10) || 1;
+        end.setFullYear(end.getFullYear() + years);
+      } else {
+        const months = parseInt(dur.replace(/[^0-9]/g, ''), 10) || 1;
+        end.setMonth(end.getMonth() + months);
+      }
+      effectiveEndDate = isoDate(end);
+    }
+
+    let targetCustomer = customer;
+    if (isMongoConnected()) {
+      targetCustomer =
+        (await Customer.findOne({ email: new RegExp(`^${targetEmail}$`, 'i') })) ||
+        (await Customer.findOne({
+          $or: [{ email: targetEmail }, { customerId: targetEmail }]
+        })) ||
+        customer;
+    }
+
+    // Single demo plan policy: Check if customer has already used a demo trial once
+    let existingTrial = null;
+    if (isMongoConnected()) {
+      existingTrial = await Contract.findOne({
+        $and: [
+          {
+            $or: [
+              { email: new RegExp(`^${targetEmail}$`, 'i') },
+              { customer: targetEmail },
+              { accountName: targetEmail }
+            ]
+          },
+          {
+            $or: [
+              { contractType: 'Trial' },
+              { productCategory: 'Trial' },
+              { isDemoTrial: true }
+            ]
+          }
+        ]
+      });
+    }
+
+    const trialAlreadyUsed = Boolean(existingTrial || targetCustomer?.demoTrialUsed);
+
+    if (trialAlreadyUsed) {
+      // Check if admin has authorized an extension for this specific customer
+      const isExtensionAllowed = Boolean(
+        targetCustomer?.demoExtensionAllowed || existingTrial?.extensionAllowed
+      );
+
+      if (!isExtensionAllowed) {
+        return res.status(403).json({
+          success: false,
+          trialAlreadyUsed: true,
+          error:
+            'You have already used your free demo trial once. Extensions are only permitted if an administrator authorizes additional trial days for your account. Please contact NISPL support.'
+        });
+      }
+
+      // Admin has authorized an extension!
+      const additionalDays =
+        Number(targetCustomer?.demoExtensionDays || existingTrial?.extensionDays) || 7;
+
+      const baseDate =
+        existingTrial?.expiryDate && new Date(existingTrial.expiryDate) > new Date()
+          ? new Date(existingTrial.expiryDate)
+          : new Date();
+      baseDate.setDate(baseDate.getDate() + additionalDays);
+      const extendedEndDate = isoDate(baseDate);
+
+      if (existingTrial && isMongoConnected()) {
+        existingTrial.endDate = extendedEndDate;
+        existingTrial.expiryDate = extendedEndDate;
+        existingTrial.status = 'Active';
+        existingTrial.extensionAllowed = false; // consume authorization
+        existingTrial.extensionDays = 0;
+        existingTrial.description = `Demo trial extended by administrator authorization until ${extendedEndDate} (+${additionalDays} days).`;
+        await existingTrial.save();
+      }
+
+      if (targetCustomer && isMongoConnected()) {
+        targetCustomer.demoExtensionAllowed = false;
+        targetCustomer.demoExtensionDays = 0;
+        targetCustomer.plan = `${planName} (Trial Extended)`;
+        await targetCustomer.save();
+      }
+
+      await logNotification({
+        type: 'demo_extended',
+        title: 'Demo Plan Extended',
+        message: `Demo trial extended for ${targetEmail} until ${extendedEndDate} with administrator authorization (+${additionalDays} days).`,
+        severity: 'success',
+        entityType: 'contract',
+        entityId: existingTrial?.contractId || 'CTR-DEMO',
+        metadata: { email: targetEmail, extendedEndDate, additionalDays }
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: `Demo trial successfully extended until ${extendedEndDate} with administrator authorization!`,
+        data: existingTrial || { expiryDate: extendedEndDate, status: 'Active' }
+      });
+    }
+
+    const contractId = `CTR-DEMO-${Math.floor(1000 + Math.random() * 9000)}`;
+    const effectiveCompany = targetCustomer?.company || targetCustomer?.name || customer?.company || customer?.name || 'demo';
+    const effectiveCustomer = targetCustomer?.name || targetCustomer?.company || customer?.name || customer?.company || 'demo';
+
+    const newContractData = {
+      contractId,
+      id: contractId,
+      name: planName,
+      service: planName,
+      company: effectiveCompany,
+      customer: effectiveCustomer,
+      accountName: effectiveCompany,
+      email: targetEmail,
+      contractType: 'Trial',
+      subscriptionPeriod: duration,
+      productCategory: 'Trial',
+      isDemoTrial: true,
+      trialUsed: true,
+      extensionAllowed: false,
+      extensionDays: 0,
+      totalContractValue: '₹0',
+      value: '₹0',
+      startDate,
+      endDate: effectiveEndDate,
+      expiryDate: effectiveEndDate,
+      status: 'Active',
+      slaTier: 'Demo Trial 99.99%',
+      description: `Active ${planName} trial for ${duration} (valid until ${effectiveEndDate}).`,
+      salesPerson
+    };
+
+    let savedContract = newContractData;
+    if (isMongoConnected()) {
+      savedContract = await Contract.create(newContractData);
+      if (targetCustomer) {
+        await Customer.findOneAndUpdate(
+          { _id: targetCustomer._id },
+          {
+            $set: {
+              plan: `${planName} (Trial)`,
+              demoTrialUsed: true,
+              demoExtensionAllowed: false,
+              demoExtensionDays: 0
+            }
+          }
+        );
+      }
+    }
+
+    try {
+      const existing = getContractsFromFile();
+      saveContractsToFile([newContractData, ...existing]);
+    } catch (e) {
+      console.warn('Could not save contract to file:', e.message);
+    }
+
+    await logNotification({
+      type: 'demo_activated',
+      title: 'Demo Plan Activated',
+      message: `${planName} demo activated for ${targetEmail} (${duration}). Valid until ${effectiveEndDate}.`,
+      severity: 'success',
+      entityType: 'contract',
+      entityId: contractId,
+      metadata: newContractData
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Demo trial for ${planName} activated until ${effectiveEndDate}!`,
+      data: savedContract
+    });
+  } catch (err) {
+    console.error('Error activating customer demo:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };

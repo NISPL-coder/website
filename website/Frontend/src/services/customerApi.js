@@ -217,6 +217,33 @@ export const customerApi = {
   },
 
   /**
+   * Authorize demo trial extension for a specific customer
+   * @param {string} customerId
+   * @param {number} additionalDays
+   */
+  async allowDemoExtension(customerId, additionalDays = 7) {
+    const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(customerId)}/allow-demo-extension`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({ additionalDays })
+    });
+    authApi._handleRefreshedToken(res);
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to authorize demo extension.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || data.message || 'Failed to authorize demo extension.');
+    }
+
+    return data;
+  },
+
+  /**
    * Helper to build deep link to the Company record inside Sangam CRM
    * @param {string} recordId
    */
