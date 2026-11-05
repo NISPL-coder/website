@@ -208,7 +208,22 @@ export default function ProductsSection({
       finalPrice: pricing.finalPrice || product.finalPrice,
       category: product.categoryLabel || product.category,
       billingCycle: product.billingCycle || product.duration,
-      quantity: 1
+      // One cart line is one purchase; the units and term it covers travel
+      // beside it so the total is never counted twice.
+      quantity: 1,
+      planId: product.productId,
+      planName: product.planName,
+      product: product.product,
+      unitPrice: product.unitPrice,
+      planQuantity: product.quantity || 1,
+      duration: product.duration,
+      durationMonths: product.durationMonths,
+      startDate: product.startDate,
+      endDate: product.endDate,
+      description: product.description,
+      salesPerson: product.salesPerson,
+      users: product.users,
+      serverConfiguration: product.serverConfiguration
     });
 
     setJustAddedId(product.id);

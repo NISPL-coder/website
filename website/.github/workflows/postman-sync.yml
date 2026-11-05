@@ -6,15 +6,17 @@ on:
       - debasish_dev
       - main
     paths:
-      - 'website/Backend/generatePostmanCollection.js'
-      - 'website/backend/generatePostmanCollection.js'
-      - 'Backend/generatePostmanCollection.js'
-      - 'backend/generatePostmanCollection.js'
-      - '.github/workflows/postman-sync.yml'
+      - 'website/Backend/**'
+      - 'website/backend/**'
+      - 'Backend/**'
+      - 'backend/**'
+      - '.github/workflows/**'
+      - '**.json'
   workflow_dispatch:
 
 jobs:
   update-postman:
+    name: Generate & Sync Postman Collection
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -23,35 +25,40 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Locate Backend and Generate Postman JSON
-        id: postman-gen
+      - name: Locate Backend and Generate Collection
+        id: locate
         run: |
-          if [ -d "./website/Backend" ]; then
-            TARGET_DIR="./website/Backend"
-          elif [ -d "./website/backend" ]; then
+          if [ -d "./website/backend" ]; then
             TARGET_DIR="./website/backend"
-          elif [ -d "./Backend" ]; then
-            TARGET_DIR="./Backend"
+          elif [ -d "./website/Backend" ]; then
+            TARGET_DIR="./website/Backend"
           elif [ -d "./backend" ]; then
             TARGET_DIR="./backend"
+          elif [ -d "./Backend" ]; then
+            TARGET_DIR="./Backend"
           else
-            echo "Error: Backend directory not found"
+            echo "::error::Backend directory not found"
             exit 1
           fi
-          echo "target_dir=$TARGET_DIR" >> $GITHUB_OUTPUT
+          echo "target_dir=$TARGET_DIR" >> "$GITHUB_OUTPUT"
+          echo "Working in directory: $TARGET_DIR"
           cd "$TARGET_DIR"
           node generatePostmanCollection.js
-          jq '{collection: .}' NISPL_API_Postman_Collection.json > payload.json
 
-      - name: Push to Postman API
+      - name: Push Collection to Postman Cloud API
         run: |
-          TARGET_DIR="${{ steps.postman-gen.outputs.target_dir }}"
+          TARGET_DIR="${{ steps.locate.outputs.target_dir }}"
           cd "$TARGET_DIR"
-          echo "Sending payload to Postman API..."
-          curl -w "\nHTTP Status: %{http_code}\n" --location --request PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}" \
-          --header "X-API-Key: ${{ secrets.POSTMAN_API_KEY }}" \
-          --header "Content-Type: application/json" \
-          --data-binary "@payload.json"
-
+          
+          # Default to NISPL collection UID if secret is not set
+          COLLECTION_UID="${{ secrets.POSTMAN_COLLECTION_UID }}"
+          if [ -z "$COLLECTION_UID" ]; then
+            COLLECTION_UID="59177886-869e0ccc-64e7-47df-b673-4c83772dd1d8"
+          fi
+          
+          export POSTMAN_API_KEY="${{ secrets.POSTMAN_API_KEY }}"
+          export POSTMAN_COLLECTION_UID="$COLLECTION_UID"
+          
+          node scripts/sync-postman.mjs

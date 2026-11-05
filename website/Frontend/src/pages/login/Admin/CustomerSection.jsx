@@ -41,7 +41,8 @@ export default function CustomerSection({
   customers,
   setCustomers,
   customerStats,
-  setCustomerStats
+  setCustomerStats,
+  receipts = []
 }) {
   const navigate = useNavigate();
   const { can, visibleColumns } = usePermissions();
@@ -931,6 +932,7 @@ export default function CustomerSection({
           setEditingCustomer(cust);
         }}
         onRetrySync={handleRetrySync}
+        receipts={receipts}
         isSyncing={selectedCustomer ? !!syncingIds[selectedCustomer.id || selectedCustomer.customerId] : false}
       />
 

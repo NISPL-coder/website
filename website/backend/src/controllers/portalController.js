@@ -599,21 +599,30 @@ const buildReceiptLine = (item, product) => {
   const lineBase = basePrice * quantity;
 
   return {
-    productId: product?.productId || item.productId || '',
+    productId: product?.productId || item.planId || item.productId || '',
     name: product?.name || item.name || 'Plan',
     sku: product?.sku || item.sku || product?.productId || '',
     category: product?.category || item.category || '',
     provider: product?.provider || '',
-    users: roundMoney(product?.users) || 0,
-    serverConfiguration: product?.serverConfiguration || '',
+    users: roundMoney(item.users) || roundMoney(product?.users) || 0,
+    serverConfiguration: item.serverConfiguration || product?.serverConfiguration || '',
     cores: product?.cores || '',
     ram: product?.ram || '',
     storage: product?.storage || '',
-    billingCycle: item.billingCycle || product?.frequency || '',
+    billingCycle: item.billingCycle || item.duration || product?.frequency || '',
     quantity,
     basePrice,
     gstAmount: roundMoney(lineBase * GST_RATE),
-    finalPrice: roundMoney(lineBase * (1 + GST_RATE))
+    finalPrice: roundMoney(lineBase * (1 + GST_RATE)),
+
+    // What the subscription form actually showed when this was quoted: the
+    // price of one unit, how many were bought and the term they cover.
+    unitPrice: roundMoney(item.unitPrice),
+    planQuantity: Math.min(Math.max(roundMoney(item.planQuantity) || 1, 1), MAX_LINE_QUANTITY),
+    durationMonths: Math.max(roundMoney(item.durationMonths), 0),
+    startDate: String(item.startDate || '').slice(0, 20),
+    endDate: String(item.endDate || '').slice(0, 20),
+    description: String(item.description || product?.description || '').slice(0, 500)
   };
 };
 
@@ -865,7 +874,9 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
 
   const lines = await Promise.all(
     cart.items.map(async (item) => {
-      const product = await findCatalogueRow(item.productId || item.sku || item.name);
+      // A subscription line keeps its own catalogue id, because the cart line id
+      // is unique per purchase so two terms of one plan stay two separate lines.
+      const product = await findCatalogueRow(item.planId || item.productId || item.sku || item.name);
       const line = buildReceiptLine(item, product);
       if (!product) line.name = await resolveDisplayName(item.name, 'Plan');
       return line;
@@ -882,6 +893,9 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   const subtotal = lines.reduce((sum, line) => sum + line.basePrice * line.quantity, 0);
   const gst = roundMoney(subtotal * GST_RATE);
   const total = subtotal + gst;
+  // Whoever sold the plan is entered on the subscription form, so the first
+  // named sales person on the cart is the one credited for the payment.
+  const salesPerson = cart.items.map((item) => item.salesPerson).find(Boolean) || '';
 
   return {
     mode: 'cart',
@@ -894,6 +908,7 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
       subtotal,
       gst,
       total,
+      salesPerson,
       gstBasis: `GST added at ${GST_RATE * 100}% on the quoted subtotal`
     }
   };
@@ -990,6 +1005,7 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
     total: snapshot.total,
     label: snapshot.label,
     lines: snapshot.lines,
+    salesPerson: snapshot.salesPerson || '',
     subtotal: snapshot.subtotal,
     gst: snapshot.gst,
     gstBasis: snapshot.gstBasis

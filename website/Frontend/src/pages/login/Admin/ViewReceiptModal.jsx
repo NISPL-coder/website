@@ -100,6 +100,7 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
   const showSales = canSeeColumn('receipt', 'salesPerson');
   const showTax = canSeeColumn('receipt', 'taxAmount') || canSeeColumn('receipt', 'baseAmount');
   const showChannel = canSeeColumn('receipt', 'mode');
+  const showTerm = canSeeColumn('receipt', 'term');
 
   const customer = receipt.customer || {};
   const product = receipt.product || {};
@@ -272,6 +273,7 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                   <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Product</th>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Configuration</th>
+                    <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Term</th>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>
                       Taxable
                     </th>
@@ -299,9 +301,29 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                         ]
                           .filter(Boolean)
                           .join(' • ') || '—'}
+                        {item.unitPrice > 0 ? (
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {`${item.planQuantity || 1} × ${inr(item.unitPrice)}`}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td style={{ padding: '10px 12px', color: '#475569', verticalAlign: 'top' }}>
+                        {item.durationMonths
+                          ? `${item.durationMonths} months`
+                          : item.billingCycle || '—'}
+                        {item.startDate || item.endDate ? (
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {[item.startDate, item.endDate].filter(Boolean).join(' → ')}
+                          </div>
+                        ) : null}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', color: '#475569' }}>
-                        {inr(item.basePrice)} × {item.quantity || 1}
+                        {inr((Number(item.basePrice) || 0) * (item.quantity || 1))}
+                        {(item.quantity || 1) > 1 ? (
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {`${inr(item.basePrice)} × ${item.quantity}`}
+                          </div>
+                        ) : null}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
                         {inr(item.finalPrice)}
@@ -310,7 +332,7 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                   ))}
                   {!items.length && (
                     <tr>
-                      <td colSpan={4} style={{ padding: '12px', color: '#64748b' }}>
+                      <td colSpan={5} style={{ padding: '12px', color: '#64748b' }}>
                         No product line was recorded against this payment.
                       </td>
                     </tr>
@@ -383,6 +405,38 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                   <Field label="Expiry date" value={text(contract.endDate)} />
                   <Field label="Contract value" value={text(contract.value)} />
                   <Field label="SLA tier" value={text(contract.slaTier)} />
+                  {showSales ? <Field label="Sales person" value={text(receipt.salesPerson)} /> : null}
+                  {receipt.contractLink ? (
+                    <p
+                      style={{
+                        gridColumn: '1 / -1',
+                        margin: 0,
+                        fontSize: '0.74rem',
+                        color: '#94a3b8'
+                      }}
+                    >
+                      {receipt.contractLink}
+                    </p>
+                  ) : null}
+                </>
+              ) : showTerm && receipt.term ? (
+                <>
+                  <Field
+                    label="Purchased term"
+                    value={text(
+                      [
+                        receipt.term.period,
+                        receipt.term.months ? `${receipt.term.months} months` : ''
+                      ]
+                        .filter(Boolean)
+                        .join(' • ')
+                    )}
+                  />
+                  <Field label="Start date" value={text(receipt.term.startDate)} />
+                  <Field label="End date" value={text(receipt.term.endDate)} />
+                  {receipt.term.description ? (
+                    <Field label="Description" value={receipt.term.description} />
+                  ) : null}
                   {showSales ? <Field label="Sales person" value={text(receipt.salesPerson)} /> : null}
                 </>
               ) : (

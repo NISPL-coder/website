@@ -45,6 +45,38 @@ async function resolveAccount(req) {
 
 const round = (value) => Math.round(Number(value) || 0);
 
+const text = (value, max = 200) => String(value ?? '').trim().slice(0, max);
+
+// Only a real ISO day is stored; anything else is dropped rather than guessed,
+// so a receipt can never show a date the ledger cannot parse.
+const isoDay = (value) => {
+  const raw = text(value, 20);
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+};
+
+/**
+ * What the New Subscription form actually collected. These travel with the
+ * cart line so the payment written at settlement describes the purchase as it
+ * was made, not as the catalogue reads on the day the receipt is opened.
+ */
+function subscriptionDetails(body = {}) {
+  return {
+    planId: text(body.planId),
+    planName: text(body.planName),
+    product: text(body.product),
+    unitPrice: Math.max(round(body.unitPrice), 0),
+    planQuantity: Math.min(Math.max(round(body.planQuantity) || 1, 1), MAX_LINE_QUANTITY),
+    duration: text(body.duration, 60),
+    durationMonths: Math.max(round(body.durationMonths), 0),
+    startDate: isoDay(body.startDate),
+    endDate: isoDay(body.endDate),
+    description: text(body.description, 500),
+    salesPerson: text(body.salesPerson, 120),
+    users: Math.max(round(body.users), 0),
+    serverConfiguration: text(body.serverConfiguration, 120)
+  };
+}
+
 function withTotals(cart) {
   const items = (cart?.items || []).map((item) => ({
     id: item.productId,
@@ -56,7 +88,20 @@ function withTotals(cart) {
     sku: item.sku,
     category: item.category,
     billingCycle: item.billingCycle,
-    image: item.image
+    image: item.image,
+    planId: item.planId,
+    planName: item.planName,
+    product: item.product,
+    unitPrice: item.unitPrice,
+    planQuantity: item.planQuantity,
+    duration: item.duration,
+    durationMonths: item.durationMonths,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    description: item.description,
+    salesPerson: item.salesPerson,
+    users: item.users,
+    serverConfiguration: item.serverConfiguration
   }));
 
   const subtotal = round(items.reduce((sum, item) => sum + item.basePrice * item.quantity, 0));
@@ -95,6 +140,7 @@ export async function getCart(req, res) {
  */
 export async function addItem(req, res) {
   const sessionId = resolveSessionId(req);
+  const body = req.body || {};
   const {
     id,
     name,
@@ -104,7 +150,7 @@ export async function addItem(req, res) {
     category = '',
     billingCycle = '',
     image = ''
-  } = req.body || {};
+  } = body;
 
   if (!id || !name) throw new HttpError(400, 'Product id and name are required.');
 
@@ -112,6 +158,7 @@ export async function addItem(req, res) {
   if (unitPrice < 0) throw new HttpError(400, 'Product price is invalid.');
 
   const requestedQty = Math.min(Math.max(round(quantity) || 1, 1), MAX_LINE_QUANTITY);
+  const details = subscriptionDetails({ ...body, planId: body.planId || body.productId });
 
   const cart = (await loadCart(sessionId)) || new Cart({ sessionId });
   const account = await resolveAccount(req);
@@ -125,6 +172,7 @@ export async function addItem(req, res) {
     existing.finalPrice = round(unitPrice * (1 + GST_RATE));
     if (billingCycle) existing.billingCycle = String(billingCycle);
     if (category) existing.category = String(category);
+    Object.assign(existing, details);
   } else {
     cart.items.push({
       productId: String(id),
@@ -135,7 +183,8 @@ export async function addItem(req, res) {
       sku: String(sku),
       category: String(category),
       billingCycle: String(billingCycle),
-      image: String(image)
+      image: String(image),
+      ...details
     });
   }
 

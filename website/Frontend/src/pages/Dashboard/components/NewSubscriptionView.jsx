@@ -123,6 +123,15 @@ const getTodayDateString = () => {
   return `${y}-${m}-${d}`;
 };
 
+// The End Date field is shown as DD-MM-YYYY; everything leaving this form is
+// an ISO day so the ledger and the contract dates stay sortable.
+const toIsoDate = (value) => {
+  const raw = String(value || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const parts = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  return parts ? `${parts[3]}-${parts[2]}-${parts[1]}` : '';
+};
+
 // Helper: Auto calculate end date (DD-MM-YYYY) from start date (YYYY-MM-DD) and duration (months)
 const calculateEndDate = (startStr, months) => {
   if (!startStr || !months) return '';
@@ -611,7 +620,7 @@ export default function NewSubscriptionView({
           productId: selectedPlan.id,
           duration: selectedPlan.duration || '7 Days',
           startDate,
-          endDate,
+          endDate: toIsoDate(endDate),
           salesPerson
         });
 
@@ -650,17 +659,21 @@ export default function NewSubscriptionView({
         planName: planLabel,
         product,
         price: amount,
+        // The line total for the whole term, before GST. The cart counts this
+        // as one purchase, so the units and months live beside it, not in it.
         basePrice: amount,
+        unitPrice: Number(unitPrice) || 0,
         customerEmail: selectedCustomer,
         salesPerson,
         quantity: Number(quantity) || 1,
         users: selectedPlan.users,
         serverConfiguration: selectedPlan.serverConfiguration,
+        description,
         period: selectedDuration.label,
         duration: selectedDuration.label,
         durationMonths: selectedDuration.months,
         startDate,
-        endDate
+        endDate: toIsoDate(endDate)
       });
       toast.success(`Subscription for ${planLabel} (${selectedDuration.label}) added to cart!`);
       if (onGoToCart) {

@@ -40,12 +40,12 @@ export const paymentApi = {
   async getReceipts() {
     try {
       const res = await fetch(`${BASE_URL}/receipts`, { headers: getHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          return data.data;
-        }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && Array.isArray(data.data)) {
+        return data.data;
       }
+      // A 404 here means the backend is an older build than this page.
+      console.warn(`[paymentApi] Receipts unavailable (HTTP ${res.status}).`, data.error || '');
     } catch (err) {
       console.warn('[paymentApi] Error fetching receipts:', err);
     }

@@ -33,6 +33,9 @@ const searchBlob = (row) =>
     row.customer?.email,
     row.productName,
     row.product?.sku,
+    row.contract?.id,
+    row.contract?.name,
+    row.term?.period,
     row.salesPerson,
     row.paymentMode,
     row.status
@@ -155,18 +158,30 @@ export default function ReceiptSection({ receipts }) {
     {
       id: 'contract',
       name: 'Subscription',
-      selector: (row) => row.contract?.id,
+      selector: (row) => row.contract?.id || row.term?.period || '',
       sortable: true,
-      sortFunction: compareText((row) => row.contract?.id),
+      sortFunction: compareText((row) => row.contract?.id || row.term?.period || ''),
       minWidth: '150px',
       cell: (r) =>
         r.contract ? (
-          <div>
+          <div title={r.contractLink || undefined}>
             <div style={{ fontFamily: 'monospace', fontSize: '0.76rem', fontWeight: 700, color: '#6366f1' }}>
               {r.contract.id}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
               {[r.contract.type, r.contract.subscriptionPeriod].filter(Boolean).join(' • ')}
+            </div>
+          </div>
+        ) : r.term ? (
+          // A portal purchase settles without a Contract row, but the payment
+          // itself says what term was bought — that is what the admin needs.
+          <div title="No contract record for this payment">
+            <div style={{ fontWeight: 600, fontSize: '0.78rem' }}>
+              {[r.term.period, r.term.months ? `${r.term.months} months` : ''].filter(Boolean).join(' • ') ||
+                'Term recorded'}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              {[r.term.startDate, r.term.endDate].filter(Boolean).join(' → ') || 'No contract on record'}
             </div>
           </div>
         ) : (

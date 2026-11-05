@@ -73,7 +73,9 @@ export const cartApi = {
   },
 
   /**
-   * Add a product or add-on to the cart
+   * Add a product or add-on to the cart. A subscription line carries the whole
+   * form with it — units, term, dates, description and the sales person — so
+   * the ledger can be written from the cart at settlement without re-asking.
    */
   async addToCart(item) {
     try {
@@ -88,7 +90,20 @@ export const cartApi = {
           sku: item.sku,
           category: item.category,
           billingCycle: item.billingCycle,
-          image: item.image
+          image: item.image,
+          planId: item.planId || item.productId,
+          planName: item.planName,
+          product: item.product,
+          unitPrice: item.unitPrice,
+          planQuantity: item.planQuantity || item.quantity,
+          duration: item.duration,
+          durationMonths: item.durationMonths,
+          startDate: item.startDate,
+          endDate: item.endDate,
+          description: item.description,
+          salesPerson: item.salesPerson,
+          users: item.users,
+          serverConfiguration: item.serverConfiguration
         })
       });
 

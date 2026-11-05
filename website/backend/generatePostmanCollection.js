@@ -7,10 +7,12 @@ const __dirname = path.dirname(__filename);
 
 const collection = {
   info: {
-    _postman_id: "nispl-backend-api-v3-collection",
+    _postman_id: "869e0ccc-64e7-47df-b673-4c83772dd1d8",
     name: "NISPL Cloud Tech - Structured API Collection",
     description: "Structured Postman API Collection for Net Infotech System (NISPL) Enterprise Platform.\nOrganized into dedicated personas: Admin Portal, Customer Portal, and System & Health services.\nAll endpoints are verified against active frontend services and backend routes. Automated sync enabled.",
-    schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    _exporter_id: "59177886",
+    _collection_link: "https://go.postman.co/collection/59177886-869e0ccc-64e7-47df-b673-4c83772dd1d8?source=collection_link"
   },
   auth: {
     type: "bearer",
@@ -1797,16 +1799,19 @@ const collection = {
   ]
 };
 
-// Write collection to both project root and Backend folder
+// Write collection to project root, Backend folder, and exported collection path
 const rootPath = path.resolve(__dirname, '../NISPL_API_Postman_Collection.json');
 const backendPath = path.resolve(__dirname, './NISPL_API_Postman_Collection.json');
+const exportedPath = path.resolve(__dirname, './NISPL Cloud Tech - Structured API Collection.postman_collection.json');
 
 fs.writeFileSync(rootPath, JSON.stringify(collection, null, 2), 'utf-8');
 fs.writeFileSync(backendPath, JSON.stringify(collection, null, 2), 'utf-8');
+fs.writeFileSync(exportedPath, JSON.stringify(collection, null, 2), 'utf-8');
 
 console.log('Successfully generated Postman Collection v2.1.0 JSON:');
 console.log('  1. ' + rootPath);
 console.log('  2. ' + backendPath);
+console.log('  3. ' + exportedPath);
 
 
 let totalReqs = 0;

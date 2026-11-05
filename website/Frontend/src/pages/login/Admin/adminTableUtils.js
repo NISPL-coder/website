@@ -125,3 +125,35 @@ export function toReceiptPdfRow(receipt) {
     sacCode: receipt.product?.category || ''
   };
 }
+
+/**
+ * Payments a customer account has actually made, taken from the receipt
+ * payload where the server already resolved the identity. Newest first.
+ * @param {Array<object>} receipts
+ * @param {object} customer
+ */
+export function receiptsForCustomer(receipts, customer) {
+  const keys = new Set(
+    [
+      customer?.customerId,
+      customer?.id,
+      customer?.company,
+      customer?.name,
+      customer?.email,
+      customer?.loginEmail
+    ]
+      .map((value) => String(value ?? '').trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  if (!keys.size) return [];
+
+  return (receipts || [])
+    .filter((receipt) => {
+      const party = receipt.customer || {};
+      return [party.customerId, party.company, party.name, party.email]
+        .map((value) => String(value ?? '').trim().toLowerCase())
+        .some((value) => value && keys.has(value));
+    })
+    .sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
+}

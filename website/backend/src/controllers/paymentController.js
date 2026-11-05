@@ -92,6 +92,7 @@ const gstSplit = (row, total) => {
 const loadReceiptContext = async (rows) => {
   const context = {
     contracts: [],
+    linkable: [],
     contractById: new Map(),
     customerByKey: new Map(),
     catalogue: new Map()
@@ -105,6 +106,7 @@ const loadReceiptContext = async (rows) => {
   ]);
 
   context.contracts = contracts;
+  context.linkable = buildContractLinkIndex(contracts);
   customers.forEach((c) => addLink(context.customerByKey, [c.email, c.loginEmail, c.customerId, c.company, c.name], c));
   contracts.forEach((c) => addLink(context.contractById, [c.contractId, c.id], c));
 
@@ -118,7 +120,11 @@ const loadReceiptContext = async (rows) => {
       if (key) termKeys.add(key);
     });
 
-  rows.forEach((row) => collectTerms([row.solutionCategory, row.productName, row.service, row.contractId]));
+  rows.forEach((row) =>
+    [row.solutionCategory, row.productName, row.service, row.contractId].forEach((value) =>
+      collectTerms(labelVariants(value))
+    )
+  );
   contracts.forEach((c) => collectTerms([c.productId, c.name, c.service, c.productCategory]));
 
   for (const key of termKeys) {
@@ -129,32 +135,139 @@ const loadReceiptContext = async (rows) => {
   return context;
 };
 
-const matchContract = (row, context) => {
+const matchCustomer = (row, context) =>
+  findLink(context.customerByKey, [row.email, row.customerId, row.company, row.customer, row.accountName]);
+
+// Words that appear in nearly every plan name carry no identifying weight, so
+// they are dropped before two product descriptions are compared.
+const WORD_STOP = new Set([
+  'on', 'and', 'for', 'the', 'of', 'in', 'with', 'to', 'a', 'an', 'at', 'by',
+  'service', 'services', 'plan', 'plans', 'package', 'packages', 'solution', 'solutions'
+]);
+
+const words = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word && !WORD_STOP.has(word) && !/^\d+$/.test(word))
+    .map((word) => (word.length > 3 && word.endsWith('s') ? word.slice(0, -1) : word));
+
+const dayValue = (iso) => (iso ? Date.parse(`${iso}T00:00:00Z`) : NaN);
+
+// Every signal a payment can be matched on is read off the contract once per
+// request instead of once per payment row.
+const buildContractLinkIndex = (contracts) =>
+  contracts.map((contract) => ({
+    contract,
+    email: norm(contract.email),
+    company: norm(contract.company),
+    customer: norm(contract.customer),
+    words: [contract.name, contract.service, contract.productId, contract.productCategory].flatMap(words),
+    startDay: dayValue(isoDay(contract.startDate)),
+    endDay: dayValue(isoDay(contract.expiryDate, contract.endDate)),
+    value: parseAmount(contract.totalContractValue || contract.value)
+  }));
+
+/**
+ * A payment names its account and its product in prose and stores no contract
+ * code, so the subscription it settled is scored rather than guessed on one
+ * field. The account always has to match; the product wording, the payment date
+ * falling inside the contract term, the contract value and being the account's
+ * only contract each add confidence. Below the threshold the receipt says the
+ * payment is unlinked instead of attaching a plausible-looking contract.
+ */
+const linkContract = (row, context) => {
   if (row.contractId) {
-    const hit = findLink(context.contractById, [row.contractId]);
+    const exact = findLink(context.contractById, [row.contractId]);
+    if (exact) return { contract: exact, basis: 'Contract code recorded on this payment' };
+  }
+
+  const rowEmail = norm(row.email);
+  const rowCompany = norm(row.company || row.accountName);
+  const rowCustomer = norm(row.customer);
+  const rowWords = [row.solutionCategory, row.productName, row.service].flatMap(words);
+  const invoice = dayValue(isoDay(row.invoiceDate, row.date, row.createdAt));
+  const amount = parseAmount(row.amount);
+  const candidates = [];
+
+  for (const entry of context.linkable) {
+    const signals = [];
+    if (rowEmail && entry.email === rowEmail) signals.push('email');
+    if (rowCompany && entry.company === rowCompany) signals.push('firm');
+    if (rowCustomer && (entry.customer === rowCustomer || entry.company === rowCustomer)) {
+      signals.push('client');
+    }
+    if (!signals.length) continue;
+
+    let score = 3;
+
+    const termOverlap = rowWords.filter((word) => entry.words.includes(word)).length;
+    if (termOverlap) {
+      score += Math.min(termOverlap, 3);
+      signals.push('product');
+    }
+
+    if (
+      Number.isFinite(invoice) &&
+      Number.isFinite(entry.startDay) &&
+      Number.isFinite(entry.endDay) &&
+      invoice >= entry.startDay &&
+      invoice <= entry.endDay
+    ) {
+      score += 2;
+      signals.push('term dates');
+    }
+
+    if (amount && entry.value && Math.abs(amount - entry.value) <= 1) {
+      score += 2;
+      signals.push('contract value');
+    }
+
+    candidates.push({ contract: entry.contract, score, signals });
+  }
+
+  if (candidates.length === 1) {
+    candidates[0].score += 2;
+    candidates[0].signals.push('sole contract for this account');
+  }
+
+  const best = candidates.reduce((top, item) => (!top || item.score > top.score ? item : top), null);
+  if (!best || best.score < 5) return { contract: null, basis: '' };
+
+  return { contract: best.contract, basis: `Matched on ${best.signals.join(', ')}` };
+};
+
+/**
+ * The ledger writes a charge as prose — "Cloud Services - 2 User (3 Core/3 GB/50 GB SSD)
+ * (1 Month)" — while the catalogue stores the plan itself, so a label is
+ * retried without its duration suffix and without the plan segment before it
+ * is called unmatched.
+ */
+const labelVariants = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  const withoutDuration = raw.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const head = raw.split(/\s+-\s+/)[0].trim();
+  return [...new Set([raw, withoutDuration, head].filter(Boolean))];
+};
+
+const lookupProduct = (label, context) => {
+  for (const variant of labelVariants(label)) {
+    const hit = context.catalogue.get(norm(variant));
     if (hit) return hit;
   }
-
-  // Without a stored link the only honest match is the one that names the same
-  // product under the same account; anything looser would guess.
-  const accountKeys = [row.email, row.company, row.customer, row.accountName]
-    .map(norm)
-    .filter(Boolean);
-  const termKeys = [row.solutionCategory, row.productName, row.service].map(norm).filter(Boolean);
-
-  for (const contract of context.contracts) {
-    const contractAccounts = [contract.email, contract.company, contract.customer].map(norm).filter(Boolean);
-    const contractTerms = [contract.name, contract.service, contract.productId].map(norm).filter(Boolean);
-    const sameAccount = accountKeys.some((k) => contractAccounts.includes(k));
-    const sameTerm = termKeys.some((k) => contractTerms.includes(k));
-    if (sameAccount && sameTerm) return contract;
-  }
-
   return null;
 };
 
-const matchCustomer = (row, context) =>
-  findLink(context.customerByKey, [row.email, row.customerId, row.company, row.customer, row.accountName]);
+// Specs copied onto the payment line at settlement win; whatever the line does
+// not carry is filled from the catalogue row the label resolves to.
+const fillProduct = (recorded, found) => {
+  const merged = fromProduct(found);
+  Object.entries(fromProduct(recorded)).forEach(([key, value]) => {
+    if (value !== '' && value !== 0) merged[key] = value;
+  });
+  return merged;
+};
 
 const fromProduct = (product) => ({
   productId: product?.productId || product?.id || '',
@@ -168,13 +281,30 @@ const fromProduct = (product) => ({
   storage: product?.storage || ''
 });
 
+/**
+ * The purchased term is written on the receipt line, so the header reports the
+ * first line that carries one instead of assuming every line shares it.
+ */
+const termOf = (items) => {
+  const line = items.find((item) => item.startDate || item.endDate || item.durationMonths);
+  if (!line) return null;
+
+  return {
+    period: line.billingCycle || '',
+    months: Number(line.durationMonths) || 0,
+    startDate: line.startDate || '',
+    endDate: line.endDate || '',
+    description: line.description || ''
+  };
+};
+
 const receiptItems = async (row, contract, context, split) => {
   if (Array.isArray(row.items) && row.items.length) {
     return row.items.map((item) => ({ ...item }));
   }
 
   const rawLabel = row.solutionCategory || row.productName || row.service || contract?.name || '';
-  const product = context.catalogue.get(norm(rawLabel)) || context.catalogue.get(norm(contract?.productId));
+  const product = lookupProduct(rawLabel, context) || context.catalogue.get(norm(contract?.productId));
   const name = await resolveDisplayName(rawLabel, contract?.name || 'Subscription');
 
   if (!product && !contract) {
@@ -209,9 +339,12 @@ const buildReceipt = async (row, context) => {
   const received = parseAmount(row.receivedAmount) || (String(row.status || '').toLowerCase() === 'received' ? total : 0);
   const pending = parseAmount(row.pendingPayment) || Math.max(total - received, 0);
   const split = gstSplit(row, total);
-  const contract = matchContract(row, context);
+  const { contract, basis: contractLink } = linkContract(row, context);
   const customer = matchCustomer(row, context);
   const items = await receiptItems(row, contract, context, split);
+  const catalogueProduct =
+    lookupProduct(items[0]?.name || row.solutionCategory || row.productName || row.service, context) ||
+    context.catalogue.get(norm(contract?.productId));
   const cgst = Math.round(split.taxAmount / 2);
   const sgst = Math.max(split.taxAmount - cgst, 0);
 
@@ -232,8 +365,12 @@ const buildReceipt = async (row, context) => {
     salesPerson: row.salesPerson || contract?.salesPerson || '',
     raisedBy: row.raisedBy?.name ? row.raisedBy : { name: '', email: '', role: '' },
     items,
+    term: termOf(items),
     productName: items[0]?.name || '',
-    product: { ...fromProduct(items[0]), billingCycle: items[0]?.billingCycle || '' },
+    product: {
+      ...fillProduct(items[0], catalogueProduct),
+      billingCycle: items[0]?.billingCycle || catalogueProduct?.frequency || ''
+    },
     contractId: row.contractId || contract?.contractId || '',
     contract: contract
       ? {
@@ -248,6 +385,7 @@ const buildReceipt = async (row, context) => {
           slaTier: contract.slaTier || ''
         }
       : null,
+    contractLink,
     amount: total,
     amountLabel: row.amount || inrText(total),
     receivedAmount: received,
@@ -336,7 +474,13 @@ const cleanItems = (items) =>
       quantity: Math.min(Math.max(Number(item?.quantity) || 1, 1), 99),
       basePrice: Math.round(Number(item?.basePrice) || 0),
       gstAmount: Math.round(Number(item?.gstAmount) || 0),
-      finalPrice: Math.round(Number(item?.finalPrice) || 0)
+      finalPrice: Math.round(Number(item?.finalPrice) || 0),
+      unitPrice: Math.max(Math.round(Number(item?.unitPrice) || 0), 0),
+      planQuantity: Math.min(Math.max(Number(item?.planQuantity) || 1, 1), 99),
+      durationMonths: Math.max(Math.round(Number(item?.durationMonths) || 0), 0),
+      startDate: cleanText(item?.startDate, 20),
+      endDate: cleanText(item?.endDate, 20),
+      description: cleanText(item?.description, 500)
     }))
     .filter((item) => item.name);
 
@@ -534,3 +678,4 @@ export default {
   updatePayment,
   deletePayment
 };
+

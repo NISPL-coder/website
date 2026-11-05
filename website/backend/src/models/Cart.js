@@ -34,7 +34,27 @@ const cartItemSchema = new mongoose.Schema(
     sku: { type: String, default: '' },
     category: { type: String, default: '' },
     billingCycle: { type: String, default: '' },
-    image: { type: String, default: '' }
+    image: { type: String, default: '' },
+
+    // ── New Subscription form, carried verbatim to the ledger ──────────────
+    // The form quotes one purchase whose line total already includes the units
+    // bought and the months of the term, so `quantity` above stays the number
+    // of such purchases in the cart and the ordered units are kept separately.
+    // A distinct catalogue id would merge two terms of the same plan into one
+    // line, so the line keeps its own id and the real plan is named here.
+    planId: { type: String, default: '' },
+    planName: { type: String, default: '' },
+    product: { type: String, default: '' },
+    unitPrice: { type: Number, default: 0, min: 0 },
+    planQuantity: { type: Number, default: 1, min: 1, max: 99 },
+    duration: { type: String, default: '' },
+    durationMonths: { type: Number, default: 0, min: 0 },
+    startDate: { type: String, default: '' },
+    endDate: { type: String, default: '' },
+    description: { type: String, default: '' },
+    salesPerson: { type: String, default: '' },
+    users: { type: Number, default: 0 },
+    serverConfiguration: { type: String, default: '' }
   },
   { _id: false }
 );

@@ -1,16 +1,11 @@
-import React, { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
   ExternalLink,
   Printer,
-  Edit3,
   RotateCw,
   Building2,
-  Mail,
-  Phone,
-  Server,
-  MapPin,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -18,11 +13,43 @@ import {
   Eye,
   EyeOff,
   Copy,
-  Check
+  Check,
+  ReceiptText
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { usePermissions } from './PermissionsContext';
+import { receiptsForCustomer } from './adminTableUtils';
+
+const inr = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+
+const prettyDate = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const STATUS_COLORS = {
+  received: '#059669',
+  cleared: '#059669',
+  pending: '#d97706',
+  overdue: '#dc2626'
+};
+
+function SummaryTile({ label, value, tone = '#0f172a' }) {
+  return (
+    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 12px' }}>
+      <span style={{ fontSize: '0.70rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>
+        {label}
+      </span>
+      <span style={{ fontSize: '0.98rem', fontWeight: 800, color: tone, display: 'block', marginTop: '2px' }}>
+        {value}
+      </span>
+    </div>
+  );
+}
 
 export default function ViewCustomerModal({
   customer,
@@ -30,10 +57,20 @@ export default function ViewCustomerModal({
   onClose,
   onEdit,
   onRetrySync,
-  isSyncing = false
+  isSyncing = false,
+  receipts = []
 }) {
   const { can } = usePermissions();
   const canEdit = can('customer', 'edit');
+  const canSeeReceipts = can('receipt', 'view');
+  const [showPw, setShowPw] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // The ledger rows the server already resolved to this account, newest first.
+  const history = useMemo(() => receiptsForCustomer(receipts, customer), [receipts, customer]);
+  const billed = history.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const settled = history.reduce((sum, r) => sum + Number(r.receivedAmount || 0), 0);
+
   useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
@@ -52,8 +89,7 @@ export default function ViewCustomerModal({
 
   if (!isOpen || !customer) return null;
 
-  const [showPw, setShowPw] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
+  const portalPassword = customer.password || customer.portalPassword || '';
 
   const crm = customer.sangamCrm || {};
   const crmStatus = crm.status || 'pending';
@@ -384,7 +420,7 @@ export default function ViewCustomerModal({
                     border: '1px solid #fde68a'
                   }}
                 >
-                  {showPw ? (customer.password || customer.portalPassword || 'Customer@12345') : '••••••••••'}
+                  {showPw ? portalPassword || 'Not on record' : '••••••••••'}
                 </span>
                 <button
                   type="button"
@@ -397,8 +433,11 @@ export default function ViewCustomerModal({
                 <button
                   type="button"
                   onClick={() => {
-                    const pw = customer.password || customer.portalPassword || 'Customer@12345';
-                    navigator.clipboard.writeText(pw);
+                    if (!portalPassword) {
+                      toast.error('No portal password is stored on this record.');
+                      return;
+                    }
+                    navigator.clipboard.writeText(portalPassword);
                     setCopied(true);
                     toast.success('Copied password to clipboard!');
                     setTimeout(() => setCopied(false), 2000);
@@ -418,6 +457,112 @@ export default function ViewCustomerModal({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Payment History */}
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '22px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ReceiptText size={18} color="#4f46e5" />
+              <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>Payment History</span>
+            </div>
+
+            {canSeeReceipts && history.length > 0 && (
+              <span
+                style={{
+                  background: '#e0e7ff',
+                  color: '#4338ca',
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700
+                }}
+              >
+                {history.length} payment{history.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {!canSeeReceipts && (
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              Payments are outside the access granted to this account.
+            </p>
+          )}
+
+          {canSeeReceipts && history.length === 0 && (
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              No payment has reached the ledger for this account yet. Record one from Customer → Payments →
+              Record Payment, or wait for the customer to pay through the portal.
+            </p>
+          )}
+
+          {canSeeReceipts && history.length > 0 && (
+            <>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gap: '12px',
+                  marginBottom: '14px'
+                }}
+              >
+                <SummaryTile label="Total billed" value={inr(billed)} />
+                <SummaryTile label="Received" value={inr(settled)} tone="#059669" />
+                <SummaryTile label="Outstanding" value={inr(Math.max(billed - settled, 0))} tone={billed - settled > 0 ? '#d97706' : '#059669'} />
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.80rem' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', color: '#64748b', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '6px 8px', fontWeight: 700 }}>Invoice</th>
+                      <th style={{ padding: '6px 8px', fontWeight: 700 }}>Plan</th>
+                      <th style={{ padding: '6px 8px', fontWeight: 700 }}>Received on</th>
+                      <th style={{ padding: '6px 8px', fontWeight: 700, textAlign: 'right' }}>Amount</th>
+                      <th style={{ padding: '6px 8px', fontWeight: 700 }}>Mode</th>
+                      <th style={{ padding: '6px 8px', fontWeight: 700 }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((row) => (
+                      <tr key={row.paymentId || row.id} style={{ borderTop: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '7px 8px', fontFamily: 'monospace', color: '#334155' }}>
+                          {row.invoiceNumber || row.id}
+                        </td>
+                        <td style={{ padding: '7px 8px', color: '#0f172a', fontWeight: 600 }}>
+                          {row.productName || row.solutionCategory || '—'}
+                        </td>
+                        <td style={{ padding: '7px 8px', color: '#475569' }}>
+                          {prettyDate(row.paymentReceivedDate || row.date)}
+                        </td>
+                        <td style={{ padding: '7px 8px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8' }}>
+                          {inr(row.amount)}
+                        </td>
+                        <td style={{ padding: '7px 8px', color: '#475569' }}>{row.paymentMode || '—'}</td>
+                        <td
+                          style={{
+                            padding: '7px 8px',
+                            fontWeight: 700,
+                            color: STATUS_COLORS[String(row.status || '').toLowerCase()] || '#64748b'
+                          }}
+                        >
+                          {row.status || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Profile Overview Grid */}
