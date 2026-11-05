@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Package,
   ShoppingCart,
@@ -55,9 +56,16 @@ export default function ProductsSection({
   entitlements = [],
   externalSearch = ''
 }) {
-  // Navigation State: null = initial 2-card screen; 'tally' = Tally catalog; 'cloud' = Cloud flow
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedCloudProvider, setSelectedCloudProvider] = useState(null); // 'tally-on-cloud' | 'ctrls-cloud' | 'azure-cloud' | null
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // /customer/product · /customer/product/tally · /customer/product/cloud
+  const [, , , categorySegment] = location.pathname.split('/');
+  const selectedCategory =
+    categorySegment === 'tally' || categorySegment === 'cloud' ? categorySegment : null;
+
+  const productPath = (category = null) =>
+    category ? `/customer/product/${category}` : '/customer/product';
 
   // Filter & Search State
   const [activeSubCategory, setActiveSubCategory] = useState('all');
@@ -82,13 +90,21 @@ export default function ProductsSection({
           .some((value) => String(value).toLowerCase().includes(term))
       );
 
-    setSelectedCategory((prev) => {
-      if (prev && catalogueHasTerm(prev === 'tally' ? TALLY_PRODUCTS : CLOUD_PRODUCTS)) return prev;
-      if (catalogueHasTerm(TALLY_PRODUCTS)) return 'tally';
-      if (catalogueHasTerm(CLOUD_PRODUCTS)) return 'cloud';
-      return prev;
-    });
-  }, [externalSearch]);
+    if (
+      selectedCategory &&
+      catalogueHasTerm(selectedCategory === 'tally' ? TALLY_PRODUCTS : CLOUD_PRODUCTS)
+    ) {
+      return;
+    }
+
+    const target = catalogueHasTerm(TALLY_PRODUCTS)
+      ? 'tally'
+      : catalogueHasTerm(CLOUD_PRODUCTS)
+        ? 'cloud'
+        : null;
+
+    if (target) navigate(`/customer/product/${target}`, { replace: true });
+  }, [externalSearch, selectedCategory, navigate]);
 
   // Showcase Slider & Wishlist State (Matching User's Collection Design)
   const [activeCardIndex, setActiveCardIndex] = useState(1);
@@ -164,13 +180,14 @@ export default function ProductsSection({
 
   // Reset category filters when switching between Tally and Cloud
   const handleSelectCategory = (catId) => {
-    setSelectedCategory(catId);
-    setSelectedCloudProvider(null);
     setActiveSubCategory('all');
     setSelectedDuration('all');
     setSearchQuery('');
     setSelectedSort('recommended');
+    navigate(productPath(catId));
   };
+
+  const backToCategories = () => navigate(productPath());
 
   const handleResetFilters = () => {
     setActiveSubCategory('all');
@@ -368,10 +385,7 @@ export default function ProductsSection({
       <NewSubscriptionView
         customer={customer}
         account={account}
-        onBack={() => {
-          setSelectedCategory(null);
-          setSelectedCloudProvider(null);
-        }}
+        onBack={backToCategories}
         onAddToCart={handleAdd}
         onGoToCart={onGoToCart}
       />
@@ -384,10 +398,7 @@ export default function ProductsSection({
   if (selectedCategory === 'tally') {
     return (
       <TallyPrimePlansView
-        onBack={() => {
-          setSelectedCategory(null);
-          setSelectedCloudProvider(null);
-        }}
+        onBack={backToCategories}
         onAddToCart={handleAdd}
         cartItemIds={cartItemIds}
       />
@@ -416,7 +427,7 @@ export default function ProductsSection({
         <button
           type="button"
           className="flowmail-btn-secondary"
-          onClick={() => setSelectedCategory(null)}
+          onClick={backToCategories}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
         >
           <ArrowLeft size={15} />

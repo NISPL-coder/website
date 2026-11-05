@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import {
   ArrowLeft,
@@ -53,7 +53,7 @@ const PRODUCT_TYPE_CONFIG = {
     defaultFrequency: '/ year',
     defaultDescription:
       'Official Tally Prime license edition with GST compliance, e-invoicing, and automated data synchronization.',
-    returnPath: '/admin/product?category=tally'
+    returnPath: '/admin/product/tally'
   },
   cloud: {
     label: 'Cloud Infrastructure',
@@ -71,7 +71,7 @@ const PRODUCT_TYPE_CONFIG = {
     defaultFrequency: '/ month',
     defaultDescription:
       'Tier-4 CtrlS Kolkata Datacenter VPS hosting node with dedicated IP address, N+N redundancy, and 24/7 SLA.',
-    returnPath: '/admin/product?category=cloud&provider=ctrls-cloud'
+    returnPath: '/admin/product/cloud'
   }
 };
 
@@ -92,12 +92,10 @@ const FREQUENCY_OPTIONS = [
 
 export default function CreateProductPage({ products, setProducts, productType = 'tally' }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const providerParam = searchParams.get('provider') || 'ctrls-cloud';
 
   const config = PRODUCT_TYPE_CONFIG[productType] || PRODUCT_TYPE_CONFIG.tally;
   const isCloud = productType === 'cloud';
-  const isCtrlS = isCloud && providerParam === 'ctrls-cloud';
+  const isCtrlS = isCloud;
 
   // Default selection for CtrlS: 9 User
   const defaultTemplate = CTRLS_STANDARD_MATRIX.find((m) => m.user === 9) || CTRLS_STANDARD_MATRIX[0];
@@ -110,7 +108,7 @@ export default function CreateProductPage({ products, setProducts, productType =
 
   const [formState, setFormState] = useState({
     name: isCtrlS ? `CtrlS Cloud Server — ${defaultTemplate.userLabel}` : (isCloud ? 'Cloud Server Tier' : ''),
-    provider: providerParam,
+    provider: isCloud ? 'ctrls-cloud' : 'tally',
     ipAddress: isCtrlS ? defaultTemplate.ip : (isCloud ? `103.115.220.${Math.floor(71 + Math.random() * 20)}` : ''),
     sku: `NIS-${isCloud ? 'CTRLS' : 'SKU'}-${Math.floor(100 + Math.random() * 900)}`,
     users: defaultTemplate.user,
@@ -260,11 +258,7 @@ export default function CreateProductPage({ products, setProducts, productType =
         }
       });
 
-      const returnUrl = isCloud
-        ? `/admin/product?category=cloud&provider=${formState.provider}`
-        : config.returnPath;
-
-      navigate(returnUrl);
+      navigate(config.returnPath);
     } catch (err) {
       console.error('Failed to create product:', err);
       toast.error(err.message || 'Failed to create product.');
@@ -284,11 +278,7 @@ export default function CreateProductPage({ products, setProducts, productType =
             <span
               className="adm-breadcrumb-link"
               onClick={() =>
-                navigate(
-                  isCloud
-                    ? `/admin/product?category=cloud&provider=${formState.provider}`
-                    : config.returnPath
-                )
+                navigate(config.returnPath)
               }
             >
               {isCtrlS ? 'CtrlS Cloud Server' : config.label}
@@ -314,11 +304,7 @@ export default function CreateProductPage({ products, setProducts, productType =
             type="button"
             className="adm-back-btn"
             onClick={() =>
-              navigate(
-                isCloud
-                  ? `/admin/product?category=cloud&provider=${formState.provider}`
-                  : config.returnPath
-              )
+              navigate(config.returnPath)
             }
           >
             <ArrowLeft size={16} />
@@ -717,11 +703,7 @@ export default function CreateProductPage({ products, setProducts, productType =
               type="button"
               className="adm-btn-secondary"
               onClick={() =>
-                navigate(
-                  isCloud
-                    ? `/admin/product?category=cloud&provider=${formState.provider}`
-                    : config.returnPath
-                )
+                navigate(config.returnPath)
               }
               disabled={isSubmitting}
             >

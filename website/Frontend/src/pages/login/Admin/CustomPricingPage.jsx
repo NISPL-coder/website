@@ -68,8 +68,7 @@ export default function CustomPricingPage({ products, setProducts }) {
   const navigate = useNavigate();
   const [modal, setModal] = useState({ isOpen: false, plan: null, type: 'custom' });
 
-  const backToProducts = () =>
-    navigate('/admin/product?category=cloud&provider=ctrls-cloud');
+  const backToProducts = () => navigate('/admin/product/cloud');
 
   const customPlans = useMemo(
     () =>

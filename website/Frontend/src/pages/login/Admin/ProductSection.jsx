@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -30,28 +30,33 @@ import { productApi } from '../../../services/productApi';
 export default function ProductSection({ products, setProducts }) {
   const { can, visibleColumns } = usePermissions();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  // Navigation State derived from URL query parameters
-  const selectedCategory = searchParams.get('category'); // null | 'tally' | 'cloud'
-  const requestedCloudProvider = searchParams.get('provider');
-  const selectedView = searchParams.get('view'); // null | 'custom-pricing'
-  // Directly resolves to ctrls-cloud when cloud is selected (skips middle provider selection)
-  const selectedCloudProvider = selectedCategory === 'cloud'
-    ? (requestedCloudProvider || 'ctrls-cloud')
-    : null;
+  // /admin/product · /admin/product/{tally|cloud} · /admin/product/cloud/custom-pricing
+  const [, , , categorySegment, actionSegment] = location.pathname.split('/');
+  const selectedCategory =
+    categorySegment === 'tally' || categorySegment === 'cloud' ? categorySegment : null;
+  const selectedView = actionSegment === 'custom-pricing' ? 'custom-pricing' : null;
+  const selectedCloudProvider = selectedCategory === 'cloud' ? 'ctrls-cloud' : null;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
 
-  const updateRoute = (cat, prov = null, view = null) => {
-    const params = new URLSearchParams();
-    if (cat) params.set('category', cat);
-    if (prov) params.set('provider', prov);
-    if (view) params.set('view', view);
-    const queryString = params.toString();
-    navigate(queryString ? `/admin/product?${queryString}` : '/admin/product');
+  // Older ?category=… links keep working by moving the query into the path
+  useEffect(() => {
+    const legacyCategory = searchParams.get('category');
+    if (!legacyCategory) return;
+    const legacyAction = searchParams.get('view') === 'custom-pricing' ? '/custom-pricing' : '';
+    navigate(`/admin/product/${legacyCategory}${legacyAction}`, { replace: true });
+  }, [searchParams, navigate]);
+
+  const productPath = (category = null, action = null) => {
+    if (!category) return '/admin/product';
+    return action ? `/admin/product/${category}/${action}` : `/admin/product/${category}`;
   };
+
+  const updateRoute = (category, action = null) => navigate(productPath(category, action));
 
   // Provider configuration matching the customer portal
   const CLOUD_PROVIDERS_CONFIG = [
@@ -735,11 +740,11 @@ export default function ProductSection({ products, setProducts }) {
                 role="button"
                 tabIndex={0}
                 className="solution-hero-card cloud-theme"
-                onClick={() => updateRoute('cloud', 'ctrls-cloud')}
+                onClick={() => updateRoute('cloud')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    updateRoute('cloud', 'ctrls-cloud');
+                    updateRoute('cloud');
                   }
                 }}
               >
@@ -819,7 +824,7 @@ export default function ProductSection({ products, setProducts }) {
                   <button
                     type="button"
                     className="adm-btn-secondary"
-                    onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
+                    onClick={() => updateRoute('cloud', 'custom-pricing')}
                     style={{ padding: '6px 14px', fontSize: '0.8rem' }}
                     title="Open the custom and demo pricing manager"
                   >
@@ -832,13 +837,7 @@ export default function ProductSection({ products, setProducts }) {
                 <button
                   type="button"
                   className="adm-btn-primary"
-                  onClick={() =>
-                    navigate(
-                      selectedCategory === 'tally'
-                        ? '/admin/product/tally/create'
-                        : `/admin/product/cloud/create?provider=${selectedCloudProvider || 'ctrls-cloud'}`
-                    )
-                  }
+                  onClick={() => navigate(productPath(selectedCategory, 'create'))}
                 >
                   <Plus size={16} />
                   <span>
