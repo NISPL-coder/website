@@ -281,20 +281,73 @@ const fromProduct = (product) => ({
   storage: product?.storage || ''
 });
 
+const CYCLE_UNITS = {
+  day: { days: 1, months: 0 },
+  week: { days: 7, months: 0 },
+  month: { days: 30, months: 1 },
+  year: { days: 365, months: 12 }
+};
+
 /**
- * The purchased term is written on the receipt line, so the header reports the
- * first line that carries one instead of assuming every line shares it.
+ * A billing cycle is prose ("1 Month", "Monthly", "2 Years"), so the span is
+ * read off the leading count and the first unit word it mentions.
  */
-const termOf = (items) => {
+const cycleSpan = (cycle) => {
+  const text = String(cycle || '').toLowerCase();
+  const unit = Object.keys(CYCLE_UNITS).find((key) => new RegExp(`\\b${key}(ly|s)?\\b`).test(text));
+  if (!unit) return null;
+  const count = parseInt(text.match(/\d+/)?.[0] || '', 10);
+  const times = Number.isFinite(count) && count > 0 ? count : 1;
+  return { days: times * CYCLE_UNITS[unit].days, months: times * CYCLE_UNITS[unit].months };
+};
+
+const addTerm = (iso, { months, days }) => {
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!months) {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  // A month is a month, not thirty days: the last day of the shorter target
+  // month is the honest end of the term.
+  const total = year * 12 + (month - 1) + months;
+  const targetYear = Math.floor(total / 12);
+  const targetMonth = total % 12;
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(targetYear, targetMonth, Math.min(day, lastDay))).toISOString().slice(0, 10);
+};
+
+/**
+ * The purchased term is written on the receipt line when the subscription form
+ * supplies it. Older ledger rows carry only the billing cycle, so their
+ * validity is measured from the day the money was taken and says so rather
+ * than passing itself off as a recorded term.
+ */
+const termOf = (items, paidOn) => {
   const line = items.find((item) => item.startDate || item.endDate || item.durationMonths);
-  if (!line) return null;
+  if (line) {
+    return {
+      period: line.billingCycle || '',
+      months: Number(line.durationMonths) || 0,
+      startDate: line.startDate || '',
+      endDate: line.endDate || '',
+      description: line.description || '',
+      derived: false
+    };
+  }
+
+  const cycle = items.map((item) => item.billingCycle).find(Boolean) || '';
+  const span = cycleSpan(cycle);
+  if (!span || !paidOn) return null;
 
   return {
-    period: line.billingCycle || '',
-    months: Number(line.durationMonths) || 0,
-    startDate: line.startDate || '',
-    endDate: line.endDate || '',
-    description: line.description || ''
+    period: cycle,
+    months: span.months,
+    startDate: paidOn,
+    endDate: addTerm(paidOn, span),
+    description: '',
+    derived: true
   };
 };
 
@@ -365,7 +418,7 @@ const buildReceipt = async (row, context) => {
     salesPerson: row.salesPerson || contract?.salesPerson || '',
     raisedBy: row.raisedBy?.name ? row.raisedBy : { name: '', email: '', role: '' },
     items,
-    term: termOf(items),
+    term: termOf(items, isoDay(row.paymentReceivedDate, row.invoiceDate, row.date, row.createdAt)),
     productName: items[0]?.name || '',
     product: {
       ...fillProduct(items[0], catalogueProduct),
@@ -678,4 +731,5 @@ export default {
   updatePayment,
   deletePayment
 };
+
 

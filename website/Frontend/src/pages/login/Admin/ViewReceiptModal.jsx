@@ -22,6 +22,11 @@ const inr = (value) =>
 
 const text = (value) => value || 'Not recorded';
 
+// The subscription form names the term ("1 Month"); older rows only carry a
+// count of months, which is spelled out the same way.
+const termLabel = ({ period, months }) =>
+  period || (months ? `${months} month${Number(months) === 1 ? '' : 's'}` : '');
+
 const labelStyle = {
   fontSize: '0.72rem',
   color: '#94a3b8',
@@ -308,9 +313,7 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                         ) : null}
                       </td>
                       <td style={{ padding: '10px 12px', color: '#475569', verticalAlign: 'top' }}>
-                        {item.durationMonths
-                          ? `${item.durationMonths} months`
-                          : item.billingCycle || '—'}
+                        {termLabel({ period: item.billingCycle, months: item.durationMonths }) || '—'}
                         {item.startDate || item.endDate ? (
                           <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
                             {[item.startDate, item.endDate].filter(Boolean).join(' → ')}
@@ -421,19 +424,15 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                 </>
               ) : showTerm && receipt.term ? (
                 <>
-                  <Field
-                    label="Purchased term"
-                    value={text(
-                      [
-                        receipt.term.period,
-                        receipt.term.months ? `${receipt.term.months} months` : ''
-                      ]
-                        .filter(Boolean)
-                        .join(' • ')
-                    )}
-                  />
+                  <Field label="Purchased term" value={text(termLabel(receipt.term))} />
                   <Field label="Start date" value={text(receipt.term.startDate)} />
                   <Field label="End date" value={text(receipt.term.endDate)} />
+                  {receipt.term.derived ? (
+                    <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '0.74rem', color: '#94a3b8' }}>
+                      Validity measured from the billing cycle — this payment was taken before the
+                      subscription term was recorded on the purchase.
+                    </p>
+                  ) : null}
                   {receipt.term.description ? (
                     <Field label="Description" value={receipt.term.description} />
                   ) : null}

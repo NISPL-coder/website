@@ -175,10 +175,18 @@ export default function ReceiptSection({ receipts }) {
         ) : r.term ? (
           // A portal purchase settles without a Contract row, but the payment
           // itself says what term was bought — that is what the admin needs.
-          <div title="No contract record for this payment">
+          <div
+            title={
+              r.term.derived
+                ? `Validity measured from the ${r.term.period} billing cycle; no term was recorded on this payment`
+                : 'No contract record for this payment'
+            }
+          >
             <div style={{ fontWeight: 600, fontSize: '0.78rem' }}>
-              {[r.term.period, r.term.months ? `${r.term.months} months` : ''].filter(Boolean).join(' • ') ||
-                'Term recorded'}
+              {r.term.period ||
+                (r.term.months
+                  ? `${r.term.months} month${r.term.months === 1 ? '' : 's'}`
+                  : 'Term recorded')}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
               {[r.term.startDate, r.term.endDate].filter(Boolean).join(' → ') || 'No contract on record'}
