@@ -620,3 +620,93 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   justify-content: center;
   color: #34D399;
 }
+
+@media (max-width: 480px) {
+  .cust-auth-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .cust-auth-header {
+    padding: 12px 16px;
+  }
+
+  .cust-auth-logo-img {
+    height: 32px;
+    max-width: 55%;
+  }
+
+  .cust-auth-header-actions {
+    gap: 10px;
+  }
+
+  .cust-auth-back-link {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .cust-auth-container {
+    padding: 24px 12px;
+  }
+
+  .cust-login-card-box {
+    padding: 26px 18px;
+    border-radius: 18px;
+  }
+
+  .cust-card-title {
+    font-size: 1.45rem;
+  }
+
+  .cust-card-subtitle {
+    margin-bottom: 20px;
+  }
+
+  .cust-form {
+    gap: 16px;
+  }
+
+  .cust-password-toggle {
+    right: 6px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .cust-create-account-card {
+    padding: 16px 14px;
+  }
+
+  .cust-register-card-box {
+    padding: 20px 14px;
+    border-radius: 18px;
+  }
+
+  .cust-reg-section-card {
+    padding: 18px 14px;
+    margin-bottom: 18px;
+  }
+
+  .cust-reg-section-title {
+    font-size: 1.02rem;
+  }
+
+  .cust-reg-section-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .cust-reg-summary-pill {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cust-modal-backdrop {
+    padding: 12px;
+  }
+
+  .cust-success-modal {
+    padding: 24px 18px;
+  }
+}

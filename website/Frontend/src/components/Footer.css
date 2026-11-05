@@ -416,3 +416,43 @@
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 480px) {
+  .footer-official-logo {
+    height: 64px;
+    max-width: 200px;
+  }
+
+  .footer-main-grid {
+    gap: 18px;
+  }
+
+  .footer-socials-row {
+    gap: 10px;
+  }
+
+  .social-icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .footer-contact-col {
+    padding: 12px 14px;
+  }
+
+  .legal-links {
+    gap: 4px;
+  }
+
+  .legal-links a,
+  .footer-cookie-link {
+    padding: 11px 5px;
+  }
+
+  .copyright-text,
+  .footer-copyright-highlight {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+}
