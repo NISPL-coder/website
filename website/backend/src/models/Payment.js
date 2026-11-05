@@ -119,6 +119,16 @@ const paymentSchema = new mongoose.Schema(
     solutionCategory: {
       type: String,
       default: 'Tally Prime & Customization'
+    },
+    razorpayOrderId: {
+      type: String,
+      default: '',
+      index: true
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: '',
+      index: true
     }
   },
   {

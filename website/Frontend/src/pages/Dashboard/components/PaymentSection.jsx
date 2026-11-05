@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   CreditCard,
   QrCode,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
+import { razorpayApi, loadRazorpayCheckout } from '../../../services/razorpayApi';
 
 const PAYMENT_METHODS = [
   {
@@ -31,6 +32,29 @@ const PAYMENT_METHODS = [
     name: 'Credit / Debit Card',
     desc: 'Visa, MasterCard, RuPay corporate & commercial credit cards',
     icon: CreditCard
+  }
+];
+
+const GATEWAY_GUARANTEES = [
+  {
+    icon: Lock,
+    title: 'We never see your credentials',
+    desc: 'Card, UPI and net banking details are entered only inside Razorpay’s window.'
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Signature-verified',
+    desc: 'Our server re-checks Razorpay’s HMAC signature before any payment is accepted.'
+  },
+  {
+    icon: Receipt,
+    title: 'GST invoice generated',
+    desc: 'The same official invoice and ledger entry an offline payment gets.'
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Settles instantly',
+    desc: 'Dues, renewals and cart totals refresh the moment the payment is captured.'
   }
 ];
 
@@ -56,6 +80,26 @@ export default function PaymentSection({
   const [paymentDone, setPaymentDone] = useState(false);
   const [paid, setPaid] = useState(null);
   const [error, setError] = useState('');
+  const [gateway, setGateway] = useState(null);
+
+  // Which way the Pay button goes is decided by the server, so a deployment
+  // without gateway keys keeps its existing bank-transfer flow.
+  useEffect(() => {
+    let cancelled = false;
+
+    razorpayApi
+      .getConfig()
+      .then((config) => {
+        if (!cancelled) setGateway(config);
+      })
+      .catch(() => {
+        if (!cancelled) setGateway({ enabled: false });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const modeLabel = PAYMENT_METHODS.find((m) => m.id === selectedMethod)?.name ?? selectedMethod;
   const amount = Math.round(Number(checkout?.amount) || 0);
@@ -67,47 +111,141 @@ export default function PaymentSection({
   const billTo = account?.company || customer?.companyName || customer?.company || customer?.name || '';
   const billGSTIN = account?.gstNo || customer?.gstNo || '';
 
+  const gatewayEnabled = Boolean(gateway?.enabled);
+
+  // The gateway caps a single transaction, and the server owns that number.
+  // Above it the customer keeps the bank-transfer picker instead of meeting
+  // the limit inside Razorpay's own window.
+  const maxOnline = Number(gateway?.maxAmount) || Infinity;
+  const canPayOnline = gatewayEnabled && amount <= maxOnline;
+
+  // Tells the server which of the account's charges to price. The rupees
+  // themselves are always read from the database, never from here.
+  const checkoutScopePayload = (methodHint) => {
+    const payload = { method: methodHint };
+    if (checkout.mode === 'dues') payload.settleAll = true;
+    else if (checkout.mode === 'renewal') payload.contractId = checkout.contractId;
+    return payload;
+  };
+
+  const showReceipt = (data, fallbackTotal, fallbackMode) => {
+    const payment = data?.payment || {};
+    const total = Math.round(Number(data?.totals?.total) || fallbackTotal);
+
+    setPaid({
+      ref: payment.invoiceNumber || payment.id || '—',
+      amount: total,
+      mode: payment.paymentMethod || fallbackMode,
+      date: prettyDate(payment.date),
+      count: Array.isArray(data?.payments) ? data.payments.length : 1,
+      alreadySettled: Boolean(data?.alreadySettled),
+      gatewayPaymentId: data?.gateway?.paymentId || ''
+    });
+    setPaymentDone(true);
+
+    if (data?.alreadySettled) {
+      toast.success('That invoice was already settled.');
+    } else {
+      toast.success(`${inr(total)} received — your receipt is ready.`);
+    }
+
+    if (onPaymentSuccess) onPaymentSuccess(data);
+  };
+
   const handlePay = async () => {
     if (!amount) {
       setError('There is nothing due on this account right now.');
       return;
     }
 
+    if (canPayOnline) {
+      await handleGatewayPay();
+      return;
+    }
+
     setIsProcessing(true);
     setError('');
 
-    const payload = { method: modeLabel };
-    if (checkout.mode === 'dues') payload.settleAll = true;
-    else if (checkout.mode === 'renewal') payload.contractId = checkout.contractId;
-
     try {
-      const data = await dashboardApi.submitPayment(payload);
-      const payment = data?.payment || {};
-      const total = Math.round(Number(data?.totals?.total) || amount);
-
-      setPaid({
-        ref: payment.invoiceNumber || payment.id || '—',
-        amount: total,
-        mode: payment.paymentMethod || modeLabel,
-        date: prettyDate(payment.date),
-        count: Array.isArray(data?.payments) ? data.payments.length : 1,
-        alreadySettled: Boolean(data?.alreadySettled)
-      });
-      setPaymentDone(true);
-
-      if (data?.alreadySettled) {
-        toast.success('That invoice was already settled.');
-      } else {
-        toast.success(`${inr(total)} received — your receipt is ready.`);
-      }
-
-      if (onPaymentSuccess) onPaymentSuccess(data);
+      const data = await dashboardApi.submitPayment(checkoutScopePayload(modeLabel));
+      showReceipt(data, amount, modeLabel);
     } catch (err) {
       const message = err?.message || 'Payment could not be recorded. Please try again.';
       setError(message);
       toast.error(message);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleGatewayPay = async () => {
+    setIsProcessing(true);
+    setError('');
+
+    const checkoutReady = await loadRazorpayCheckout();
+
+    if (!checkoutReady) {
+      setIsProcessing(false);
+      const message =
+        'Could not reach the secure payment page. Check your connection or ad-blocker and try again.';
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
+    try {
+      const order = await razorpayApi.createOrder(checkoutScopePayload('razorpay'));
+
+      const gatewayWindow = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amountInPaise,
+        currency: order.currency,
+        name: order.name,
+        description: order.label,
+        order_id: order.orderId,
+        prefill: order.prefill,
+        notes: { intent: order.intentId },
+        theme: { color: '#6366f1' },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            toast('Payment window closed — nothing was charged.', { icon: 'ℹ️' });
+          }
+        },
+        handler: async (response) => {
+          try {
+            const data = await razorpayApi.verifyPayment(response);
+            showReceipt(data, order.amount, order.label);
+          } catch (err) {
+            if (err?.statusCode === 202) {
+              // Captured at Razorpay, ledger still being written by the webhook.
+              setError(err.message);
+              toast('Payment successful — your receipt is being generated.', { icon: '⏳' });
+            } else {
+              setError(err?.message || 'Your payment is confirmed but not recorded yet. Please contact support.');
+              toast.error('We could not confirm this payment. Please contact support before trying again.');
+            }
+          } finally {
+            setIsProcessing(false);
+          }
+        }
+      });
+
+      gatewayWindow.on('payment.failed', (response) => {
+        setIsProcessing(false);
+        setError(
+          response?.error?.description
+            ? `Payment failed: ${response.error.description}`
+            : 'The payment could not be completed. Nothing was charged.'
+        );
+      });
+
+      gatewayWindow.open();
+    } catch (err) {
+      setIsProcessing(false);
+      const message = err?.message || 'Could not start the payment. Please try again.';
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -230,6 +368,14 @@ export default function PaymentSection({
               <span style={{ color: '#64748b' }}>Date</span>
               <span style={{ color: '#0f172a', fontWeight: '500' }}>{paid?.date}</span>
             </div>
+            {paid?.gatewayPaymentId && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.86rem' }}>
+                <span style={{ color: '#64748b' }}>Razorpay Payment ID</span>
+                <span style={{ color: '#0f172a', fontWeight: '500', wordBreak: 'break-all' }}>
+                  {paid.gatewayPaymentId}
+                </span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem' }}>
               <span style={{ color: '#64748b' }}>Status</span>
               <span className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem' }}>
@@ -303,72 +449,113 @@ export default function PaymentSection({
               }}>
                 <CreditCard size={18} />
               </div>
-              <h3 className="flowmail-card-title">Select Payment Method</h3>
+              <h3 className="flowmail-card-title">
+                {canPayOnline ? 'Pay with Razorpay' : 'Select Payment Method'}
+              </h3>
             </div>
             <span className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem' }}>
               Instant Verification
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {PAYMENT_METHODS.map((m) => {
-              const Icon = m.icon;
-              const isSelected = selectedMethod === m.id;
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => setSelectedMethod(m.id)}
-                  role="radio"
-                  aria-checked={isSelected}
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && setSelectedMethod(m.id)}
-                  style={{
-                    border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                    background: isSelected ? '#f5f3ff' : '#ffffff',
-                    borderRadius: '16px',
-                    padding: '16px 18px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px'
-                  }}
-                >
-                  <div style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '12px',
-                    background: isSelected ? '#ede9fe' : '#f8fafc',
-                    color: isSelected ? '#6366f1' : '#64748b',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Icon size={20} />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.94rem', fontWeight: '700', color: '#0f172a', marginBottom: '2px' }}>
-                      {m.name}
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.35 }}>
-                      {m.desc}
-                    </div>
-                  </div>
-
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    border: isSelected ? '6px solid #6366f1' : '2px solid #cbd5e1',
-                    background: '#ffffff',
-                    flexShrink: 0
-                  }} />
+          {canPayOnline ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '16px', padding: '18px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.94rem', fontWeight: '700', color: '#0f172a' }}>
+                    Razorpay Secure Checkout
+                  </span>
+                  <span className="flowmail-trend-pill indigo" style={{ fontSize: '0.72rem' }}>
+                    UPI &bull; Cards &bull; Net Banking &bull; Wallets &bull; EMI
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.55, margin: 0 }}>
+                  The payment opens in Razorpay&rsquo;s own verified window and you pick the method there.
+                  Your card, UPI and bank details never reach this website — we accept the transaction only
+                  after Razorpay signs it and our server verifies that signature.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px 18px' }}>
+                {GATEWAY_GUARANTEES.map((point) => {
+                  const Icon = point.icon;
+                  return (
+                    <div key={point.title} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <Icon size={16} color="#6366f1" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#0f172a' }}>
+                          {point.title}
+                        </div>
+                        <div style={{ fontSize: '0.76rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                          {point.desc}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {PAYMENT_METHODS.map((m) => {
+                const Icon = m.icon;
+                const isSelected = selectedMethod === m.id;
+                return (
+                  <div
+                    key={m.id}
+                    onClick={() => setSelectedMethod(m.id)}
+                    role="radio"
+                    aria-checked={isSelected}
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && setSelectedMethod(m.id)}
+                    style={{
+                      border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                      background: isSelected ? '#f5f3ff' : '#ffffff',
+                      borderRadius: '16px',
+                      padding: '16px 18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px'
+                    }}
+                  >
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: isSelected ? '#ede9fe' : '#f8fafc',
+                      color: isSelected ? '#6366f1' : '#64748b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Icon size={20} />
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.94rem', fontWeight: '700', color: '#0f172a', marginBottom: '2px' }}>
+                        {m.name}
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.35 }}>
+                        {m.desc}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      border: isSelected ? '6px solid #6366f1' : '2px solid #cbd5e1',
+                      background: '#ffffff',
+                      flexShrink: 0
+                    }} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Right: Billing Summary Card ─────────────────────── */}
@@ -443,7 +630,7 @@ export default function PaymentSection({
             type="button"
             className="flowmail-btn-primary"
             onClick={handlePay}
-            disabled={isProcessing || !amount}
+            disabled={isProcessing || !amount || !gateway}
             style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', fontSize: '0.94rem' }}
           >
             {isProcessing ? (
@@ -451,10 +638,22 @@ export default function PaymentSection({
             ) : (
               <>
                 <Lock size={15} />
-                <span>Pay {inr(amount)}</span>
+                <span>{canPayOnline ? `Pay ${inr(amount)} securely` : `Pay ${inr(amount)}`}</span>
               </>
             )}
           </button>
+
+          {canPayOnline ? (
+            <p style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', margin: '10px 0 0 0', lineHeight: 1.45 }}>
+              Opens Razorpay&rsquo;s verified window for UPI, cards, net banking, wallets and EMI.
+            </p>
+          ) : (
+            <p style={{ fontSize: '0.76rem', color: '#94a3b8', textAlign: 'center', margin: '10px 0 0 0', lineHeight: 1.45 }}>
+              {gatewayEnabled
+                ? `Invoices above ${inr(maxOnline)} are settled by bank transfer against the selected method.`
+                : 'Paid by bank transfer? Our accounts team marks the invoice received.'}
+            </p>
+          )}
         </div>
       </div>
     </div>

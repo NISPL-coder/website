@@ -15,6 +15,8 @@ import activityLogRoutes from './routes/activityLogRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import razorpayRoutes from './routes/razorpayRoutes.js';
+import { razorpayWebhookHandler } from './controllers/razorpayController.js';
 import productRoutes from './routes/productRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
@@ -36,7 +38,10 @@ const isOriginAllowed = (origin) => {
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false
+}));
 app.use(cors({
   origin(origin, callback) {
     if (isOriginAllowed(origin)) return callback(null, true);
@@ -50,13 +55,21 @@ app.use(cors({
     'X-Requested-With',
     'Accept',
     'Origin',
-    // Sent by the portal services; omitting these makes the browser block the preflight
     'X-Session-Id',
+    'x-session-id',
     'X-User-Role',
-    'X-Refreshed-Token'
-  ]
+    'x-user-role',
+    'X-Refreshed-Token',
+    'x-refreshed-token'
+  ],
+  exposedHeaders: ['x-refreshed-token', 'X-Refreshed-Token']
 }));
 app.options('*', cors());
+// Razorpay signs the exact bytes it posts, so the webhook has to read them
+// before the JSON parser turns them into an object.
+const razorpayWebhookParser = express.raw({ type: 'application/json' });
+app.post('/api/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
+app.post('/api/v1/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
@@ -97,6 +110,8 @@ app.use('/api/v1/cart', cartRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/v1/payments/razorpay', razorpayRoutes);
+app.use('/api/payments/razorpay', razorpayRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/v1/products', productRoutes);

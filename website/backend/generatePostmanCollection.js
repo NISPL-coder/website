@@ -1599,7 +1599,7 @@ const collection = {
         // -------------------------------------------------------------
         {
           name: "5. Invoices & Receipts",
-          description: "Customer view of billing invoices, receipts, and payment transactions.",
+          description: "Customer view of billing invoices, receipts, and Razorpay payment gateway checkout.",
           item: [
             {
               name: "Customer Invoices & Receipts List",
@@ -1615,6 +1615,69 @@ const collection = {
                   ]
                 },
                 description: "Returns invoices and payment receipts associated with the customer account."
+              }
+            },
+            {
+              name: "Get Razorpay Gateway Config",
+              request: {
+                auth: { type: "noauth" },
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments/razorpay/config",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments", "razorpay", "config"]
+                },
+                description: "Retrieves client-side publishable Razorpay Key ID, currency, and gateway operational status."
+              }
+            },
+            {
+              name: "Create Razorpay Order",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    contractId: "{{contractId}}",
+                    amount: 500,
+                    method: "upi"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments/razorpay/order",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments", "razorpay", "order"]
+                },
+                description: "Opens a server-verified Razorpay order with server-calculated rupee pricing and customer prefill data."
+              }
+            },
+            {
+              name: "Verify Razorpay Payment Signature",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    razorpay_order_id: "order_Qwer1234567890",
+                    razorpay_payment_id: "pay_Asdf0987654321",
+                    razorpay_signature: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments/razorpay/verify",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments", "razorpay", "verify"]
+                },
+                description: "Verifies HMAC-SHA256 signature returned by Razorpay checkout modal before creating ledger payment record."
               }
             }
           ]
@@ -1691,6 +1754,42 @@ const collection = {
               path: ["api", "health"]
             },
             description: "Standard liveness check used by cloud orchestrators and monitoring probes."
+          }
+        },
+        {
+          name: "Razorpay Webhook Listener",
+          request: {
+            auth: { type: "noauth" },
+            method: "POST",
+            header: [
+              { key: "Content-Type", value: "application/json" },
+              { key: "X-Razorpay-Signature", value: "razorpay_webhook_signature_hex" }
+            ],
+            body: {
+              mode: "raw",
+              raw: JSON.stringify({
+                entity: "event",
+                event: "payment.captured",
+                payload: {
+                  payment: {
+                    entity: {
+                      id: "pay_Asdf0987654321",
+                      order_id: "order_Qwer1234567890",
+                      amount: 50000,
+                      currency: "INR",
+                      status: "captured",
+                      method: "upi"
+                    }
+                  }
+                }
+              }, null, 2)
+            },
+            url: {
+              raw: "{{baseUrl}}/api/v1/payments/razorpay/webhook",
+              host: ["{{baseUrl}}"],
+              path: ["api", "v1", "payments", "razorpay", "webhook"]
+            },
+            description: "Asynchronous webhook receiver invoked by Razorpay servers to ensure ledger settlement."
           }
         }
       ]

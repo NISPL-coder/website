@@ -1,4 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
 const required = ['MONGODB_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
@@ -33,5 +39,10 @@ export const env = {
   APP_BASE_URL: process.env.APP_BASE_URL || 'http://localhost:5173',
   SANGAM_CRM_URL: process.env.SANGAM_CRM_URL || 'https://nistally.sangamcrm.com/',
   SANGAM_CRM_API_BASE: process.env.SANGAM_CRM_API_BASE || 'https://nistally.sangamcrm.com/api/v1/',
-  SANGAM_CRM_TOKEN: process.env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6'
+  SANGAM_CRM_TOKEN: process.env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6',
+  RAZORPAY_KEY_ID: (process.env.RAZORPAY_KEY_ID || '').trim(),
+  RAZORPAY_KEY_SECRET: (process.env.RAZORPAY_KEY_SECRET || '').trim(),
+  RAZORPAY_CURRENCY: (process.env.RAZORPAY_CURRENCY || 'INR').trim().toUpperCase(),
+  RAZORPAY_WEBHOOK_SECRET: (process.env.RAZORPAY_WEBHOOK_SECRET || '').trim(),
+  RAZORPAY_ENABLED: Boolean((process.env.RAZORPAY_KEY_ID || '').trim() && (process.env.RAZORPAY_KEY_SECRET || '').trim())
 };

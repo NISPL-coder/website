@@ -169,7 +169,7 @@ const mapContract = async (contract) => {
   };
 };
 
-const mapPayment = async (payment) => {
+export const mapPayment = async (payment) => {
   const date = toDate(payment.invoiceDate) || toDate(payment.date) || toDate(payment.createdAt);
   const due = toDate(payment.expectedPaymentDate);
   const status = String(payment.status || '').trim();
@@ -630,6 +630,269 @@ const notifyPaymentReceived = (user, customer, payment) =>
     metadata: { invoiceNumber: payment.invoiceNumber, source: 'customer_portal' }
   });
 
+// A row is settled for the balance the portal showed the customer, which is
+// the stored pending amount and falls back to amount minus what is received.
+const outstandingOf = (payment) => {
+  const pending = parseAmount(payment.pendingPayment);
+  const received = parseAmount(payment.receivedAmount);
+  return pending || Math.max(parseAmount(payment.amount) - received, 0);
+};
+
+const isOpenRow = (payment) =>
+  !PAID_STATUSES.has(String(payment.status || '').toLowerCase()) && outstandingOf(payment) > 0;
+
+const findScopedPayment = (scope, reference) =>
+  Payment.findOne({
+    $and: [
+      scope,
+      { $or: [{ invoiceNumber: reference }, { invoiceRef: reference }, { paymentId: reference }] }
+    ]
+  });
+
+const settleRow = async ({ payment, user, customer, method }) => {
+  if (!isOpenRow(payment)) return { settled: false, outstanding: 0 };
+
+  const outstanding = outstandingOf(payment);
+
+  payment.status = 'Received';
+  payment.receivedAmount = inr(parseAmount(payment.receivedAmount) + outstanding);
+  payment.pendingPayment = '₹0';
+  payment.paymentReceivedDate = todayIso();
+  if (!payment.paymentMethod) payment.paymentMethod = method;
+  await payment.save();
+
+  await notifyPaymentReceived(user, customer, payment);
+  return { settled: true, outstanding };
+};
+
+const checkoutError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
+
+/* ── Account scope ────────────────────────────────────────────────────────
+   Payments and contracts name the customer as free text, so every row that
+   matches any identity value of this login belongs to it. Both the direct
+   checkout and the gateway checkout settle inside this scope.
+───────────────────────────────────────────────────────────────────────── */
+export const buildAccountScope = async (user) => {
+  const customer = await findAccountRecord(user);
+  const identity = collectIdentityValues(user, customer);
+
+  if (!identity.length) {
+    throw checkoutError(
+      400,
+      'This login is not linked to a NISPL account yet, so payments cannot be recorded.'
+    );
+  }
+
+  return { customer, scope: buildIdentityMatch(identity) };
+};
+
+/* ── Quote ────────────────────────────────────────────────────────────────
+   Prices what the account owes right now. Every rupee comes from the
+   database; the request body only selects which flow to price, never how
+   much to charge. The snapshot it returns is exactly what settlePortalCharge
+   later writes, so a payment gateway can quote first, take the money second,
+   and still land the same amount on the ledger.
+───────────────────────────────────────────────────────────────────────── */
+export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
+  const invoiceNumber = String(body.invoiceNumber || '').trim();
+  const contractId = String(body.contractId || '').trim();
+  const settleAll = Boolean(body.settleAll);
+
+  // 1. A single open invoice already on this account.
+  if (invoiceNumber) {
+    const payment = await findScopedPayment(scope, invoiceNumber);
+    if (!payment) throw checkoutError(404, 'That invoice is not on your account.');
+
+    const settled = isOpenRow(payment);
+    return {
+      mode: 'invoice',
+      label: `Invoice ${payment.invoiceNumber}`,
+      amount: settled ? outstandingOf(payment) : 0,
+      alreadySettled: !settled,
+      snapshot: { invoiceNumber: payment.invoiceNumber }
+    };
+  }
+
+  // 2. Every open invoice on the account in one transaction.
+  if (settleAll) {
+    const rows = await Payment.find({
+      $and: [scope, { status: { $regex: '^(pending|overdue|unpaid)$', $options: 'i' } }]
+    });
+    const open = rows.filter(isOpenRow);
+
+    if (!open.length) throw checkoutError(400, 'No invoice on your account is open right now.');
+
+    return {
+      mode: 'dues',
+      label: `${open.length} open invoice${open.length === 1 ? '' : 's'}`,
+      amount: open.reduce((sum, row) => sum + outstandingOf(row), 0),
+      alreadySettled: false,
+      snapshot: { invoiceNumbers: open.map((row) => row.invoiceNumber) }
+    };
+  }
+
+  // 3. A subscription renewal the account holds.
+  if (contractId) {
+    const contract = await Contract.findOne({
+      $and: [scope, { $or: [{ contractId }, { id: contractId }] }]
+    }).lean();
+
+    if (!contract) throw checkoutError(404, 'That subscription is not on your account.');
+
+    const total = parseAmount(contract.value || contract.totalContractValue);
+    if (!total) {
+      throw checkoutError(400, 'The renewal value is not recorded, so it cannot be paid online yet.');
+    }
+
+    return {
+      mode: 'renewal',
+      label: contract.name || contract.service || 'Subscription renewal',
+      amount: total,
+      alreadySettled: false,
+      snapshot: {
+        contractId: contract.contractId || contract.id || contractId,
+        total,
+        label: await resolveDisplayName(contract.name || contract.service, 'Subscription renewal')
+      }
+    };
+  }
+
+  // 4. The account's own cart.
+  const cart = await findAccountCart(user, req);
+  if (!cart || !cart.items.length) throw checkoutError(400, 'Your cart is empty.');
+
+  const lines = await Promise.all(
+    cart.items.map(async (item) => ({
+      name: await resolveDisplayName(item.name, 'Plan'),
+      quantity: Math.min(Math.max(roundMoney(item.quantity) || 1, 1), MAX_LINE_QUANTITY),
+      basePrice: roundMoney(item.basePrice)
+    }))
+  );
+
+  if (lines.some((line) => line.basePrice <= 0)) {
+    throw checkoutError(
+      400,
+      'One of the cart items has no price recorded. Contact support to complete this payment.'
+    );
+  }
+
+  const subtotal = lines.reduce((sum, line) => sum + line.basePrice * line.quantity, 0);
+  const gst = roundMoney(subtotal * GST_RATE);
+  const total = subtotal + gst;
+
+  return {
+    mode: 'cart',
+    label: lines.length === 1 ? lines[0].name : `${lines[0].name} + ${lines.length - 1} more`,
+    amount: total,
+    alreadySettled: false,
+    snapshot: { cartId: String(cart._id), lines, subtotal, gst, total }
+  };
+};
+
+/* ── Settle ───────────────────────────────────────────────────────────────
+   Writes a quote onto the ledger. Rows already marked paid are reported as
+   settled rather than paid twice, so a retry after a slow gateway response
+   never duplicates income.
+───────────────────────────────────────────────────────────────────────── */
+export const settlePortalCharge = async ({ user, customer, scope, quote, method }) => {
+  const { mode, snapshot } = quote;
+
+  if (mode === 'invoice') {
+    const payment = await findScopedPayment(scope, snapshot.invoiceNumber);
+    if (!payment) throw checkoutError(404, 'That invoice is not on your account.');
+
+    const { settled, outstanding } = await settleRow({ payment, user, customer, method });
+
+    return {
+      statusCode: 200,
+      data: {
+        alreadySettled: !settled,
+        payment: await mapPayment(payment.toObject()),
+        totals: { total: settled ? outstanding : 0 }
+      }
+    };
+  }
+
+  if (mode === 'dues') {
+    const settledPayments = [];
+    let total = 0;
+
+    for (const reference of snapshot.invoiceNumbers) {
+      const payment = await findScopedPayment(scope, reference);
+      if (!payment) continue;
+
+      const { settled, outstanding } = await settleRow({ payment, user, customer, method });
+      if (!settled) continue;
+
+      total += outstanding;
+      settledPayments.push(await mapPayment(payment.toObject()));
+    }
+
+    if (!settledPayments.length) {
+      throw checkoutError(400, 'No invoice on your account is open right now.');
+    }
+
+    return {
+      statusCode: 200,
+      data: {
+        alreadySettled: false,
+        payments: settledPayments,
+        payment: settledPayments[0],
+        totals: { subtotal: total, gst: 0, total, lines: [] }
+      }
+    };
+  }
+
+  if (mode === 'renewal') {
+    const created = await createAccountPayment({
+      user,
+      customer,
+      method,
+      total: snapshot.total,
+      label: snapshot.label
+    });
+    await notifyPaymentReceived(user, customer, created);
+
+    return {
+      statusCode: 201,
+      data: {
+        payment: await mapPayment(created.toObject()),
+        totals: { subtotal: snapshot.total, gst: 0, total: snapshot.total, lines: [] }
+      }
+    };
+  }
+
+  const created = await createAccountPayment({
+    user,
+    customer,
+    method,
+    total: snapshot.total,
+    label: snapshot.label
+  });
+
+  const cart = await Cart.findById(snapshot.cartId);
+  if (cart) {
+    cart.items = [];
+    cart.markModified('items');
+    await cart.save();
+  }
+
+  await notifyPaymentReceived(user, customer, created);
+
+  return {
+    statusCode: 201,
+    data: {
+      payment: await mapPayment(created.toObject()),
+      totals: {
+        subtotal: snapshot.subtotal,
+        gst: snapshot.gst,
+        total: snapshot.total,
+        lines: snapshot.lines
+      }
+    }
+  };
+};
+
 export const payPortalDues = async (req, res) => {
   try {
     if (!isMongoConnected()) {
@@ -639,176 +902,13 @@ export const payPortalDues = async (req, res) => {
     }
 
     const user = req.user;
-    const customer = await findAccountRecord(user);
-    const identity = collectIdentityValues(user, customer);
-
-    if (!identity.length) {
-      return res.status(400).json({
-        success: false,
-        error: 'This login is not linked to a NISPL account yet, so payments cannot be recorded.'
-      });
-    }
-
-    const scope = buildIdentityMatch(identity);
+    const { customer, scope } = await buildAccountScope(user);
     const method = String(req.body?.method || '').trim().slice(0, 60) || 'Online Banking';
-    const invoiceNumber = String(req.body?.invoiceNumber || '').trim();
-    const contractId = String(req.body?.contractId || '').trim();
-    const settleAll = Boolean(req.body?.settleAll);
 
-    // A row is settled for the balance the portal showed the customer, which is
-    // the stored pending amount and falls back to amount minus what is received.
-    const outstandingOf = (payment) => {
-      const pending = parseAmount(payment.pendingPayment);
-      const received = parseAmount(payment.receivedAmount);
-      return pending || Math.max(parseAmount(payment.amount) - received, 0);
-    };
+    const quote = await quotePortalCharge({ user, req, body: req.body, scope });
+    const { statusCode, data } = await settlePortalCharge({ user, customer, scope, quote, method });
 
-    const settleRow = async (payment) => {
-      if (PAID_STATUSES.has(String(payment.status || '').toLowerCase())) {
-        return { settled: false, outstanding: 0 };
-      }
-
-      const outstanding = outstandingOf(payment);
-      if (outstanding <= 0) return { settled: false, outstanding: 0 };
-
-      payment.status = 'Received';
-      payment.receivedAmount = inr(parseAmount(payment.receivedAmount) + outstanding);
-      payment.pendingPayment = '₹0';
-      payment.paymentReceivedDate = todayIso();
-      if (!payment.paymentMethod) payment.paymentMethod = method;
-      await payment.save();
-
-      await notifyPaymentReceived(user, customer, payment);
-      return { settled: true, outstanding };
-    };
-
-    // 1. Settle an open invoice already on this account.
-    if (invoiceNumber) {
-      const payment = await Payment.findOne({
-        $and: [scope, { $or: [{ invoiceNumber }, { invoiceRef: invoiceNumber }, { paymentId: invoiceNumber }] }]
-      });
-
-      if (!payment) {
-        return res.status(404).json({ success: false, error: 'That invoice is not on your account.' });
-      }
-
-      const { settled, outstanding } = await settleRow(payment);
-
-      return res.json({
-        success: true,
-        data: {
-          alreadySettled: !settled,
-          payment: await mapPayment(payment.toObject()),
-          totals: { total: settled ? outstanding : 0 }
-        }
-      });
-    }
-
-    // 2. Settle every open invoice on the account in one transaction.
-    if (settleAll) {
-      const rows = await Payment.find({
-        $and: [scope, { status: { $regex: '^(pending|overdue|unpaid)$', $options: 'i' } }]
-      });
-
-      const settledPayments = [];
-      let total = 0;
-
-      for (const row of rows) {
-        const { settled, outstanding } = await settleRow(row);
-        if (!settled) continue;
-        total += outstanding;
-        settledPayments.push(await mapPayment(row.toObject()));
-      }
-
-      if (!settledPayments.length) {
-        return res.status(400).json({ success: false, error: 'No invoice on your account is open right now.' });
-      }
-
-      return res.json({
-        success: true,
-        data: {
-          alreadySettled: false,
-          payments: settledPayments,
-          payment: settledPayments[0],
-          totals: { subtotal: total, gst: 0, total, lines: [] }
-        }
-      });
-    }
-
-    // 3. Renew a subscription the account holds.
-    if (contractId) {
-      const contract = await Contract.findOne({
-        $and: [scope, { $or: [{ contractId }, { id: contractId }] }]
-      }).lean();
-
-      if (!contract) {
-        return res.status(404).json({ success: false, error: 'That subscription is not on your account.' });
-      }
-
-      const total = parseAmount(contract.value || contract.totalContractValue);
-      if (!total) {
-        return res.status(400).json({
-          success: false,
-          error: 'The renewal value is not recorded, so it cannot be paid online yet.'
-        });
-      }
-
-      const created = await createAccountPayment({
-        user,
-        customer,
-        method,
-        total,
-        label: await resolveDisplayName(contract.name || contract.service, 'Subscription renewal')
-      });
-      await notifyPaymentReceived(user, customer, created);
-
-      return res.status(201).json({
-        success: true,
-        data: {
-          payment: await mapPayment(created.toObject()),
-          totals: { subtotal: total, gst: 0, total, lines: [] }
-        }
-      });
-    }
-
-    // 4. Check out the account's own cart.
-    const cart = await findAccountCart(user, req);
-    if (!cart || !cart.items.length) {
-      return res.status(400).json({ success: false, error: 'Your cart is empty.' });
-    }
-
-    const lines = await Promise.all(
-      cart.items.map(async (item) => ({
-        name: await resolveDisplayName(item.name, 'Plan'),
-        quantity: Math.min(Math.max(roundMoney(item.quantity) || 1, 1), MAX_LINE_QUANTITY),
-        basePrice: roundMoney(item.basePrice)
-      }))
-    );
-
-    if (lines.some((line) => line.basePrice <= 0)) {
-      return res.status(400).json({
-        success: false,
-        error: 'One of the cart items has no price recorded. Contact support to complete this payment.'
-      });
-    }
-
-    const subtotal = lines.reduce((sum, line) => sum + line.basePrice * line.quantity, 0);
-    const gst = roundMoney(subtotal * GST_RATE);
-    const total = subtotal + gst;
-    const label = lines.length === 1 ? lines[0].name : `${lines[0].name} + ${lines.length - 1} more`;
-
-    const created = await createAccountPayment({ user, customer, method, total, label });
-
-    cart.items = [];
-    cart.markModified('items');
-    await cart.save();
-
-    await notifyPaymentReceived(user, customer, created);
-
-    res.status(201).json({
-      success: true,
-      data: { payment: await mapPayment(created.toObject()), totals: { subtotal, gst, total, lines } }
-    });
+    res.status(statusCode).json({ success: true, data });
   } catch (err) {
     console.error('Error recording customer payment:', err);
     const status = err.statusCode || (err.name === 'ValidationError' ? 400 : 500);
