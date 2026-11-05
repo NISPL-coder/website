@@ -348,3 +348,65 @@
     padding: 14px 20px 18px 20px;
   }
 }
+
+/* Phones: the dialog lands as a bottom sheet, inputs hit 16px so iOS stops
+   zooming the page on focus, and the two footer actions go edge-to-edge. */
+@media (max-width: 480px) {
+  .demo-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .demo-modal-dialog {
+    max-height: calc(100vh - 24px);
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .demo-modal-header {
+    padding: 18px 18px 14px 18px;
+  }
+
+  .demo-modal-title {
+    font-size: 1.12rem;
+  }
+
+  .demo-modal-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .demo-modal-close-btn {
+    width: 40px;
+    height: 40px;
+    margin-top: 0;
+  }
+
+  .demo-modal-body {
+    padding: 16px 18px;
+  }
+
+  .demo-form-input,
+  .demo-form-select {
+    height: 46px;
+    font-size: 16px;
+  }
+
+  .demo-modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 18px 16px 18px;
+  }
+
+  .demo-modal-cancel-btn,
+  .demo-modal-submit-btn,
+  .demo-success-close-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .demo-success-box {
+    padding: 32px 18px 34px 18px;
+  }
+}

@@ -1921,9 +1921,23 @@
   .pnd-filter-toolbar {
     grid-template-columns: repeat(2, 1fr);
   }
-  .pnd-header-center {
-    display: none;
+
+  /* The header search is the only way to filter the tables, so it drops to a
+     full-width row of its own instead of being hidden with the header. */
+  .pnd-header {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding: 10px 16px;
   }
+
+  .pnd-header-center {
+    order: 3;
+    flex: 1 0 100%;
+    max-width: none;
+    margin: 0;
+  }
+
   .pnd-sidebar {
     position: fixed;
     top: 0;
@@ -1968,9 +1982,55 @@
     flex-direction: column;
   }
   .pnd-header {
-    padding: 0 16px;
+    padding: 10px 16px;
+  }
+  .pnd-search-kbd {
+    display: none;
+  }
+  .pnd-main-content {
+    padding: 16px 14px 34px;
   }
   .pnd-page-header {
     padding: 18px 20px;
+    gap: 14px;
+  }
+  .pnd-tab-card {
+    padding: 18px;
+  }
+  /* Still scrolls sideways, but it no longer needs a 680px runway to start. */
+  .pnd-table {
+    min-width: 540px;
+    font-size: 0.82rem;
+  }
+  .pnd-table th,
+  .pnd-table td {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pnd-renewals-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .pnd-page-header {
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+  .pnd-tab-card {
+    padding: 16px;
+  }
+  .pnd-main-content {
+    padding: 14px 10px 30px;
+  }
+  .pnd-cal-days {
+    gap: 2px;
+  }
+  /* A 32px day cell is under the smallest comfortable fingertip. */
+  .pnd-cal-day {
+    height: 38px;
+    font-size: 0.78rem;
+  }
+  .pnd-table {
+    min-width: 480px;
   }
 }

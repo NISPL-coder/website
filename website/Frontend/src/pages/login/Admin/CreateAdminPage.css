@@ -211,3 +211,59 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ==========================================================================
+   MOBILE — these dialogs sit on .ebolt-dialog-card, which becomes a bottom
+   sheet under 640px, so the overrides that sized it as a centred card have to
+   give way or the sheet lands with gaps and pill corners on every side.
+   ========================================================================== */
+@media (max-width: 640px) {
+  .admin-modal-card {
+    width: 100%;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  .admin-modal-title {
+    font-size: 1.18rem;
+  }
+
+  .admin-modal-desc {
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  .admin-success-icon-wrap {
+    width: 56px;
+    height: 56px;
+  }
+
+  .admin-modal-badge {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Email + Send OTP stop competing for the same line. */
+  .admin-email-row {
+    flex-wrap: wrap;
+  }
+
+  .admin-email-wrap {
+    flex: 1 1 100%;
+  }
+
+  .admin-send-otp-btn {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-confirm-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-choice-btn {
+    min-height: 46px;
+  }
+}

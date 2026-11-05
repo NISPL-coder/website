@@ -1808,6 +1808,7 @@ console.log('Successfully generated Postman Collection v2.1.0 JSON:');
 console.log('  1. ' + rootPath);
 console.log('  2. ' + backendPath);
 
+
 let totalReqs = 0;
 function printTree(items, indent = '  ') {
   items.forEach(folder => {

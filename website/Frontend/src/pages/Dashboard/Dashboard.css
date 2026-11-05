@@ -12744,3 +12744,11 @@
   box-shadow: 0 18px 38px -12px rgba(99, 102, 241, 0.28),
     0 6px 14px -6px rgba(15, 23, 42, 0.12) !important;
 }
+
+/* Touch screens fire hover on tap and never clear it, so the lifted card would
+   stay frozen mid-animation until the next tap elsewhere. */
+@media (hover: none) {
+  .cloud-plan-card:hover {
+    transform: none;
+  }
+}

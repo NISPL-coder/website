@@ -686,3 +686,58 @@
     grid-column: span 1;
   }
 }
+
+/* Phones: iOS zooms the whole page when a focused field is under 16px, and the
+   32-38px controls above are below the smallest comfortable fingertip. */
+@media (max-width: 480px) {
+  .nts-header-title {
+    font-size: 1.2rem;
+  }
+
+  .nts-header-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .nts-header-actions,
+  .nts-header-actions .nts-btn-primary,
+  .nts-header-actions .nts-btn-outline {
+    width: 100%;
+  }
+
+  .nts-btn-primary,
+  .nts-btn-outline {
+    height: 44px;
+    justify-content: center;
+  }
+
+  .nts-search-box {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .nts-search-input,
+  .nts-filter-select {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .nts-filter-select {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .nts-row-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nts-pagination-bar {
+    justify-content: center;
+  }
+
+  .nts-loading-state,
+  .nts-empty-state {
+    padding: 40px 16px;
+  }
+}

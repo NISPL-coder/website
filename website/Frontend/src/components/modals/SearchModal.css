@@ -315,4 +315,27 @@
   .nis-search-dialog-footer {
     display: none;
   }
+
+  /* 10vh of top offset plus a 440px result list pushed the dialog off short
+     screens; the list now scrolls inside whatever the viewport leaves. */
+  .nis-search-results-body {
+    max-height: 52vh;
+    padding: 14px 16px 18px;
+  }
+
+  .nis-search-close-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nis-search-input-bar {
+    padding: 12px 14px;
+  }
+}
+
+/* Touch screens fire hover on tap and never clear it, so pills would stick. */
+@media (hover: none) {
+  .nis-search-quick-pill:hover {
+    transform: none;
+  }
 }

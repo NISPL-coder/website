@@ -30,6 +30,27 @@ export const savePaymentsToFile = (payments) => {
   }
 };
 
+const paymentItemSchema = new mongoose.Schema(
+  {
+    productId: { type: String, default: '' },
+    name: { type: String, default: '' },
+    sku: { type: String, default: '' },
+    category: { type: String, default: '' },
+    provider: { type: String, default: '' },
+    users: { type: Number, default: 0 },
+    serverConfiguration: { type: String, default: '' },
+    cores: { type: String, default: '' },
+    ram: { type: String, default: '' },
+    storage: { type: String, default: '' },
+    billingCycle: { type: String, default: '' },
+    quantity: { type: Number, default: 1 },
+    basePrice: { type: Number, default: 0 },
+    gstAmount: { type: Number, default: 0 },
+    finalPrice: { type: Number, default: 0 }
+  },
+  { _id: false }
+);
+
 const paymentSchema = new mongoose.Schema(
   {
     paymentId: {
@@ -129,6 +150,49 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: '',
       index: true
+    },
+    // The subscription this money was taken for. Free-text company/customer
+    // naming is how the legacy rows identify an account, so this link is what
+    // lets a receipt show the plan, term and sales person without guessing.
+    contractId: {
+      type: String,
+      default: '',
+      index: true
+    },
+    // What was sold, frozen at the moment of payment. Prices and specifications
+    // are copied here rather than referenced, so editing the catalogue later
+    // cannot rewrite an already-issued receipt.
+    items: {
+      type: [paymentItemSchema],
+      default: []
+    },
+    taxableAmount: {
+      type: String,
+      default: ''
+    },
+    gstAmount: {
+      type: String,
+      default: ''
+    },
+    // How the split above was obtained, shown verbatim in the receipt so nobody
+    // reads a reverse-calculated figure as one that was quoted line by line.
+    gstBasis: {
+      type: String,
+      default: ''
+    },
+    salesPerson: {
+      type: String,
+      default: ''
+    },
+    source: {
+      type: String,
+      enum: ['', 'portal', 'gateway', 'admin', 'import'],
+      default: ''
+    },
+    raisedBy: {
+      name: { type: String, default: '' },
+      email: { type: String, default: '' },
+      role: { type: String, default: '' }
     }
   },
   {

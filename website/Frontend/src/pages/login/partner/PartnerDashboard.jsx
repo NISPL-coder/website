@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
 import { authApi } from '../../../services/authApi';
+import { useIsMobile } from '../../../utils/useResponsive';
 import {
   LayoutDashboard,
   Layers,
@@ -1922,6 +1923,7 @@ export function PartnerReportsView({ onBack }) {
 }
 
 export function PartnerSupportView({ onBack }) {
+  const isMobile = useIsMobile();
   const tickets = [
     { id: 'TKT-991', client: 'Tata Steel Processing Ltd', issue: 'Tally Multi-user Sync Delay (Node #2)', priority: 'High', opened: '28 Oct 2026', status: 'In Progress', engineer: 'Debojyoti M. (L3 Senior)' },
     { id: 'TKT-988', client: 'Sawansukha Jewellers Pvt Ltd', issue: 'SSL Certificate Renewal on Cloud Port', priority: 'Medium', opened: '24 Oct 2026', status: 'Resolved', engineer: 'Priya N. (Cloud Ops)' },
@@ -1949,7 +1951,7 @@ export function PartnerSupportView({ onBack }) {
       </div>
 
       {/* 3 Hot Support Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '18px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '14px' : '18px' }}>
         <div className="pnd-tab-card" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
           <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ede9fe', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Phone size={20} />
@@ -2057,6 +2059,7 @@ export function PartnerSupportView({ onBack }) {
 }
 
 export function PartnerSettingsView({ onBack }) {
+  const isMobile = useIsMobile();
   return (
     <div className="pnd-tab-container animate-fade-in">
       <div className="pnd-page-header">
@@ -2077,7 +2080,7 @@ export function PartnerSettingsView({ onBack }) {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '22px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : '1.2fr 1fr', gap: isMobile ? '16px' : '22px' }}>
         {/* Card 1: Bank Settlement */}
         <div className="pnd-tab-card" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>Direct Payout Bank Account</h3>
@@ -2088,7 +2091,7 @@ export function PartnerSettingsView({ onBack }) {
               <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Account Holder / Firm Name</label>
               <input type="text" readOnly value="Net Infotech System Partner Solutions LLP" className="pnd-filter-control" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : '1.2fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>Bank Name &amp; Branch</label>
                 <input type="text" readOnly value="HDFC Bank Ltd, Salt Lake Sector V" className="pnd-filter-control" />

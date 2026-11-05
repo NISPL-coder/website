@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
 import { notificationApi } from '../../../services/notificationApi';
 import { productApi } from '../../../services/productApi';
 import { customSelectStyles } from './reactSelectStyles';
-import { useIsPhone, useIsSmallPhone } from '../../../utils/useResponsive';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 // Official CtrlS Cloud Server Configuration Reference Matrix
 export const CTRLS_STANDARD_MATRIX = [
@@ -93,6 +93,8 @@ const FREQUENCY_OPTIONS = [
 
 export default function CreateProductPage({ products, setProducts, productType = 'tally' }) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   const config = PRODUCT_TYPE_CONFIG[productType] || PRODUCT_TYPE_CONFIG.tally;
   const isCloud = productType === 'cloud';
@@ -350,7 +352,7 @@ export default function CreateProductPage({ products, setProducts, productType =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
+              gridTemplateColumns: isMobile ? 'repeat(3, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))',
               gap: '10px'
             }}
           >
@@ -558,7 +560,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(3, minmax(0, 1fr))', gap: '16px' }}>
                 {/* Part 1: Cores */}
                 <div>
                   <label className="adm-form-label" style={{ fontSize: '0.8rem' }}>
