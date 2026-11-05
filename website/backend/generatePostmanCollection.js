@@ -7,9 +7,9 @@ const __dirname = path.dirname(__filename);
 
 const collection = {
   info: {
-    _postman_id: "nispl-backend-api-v2-collection",
-    name: "NISPL Cloud Tech - Enterprise Backend API Collection",
-    description: "Complete Postman API Collection for Net Infotech System (NISPL) Enterprise Backend.\nIncludes all endpoints for Authentication, Customer Management, Contracts, Invoices & Payments, Products Catalog, Staff RBAC, Audit Trails, Notifications, Cart Commerce, and Dashboard Telemetry.",
+    _postman_id: "nispl-backend-api-v3-collection",
+    name: "NISPL Cloud Tech - Structured API Collection",
+    description: "Structured Postman API Collection for Net Infotech System (NISPL) Enterprise Platform.\nOrganized into dedicated personas: Admin Portal, Customer Portal, and System & Health services.\nAll endpoints are verified against active frontend services and backend routes.",
     schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   auth: {
@@ -27,13 +27,31 @@ const collection = {
       key: "baseUrl",
       value: "http://localhost:4000",
       type: "string",
-      description: "Base API Server URL (e.g., http://localhost:4000 or production https://website-ebxf.onrender.com)"
+      description: "Base API Server URL (http://localhost:4000 or production https://website-ebxf.onrender.com)"
     },
     {
       key: "accessToken",
       value: "",
       type: "string",
-      description: "JWT Bearer Access Token (automatically populated after executing Login or Register request)"
+      description: "JWT Bearer Access Token (automatically populated after Admin or Customer login)"
+    },
+    {
+      key: "adminToken",
+      value: "",
+      type: "string",
+      description: "Admin JWT Bearer Access Token"
+    },
+    {
+      key: "customerToken",
+      value: "",
+      type: "string",
+      description: "Customer JWT Bearer Access Token"
+    },
+    {
+      key: "customerEmail",
+      value: "demo@gmail.com",
+      type: "string",
+      description: "Authenticated customer email used for scoping customer queries"
     },
     {
       key: "sessionId",
@@ -85,12 +103,1567 @@ const collection = {
     }
   ],
   item: [
-    // -------------------------------------------------------------
-    // FOLDER 1: System & Health
-    // -------------------------------------------------------------
+    // =========================================================================
+    // TOP-LEVEL FOLDER: ADMIN
+    // =========================================================================
     {
-      name: "1. System & Health",
-      description: "Health checks and backend runtime telemetry.",
+      name: "Admin",
+      description: "All backend APIs supporting the NISPL Admin Portal, Staff Backoffice, and Operations Management.",
+      item: [
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 1: Authentication & Onboarding
+        // -------------------------------------------------------------
+        {
+          name: "1. Authentication & Onboarding",
+          description: "Admin initial onboarding, OTP verification, login, profile inspection, and session management.",
+          item: [
+            {
+              name: "Get Admin Config & Existence Check",
+              request: {
+                auth: { type: "noauth" },
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/admin-config",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "admin-config"]
+                },
+                description: "Checks whether a primary administrator has already been provisioned and returns the configured admin email."
+              }
+            },
+            {
+              name: "Send Admin Onboarding OTP",
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: { mode: "raw", raw: "{}" },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/admin/send-otp",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "admin", "send-otp"]
+                },
+                description: "Dispatches a 6-digit one-time verification password to the configured administrator inbox."
+              }
+            },
+            {
+              name: "Verify OTP & Provision Admin",
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "Debasish Chakraborty",
+                    designation: "Primary Admin",
+                    password: "AdminSecurePassword123!",
+                    otp: "123456"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/admin/verify-and-create",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "admin", "verify-and-create"]
+                },
+                description: "Verifies admin OTP and registers the primary administrator."
+              }
+            },
+            {
+              name: "Admin Login",
+              event: [
+                {
+                  listen: "test",
+                  script: {
+                    type: "text/javascript",
+                    exec: [
+                      "const response = pm.response.json();",
+                      "if (response.accessToken) {",
+                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
+                      "    pm.collectionVariables.set(\"adminToken\", response.accessToken);",
+                      "    console.log(\"[Auth] Admin accessToken saved successfully.\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    email: "nispldeveloper@gmail.com",
+                    password: "AdminSecurePassword123!",
+                    portal: "admin"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/login",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "login"]
+                },
+                description: "Authenticates an administrator with portal claim verification and returns a signed JWT."
+              }
+            },
+            {
+              name: "Get Current Admin Profile (/me)",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/me",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "me"]
+                },
+                description: "Returns the authenticated administrator's role, permissions, and session profile."
+              }
+            },
+            {
+              name: "Change Admin Password",
+              request: {
+                method: "PATCH",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    currentPassword: "AdminSecurePassword123!",
+                    newPassword: "NewAdminSecurePassword456!"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/users/me/password",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "users", "me", "password"]
+                },
+                description: "Changes the authenticated user password and invalidates active session tokens."
+              }
+            },
+            {
+              name: "Refresh Admin Token",
+              event: [
+                {
+                  listen: "test",
+                  script: {
+                    type: "text/javascript",
+                    exec: [
+                      "const response = pm.response.json();",
+                      "if (response.accessToken) {",
+                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
+                      "    pm.collectionVariables.set(\"adminToken\", response.accessToken);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              request: {
+                method: "POST",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/refresh",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "refresh"]
+                },
+                description: "Refreshes the current access token."
+              }
+            },
+            {
+              name: "Admin Logout",
+              request: {
+                method: "POST",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/logout",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "logout"]
+                },
+                description: "Clears session cookies and revokes refresh tokens."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 2: Customer Management
+        // -------------------------------------------------------------
+        {
+          name: "2. Customer Management",
+          description: "Customer directories, Sangam CRM synchronization, demo trial extensions, and bulk CSV ingestion.",
+          item: [
+            {
+              name: "List Customers & Summary Stats",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers"]
+                },
+                description: "Retrieves complete customers roster with active contracts count, pending payments, and Sangam sync states."
+              }
+            },
+            {
+              name: "Create Customer & Auto-Sync Sangam CRM",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "Apex Global Infotech",
+                    email: "ops@apexinfotech.in",
+                    phone: "+91 98302 44556",
+                    company: "Apex Global Infotech Pvt Ltd",
+                    address: "Block EP & GP, Sector V, Salt Lake",
+                    city: "Kolkata",
+                    state: "West Bengal",
+                    pincode: "700091",
+                    gstNo: "19AAACT5566K1Z9",
+                    status: "Active"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers"]
+                },
+                description: "Creates a customer in MongoDB and triggers background synchronization with Sangam CRM."
+              }
+            },
+            {
+              name: "Update Customer Record",
+              request: {
+                method: "PUT",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    phone: "+91 98302 99887",
+                    city: "Kolkata",
+                    state: "West Bengal",
+                    status: "Active"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/{{customerId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "{{customerId}}"]
+                },
+                description: "Updates customer profile details and contact information."
+              }
+            },
+            {
+              name: "Authorize Customer Demo Trial Extension",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    additionalDays: 7
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/{{customerId}}/allow-demo-extension",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "{{customerId}}", "allow-demo-extension"]
+                },
+                description: "Admin action to permit an additional trial extension for a customer who has already used their one-time demo plan."
+              }
+            },
+            {
+              name: "Retry / Trigger Sangam CRM Sync",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: { mode: "raw", raw: "{}" },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/{{customerId}}/sync",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "{{customerId}}", "sync"]
+                },
+                description: "Re-triggers CRM Account and Contact push to Sangam CRM API."
+              }
+            },
+            {
+              name: "Bulk Import Companies from CSV",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    companies: [
+                      {
+                        companyName: "Eastern Alloys Corp",
+                        email: "accounts@easternalloys.in",
+                        phone: "+91 98310 99881",
+                        city: "Durgapur",
+                        state: "West Bengal"
+                      }
+                    ]
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/import-companies",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "import-companies"]
+                },
+                description: "CSV import endpoint consumed by Admin Import CSV Data Tool."
+              }
+            },
+            {
+              name: "Bulk Import Contacts from CSV",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    contacts: [
+                      {
+                        contactName: "Sourav Ganguly",
+                        email: "sourav@easternalloys.in",
+                        phone: "+91 98310 99882",
+                        companyName: "Eastern Alloys Corp"
+                      }
+                    ]
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/import-contacts",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "import-contacts"]
+                },
+                description: "CSV contact importer consumed by Admin Data Tools."
+              }
+            },
+            {
+              name: "Delete Customer Record",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/customers/{{customerId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "customers", "{{customerId}}"]
+                },
+                description: "Deletes a customer account from the MongoDB database."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 3: Contract Management
+        // -------------------------------------------------------------
+        {
+          name: "3. Contract Management",
+          description: "Service agreements, subscription terms, duration tracking, and Sangam contract synchronization.",
+          item: [
+            {
+              name: "List Contracts with Sangam Status",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts"]
+                },
+                description: "Fetches contracts across customers with real-time Sangam contract sync indicators."
+              }
+            },
+            {
+              name: "Create Contract & Sync to Sangam CRM",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    customer: "Apex Global Infotech",
+                    customerEmail: "ops@apexinfotech.in",
+                    productCategory: "Cloud",
+                    planName: "CtrlS 1 User (2 Core / 3 GB / 50 GB)",
+                    contractType: "Standard",
+                    duration: "1 Year",
+                    startDate: "2026-11-05",
+                    endDate: "2027-11-04",
+                    amount: 6000,
+                    billingFrequency: "Annually",
+                    status: "Active",
+                    salesPerson: "Debasish Chakraborty"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts"]
+                },
+                description: "Provisions a contract and initiates asynchronous synchronization to Sangam CRM Contracts module."
+              }
+            },
+            {
+              name: "Update Contract Agreement",
+              request: {
+                method: "PUT",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    status: "Active",
+                    amount: 6000,
+                    notes: "Annual renewal contract"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts", "{{contractId}}"]
+                },
+                description: "Updates existing contract pricing, duration, or lifecycle state."
+              }
+            },
+            {
+              name: "Retry / Trigger Sangam Contract Sync",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: { mode: "raw", raw: "{}" },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}/sync",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts", "{{contractId}}", "sync"]
+                },
+                description: "Retries pushing contract payload into Sangam CRM."
+              }
+            },
+            {
+              name: "Delete Contract",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts", "{{contractId}}"]
+                },
+                description: "Deletes a contract record from MongoDB."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 4: Payment Management
+        // -------------------------------------------------------------
+        {
+          name: "4. Payment Management",
+          description: "Invoicing, receipt tracking, clearance confirmations, and accounts reconciliation.",
+          item: [
+            {
+              name: "List All Payments & Invoices",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments"]
+                },
+                description: "Returns receipts and clearance ledgers."
+              }
+            },
+            {
+              name: "Record New Payment / Receipt",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    customerId: "{{customerId}}",
+                    customerName: "Apex Global Infotech",
+                    customerEmail: "ops@apexinfotech.in",
+                    contractId: "{{contractId}}",
+                    amount: 6000,
+                    paymentMode: "NEFT / RTGS",
+                    referenceNo: "NEFT-HDFC-991823",
+                    status: "Completed",
+                    notes: "Annual cloud server hosting advance payment"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments"]
+                },
+                description: "Creates an accounts ledger payment entry and dispatches audit notification."
+              }
+            },
+            {
+              name: "Update Payment / Clearance Status",
+              request: {
+                method: "PUT",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    status: "Completed",
+                    clearanceDate: "2026-11-05",
+                    notes: "Cheque cleared via ICICI Bank"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments/{{paymentId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments", "{{paymentId}}"]
+                },
+                description: "Updates reconciliation status on an invoice payment."
+              }
+            },
+            {
+              name: "Delete Payment Record",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments/{{paymentId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments", "{{paymentId}}"]
+                },
+                description: "Deletes a payment record from the database."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 5: Product Management
+        // -------------------------------------------------------------
+        {
+          name: "5. Product Management",
+          description: "CtrlS Kolkata Tier-4 cloud nodes, dynamic pricing tiers, demo plans, and catalog availability.",
+          item: [
+            {
+              name: "List Products Catalog",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/products?category=Cloud%20Hosting&provider=ctrls-cloud",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "products"],
+                  query: [
+                    { key: "category", value: "Cloud Hosting" },
+                    { key: "provider", value: "ctrls-cloud" }
+                  ]
+                },
+                description: "Direct dynamic database query returning active cloud nodes and demo tiers."
+              }
+            },
+            {
+              name: "Create Product / Custom Plan / Demo Plan",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "CtrlS 1 User Demo (2 Core / 3 GB / 50 GB)",
+                    sku: "ctrls-demo-1u",
+                    category: "Trial",
+                    provider: "ctrls-cloud",
+                    description: "7-day complimentary trial node with 2 vCPU, 3 GB RAM, 50 GB SSD storage.",
+                    price: 0,
+                    currency: "INR",
+                    billingCycle: "trial",
+                    trialDuration: "7 Days",
+                    isDemoPlan: true,
+                    available: true,
+                    specs: {
+                      cores: "2 core",
+                      ram: "3 GB",
+                      storage: "50 GB SSD",
+                      ip: "103.115.220.41",
+                      users: "1 User"
+                    }
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/products",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "products"]
+                },
+                description: "Creates and saves a standard, custom, or demo plan dynamically into MongoDB."
+              }
+            },
+            {
+              name: "Update Catalog Product",
+              request: {
+                method: "PUT",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "CtrlS 1 User Enterprise Node",
+                    price: 500,
+                    available: true
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/products/{{productId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "products", "{{productId}}"]
+                },
+                description: "Updates an existing product's specs, pricing, or name."
+              }
+            },
+            {
+              name: "Toggle Product Live Availability",
+              request: {
+                method: "PATCH",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    available: true
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/products/{{productId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "products", "{{productId}}"]
+                },
+                description: "Switches live customer portal availability for the specified product node."
+              }
+            },
+            {
+              name: "Delete Catalog Product",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/products/{{productId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "products", "{{productId}}"]
+                },
+                description: "Removes a product or custom pricing plan from the catalog."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 6: Staff & Access Control (RBAC)
+        // -------------------------------------------------------------
+        {
+          name: "6. Staff & Access Control (RBAC)",
+          description: "Internal staff directory, granular permissions matrix, and role assignment.",
+          item: [
+            {
+              name: "List Staff & Access Permissions",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/staff",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "staff"]
+                },
+                description: "Lists staff members, operational roles, and column view/edit privileges."
+              }
+            },
+            {
+              name: "Create Staff Member",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "Ananya Sharma",
+                    email: "ananya@nispl.co.in",
+                    phone: "+91 98305 67890",
+                    role: "Sales",
+                    password: "StaffSecurePassword123!",
+                    permissions: {
+                      customer: { view: true, create: true, edit: true, delete: false },
+                      contract: { view: true, create: true, edit: false, delete: false },
+                      payment: { view: true, create: false, edit: false, delete: false },
+                      product: { view: true, create: false, edit: false, delete: false },
+                      activityLog: { view: false, create: false, edit: false, delete: false }
+                    }
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/staff",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "staff"]
+                },
+                description: "Provisions a new staff user with granular module permissions."
+              }
+            },
+            {
+              name: "Toggle Staff Account Status",
+              request: {
+                method: "PATCH",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    status: "Active"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/staff/{{staffId}}/status",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "staff", "{{staffId}}", "status"]
+                },
+                description: "Activates or deactivates a staff member's login access."
+              }
+            },
+            {
+              name: "Update Staff Permissions & Role",
+              request: {
+                method: "PATCH",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    role: "Manager",
+                    permissions: {
+                      customer: { view: true, create: true, edit: true, delete: true },
+                      contract: { view: true, create: true, edit: true, delete: false }
+                    }
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/staff/{{staffId}}/permissions",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "staff", "{{staffId}}", "permissions"]
+                },
+                description: "Updates RBAC permissions for a staff member."
+              }
+            },
+            {
+              name: "Delete Staff Member",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/staff/{{staffId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "staff", "{{staffId}}"]
+                },
+                description: "Removes a staff member account."
+              }
+            },
+            {
+              name: "Get RBAC Column Registry",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/permissions/columns",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "permissions", "columns"]
+                },
+                description: "Returns schema field registry for granular role-based UI access control."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 7: Activity Logs & Audit Trail
+        // -------------------------------------------------------------
+        {
+          name: "7. Activity Logs & Audit Trail",
+          description: "Administrative audit trail, forensic mutation logs, and search filters.",
+          item: [
+            {
+              name: "List Activity Logs (Paginated & Filterable)",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/activity-logs?page=1&limit=25&category=all&search=",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "activity-logs"],
+                  query: [
+                    { key: "page", value: "1" },
+                    { key: "limit", value: "25" },
+                    { key: "category", value: "all" },
+                    { key: "search", value: "" }
+                  ]
+                },
+                description: "Queries administrative activity audit trail with optional category, actor, and date filters."
+              }
+            },
+            {
+              name: "Get Single Activity Log by ID",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/activity-logs/{{activityLogId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "activity-logs", "{{activityLogId}}"]
+                },
+                description: "Fetches full metadata and payload snapshot for a specific audit log entry."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 8: Notifications Center
+        // -------------------------------------------------------------
+        {
+          name: "8. Notifications Center",
+          description: "Admin alert broadcasts, operational notifications, and bulk clearance.",
+          item: [
+            {
+              name: "List Notifications Stream",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications"]
+                },
+                description: "Fetches operational alerts and system notifications."
+              }
+            },
+            {
+              name: "Get Notification Statistics",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications/stats",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications", "stats"]
+                },
+                description: "Returns unread counts and severity breakdown."
+              }
+            },
+            {
+              name: "Mark Notification as Read",
+              request: {
+                method: "PATCH",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications", "{{notificationId}}", "read"]
+                },
+                description: "Marks a specific notification alert as read."
+              }
+            },
+            {
+              name: "Mark All Notifications as Read",
+              request: {
+                method: "PATCH",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications/read-all",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications", "read-all"]
+                },
+                description: "Batch updates all unread alerts to read."
+              }
+            },
+            {
+              name: "Delete Notification",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications", "{{notificationId}}"]
+                },
+                description: "Deletes a single notification alert."
+              }
+            },
+            {
+              name: "Clear All Notifications",
+              request: {
+                method: "DELETE",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications"]
+                },
+                description: "Purges notification inbox."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // ADMIN SUBFOLDER 9: Dashboard Analytics
+        // -------------------------------------------------------------
+        {
+          name: "9. Dashboard Analytics",
+          description: "Executive KPIs, revenue telemetry, contract breakdown, and customer health metrics.",
+          item: [
+            {
+              name: "Admin Dashboard Executive Overview",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/overview?period=monthly&fy=2026-2027",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "overview"],
+                  query: [
+                    { key: "period", value: "monthly" },
+                    { key: "fy", value: "2026-2027" }
+                  ]
+                },
+                description: "Powers the primary Admin Dashboard cards, graphs, and contract status summaries."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    // =========================================================================
+    // TOP-LEVEL FOLDER: CUSTOMER
+    // =========================================================================
+    {
+      name: "Customer",
+      description: "All endpoints consumed by the Customer Portal, Cloud Server Dashboard, Cart Checkout, and Client Self-Service.",
+      item: [
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 1: Authentication & Account
+        // -------------------------------------------------------------
+        {
+          name: "1. Authentication & Account",
+          description: "Customer onboarding, self-registration, client login, password recovery, and session profile.",
+          item: [
+            {
+              name: "Customer Self-Registration",
+              event: [
+                {
+                  listen: "test",
+                  script: {
+                    type: "text/javascript",
+                    exec: [
+                      "const response = pm.response.json();",
+                      "if (response.accessToken) {",
+                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
+                      "    pm.collectionVariables.set(\"customerToken\", response.accessToken);",
+                      "    if (response.user && response.user.email) {",
+                      "        pm.collectionVariables.set(\"customerEmail\", response.user.email);",
+                      "    }",
+                      "    console.log(\"[Auth] Customer accessToken saved successfully.\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    name: "Demo Customer",
+                    email: "demo@gmail.com",
+                    mobile: "+91 98311 22334",
+                    companyName: "Demo Enterprise Solutions",
+                    companyLogo: "",
+                    gstNo: "19AAACT1234A1Z5",
+                    password: "CustomerSecurePass123!"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/register",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "register"]
+                },
+                description: "Registers a customer account and establishes their customer portal profile."
+              }
+            },
+            {
+              name: "Customer Login",
+              event: [
+                {
+                  listen: "test",
+                  script: {
+                    type: "text/javascript",
+                    exec: [
+                      "const response = pm.response.json();",
+                      "if (response.accessToken) {",
+                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
+                      "    pm.collectionVariables.set(\"customerToken\", response.accessToken);",
+                      "    if (response.user && response.user.email) {",
+                      "        pm.collectionVariables.set(\"customerEmail\", response.user.email);",
+                      "    }",
+                      "    console.log(\"[Auth] Customer login token saved successfully.\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    email: "demo@gmail.com",
+                    password: "CustomerSecurePass123!",
+                    portal: "customer"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/login",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "login"]
+                },
+                description: "Customer portal authentication returning JWT token with Customer role privileges."
+              }
+            },
+            {
+              name: "Get Current Customer Profile (/me)",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/me",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "me"]
+                },
+                description: "Fetches current authenticated customer's profile, company details, and subscription state."
+              }
+            },
+            {
+              name: "Forgot Password Instructions",
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    email: "demo@gmail.com"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/forgot-password",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "forgot-password"]
+                },
+                description: "Sends password reset instructions and security token to the customer inbox."
+              }
+            },
+            {
+              name: "Reset Password with Token",
+              request: {
+                auth: { type: "noauth" },
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    token: "sample_password_reset_token_here",
+                    password: "NewCustomerSecurePass456!"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/reset-password",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "reset-password"]
+                },
+                description: "Validates verification token and updates customer account password."
+              }
+            },
+            {
+              name: "Refresh Customer Token",
+              event: [
+                {
+                  listen: "test",
+                  script: {
+                    type: "text/javascript",
+                    exec: [
+                      "const response = pm.response.json();",
+                      "if (response.accessToken) {",
+                      "    pm.collectionVariables.set(\"accessToken\", response.accessToken);",
+                      "    pm.collectionVariables.set(\"customerToken\", response.accessToken);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              request: {
+                method: "POST",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/refresh",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "refresh"]
+                },
+                description: "Refreshes customer portal session access token."
+              }
+            },
+            {
+              name: "Customer Logout",
+              request: {
+                method: "POST",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/auth/logout",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "auth", "logout"]
+                },
+                description: "Signs out the customer and clears session credentials."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 2: Portal & Dashboard
+        // -------------------------------------------------------------
+        {
+          name: "2. Portal & Dashboard",
+          description: "Customer portal summary telemetry, remote desktop connectivity credentials, search, demo activation, and direct payment.",
+          item: [
+            {
+              name: "Customer Portal Overview Telemetry",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/overview",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "overview"]
+                },
+                description: "Returns client overview telemetry: active cloud nodes, demo trial usage flags (demoTrialUsed, demoExtensionAllowed), and billing status."
+              }
+            },
+            {
+              name: "Customer Cloud Details & Credentials (/me)",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/me",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "me"]
+                },
+                description: "Retrieves customer's cloud server connection specs, static IP address, RDP port, and license details."
+              }
+            },
+            {
+              name: "Activate Demo Trial (Single-Use Validation)",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    planId: "ctrls-demo-1u",
+                    planName: "CtrlS 1 User Demo (2 Core / 3 GB / 50 GB)",
+                    trialDays: 7
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/activate-demo",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "activate-demo"]
+                },
+                description: "Activates a complimentary demo plan. Enforces single-use trial policy unless explicitly authorized for extension by an admin."
+              }
+            },
+            {
+              name: "Customer Portal Global Search",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/search?q=ctrls",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "search"],
+                  query: [{ key: "q", value: "ctrls" }]
+                },
+                description: "Provides unified instant search across customer products, subscriptions, and receipts."
+              }
+            },
+            {
+              name: "Pay Customer Portal Dues",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    contractId: "{{contractId}}",
+                    amount: 500,
+                    paymentMode: "Online / UPI",
+                    referenceNo: "UPI-PAY-2026-9901"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/dashboard/payments",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "dashboard", "payments"]
+                },
+                description: "Allows customer to submit payment against outstanding dues directly from the customer portal."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 3: Cart & Commerce
+        // -------------------------------------------------------------
+        {
+          name: "3. Cart & Commerce",
+          description: "Customer session cart, item configuration, add-ons, quantity modifications, and checkout fulfillment.",
+          item: [
+            {
+              name: "Get Session Cart with Tax & Totals",
+              request: {
+                method: "GET",
+                header: [
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart"]
+                },
+                description: "Retrieves the active customer cart including subtotal, GST calculation, discounts, and line items."
+              }
+            },
+            {
+              name: "Get Available Cart Addons",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/addons",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "addons"]
+                },
+                description: "Lists recommended add-ons (extra RAM, dedicated IP, automated backup storage)."
+              }
+            },
+            {
+              name: "Add Item to Cart",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    productId: "ctrls-1-user",
+                    name: "CtrlS 1 User (2 Core / 3 GB / 50 GB)",
+                    price: 500,
+                    quantity: 1,
+                    billingCycle: "monthly",
+                    specs: {
+                      cores: "2 core",
+                      ram: "3 GB",
+                      storage: "50 GB"
+                    }
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/add",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "add"]
+                },
+                description: "Adds a selected CtrlS Cloud tier or product to the session cart."
+              }
+            },
+            {
+              name: "Update Cart Item Quantity",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    itemId: "item_cart_node_01",
+                    quantity: 2
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/update-qty",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "update-qty"]
+                },
+                description: "Modifies item quantity in the cart with dynamic subtotal recalculation."
+              }
+            },
+            {
+              name: "Remove Item from Cart",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    itemId: "item_cart_node_01"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/remove",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "remove"]
+                },
+                description: "Removes a specific line item from the active cart."
+              }
+            },
+            {
+              name: "Update Fulfillment Mode (Digital / Assisted)",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: {
+                  mode: "raw",
+                  raw: JSON.stringify({
+                    fulfillmentMode: "Digital"
+                  }, null, 2)
+                },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/fulfillment",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "fulfillment"]
+                },
+                description: "Toggles provisioning fulfillment preference."
+              }
+            },
+            {
+              name: "Clear Entire Cart",
+              request: {
+                method: "POST",
+                header: [
+                  { key: "Content-Type", value: "application/json" },
+                  { key: "Accept", value: "application/json" },
+                  { key: "X-Session-Id", value: "{{sessionId}}" }
+                ],
+                body: { mode: "raw", raw: "{}" },
+                url: {
+                  raw: "{{baseUrl}}/api/v1/cart/clear",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "cart", "clear"]
+                },
+                description: "Clears all line items from the active session cart."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 4: Subscriptions & Contracts
+        // -------------------------------------------------------------
+        {
+          name: "4. Subscriptions & Contracts",
+          description: "Customer view of active subscriptions, plan specifications, and contract terms.",
+          item: [
+            {
+              name: "Customer Active Subscriptions",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/contracts?customer={{customerEmail}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "contracts"],
+                  query: [
+                    { key: "customer", value: "{{customerEmail}}" }
+                  ]
+                },
+                description: "Returns all active and historical contracts for the authenticated customer."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 5: Invoices & Receipts
+        // -------------------------------------------------------------
+        {
+          name: "5. Invoices & Receipts",
+          description: "Customer view of billing invoices, receipts, and payment transactions.",
+          item: [
+            {
+              name: "Customer Invoices & Receipts List",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/payments?customer={{customerEmail}}",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "payments"],
+                  query: [
+                    { key: "customer", value: "{{customerEmail}}" }
+                  ]
+                },
+                description: "Returns invoices and payment receipts associated with the customer account."
+              }
+            }
+          ]
+        },
+
+        // -------------------------------------------------------------
+        // CUSTOMER SUBFOLDER 6: Notifications
+        // -------------------------------------------------------------
+        {
+          name: "6. Notifications",
+          description: "Customer portal alerts, renewal notifications, and provisioning updates.",
+          item: [
+            {
+              name: "Customer Notifications Stream",
+              request: {
+                method: "GET",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications"]
+                },
+                description: "Streams customer-scoped alerts, payment reminders, and trial expiration notices."
+              }
+            },
+            {
+              name: "Mark Customer Notification as Read",
+              request: {
+                method: "PATCH",
+                header: [{ key: "Accept", value: "application/json" }],
+                url: {
+                  raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
+                  host: ["{{baseUrl}}"],
+                  path: ["api", "v1", "notifications", "{{notificationId}}", "read"]
+                },
+                description: "Marks a customer notification as read."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    // =========================================================================
+    // TOP-LEVEL FOLDER: SYSTEM & HEALTH
+    // =========================================================================
+    {
+      name: "System & Health",
+      description: "Health checks, root service manifest, and runtime environment inspection.",
       item: [
         {
           name: "API Root & Service Manifest",
@@ -119,2007 +1692,6 @@ const collection = {
             },
             description: "Standard liveness check used by cloud orchestrators and monitoring probes."
           }
-        },
-        {
-          name: "Base Health Check (/health)",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/health",
-              host: ["{{baseUrl}}"],
-              path: ["health"]
-            },
-            description: "Root-level health check endpoint."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 2: Authentication
-    // -------------------------------------------------------------
-    {
-      name: "2. Authentication",
-      description: "Admin onboarding, multi-portal authentication (Admin, Customer, Partner), session management, and password reset flows.",
-      item: [
-        {
-          name: "Get Admin Config & Existence Check",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/admin-config",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "admin-config"]
-            },
-            description: "Inspects whether a primary administrator has already been provisioned and returns the configured administrator email address."
-          }
-        },
-        {
-          name: "Send Admin Onboarding OTP",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: "{}"
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/admin/send-otp",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "admin", "send-otp"]
-            },
-            description: "Dispatches a 6-digit one-time verification password to the authorized administrator inbox."
-          }
-        },
-        {
-          name: "Verify OTP & Provision Admin",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "NISPL System Administrator",
-                designation: "Head of Infrastructure",
-                password: "SecureAdminPassword@2026",
-                otp: "123456"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/admin/verify-and-create",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "admin", "verify-and-create"]
-            },
-            description: "Verifies the email OTP and creates the primary administrator credentials."
-          }
-        },
-        {
-          name: "Login User (Admin / Customer / Partner)",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.accessToken) {",
-                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
-                  "    console.log('Access token saved to collection variable: ' + jsonData.accessToken.substring(0, 15) + '...');",
-                  "}",
-                  "if (jsonData && jsonData.user && jsonData.user.id) {",
-                  "    pm.collectionVariables.set('staffId', jsonData.user.id);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                identifier: "admin@netinfotechsystem.in",
-                password: "Password@123",
-                portal: "admin"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/login",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "login"]
-            },
-            description: "Authenticates an account across Admin, Customer, or Partner portals. Sets {{accessToken}} variable on success."
-          }
-        },
-        {
-          name: "Customer Self-Registration",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.accessToken) {",
-                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
-                  "}",
-                  "if (jsonData && jsonData.user && jsonData.user.customerId) {",
-                  "    pm.collectionVariables.set('customerId', jsonData.user.customerId);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Rajesh Sharma",
-                email: "rajesh.sharma@innovativetech.in",
-                password: "CustomerSecretPassword@2026",
-                company: "Innovative Tech Solutions Pvt Ltd",
-                phone: "+91 98301 22334",
-                gstNo: "19AAACI1681G1ZM",
-                plan: "Tally Prime Gold Cloud Server"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/register",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "register"]
-            },
-            description: "Self-service onboarding endpoint for prospective customers."
-          }
-        },
-        {
-          name: "Get Current Authenticated Profile (/me)",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/me",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "me"]
-            },
-            description: "Returns the authenticated user's profile and active roles using the Bearer token."
-          }
-        },
-        {
-          name: "Refresh Access Token",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                refreshToken: "{{refreshToken}}"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/refresh",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "refresh"]
-            },
-            description: "Exchanges a valid refresh token cookie/payload for a renewed short-lived access token."
-          }
-        },
-        {
-          name: "Forgot Password Instructions",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                email: "user@innovativetech.in"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/forgot-password",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "forgot-password"]
-            },
-            description: "Dispatches a secure password recovery link to the user's registered email address."
-          }
-        },
-        {
-          name: "Reset Password with Token",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                token: "sample-reset-token-received-in-email",
-                password: "BrandNewSecurePassword@2026"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/reset-password",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "reset-password"]
-            },
-            description: "Validates the verification token and saves the new account password."
-          }
-        },
-        {
-          name: "Logout & Revoke Session",
-          request: {
-            method: "POST",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/auth/logout",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "auth", "logout"]
-            },
-            description: "Revokes the active JWT session server-side and clears authentication cookies."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 3: Users & Profile Management
-    // -------------------------------------------------------------
-    {
-      name: "3. Users & Profile Management",
-      description: "User profile queries, password modifications, and administrative user provisioning.",
-      item: [
-        {
-          name: "Get Own User Profile",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/users/me",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "users", "me"]
-            },
-            description: "Retrieves complete account record of currently signed-in user."
-          }
-        },
-        {
-          name: "Change Own Password",
-          request: {
-            method: "PATCH",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                currentPassword: "OldPassword@123",
-                newPassword: "FreshPassword@2026!"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/users/me/password",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "users", "me", "password"]
-            },
-            description: "Updates password for the currently authenticated account and invalidates existing sessions."
-          }
-        },
-        {
-          name: "List System Users (Admin Only)",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/users",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "users"]
-            },
-            description: "Administrative query returning all registered user identities."
-          }
-        },
-        {
-          name: "Create User (Admin Provisioning)",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Ananya Sen",
-                email: "ananya.sen@netinfotechsystem.in",
-                password: "StaffAccountPassword@2026",
-                role: "manager",
-                tier: "Operations Manager",
-                permissions: ["overview:view", "customer:*", "contract:*", "payment:view"],
-                securityLevel: "Tier-2 Security",
-                location: "Kolkata HQ Node",
-                accountStatus: "active"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/users",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "users"]
-            },
-            description: "Admin endpoint to provision a new staff or user account directly."
-          }
-        },
-        {
-          name: "Update User by ID",
-          request: {
-            method: "PATCH",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Ananya Sen (Updated)",
-                role: "manager",
-                accountStatus: "active",
-                permissions: ["overview:view", "customer:*", "contract:*", "payment:*"]
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/users/{{staffId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "users", "{{staffId}}"]
-            },
-            description: "Admin endpoint to modify an existing user's attributes."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 4: Customers Directory
-    // -------------------------------------------------------------
-    {
-      name: "4. Customers Directory",
-      description: "Enterprise customer directory, Sangam CRM company synchronizations, and bulk CSV imports.",
-      item: [
-        {
-          name: "List Customers & Summary Stats",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers"]
-            },
-            description: "Returns all customer accounts with aggregated MRR, active deployment counts, and Sangam CRM sync states."
-          }
-        },
-        {
-          name: "Create Customer & Auto-Sync Sangam CRM",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.data && jsonData.data.customerId) {",
-                  "    pm.collectionVariables.set('customerId', jsonData.data.customerId);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                customerId: "CUST-9679",
-                name: "demo",
-                company: "demo",
-                email: "demo@gmail.com",
-                phone: "9876543210",
-                alternatePhone: "+91 33 2289 4400",
-                website: "https://nispl.in",
-                industry: "IT & Cloud Services",
-                accountRelationship: "Customer",
-                plan: "Tally Prime Cloud + VPS Gold",
-                serverNode: "CtrlS-KOL-NODE-01",
-                status: "active",
-                mrr: "₹6,500",
-                registered: "2026-10-31",
-                address: {
-                  street: "Sector V, Salt Lake Electronics Complex",
-                  area: "Bidhannagar",
-                  city: "Kolkata",
-                  state: "West Bengal",
-                  country: "India",
-                  postalCode: "700091",
-                  addressType: "Headquarters"
-                },
-                gstNo: null,
-                portalPassword: "SecureClient@12345"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers"]
-            },
-            description: "Creates an enterprise customer record locally and automatically triggers bidirectional synchronization to Sangam CRM."
-          }
-        },
-        {
-          name: "Update Customer Record",
-          request: {
-            method: "PUT",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Debashis Banerjee",
-                company: "Kolkata FinTech Solutions Pvt Ltd",
-                phone: "+91 98310 99887",
-                status: "active",
-                plan: "Tally Prime Enterprise + Dedicated VPS Node",
-                mrr: "₹28,000",
-                address: {
-                  city: "Kolkata",
-                  state: "West Bengal",
-                  country: "India",
-                  postalCode: "700091"
-                }
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/{{customerId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "{{customerId}}"]
-            },
-            description: "Updates an existing customer profile and pushes revisions to Sangam CRM."
-          }
-        },
-        {
-          name: "Retry / Trigger Sangam CRM Sync",
-          request: {
-            method: "POST",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/{{customerId}}/sync",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "{{customerId}}", "sync"]
-            },
-            description: "Forces an immediate live synchronization retry for this customer against Sangam CRM."
-          }
-        },
-        {
-          name: "Bulk Import Companies from CSV",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                companies: [
-                  {
-                    companyName: "Eastern Steel Manufacturing Co",
-                    email: "contact@easternsteel.com",
-                    phone: "9830011223",
-                    city: "Durgapur",
-                    state: "West Bengal",
-                    industry: "Manufacturing",
-                    plan: "Tally Multi-User Cloud"
-                  },
-                  {
-                    companyName: "Bengal Logistics & Freight Ltd",
-                    email: "info@bengallogistics.in",
-                    phone: "9830044556",
-                    city: "Howrah",
-                    state: "West Bengal",
-                    industry: "Logistics",
-                    plan: "Cloud VPS Gold"
-                  }
-                ]
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/import-companies",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "import-companies"]
-            },
-            description: "Imports a batch of enterprise customer companies parsed from CSV uploads."
-          }
-        },
-        {
-          name: "Bulk Import Contacts from CSV",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                contacts: [
-                  {
-                    name: "Siddhartha Roy",
-                    email: "sroy@easternsteel.com",
-                    mobile: "9830011223",
-                    companyName: "Eastern Steel Manufacturing Co",
-                    designation: "Chief Financial Officer"
-                  }
-                ]
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/import-contacts",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "import-contacts"]
-            },
-            description: "Imports customer contacts and links them to their associated company profiles."
-          }
-        },
-        {
-          name: "Authorize Customer Demo Trial Extension",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                additionalDays: 7,
-                notes: "Authorized by admin"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/{{customerId}}/allow-demo-extension",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "{{customerId}}", "allow-demo-extension"]
-            },
-            description: "Admin endpoint to authorize additional trial days for a specific customer, permitting them to extend their time-boxed demo plan under the single demo plan policy."
-          }
-        },
-        {
-          name: "Delete Customer Record",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/customers/{{customerId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "customers", "{{customerId}}"]
-            },
-            description: "Removes customer record from database and audit log trail."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 5: Contracts & Agreements
-    // -------------------------------------------------------------
-    {
-      name: "5. Contracts & Agreements",
-      description: "Service agreements, Cloud SLA subscriptions, AMC renewals, and Sangam CRM synchronizations.",
-      item: [
-        {
-          name: "List Contracts with Sangam Status",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/contracts",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "contracts"]
-            },
-            description: "Returns all active, pending, and expiring service agreements with Sangam CRM sync indicators."
-          }
-        },
-        {
-          name: "Create Contract & Sync to Sangam CRM",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.data && jsonData.data.contractId) {",
-                  "    pm.collectionVariables.set('contractId', jsonData.data.contractId);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                contractId: "CTR-2026-8829",
-                name: "Tally on Clouds",
-                company: "demo",
-                customer: "demo",
-                email: "demo@gmail.com",
-                service: "Tally on Clouds",
-                contractType: "AMC",
-                subscriptionPeriod: "1 Year",
-                productCategory: "Service",
-                totalContractValue: "₹6,500",
-                value: "₹6,500",
-                startDate: "2026-10-31",
-                endDate: "2027-10-31",
-                expiryDate: "2027-10-31",
-                status: "Active",
-                slaTier: "Tier-4 CtrlS Kolkata NOC 99.99%",
-                description: "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, Windows Server license & daily backup."
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/contracts",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "contracts"]
-            },
-            description: "Registers a new legal service agreement and schedules automated renewal reminders."
-          }
-        },
-        {
-          name: "Update Contract Agreement",
-          request: {
-            method: "PUT",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Annual Cloud Infrastructure & Tally Prime SLA (Renewed)",
-                totalContractValue: "₹3,20,000",
-                status: "Active",
-                expiryDate: "2027-12-31"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "contracts", "{{contractId}}"]
-            },
-            description: "Modifies contract terms or status and triggers sync to Sangam CRM."
-          }
-        },
-        {
-          name: "Retry / Trigger Sangam Contract Sync",
-          request: {
-            method: "POST",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}/sync",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "contracts", "{{contractId}}", "sync"]
-            },
-            description: "Initiates real-time contract synchronization to Sangam CRM."
-          }
-        },
-        {
-          name: "Delete Contract",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/contracts/{{contractId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "contracts", "{{contractId}}"]
-            },
-            description: "Removes contract record from system."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 6: Payments & Invoices
-    // -------------------------------------------------------------
-    {
-      name: "6. Payments & Invoices",
-      description: "Billing invoices, payment reconciliations, NEFT/RTGS transaction logging, and receipts.",
-      item: [
-        {
-          name: "List All Payments & Invoices",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/payments",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "payments"]
-            },
-            description: "Returns all client payment records, collection statuses, and outstanding invoices."
-          }
-        },
-        {
-          name: "Record New Payment / Receipt",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.data && jsonData.data.paymentId) {",
-                  "    pm.collectionVariables.set('paymentId', jsonData.data.paymentId);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                paymentId: "PAY-2026-8808",
-                invoiceNumber: "INV-2026-1051",
-                customer: "demo",
-                company: "demo",
-                accountName: "demo",
-                email: "demo@gmail.com",
-                customerId: "CUST-9679",
-                amount: "₹6,500",
-                receivedAmount: "₹6,500",
-                pendingPayment: "₹0",
-                paymentMethod: "UPI / Scan & Pay",
-                method: "UPI / Scan & Pay",
-                invoiceDate: "2026-11-04",
-                date: "2026-11-04",
-                paymentReceivedDate: "2026-11-04",
-                expectedPaymentDate: null,
-                status: "Received",
-                solutionCategory: "Service",
-                notes: "Subscription renewal fee received via UPI / Scan & Pay."
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/payments",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "payments"]
-            },
-            description: "Creates an invoice payment record and generates an administrative audit event."
-          }
-        },
-        {
-          name: "Update Payment / Clearance Status",
-          request: {
-            method: "PUT",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                status: "Cleared",
-                receivedAmount: "₹24,500",
-                pendingPayment: "₹0",
-                paymentReceivedDate: "2026-11-04",
-                notes: "Funds settled in primary operating account."
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/payments/{{paymentId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "payments", "{{paymentId}}"]
-            },
-            description: "Updates clearance state or payment allocations for a billing record."
-          }
-        },
-        {
-          name: "Delete Payment Record",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/payments/{{paymentId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "payments", "{{paymentId}}"]
-            },
-            description: "Removes invoice payment record."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 7: Products & Solutions Catalog
-    // -------------------------------------------------------------
-    {
-      name: "7. Products & Solutions Catalog",
-      description: "Cloud hosting instances, Tally Prime deployments, dedicated VPS packages, and solution tiers.",
-      item: [
-        {
-          name: "List Products Catalog",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/products",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products"]
-            },
-            description: "Queries the complete product and cloud solution inventory."
-          }
-        },
-        {
-          name: "List Products with Filters",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/products?category=Cloud%20Hosting&provider=ctrls-cloud&status=active&available=true",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products"],
-              query: [
-                { key: "category", value: "Cloud Hosting" },
-                { key: "provider", value: "ctrls-cloud" },
-                { key: "status", value: "active" },
-                { key: "available", value: "true" }
-              ]
-            },
-            description: "Filters product catalog by category, infrastructure provider, and availability."
-          }
-        },
-        {
-          name: "Create Catalog Product",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.data && jsonData.data.productId) {",
-                  "    pm.collectionVariables.set('productId', jsonData.data.productId);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                productId: "ctrls-1-user",
-                name: "CtrlS Cloud Server — 1 User (2 core/3 GB/50 GB)",
-                category: "Cloud Hosting",
-                provider: "ctrls-cloud",
-                ipAddress: "103.115.220.12",
-                sku: "SKU-CTRLS-01U",
-                price: "₹500",
-                monthlyPrice: 500,
-                frequency: "/ month",
-                description: "Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed, 2 core, 3 GB RAM, 50 GB SSD, Windows Server license & daily backup.",
-                userBadge: "1 User",
-                serverConfiguration: "2 core/3 GB/50 GB",
-                cores: "2 core",
-                ram: "3 GB",
-                storage: "50 GB",
-                users: 1,
-                tier: "Tier-4",
-                available: true,
-                status: "active"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/products",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products"]
-            },
-            description: "Adds a new server tier or software package to the catalog."
-          }
-        },
-        {
-          name: "Create Custom Pricing Plan (Admin)",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Custom CtrlS Cloud - 5 Users",
-                users: 5,
-                pricePerUser: 500,
-                serverType: "shared",
-                isCustomPlan: true,
-                provider: "ctrls-cloud",
-                category: "Infrastructure",
-                available: true,
-                description: "Custom pricing plan — 5 users at ₹500 per user per month (Shared Server)."
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/products",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products"]
-            },
-            description: "Admin endpoint to create a dynamic custom pricing plan (saved in MongoDB/JSON and shown dynamically in customer subscription selection)."
-          }
-        },
-        {
-          name: "Create Demo Pricing Plan (Admin)",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Demo Trial - 7 Days",
-                duration: "7 Days",
-                priceAmount: 0,
-                isDemoPlan: true,
-                provider: "demo",
-                category: "Trial",
-                available: true,
-                description: "Demo Trial - 7 Days trial — free of charge."
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/products",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products"]
-            },
-            description: "Admin endpoint to create a time-boxed demo plan with custom duration (e.g. 7 Days, 14 Days, 1 Month) that users can activate for trial."
-          }
-        },
-        {
-          name: "Update Catalog Product",
-          request: {
-            method: "PUT",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                price: "₹7,199",
-                monthlyPrice: 7199,
-                available: true,
-                status: "active"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/products/{{productId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products", "{{productId}}"]
-            },
-            description: "Updates product pricing, availability toggle, or server hardware parameters."
-          }
-        },
-        {
-          name: "Delete Catalog Product",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/products/{{productId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "products", "{{productId}}"]
-            },
-            description: "Removes product package from catalog."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 8: Staff & Access Control (RBAC)
-    // -------------------------------------------------------------
-    {
-      name: "8. Staff & Access Control (RBAC)",
-      description: "Staff management, administrative hierarchy (Admin, Manager, Support), and granular module permissions.",
-      item: [
-        {
-          name: "List Staff & Access Permissions",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/staff",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "staff"]
-            },
-            description: "Lists all administrative staff members and their granular RBAC module grants."
-          }
-        },
-        {
-          name: "Create Staff Member",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.staff && (jsonData.staff.id || jsonData.staff._id)) {",
-                  "    pm.collectionVariables.set('staffId', jsonData.staff.id || jsonData.staff._id);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                name: "Subham Dutta",
-                email: "subham.dutta@netinfotechsystem.in",
-                password: "StaffPassword@2026",
-                role: "support",
-                designation: "Technical Support Executive",
-                status: "active",
-                permissions: [
-                  "overview:view",
-                  "customer:view",
-                  "product:view",
-                  "receipt:view"
-                ]
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/staff",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "staff"]
-            },
-            description: "Creates a new staff member account."
-          }
-        },
-        {
-          name: "Toggle Staff Account Status",
-          request: {
-            method: "PATCH",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                status: "inactive"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/staff/{{staffId}}/status",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "staff", "{{staffId}}", "status"]
-            },
-            description: "Activates or deactivates a staff member and revokes active sessions when deactivated."
-          }
-        },
-        {
-          name: "Update Staff Permissions & Role",
-          request: {
-            method: "PATCH",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                role: "manager",
-                designation: "Support Team Lead",
-                permissions: [
-                  "overview:*",
-                  "customer:*",
-                  "contract:view",
-                  "payment:view",
-                  "product:*",
-                  "receipt:*"
-                ]
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/staff/{{staffId}}/permissions",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "staff", "{{staffId}}", "permissions"]
-            },
-            description: "Grants or updates granular permissions for an administrative staff member."
-          }
-        },
-        {
-          name: "Delete Staff Member",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/staff/{{staffId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "staff", "{{staffId}}"]
-            },
-            description: "Deletes a staff account from the system."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 9: Activity Logs & Audit Trail
-    // -------------------------------------------------------------
-    {
-      name: "9. Activity Logs & Audit Trail",
-      description: "Immutable administrative audit logs recording actions across customers, contracts, payments, products, and access controls.",
-      item: [
-        {
-          name: "List Activity Logs (Paginated)",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/activity-logs?page=1&limit=25&category=all",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "activity-logs"],
-              query: [
-                { key: "page", value: "1" },
-                { key: "limit", value: "25" },
-                { key: "category", value: "all" }
-              ]
-            },
-            description: "Returns paginated audit trail of all administrative events."
-          }
-        },
-        {
-          name: "Search Activity Logs",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/activity-logs?search=Customer",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "activity-logs"],
-              query: [
-                { key: "search", value: "Customer" }
-              ]
-            },
-            description: "Searches logs across admin name, email, action code, resource, and IP address."
-          }
-        },
-        {
-          name: "Filter Activity Logs by Date Range",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/activity-logs?startDate=2026-11-01&endDate=2026-11-30",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "activity-logs"],
-              query: [
-                { key: "startDate", value: "2026-11-01" },
-                { key: "endDate", value: "2026-11-30" }
-              ]
-            },
-            description: "Filters logs within a date range."
-          }
-        },
-        {
-          name: "Get Single Activity Log by ID",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/activity-logs/{{activityLogId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "activity-logs", "{{activityLogId}}"]
-            },
-            description: "Fetches complete detail payload including before-and-after change diffs."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 10: Notifications Center
-    // -------------------------------------------------------------
-    {
-      name: "10. Notifications Center",
-      description: "Real-time alert dispatch, renewal warnings, overdue payment triggers, and notification acknowledgments.",
-      item: [
-        {
-          name: "List Notifications Stream",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications"]
-            },
-            description: "Returns the active notification stream and unread counts for the signed-in user."
-          }
-        },
-        {
-          name: "Get Notification Statistics",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/stats",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "stats"]
-            },
-            description: "Returns unread counts grouped by severity (info, success, warning, error)."
-          }
-        },
-        {
-          name: "Create / Trigger Alert Notification",
-          event: [
-            {
-              listen: "test",
-              script: {
-                type: "text/javascript",
-                exec: [
-                  "const jsonData = pm.response.json();",
-                  "if (jsonData && jsonData.notification && (jsonData.notification._id || jsonData.notification.id)) {",
-                  "    pm.collectionVariables.set('notificationId', jsonData.notification._id || jsonData.notification.id);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                type: "payment_due_soon",
-                title: "Upcoming Payment Due Notice",
-                message: "Customer payment of ₹24,500 from Kolkata FinTech Solutions Pvt Ltd is due on 2026-11-15.",
-                severity: "warning",
-                entityType: "payment",
-                entityId: "PAY-2026-9051",
-                user: {
-                  name: "Debashis Banerjee",
-                  company: "Kolkata FinTech Solutions Pvt Ltd",
-                  email: "debashis@kolkatafintech.in"
-                },
-                metadata: {
-                  amount: "₹24,500",
-                  invoiceNumber: "INV-2026-0442",
-                  expectedDate: "2026-11-15"
-                }
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications"]
-            },
-            description: "Dispatches a new alert into the enterprise notifications feed."
-          }
-        },
-        {
-          name: "Get Single Notification by ID",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "{{notificationId}}"]
-            },
-            description: "Fetches detail of a single notification."
-          }
-        },
-        {
-          name: "Mark Notification as Read",
-          request: {
-            method: "PATCH",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "{{notificationId}}", "read"]
-            },
-            description: "Flags notification item as read."
-          }
-        },
-        {
-          name: "Mark Notification as Unread",
-          request: {
-            method: "PATCH",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}/unread",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "{{notificationId}}", "unread"]
-            },
-            description: "Flags notification item as unread."
-          }
-        },
-        {
-          name: "Mark All Notifications as Read",
-          request: {
-            method: "PATCH",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/read-all",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "read-all"]
-            },
-            description: "Acknowledges all pending alerts for the signed-in user."
-          }
-        },
-        {
-          name: "Delete Notification",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications/{{notificationId}}",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications", "{{notificationId}}"]
-            },
-            description: "Deletes a specific notification record."
-          }
-        },
-        {
-          name: "Clear All Notifications",
-          request: {
-            method: "DELETE",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/notifications",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "notifications"]
-            },
-            description: "Clears entire notifications backlog."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 11: Cart & Commerce
-    // -------------------------------------------------------------
-    {
-      name: "11. Cart & Commerce",
-      description: "Solution shopping cart, line-item quantity adjustments, GST computation, and fulfillment modes.",
-      item: [
-        {
-          name: "Get Session Cart with Tax & Totals",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart"]
-            },
-            description: "Returns the current cart for the session including item breakdown, 18% GST calculation, and grand total."
-          }
-        },
-        {
-          name: "Get Available Cart Addons",
-          request: {
-            auth: { type: "noauth" },
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/addons",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "addons"]
-            },
-            description: "Lists optional add-on solutions available for checkout."
-          }
-        },
-        {
-          name: "Add Item to Cart",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                id: "sub-cloud-service-1793792000",
-                name: "Cloud Services - CtrlS 1 User (2 core/3 GB/50 GB) (1 Month)",
-                product: "Cloud Services",
-                planName: "CtrlS 1 User (2 core/3 GB/50 GB)",
-                basePrice: 500,
-                price: 500,
-                quantity: 1,
-                customerEmail: "demo@gmail.com",
-                salesPerson: "Nilmoni Ghosal",
-                period: "1 Month",
-                duration: "1 Month",
-                durationMonths: 1,
-                startDate: "2026-11-04",
-                endDate: "04-12-2026"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/add",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "add"]
-            },
-            description: "Adds a solution line item to the cart or increments existing quantity."
-          }
-        },
-        {
-          name: "Update Cart Item Quantity",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                id: "ctrls-5-user",
-                quantity: 3
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/update-qty",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "update-qty"]
-            },
-            description: "Adjusts unit quantity for a specific line item in the cart."
-          }
-        },
-        {
-          name: "Remove Item from Cart",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                id: "ctrls-5-user"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/remove",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "remove"]
-            },
-            description: "Deletes a line item from the active cart."
-          }
-        },
-        {
-          name: "Update Fulfillment Mode (Digital / Assisted)",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                fulfillmentMode: "assisted"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/fulfillment",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "fulfillment"]
-            },
-            description: "Sets fulfillment mode between self-service digital deployment and engineer-assisted setup."
-          }
-        },
-        {
-          name: "Clear Entire Cart",
-          request: {
-            auth: { type: "noauth" },
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" },
-              { key: "X-Session-Id", value: "{{sessionId}}" }
-            ],
-            body: {
-              mode: "raw",
-              raw: "{}"
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/cart/clear",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "cart", "clear"]
-            },
-            description: "Empties all line items from the active cart."
-          }
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 12: Dashboard & Portal Analytics
-    // -------------------------------------------------------------
-    {
-      name: "12. Dashboard & Portal Analytics",
-      description: "Executive dashboards, financial analytics, customer portal summaries, and unified search.",
-      item: [
-        {
-          name: "Admin Dashboard Executive Overview",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/dashboard/overview?period=monthly&fy=2026-2027",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "dashboard", "overview"],
-              query: [
-                { key: "period", value: "monthly" },
-                { key: "fy", value: "2026-2027" }
-              ]
-            },
-            description: "Aggregates MRR trends, active contracts, client pipeline metrics, and cloud resource utilization for executive console."
-          }
-        },
-        {
-          name: "Customer Portal Personal Overview (/dashboard/me)",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/dashboard/me",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "dashboard", "me"]
-            },
-            description: "Returns client-specific view of active cloud instances, payment histories, support tickets, and license renewal status."
-          },
-          response: [
-            {
-              name: "200 OK - Customer Overview Response",
-              originalRequest: {
-                method: "GET",
-                header: [
-                  { key: "Accept", value: "application/json" },
-                  { key: "Authorization", value: "Bearer {{accessToken}}" }
-                ],
-                url: {
-                  raw: "{{baseUrl}}/api/v1/dashboard/me",
-                  host: ["{{baseUrl}}"],
-                  path: ["api", "v1", "dashboard", "me"]
-                }
-              },
-              status: "OK",
-              code: 200,
-              _postman_previewlanguage: "json",
-              header: [
-                { key: "Content-Type", value: "application/json" }
-              ],
-              cookie: [],
-              body: JSON.stringify({
-          "success": true,
-          "data": {
-                    "account": {
-                              "customerId": "CUST-9679",
-                              "name": "demo",
-                              "company": "demo",
-                              "email": "demo@gmail.com",
-                              "phone": "9876543210",
-                              "plan": "Tally Prime Cloud + VPS Gold",
-                              "status": "active",
-                              "serverNode": "CtrlS-KOL-NODE-01",
-                              "gstNo": null,
-                              "registered": "2026-10-31"
-                    },
-                    "kpi": {
-                              "activeProducts": 1,
-                              "totalPaid": 6500,
-                              "totalPending": 0,
-                              "pendingInvoices": 0,
-                              "renewalName": "Tally on Clouds",
-                              "renewalDate": "2027-10-31",
-                              "renewalDaysLeft": 361
-                    },
-                    "products": [
-                              {
-                                        "id": "CTR-2026-8829",
-                                        "name": "Tally on Clouds",
-                                        "category": "Service",
-                                        "contractType": "AMC",
-                                        "status": "Active",
-                                        "startDate": "2026-10-31",
-                                        "expiryDate": "2027-10-31",
-                                        "daysLeft": 361,
-                                        "amount": 6500,
-                                        "amountLabel": "₹6500 / 1 year",
-                                        "expired": false,
-                                        "source": "contract"
-                              }
-                    ],
-                    "payments": [
-                              {
-                                        "id": "PAY-2026-8808",
-                                        "invoiceNumber": "INV-2026-1051",
-                                        "service": "Tally on Clouds",
-                                        "date": "2026-11-04",
-                                        "dueDate": null,
-                                        "daysLeft": null,
-                                        "amount": 6500,
-                                        "received": 6500,
-                                        "pending": 0,
-                                        "status": "Received",
-                                        "paymentMethod": "UPI / Scan & Pay"
-                              }
-                    ],
-                    "entitlements": [
-                              {
-                                        "name": "Tally on Clouds",
-                                        "productId": null,
-                                        "source": "subscription",
-                                        "contractId": "CTR-2026-8829",
-                                        "expiryDate": "2027-10-31"
-                              }
-                    ],
-                    "recentPayments": [
-                              {
-                                        "id": "PAY-2026-8808",
-                                        "invoiceNumber": "INV-2026-1051",
-                                        "service": "Tally on Clouds",
-                                        "date": "2026-11-04",
-                                        "dueDate": null,
-                                        "daysLeft": null,
-                                        "amount": 6500,
-                                        "received": 6500,
-                                        "pending": 0,
-                                        "status": "Received",
-                                        "paymentMethod": "UPI / Scan & Pay"
-                              }
-                    ],
-                    "reminder": null,
-                    "identityMatched": true
-          }
-}, null, 2)
-            }
-          ]
-        },
-        {
-          name: "Pay Customer Portal Dues (/dashboard/payments)",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                method: "UPI / Scan & Pay",
-                invoiceNumber: "INV-2026-1051",
-                contractId: "CTR-2026-8829",
-                settleAll: true
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/dashboard/payments",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "dashboard", "payments"]
-            },
-            description: "Records and reconciles an online portal dues payment for the authenticated customer."
-          },
-          response: [
-            {
-              name: "200 OK - Payment Success",
-              originalRequest: {
-                method: "POST",
-                header: [
-                  { key: "Content-Type", value: "application/json" },
-                  { key: "Accept", value: "application/json" },
-                  { key: "Authorization", value: "Bearer {{accessToken}}" }
-                ],
-                body: {
-                  mode: "raw",
-                  raw: JSON.stringify({
-                    method: "UPI / Scan & Pay",
-                    invoiceNumber: "INV-2026-1051",
-                    contractId: "CTR-2026-8829",
-                    settleAll: true
-                  }, null, 2)
-                },
-                url: {
-                  raw: "{{baseUrl}}/api/v1/dashboard/payments",
-                  host: ["{{baseUrl}}"],
-                  path: ["api", "v1", "dashboard", "payments"]
-                }
-              },
-              status: "OK",
-              code: 200,
-              _postman_previewlanguage: "json",
-              header: [{ key: "Content-Type", value: "application/json" }],
-              cookie: [],
-              body: JSON.stringify({
-                success: true,
-                data: {
-                  settledCount: 1,
-                  totalSettled: 6500,
-                  status: "Received",
-                  receiptId: "PAY-2026-8808"
-                }
-              }, null, 2)
-            }
-          ]
-        },
-        {
-          name: "Customer Portal Unified Search",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/dashboard/search?q=tally",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "dashboard", "search"],
-              query: [
-                { key: "q", value: "tally" }
-              ]
-            },
-            description: "Global cross-resource search across products, subscription plans, and invoices for the logged-in customer."
-          },
-          response: [
-            {
-              name: "200 OK - Search Results (Tally)",
-              originalRequest: {
-                method: "GET",
-                header: [
-                  { key: "Accept", value: "application/json" },
-                  { key: "Authorization", value: "Bearer {{accessToken}}" }
-                ],
-                url: {
-                  raw: "{{baseUrl}}/api/v1/dashboard/search?q=tally",
-                  host: ["{{baseUrl}}"],
-                  path: ["api", "v1", "dashboard", "search"],
-                  query: [
-                    { key: "q", value: "tally" }
-                  ]
-                }
-              },
-              status: "OK",
-              code: 200,
-              _postman_previewlanguage: "json",
-              header: [
-                { key: "Content-Type", value: "application/json" }
-              ],
-              cookie: [],
-              body: JSON.stringify({
-                success: true,
-                data: {
-                  query: "tally",
-                  groups: [
-                    {
-                      key: "products",
-                      label: "Products & plans",
-                      items: [
-                        {
-                          id: "CTR-2026-8829",
-                          title: "Tally on Clouds",
-                          subtitle: "AMC · Renews 31 Oct 2027",
-                          meta: "Active",
-                          amount: 6500,
-                          target: "products"
-                        }
-                      ]
-                    },
-                    {
-                      key: "payments",
-                      label: "Payments & receipts",
-                      items: [
-                        {
-                          id: "PAY-2026-8808",
-                          title: "INV-2026-1051",
-                          subtitle: "Tally on Clouds · 04 Nov 2026",
-                          meta: "Received",
-                          amount: 6500,
-                          target: "receipt"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              }, null, 2)
-            }
-          ]
-        },
-        {
-          name: "Activate Customer Demo Trial (/dashboard/activate-demo)",
-          request: {
-            method: "POST",
-            header: [
-              { key: "Content-Type", value: "application/json" },
-              { key: "Accept", value: "application/json" }
-            ],
-            body: {
-              mode: "raw",
-              raw: JSON.stringify({
-                customerEmail: "demo@gmail.com",
-                planName: "Demo Trial - 7 Days",
-                productId: "demo-7-days",
-                duration: "7 Days",
-                startDate: "2026-11-05",
-                endDate: "12-11-2026",
-                salesPerson: "Online Customer Portal"
-              }, null, 2)
-            },
-            url: {
-              raw: "{{baseUrl}}/api/v1/dashboard/activate-demo",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "dashboard", "activate-demo"]
-            },
-            description: "Activates a time-boxed demo plan configured by Admin for the selected customer. Creates an active trial contract record with the demo expiry date and updates customer data for the demo period only."
-          },
-          response: [
-            {
-              name: "201 Created - Demo Activated",
-              originalRequest: {
-                method: "POST",
-                header: [
-                  { key: "Content-Type", value: "application/json" },
-                  { key: "Accept", value: "application/json" },
-                  { key: "Authorization", value: "Bearer {{accessToken}}" }
-                ],
-                body: {
-                  mode: "raw",
-                  raw: JSON.stringify({
-                    customerEmail: "demo@gmail.com",
-                    planName: "Demo Trial - 7 Days",
-                    duration: "7 Days",
-                    salesPerson: "Online Customer Portal"
-                  }, null, 2)
-                },
-                url: {
-                  raw: "{{baseUrl}}/api/v1/dashboard/activate-demo",
-                  host: ["{{baseUrl}}"],
-                  path: ["api", "v1", "dashboard", "activate-demo"]
-                }
-              },
-              status: "Created",
-              code: 201,
-              _postman_previewlanguage: "json",
-              header: [{ key: "Content-Type", value: "application/json" }],
-              cookie: [],
-              body: JSON.stringify({
-                success: true,
-                message: "Demo trial for Demo Trial - 7 Days activated until 12-11-2026!",
-                data: {
-                  contractId: "CTR-DEMO-7391",
-                  name: "Demo Trial - 7 Days",
-                  service: "Demo Trial - 7 Days",
-                  customer: "demo",
-                  company: "demo",
-                  email: "demo@gmail.com",
-                  contractType: "Trial",
-                  subscriptionPeriod: "7 Days",
-                  productCategory: "Trial",
-                  totalContractValue: "₹0",
-                  startDate: "2026-11-05",
-                  endDate: "12-11-2026",
-                  expiryDate: "12-11-2026",
-                  status: "Active",
-                  slaTier: "Demo Trial 99.99%"
-                }
-              }, null, 2)
-            }
-          ]
-        }
-      ]
-    },
-
-    // -------------------------------------------------------------
-    // FOLDER 13: RBAC Field Permissions Registry
-    // -------------------------------------------------------------
-    {
-      name: "13. Permissions Registry",
-      description: "Field-level column registry for role-based data redaction and user access control.",
-      item: [
-        {
-          name: "Get RBAC Column Registry",
-          request: {
-            method: "GET",
-            header: [{ key: "Accept", value: "application/json" }],
-            url: {
-              raw: "{{baseUrl}}/api/v1/permissions/columns",
-              host: ["{{baseUrl}}"],
-              path: ["api", "v1", "permissions", "columns"]
-            },
-            description: "Returns data column schema definitions used by the User Access & RBAC management interface."
-          }
         }
       ]
     }
@@ -2136,11 +1708,19 @@ fs.writeFileSync(backendPath, JSON.stringify(collection, null, 2), 'utf-8');
 console.log('Successfully generated Postman Collection v2.1.0 JSON:');
 console.log('  1. ' + rootPath);
 console.log('  2. ' + backendPath);
-console.log('Total folders: ' + collection.item.length);
-let totalReqs = 0;
-collection.item.forEach(f => {
-  totalReqs += f.item ? f.item.length : 0;
-  console.log(`  - [${f.name}]: ${f.item ? f.item.length : 0} requests`);
-});
-console.log('Total API Requests configured: ' + totalReqs);
 
+let totalReqs = 0;
+function printTree(items, indent = '  ') {
+  items.forEach(folder => {
+    if (folder.item && folder.item.some(it => it.item)) {
+      console.log(`${indent}📁 [${folder.name}] (Persona Group)`);
+      printTree(folder.item, indent + '  ');
+    } else {
+      const count = folder.item ? folder.item.length : 0;
+      totalReqs += count;
+      console.log(`${indent}📂 [${folder.name}]: ${count} requests`);
+    }
+  });
+}
+printTree(collection.item);
+console.log('\nTotal Production API Requests configured: ' + totalReqs);

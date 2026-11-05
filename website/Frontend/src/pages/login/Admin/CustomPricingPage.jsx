@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Power, Trash2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminDataTable from './AdminDataTable';
-import CustomPricingModal from './CustomPricingModal';
-import DemoPlanModal from './DemoPlanModal';
+import PlanFormModal from './PlanFormModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
@@ -67,19 +66,10 @@ const numericCell = {
 export default function CustomPricingPage({ products, setProducts }) {
   const { can } = usePermissions();
   const navigate = useNavigate();
-  const [modal, setModal] = useState({ isOpen: false, plan: null });
-  const [demoModal, setDemoModal] = useState({ isOpen: false, plan: null });
+  const [modal, setModal] = useState({ isOpen: false, plan: null, type: 'custom' });
 
   const backToProducts = () =>
     navigate('/admin/product?category=cloud&provider=ctrls-cloud');
-
-  const standardPlans = useMemo(
-    () =>
-      products
-        .filter((p) => !p.isCustomPlan && (p.provider === 'ctrls-cloud' || p.id?.startsWith('ctrls-')))
-        .sort((a, b) => (Number(a.users) || 1) - (Number(b.users) || 1)),
-    [products]
-  );
 
   const customPlans = useMemo(
     () =>
@@ -249,44 +239,6 @@ export default function CustomPricingPage({ products, setProducts }) {
     )
   });
 
-  const standardColumns = [
-    planNameColumn,
-    usersColumn,
-    perUserColumn,
-    {
-      id: 'monthlyBase',
-      name: 'Total/Month',
-      selector: (row) => quote(row).monthlyBase,
-      sortable: true,
-      sortFunction: compareNumber((row) => quote(row).monthlyBase),
-      minWidth: '150px',
-      cell: (plan) => <span style={numericCell}>{money(quote(plan).monthlyBase)}</span>
-    },
-    {
-      id: 'gst',
-      name: 'GST (18%)',
-      selector: (row) => quote(row).gstAmount,
-      sortable: true,
-      sortFunction: compareNumber((row) => quote(row).gstAmount),
-      minWidth: '140px',
-      cell: (plan) => <span style={{ ...numericCell, color: '#b45309' }}>{money(quote(plan).gstAmount)}</span>
-    },
-    {
-      id: 'grandTotal',
-      name: 'Grand Total/Month',
-      selector: (row) => quote(row).grandTotal,
-      sortable: true,
-      sortFunction: compareNumber((row) => quote(row).grandTotal),
-      minWidth: '185px',
-      cell: (plan) => (
-        <span style={{ ...numericCell, fontWeight: 800, color: '#4338ca' }}>
-          {money(quote(plan).grandTotal)}
-        </span>
-      )
-    },
-    statusColumn
-  ];
-
   const customColumns = [
     planNameColumn,
     usersColumn,
@@ -341,7 +293,7 @@ export default function CustomPricingPage({ products, setProducts }) {
       cell: (plan) => <span style={numericCell}>{money(quote(plan).twoYears)}</span>
     },
     statusColumn,
-    actionsColumn((plan) => setModal({ isOpen: true, plan }))
+    actionsColumn((plan) => setModal({ isOpen: true, plan, type: 'custom' }))
   ];
 
   const demoColumns = [
@@ -401,7 +353,7 @@ export default function CustomPricingPage({ products, setProducts }) {
       }
     },
     statusColumn,
-    actionsColumn((plan) => setDemoModal({ isOpen: true, plan }))
+    actionsColumn((plan) => setModal({ isOpen: true, plan, type: 'demo' }))
   ];
 
   return (
@@ -413,10 +365,10 @@ export default function CustomPricingPage({ products, setProducts }) {
             <div className="adm-card-header-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Wallet size={20} color="#4f46e5" />
-                <h1 className="adm-section-title">Custom Pricing</h1>
+                <h1 className="adm-section-title">Custom &amp; Demo Pricing</h1>
               </div>
               <p className="adm-section-sub">
-                View standard CtrlS tiers · Manage custom per-user plans and demo trials
+                Publish and manage custom per-user plans and demo trial offers
               </p>
             </div>
 
@@ -433,27 +385,15 @@ export default function CustomPricingPage({ products, setProducts }) {
               </button>
 
               {can('product', 'create') && (
-                <>
-                  <button
-                    type="button"
-                    className="adm-btn-secondary"
-                    onClick={() => setDemoModal({ isOpen: true, plan: null })}
-                    style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                    title="Publish a time-boxed trial offer"
-                  >
-                    <Plus size={15} />
-                    <span>Add Demo Plan</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="adm-btn-primary"
-                    onClick={() => setModal({ isOpen: true, plan: null })}
-                  >
-                    <Plus size={16} />
-                    <span>Add Custom Plan</span>
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className="adm-btn-primary"
+                  onClick={() => setModal({ isOpen: true, plan: null, type: 'custom' })}
+                  title="Publish a custom per-user plan or a demo trial"
+                >
+                  <Plus size={16} />
+                  <span>Add Plan</span>
+                </button>
               )}
             </div>
           </div>
@@ -471,7 +411,7 @@ export default function CustomPricingPage({ products, setProducts }) {
             resetPageToken={`custom|${customPlans.length}`}
             minWidth={1350}
             noDataMessage="No custom plans yet"
-            noDataHint="Use Add Custom Plan to quote a per-user rate for any user count."
+            noDataHint="Use Add Plan and pick Custom to quote a per-user rate for any user count."
             ariaLabel="Custom plans"
             scrollHeight="420px"
           />
@@ -489,7 +429,7 @@ export default function CustomPricingPage({ products, setProducts }) {
             resetPageToken={`demo|${demoPlans.length}`}
             minWidth={900}
             noDataMessage="No demo plans yet"
-            noDataHint="Use Add Demo Plan to publish a time-boxed trial offer."
+            noDataHint="Use Add Plan and pick Demo to publish a time-boxed trial offer."
             ariaLabel="Demo plans"
             scrollHeight="420px"
           />
@@ -497,17 +437,10 @@ export default function CustomPricingPage({ products, setProducts }) {
       </div>
 
       {modal.isOpen && (
-        <CustomPricingModal
+        <PlanFormModal
           plan={modal.plan}
-          onClose={() => setModal({ isOpen: false, plan: null })}
-          onSaved={handleSaved}
-        />
-      )}
-
-      {demoModal.isOpen && (
-        <DemoPlanModal
-          plan={demoModal.plan}
-          onClose={() => setDemoModal({ isOpen: false, plan: null })}
+          defaultType={modal.type}
+          onClose={() => setModal({ isOpen: false, plan: null, type: 'custom' })}
           onSaved={handleSaved}
         />
       )}

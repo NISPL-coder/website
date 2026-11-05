@@ -23,7 +23,6 @@ import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { compactSelectStyles } from './reactSelectStyles';
 import AdminDataTable from './AdminDataTable';
 import CustomPricingPage from './CustomPricingPage';
-import DemoPlanModal from './DemoPlanModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
@@ -44,7 +43,6 @@ export default function ProductSection({ products, setProducts }) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
 
   const updateRoute = (cat, prov = null, view = null) => {
     const params = new URLSearchParams();
@@ -818,28 +816,16 @@ export default function ProductSection({ products, setProducts }) {
 
               {selectedCategory === 'cloud' &&
                 (can('product', 'create') || can('product', 'edit')) && (
-                  <>
-                    <button
-                      type="button"
-                      className="adm-btn-secondary"
-                      onClick={() => setDemoModalOpen(true)}
-                      style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                      title="Create or configure a free demo trial plan"
-                    >
-                      <Plus size={14} />
-                      <span>Demo Plan</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="adm-btn-secondary"
-                      onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
-                      style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                      title="Open the custom pricing manager"
-                    >
-                      <Percent size={14} />
-                      <span>Custom Pricing</span>
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    className="adm-btn-secondary"
+                    onClick={() => updateRoute('cloud', selectedCloudProvider || 'ctrls-cloud', 'custom-pricing')}
+                    style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                    title="Open the custom and demo pricing manager"
+                  >
+                    <Percent size={14} />
+                    <span>Custom &amp; Demo Pricing</span>
+                  </button>
                 )}
 
               {can('product', 'create') && (
@@ -927,31 +913,6 @@ export default function ProductSection({ products, setProducts }) {
             scrollHeight="600px"
           />
         </div>
-      )}
-
-      {/* Demo Plan Modal */}
-      {demoModalOpen && (
-        <DemoPlanModal
-          onClose={() => setDemoModalOpen(false)}
-          onSaved={(saved) => {
-            setProducts((prev) => {
-              const exists = prev.some(
-                (p) =>
-                  (p.id && p.id === saved.id) ||
-                  (p.productId && p.productId === saved.productId)
-              );
-              if (exists) {
-                return prev.map((p) =>
-                  (p.id && p.id === saved.id) ||
-                  (p.productId && p.productId === saved.productId)
-                    ? { ...p, ...saved }
-                    : p
-                );
-              }
-              return [saved, ...prev];
-            });
-          }}
-        />
       )}
     </>
   );
