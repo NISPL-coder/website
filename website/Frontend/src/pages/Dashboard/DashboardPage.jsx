@@ -220,6 +220,18 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     syncPortal();
   }, []);
 
+  // A payment the finance desk books in from a cheque or bank transfer is not
+  // pushed into this session, so the ledger is re-read when the account holder
+  // returns to the tab rather than only on a full reload.
+  useEffect(() => {
+    const refreshLedger = () => {
+      if (document.visibilityState === 'visible') syncPortal();
+    };
+
+    document.addEventListener('visibilitychange', refreshLedger);
+    return () => document.removeEventListener('visibilitychange', refreshLedger);
+  }, []);
+
   const handleSelectNav = (navId) => {
     setActiveNav(navId);
     const targetPath = NAV_TO_PATH[navId];

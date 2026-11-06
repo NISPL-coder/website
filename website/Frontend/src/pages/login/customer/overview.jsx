@@ -15,6 +15,7 @@ import {
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
+import { toPortalReceiptRow } from '../../Dashboard/utils/portalReceiptRows';
 import { formatINR } from '../../../utils/formatters';
 
 function formatDate(value) {
@@ -261,10 +262,29 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                     ) : (
                       payments.map((payment) => {
                         const isPaid = statusTone(payment.status) === 'active';
+                        // An entry the finance desk booked from a bank instrument
+                        // says so, so it is never mistaken for a gateway payment.
+                        const offline = payment.source === 'manual';
                         return (
                           <tr key={payment.id}>
                             <td>{formatDate(payment.date)}</td>
-                            <td className="font-medium text-slate-800">{payment.service}</td>
+                            <td className="font-medium text-slate-800">
+                              {payment.service}
+                              {offline && (
+                                <span
+                                  style={{
+                                    display: 'block',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 500,
+                                    color: '#94a3b8'
+                                  }}
+                                >
+                                  {payment.paymentMethod}
+                                  {payment.referenceNumber ? ` · Ref ${payment.referenceNumber}` : ''}
+                                  {payment.raisedBy?.name ? ` · booked by ${payment.raisedBy.name}` : ''}
+                                </span>
+                              )}
+                            </td>
                             <td>{formatINR(payment.amount)}</td>
                             <td>
                               <span className={`flowmail-status-badge ${statusTone(payment.status)}`}>
