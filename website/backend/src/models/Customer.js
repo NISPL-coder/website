@@ -91,13 +91,17 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: 'Customer'
     },
+    // Nothing on the account may be invented: `plan` and `serverNode` are only
+    // ever what an admin recorded, so an untouched row stays empty.
     plan: {
       type: String,
-      default: 'Tally Prime Cloud + VPS Gold'
+      default: '',
+      trim: true
     },
     serverNode: {
       type: String,
-      default: 'CtrlS-KOL-NODE-01'
+      default: '',
+      trim: true
     },
     status: {
       type: String,
@@ -123,7 +127,7 @@ const customerSchema = new mongoose.Schema(
     },
     mrr: {
       type: String,
-      default: '₹15,000'
+      default: ''
     },
     address: {
       street: { type: String, default: '' },

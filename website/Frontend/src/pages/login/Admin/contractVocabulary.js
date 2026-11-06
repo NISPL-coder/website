@@ -95,9 +95,52 @@ export const describeContractTerm = (contract) => {
  * `personMobile`. A row raised before that link existed, or one the console
  * added locally before the refresh, still has its own email.
  */
-export const contractPersonEmail = (row) => String(row?.personEmail || row?.email || '').trim();
+export const contractPersonEmail = (row, customers = []) => {
+  if (row?.personEmail) return String(row.personEmail).trim();
+  if (row?.email) return String(row.email).trim();
 
-export const contractPersonMobile = (row) => String(row?.personMobile || '').trim();
+  if (Array.isArray(customers) && customers.length > 0) {
+    const comp = String(row?.company || '').trim().toLowerCase();
+    const cust = String(row?.customer || '').trim().toLowerCase();
+
+    const matched = customers.find((c) => {
+      const cComp = String(c.company || '').trim().toLowerCase();
+      const cName = String(c.name || '').trim().toLowerCase();
+      return (comp && cComp === comp) || (cust && cName === cust);
+    });
+
+    if (matched) {
+      return String(matched.email || matched.loginEmail || '').trim();
+    }
+  }
+
+  return '';
+};
+
+export const contractPersonMobile = (row, customers = []) => {
+  if (row?.personMobile) return String(row.personMobile).trim();
+  if (row?.phone) return String(row.phone).trim();
+  if (row?.mobile) return String(row.mobile).trim();
+
+  if (Array.isArray(customers) && customers.length > 0) {
+    const comp = String(row?.company || '').trim().toLowerCase();
+    const cust = String(row?.customer || '').trim().toLowerCase();
+    const email = String(row?.email || row?.personEmail || '').trim().toLowerCase();
+
+    const matched = customers.find((c) => {
+      const cComp = String(c.company || '').trim().toLowerCase();
+      const cName = String(c.name || '').trim().toLowerCase();
+      const cEmail = String(c.email || '').trim().toLowerCase();
+      return (comp && cComp === comp) || (cust && cName === cust) || (email && cEmail === email);
+    });
+
+    if (matched) {
+      return String(matched.phone || matched.alternatePhone || matched.mobile || '').trim();
+    }
+  }
+
+  return '';
+};
 
 /** Whoever raised or edited the row, printed as a name and falling back to their email. */
 export const contractActorName = (actor) => {

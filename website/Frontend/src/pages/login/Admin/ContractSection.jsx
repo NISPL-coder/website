@@ -40,7 +40,7 @@ import { usePermissions } from './PermissionsContext';
 
 const getContractId = (row) => row.id || row.contractId;
 
-export default function ContractSection({ contracts, setContracts }) {
+export default function ContractSection({ contracts, setContracts, customers = [] }) {
   const navigate = useNavigate();
   const { can, visibleColumns } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,8 +124,8 @@ export default function ContractSection({ contracts, setContracts }) {
       const code = (c.id || c.contractId || '').toLowerCase();
       const name = (c.name || '').toLowerCase();
       const company = (c.company || '').toLowerCase();
-      const email = contractPersonEmail(c).toLowerCase();
-      const mobile = contractPersonMobile(c).toLowerCase();
+      const email = contractPersonEmail(c, customers).toLowerCase();
+      const mobile = contractPersonMobile(c, customers).toLowerCase();
       const type = normalizeContractType(c.contractType).toLowerCase();
       const amount = String(c.totalContractValue || c.value || '').toLowerCase();
 
@@ -213,22 +213,22 @@ export default function ContractSection({ contracts, setContracts }) {
     {
       id: 'personEmail',
       name: 'Person Email',
-      selector: (row) => contractPersonEmail(row),
+      selector: (row) => contractPersonEmail(row, customers),
       sortable: true,
-      sortFunction: compareText((row) => contractPersonEmail(row)),
+      sortFunction: compareText((row) => contractPersonEmail(row, customers)),
       minWidth: '200px',
       grow: 1,
       wrap: true,
-      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonEmail(c) || '—'}</span>
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonEmail(c, customers) || '—'}</span>
     },
     {
       id: 'personMobile',
       name: 'Person Mobile',
-      selector: (row) => contractPersonMobile(row),
+      selector: (row) => contractPersonMobile(row, customers),
       sortable: true,
-      sortFunction: compareText((row) => contractPersonMobile(row)),
+      sortFunction: compareText((row) => contractPersonMobile(row, customers)),
       width: '140px',
-      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonMobile(c) || '—'}</span>
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonMobile(c, customers) || '—'}</span>
     },
     {
       id: 'contractType',

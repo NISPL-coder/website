@@ -19,6 +19,7 @@ import { generateContractPdf } from './utils/generateContractPdf';
 import {
   contractStatusColor,
   contractPersonEmail,
+  contractPersonMobile,
   describeContractTerm,
   normalizeContractStatus
 } from './contractVocabulary';
@@ -214,6 +215,15 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
             </label>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
               {contractPersonEmail(contract) || '—'}
+            </p>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
+              Registered Contact Mobile
+            </label>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
+              {contractPersonMobile(contract) || '—'}
             </p>
           </div>
 

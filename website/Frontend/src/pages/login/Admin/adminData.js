@@ -1,4 +1,5 @@
-// Mock Datasets & Analytics Telemetry for NISPL Admin Portal
+// Empty starting collections for the admin console. Every list is filled from
+// the API; nothing here is sample business data.
 
 export const INITIAL_CUSTOMERS = [];
 
@@ -70,71 +71,3 @@ export const INITIAL_PRODUCTS = [
 ];
 
 export const INITIAL_RECEIPTS = [];
-
-// Telemetry & Financial Analytics Constants
-export const FINANCIAL_METRICS = {
-  totalReceived: '₹28,65,000',
-  totalDue: '₹4,82,000',
-  totalBilled: '₹33,47,000',
-  collectionRate: '85.6%',
-  activeMRR: '₹99,000',
-  arrValue: '₹1.84 Cr'
-};
-
-// Monthly Total Sales Data for Graph (6 Months)
-export const MONTHLY_SALES_DATA = [
-  { month: 'May', sales: 1480000, label: '₹14.8 L', growth: '+11.2%' },
-  { month: 'Jun', sales: 1720000, label: '₹17.2 L', growth: '+16.2%' },
-  { month: 'Jul', sales: 1950000, label: '₹19.5 L', growth: '+13.4%' },
-  { month: 'Aug', sales: 2210000, label: '₹22.1 L', growth: '+13.3%' },
-  { month: 'Sep', sales: 2540000, label: '₹25.4 L', growth: '+14.9%' },
-  { month: 'Oct', sales: 2865000, label: '₹28.65 L', growth: '+12.8%' }
-];
-
-// Yearly Total Sales Data for Graph (12 Months)
-export const YEARLY_SALES_DATA = [
-  { month: 'Nov', sales: 1120000, label: '₹11.2 L', growth: '+8.4%' },
-  { month: 'Dec', sales: 1250000, label: '₹12.5 L', growth: '+11.6%' },
-  { month: 'Jan', sales: 1310000, label: '₹13.1 L', growth: '+4.8%' },
-  { month: 'Feb', sales: 1380000, label: '₹13.8 L', growth: '+5.3%' },
-  { month: 'Mar', sales: 1620000, label: '₹16.2 L', growth: '+17.4%' },
-  { month: 'Apr', sales: 1420000, label: '₹14.2 L', growth: '-12.3%' },
-  { month: 'May', sales: 1480000, label: '₹14.8 L', growth: '+4.2%' },
-  { month: 'Jun', sales: 1720000, label: '₹17.2 L', growth: '+16.2%' },
-  { month: 'Jul', sales: 1950000, label: '₹19.5 L', growth: '+13.4%' },
-  { month: 'Aug', sales: 2210000, label: '₹22.1 L', growth: '+13.3%' },
-  { month: 'Sep', sales: 2540000, label: '₹25.4 L', growth: '+14.9%' },
-  { month: 'Oct', sales: 2865000, label: '₹28.65 L', growth: '+12.8%' }
-];
-
-// Revenue Breakdown by Product Category for Donut / Pie Chart
-export const CATEGORY_REVENUE_PIE = [
-  {
-    name: 'Tally Prime & Customization',
-    percentage: 42,
-    amount: '₹12,03,300',
-    color: '#6366f1',
-    lightColor: '#e0e7ff'
-  },
-  {
-    name: 'Dedicated Cloud VPS',
-    percentage: 33,
-    amount: '₹9,45,450',
-    color: '#0ea5e9',
-    lightColor: '#e0f2fe'
-  },
-  {
-    name: 'Managed IT & Security',
-    percentage: 15,
-    amount: '₹4,29,750',
-    color: '#10b981',
-    lightColor: '#d1fae5'
-  },
-  {
-    name: 'WhatsApp & Add-on Tools',
-    percentage: 10,
-    amount: '₹2,86,500',
-    color: '#f59e0b',
-    lightColor: '#fef3c7'
-  }
-];

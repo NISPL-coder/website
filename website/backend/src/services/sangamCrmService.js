@@ -18,6 +18,10 @@ class SangamCrmService {
     this.timeoutMs = 15000;
   }
 
+  isSyncEnabled() {
+    return Boolean(env.SANGAM_CRM_SYNC_ENABLED);
+  }
+
   /**
    * Format customer data into exact supported Sangam CRM Account fields
    */
@@ -219,6 +223,18 @@ class SangamCrmService {
    * @returns {Promise<{success: boolean, recordId: string, message: string, rawResponse: any}>}
    */
   async createOrUpdateCompany(customer) {
+    if (!this.isSyncEnabled()) {
+      const companyName = customer.company || customer.name || 'Company';
+      console.log(`[SangamCRM] External CRM sync skipped for Company "${companyName}": SANGAM_CRM_SYNC_ENABLED is false.`);
+      return {
+        success: false,
+        disabled: true,
+        recordId: customer.sangamCrm?.recordId || null,
+        message: 'Sangam CRM synchronization is disabled via SANGAM_CRM_SYNC_ENABLED=false.',
+        rawResponse: null
+      };
+    }
+
     const endpoint = `${this.apiBase.replace(/\/+$/, '')}/save-data`;
     const fieldList = this.mapCustomerToCompanyData(customer);
 
@@ -309,6 +325,18 @@ class SangamCrmService {
    * @returns {Promise<{success: boolean, recordId: string, message: string, rawResponse: any}>}
    */
   async createOrUpdateContract(contract) {
+    if (!this.isSyncEnabled()) {
+      const contractName = contract.name || contract.contractName || 'Contract';
+      console.log(`[SangamCRM] External CRM sync skipped for Contract "${contractName}": SANGAM_CRM_SYNC_ENABLED is false.`);
+      return {
+        success: false,
+        disabled: true,
+        recordId: contract.sangamCrm?.recordId || null,
+        message: 'Sangam CRM synchronization is disabled via SANGAM_CRM_SYNC_ENABLED=false.',
+        rawResponse: null
+      };
+    }
+
     const endpoint = `${this.apiBase.replace(/\/+$/, '')}/save-data`;
     const fieldList = this.mapContractData(contract);
 
@@ -444,6 +472,18 @@ class SangamCrmService {
    * @returns {Promise<{success: boolean, recordId: string, message: string, rawResponse: any}>}
    */
   async createOrUpdateContact(contact, targetAccountId = null) {
+    if (!this.isSyncEnabled()) {
+      const contactName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Contact';
+      console.log(`[SangamCRM] External CRM sync skipped for Contact "${contactName}": SANGAM_CRM_SYNC_ENABLED is false.`);
+      return {
+        success: false,
+        disabled: true,
+        recordId: contact.sangamCrm?.recordId || contact.recordId || null,
+        message: 'Sangam CRM synchronization is disabled via SANGAM_CRM_SYNC_ENABLED=false.',
+        rawResponse: null
+      };
+    }
+
     const endpoint = `${this.apiBase.replace(/\/+$/, '')}/save-data`;
     const fieldList = this.mapContactData(contact);
 

@@ -279,9 +279,13 @@ export const createContract = async (req, res) => {
     try {
       sangamResult = await sangamCrmService.createOrUpdateContract(savedContract);
 
-      const syncStatus = sangamResult.success ? 'synced' : 'failed';
+      const syncStatus = sangamResult.success ? 'synced' : 'pending';
       const crmRecordId = sangamResult.recordId;
-      const syncErr = sangamResult.success ? null : sangamResult.message;
+      const syncErr = sangamResult.success
+        ? null
+        : sangamResult.disabled
+        ? 'Sangam CRM synchronization disabled in configuration.'
+        : sangamResult.message;
 
       if (isMongoConnected()) {
         savedContract = await Contract.findByIdAndUpdate(
@@ -335,15 +339,20 @@ export const createContract = async (req, res) => {
       }
     });
 
+    const [withContacts] = await attachCustomerContacts([savedContract]);
+    const finalContract = withContacts || savedContract;
+
     return res.status(201).json({
       success: true,
       contract: {
-        ...savedContract,
-        id: savedContract.contractId || savedContract._id
+        ...finalContract,
+        id: finalContract.contractId || finalContract._id
       },
-      sangamCrm: savedContract.sangamCrm,
+      sangamCrm: finalContract.sangamCrm,
       message: sangamResult.success
         ? `Contract saved locally and synchronized to Sangam CRM Contracts (Record ID: ${sangamResult.recordId})`
+        : sangamResult.disabled
+        ? 'Contract created and saved in database successfully. (Sangam CRM sync is disabled)'
         : `Contract saved locally. Sangam CRM synchronization pending: ${sangamResult.message}`
     });
   } catch (err) {
@@ -375,6 +384,15 @@ export const syncContractToSangam = async (req, res) => {
 
     if (!contract) {
       return res.status(404).json({ success: false, error: 'Contract record not found.' });
+    }
+
+    if (!sangamCrmService.isSyncEnabled()) {
+      return res.status(200).json({
+        success: false,
+        disabled: true,
+        sangamCrm: contract.sangamCrm || { status: 'pending', recordId: null },
+        message: 'Sangam CRM synchronization is currently disabled in .env (SANGAM_CRM_SYNC_ENABLED=false).'
+      });
     }
 
     const sangamResult = await sangamCrmService.createOrUpdateContract(contract);
@@ -567,11 +585,14 @@ export const updateContract = async (req, res) => {
       }
     });
 
+    const [withContacts] = await attachCustomerContacts([savedContract]);
+    const finalContract = withContacts || savedContract;
+
     return res.status(200).json({
       success: true,
       contract: {
-        ...savedContract,
-        id: savedContract.contractId || savedContract._id
+        ...finalContract,
+        id: finalContract.contractId || finalContract._id
       },
       message: 'Contract updated successfully and synced to Sangam CRM.'
     });
@@ -732,31 +753,39 @@ const escapeRegex = (value) => new RegExp(`^${String(value).replace(/[.*+?^${}()
 const attachCustomerContacts = async (list) => {
   if (!Array.isArray(list) || list.length === 0) return list;
 
-  const names = list.flatMap((c) => [c.company, c.customer]).map((v) => String(v || '').trim()).filter(Boolean);
+  const names = list.flatMap((c) => [c.company, c.customer, c.email]).map((v) => String(v || '').trim()).filter(Boolean);
   const distinct = [...new Set(names)];
   if (distinct.length === 0) return list;
 
   let customers = [];
   try {
     if (isMongoConnected()) {
-      const projection = 'name company email phone alternatePhone contacts';
+      const projection = 'name company email phone alternatePhone mobile contacts';
       // The indexed exact match covers almost every row; only the names that
       // miss it are retried case-insensitively, so a large register does not
       // turn into a collection scan on every page load.
       customers = await Customer.find({
-        $or: [{ company: { $in: distinct } }, { name: { $in: distinct } }]
+        $or: [{ company: { $in: distinct } }, { name: { $in: distinct } }, { email: { $in: distinct } }]
       })
         .select(projection)
         .lean();
 
       const matched = new Set(
-        customers.flatMap((cust) => [String(cust.company || '').trim(), String(cust.name || '').trim()].filter(Boolean))
+        customers.flatMap((cust) => [
+          String(cust.company || '').trim(),
+          String(cust.name || '').trim(),
+          String(cust.email || '').trim()
+        ].filter(Boolean))
       );
       const missed = distinct.filter((value) => !matched.has(value));
 
       if (missed.length > 0) {
         const fuzzy = await Customer.find({
-          $or: missed.flatMap((value) => [{ company: escapeRegex(value) }, { name: escapeRegex(value) }])
+          $or: missed.flatMap((value) => [
+            { company: escapeRegex(value) },
+            { name: escapeRegex(value) },
+            { email: escapeRegex(value) }
+          ])
         })
           .select(projection)
           .lean();
@@ -765,7 +794,10 @@ const attachCustomerContacts = async (list) => {
     } else {
       const lookup = new Set(distinct.map((v) => v.toLowerCase()));
       customers = getCustomersFromFile().filter(
-        (c) => lookup.has(String(c.company || '').toLowerCase()) || lookup.has(String(c.name || '').toLowerCase())
+        (c) =>
+          lookup.has(String(c.company || '').toLowerCase()) ||
+          lookup.has(String(c.name || '').toLowerCase()) ||
+          lookup.has(String(c.email || '').toLowerCase())
       );
     }
   } catch (err) {
@@ -775,15 +807,18 @@ const attachCustomerContacts = async (list) => {
 
   const byCompany = new Map();
   const byName = new Map();
+  const byEmail = new Map();
   customers.forEach((cust) => {
     if (cust.company) byCompany.set(String(cust.company).trim().toLowerCase(), cust);
     if (cust.name) byName.set(String(cust.name).trim().toLowerCase(), cust);
+    if (cust.email) byEmail.set(String(cust.email).trim().toLowerCase(), cust);
   });
 
   return list.map((c) => {
     const company = String(c.company || '').trim().toLowerCase();
     const person = String(c.customer || '').trim().toLowerCase();
-    const linked = byCompany.get(company) || byName.get(person) || byName.get(company) || null;
+    const email = String(c.email || '').trim().toLowerCase();
+    const linked = byCompany.get(company) || byName.get(person) || byEmail.get(email) || byName.get(company) || null;
     // The signer may be one of several contacts on the account.
     const contact =
       linked?.contacts?.find((entry) => String(entry.name || '').trim().toLowerCase() === person) || null;
@@ -791,7 +826,14 @@ const attachCustomerContacts = async (list) => {
     return {
       ...c,
       personEmail: contact?.email || linked?.email || c.email || '',
-      personMobile: contact?.phone || linked?.phone || linked?.alternatePhone || ''
+      personMobile:
+        contact?.phone ||
+        linked?.phone ||
+        linked?.alternatePhone ||
+        linked?.mobile ||
+        c.phone ||
+        c.mobile ||
+        ''
     };
   });
 };
@@ -981,10 +1023,14 @@ export const importContracts = async (req, res) => {
 
         const sangamResult = await sangamCrmService.createOrUpdateContract(saved);
         const sangamCrm = {
-          status: sangamResult.success ? 'synced' : 'failed',
+          status: sangamResult.success ? 'synced' : sangamResult.disabled ? 'pending' : 'failed',
           recordId: sangamResult.recordId || previousCrm?.recordId || null,
-          lastSyncedAt: new Date(),
-          syncError: sangamResult.success ? null : sangamResult.message
+          lastSyncedAt: sangamResult.success ? new Date() : null,
+          syncError: sangamResult.success
+            ? null
+            : sangamResult.disabled
+            ? 'Sangam CRM synchronization disabled in configuration.'
+            : sangamResult.message
         };
         if (sangamResult.success) syncedCount += 1;
 

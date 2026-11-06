@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import Customer from '../models/Customer.js';
+import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
-import Payment from '../models/Payment.js';
+import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import { logNotification } from '../services/notificationService.js';
@@ -43,6 +43,25 @@ const buildIdentityMatch = (values) => ({
   $or: values.flatMap((value) => IDENTITY_FIELDS.map((field) => ({ [field]: value })))
 });
 
+// The JSON fallback files hold the same free-text fields, so the scan mirrors
+// the Mongo match: contact details have to agree exactly, while the account can
+// be named loosely because legacy rows append "Pvt Ltd" and similar suffixes.
+const IDENTITY_EXACT_FIELDS = ['email', 'customerId', 'accountId'];
+
+const filterByIdentity = (rows, identity) => {
+  const needle = identity.map((value) => String(value).toLowerCase());
+
+  return rows.filter((row) =>
+    IDENTITY_FIELDS.some((field) => {
+      const value = String(row?.[field] || '').trim().toLowerCase();
+      if (!value) return false;
+      return needle.some((id) =>
+        IDENTITY_EXACT_FIELDS.includes(field) ? value === id : value.includes(id)
+      );
+    })
+  );
+};
+
 const collectIdentityValues = (user, customer) => {
   const values = [
     user?.email,
@@ -55,7 +74,19 @@ const collectIdentityValues = (user, customer) => {
 };
 
 const findAccountRecord = async (user) => {
-  if (!isMongoConnected()) return null;
+  if (!isMongoConnected()) {
+    const email = String(user?.email || '').trim().toLowerCase();
+    const rows = getCustomersFromFile();
+    const byCustomerId = String(user?.customerId || '').trim().toUpperCase();
+
+    return (
+      (byCustomerId &&
+        rows.find((c) => String(c.customerId || '').trim().toUpperCase() === byCustomerId)) ||
+      (email && rows.find((c) => String(c.email || '').trim().toLowerCase() === email)) ||
+      null
+    );
+  }
+
   if (user?.customerId) {
     const byCustomerId = await Customer.findOne({ customerId: user.customerId }).lean();
     if (byCustomerId) return byCustomerId;
@@ -483,18 +514,6 @@ export const searchCustomerPortal = async (req, res) => {
       query
     );
 
-    // Same fallback as the overview: the account row itself names the subscribed plan.
-    if (productItems.length === 0 && customer?.plan && rx.test(customer.plan)) {
-      productItems.push({
-        id: customer.customerId || 'account-plan',
-        title: await resolveDisplayName(customer.plan, 'Account plan'),
-        subtitle: 'Plan running on this account',
-        meta: customer.status || 'Active',
-        amount: parseAmount(customer.mrr),
-        target: 'products'
-      });
-    }
-
     const paymentItems = rankByTitle(
       (await Promise.all(paymentRows.map(mapPayment))).map((payment) => ({
         id: payment.id,
@@ -542,40 +561,21 @@ export const getCustomerOverview = async (req, res) => {
 
     products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
 
-    if (products.length === 0) {
-      const fileContracts = getContractsFromFile();
-      const identityLower = identity.map((i) => String(i).toLowerCase());
-      const matched = fileContracts.filter((c) => {
-        const cEmail = String(c.email || '').toLowerCase();
-        const cCustomer = String(c.customer || '').toLowerCase();
-        const cCompany = String(c.company || '').toLowerCase();
-        return identityLower.some((id) => id && (cEmail.includes(id) || cCustomer.includes(id) || cCompany.includes(id) || id.includes(cEmail)));
-      });
+    // The ledger files are what the local server writes when Mongo is not
+    // connected, so an account has to be read out of them the same way.
+    if (products.length === 0 && identity.length > 0) {
+      const matched = filterByIdentity(getContractsFromFile(), identity);
       if (matched.length > 0) {
         products = await Promise.all(matched.map(mapContract));
         products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
       }
     }
 
-    // The account record still names the subscribed plan, so an account with no
-    // contract rows is not the same as an account with nothing running.
-    if (products.length === 0 && customer?.plan) {
-      products = [
-        {
-          id: customer.customerId || 'account-plan',
-          name: await resolveDisplayName(customer.plan, 'Account plan'),
-          category: null,
-          contractType: null,
-          status: customer.status || 'active',
-          startDate: customer.registered || null,
-          expiryDate: null,
-          daysLeft: null,
-          amount: parseAmount(customer.mrr),
-          amountLabel: customer.mrr || null,
-          expired: false,
-          source: 'account'
-        }
-      ];
+    if (payments.length === 0 && identity.length > 0) {
+      const matchedPayments = filterByIdentity(getPaymentsFromFile(), identity);
+      if (matchedPayments.length > 0) {
+        payments = await Promise.all(matchedPayments.map(mapPayment));
+      }
     }
 
     payments.sort((a, b) => (b.date || '').localeCompare(a.date || ''));

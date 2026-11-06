@@ -76,6 +76,13 @@ if (isTestMode) {
   }
 }
 
+const rawSangamSync = process.env.SANGAM_CRM_SYNC_ENABLED ?? process.env.SANGAM_CRM_SYNC;
+let isSangamSyncEnabled = true;
+if (rawSangamSync !== undefined) {
+  const norm = String(rawSangamSync).trim().toLowerCase();
+  isSangamSyncEnabled = norm === 'true' || norm === '1' || norm === 'yes';
+}
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 4000),
@@ -98,6 +105,7 @@ export const env = {
   MAIL_FROM: process.env.MAIL_FROM || 'NISPL Security <no-reply@example.com>',
   ADMIN_EMAIL: (process.env.ADMIN_EMAIL || 'nispldeveloper@gmail.com').trim().toLowerCase(),
   APP_BASE_URL: process.env.APP_BASE_URL || 'http://localhost:5173',
+  SANGAM_CRM_SYNC_ENABLED: isSangamSyncEnabled,
   SANGAM_CRM_URL: process.env.SANGAM_CRM_URL || 'https://nistally.sangamcrm.com/',
   SANGAM_CRM_API_BASE: process.env.SANGAM_CRM_API_BASE || 'https://nistally.sangamcrm.com/api/v1/',
   SANGAM_CRM_TOKEN: process.env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6',

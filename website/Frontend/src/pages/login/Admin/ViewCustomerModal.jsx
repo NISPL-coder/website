@@ -586,13 +586,15 @@ export default function ViewCustomerModal({
 
           <div>
             <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Subscribed Tier</span>
-            <div style={{ fontWeight: 600, color: '#0f172a' }}>{customer.plan}</div>
+            <div style={{ fontWeight: 600, color: customer.plan ? '#0f172a' : '#94a3b8' }}>
+              {customer.plan || 'Not recorded'}
+            </div>
           </div>
 
           <div>
             <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Server Hypervisor Node</span>
-            <div style={{ fontFamily: 'monospace', fontWeight: 600, color: '#6366f1' }}>
-              {customer.serverNode}
+            <div style={{ fontFamily: 'monospace', fontWeight: 600, color: customer.serverNode ? '#6366f1' : '#94a3b8' }}>
+              {customer.serverNode || 'Not recorded'}
             </div>
           </div>
 

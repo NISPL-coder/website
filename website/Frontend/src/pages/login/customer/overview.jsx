@@ -138,9 +138,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
     email: account?.email || customer?.email || '',
     phone: account?.phone || customer?.phone || '',
     gstNo: account?.gstNo || customer?.gstNo || '',
-    customerId: account?.customerId || customer?.customerId || '',
-    serverNode: account?.serverNode || customer?.serverNode || '',
-    plan: account?.plan || customer?.plan || ''
+    customerId: account?.customerId || customer?.customerId || ''
   };
 
   const handleReceiptDownload = (payment) => {
@@ -385,7 +383,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                 ) : (
                   products.map((product) => {
                     const metaParts = [
-                      product.contractType || product.category || (product.source === 'account' ? 'Account plan' : null),
+                      product.contractType || product.category || null,
                       product.expiryDate ? `Valid till ${formatDate(product.expiryDate)}` : 'Validity not recorded'
                     ].filter(Boolean);
                     return (

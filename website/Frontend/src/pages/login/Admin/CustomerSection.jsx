@@ -100,35 +100,26 @@ export default function CustomerSection({
     }
   };
 
-  // Dynamic card stats from API (with seamless fallback to computed data)
-  const apiStats = customerStats || customers?.stats;
-
+  // Dynamic card stats and status counts computed directly from live customer records
   const dynamicCards = useMemo(() => {
-    const total = apiStats?.totalAccounts ?? customers.length;
-    const active =
-      apiStats?.activeClients ??
-      customers.filter((c) => c.status?.toLowerCase() === 'active').length;
-    const demo =
-      apiStats?.demoTrials ??
-      customers.filter((c) => {
-        const s = c.status?.toLowerCase();
-        return s === 'demo' || s === 'trial';
-      }).length;
-    const inactive =
-      apiStats?.inactivePaused ??
-      customers.filter((c) => {
-        const s = c.status?.toLowerCase();
-        return s === 'inactive' || s === 'suspended' || s === 'paused';
-      }).length;
+    const list = Array.isArray(customers) ? customers : [];
 
-    const mrrNum =
-      typeof apiStats?.monthlyMrr === 'number'
-        ? apiStats.monthlyMrr
-        : customers
-            .filter((c) => c.status?.toLowerCase() === 'active')
-            .reduce((acc, c) => acc + (parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0), 0);
+    const total = list.length;
+    const active = list.filter((c) => String(c.status || '').toLowerCase() === 'active').length;
+    const demo = list.filter((c) => {
+      const s = String(c.status || '').toLowerCase();
+      return s === 'demo' || s === 'trial';
+    }).length;
+    const inactive = list.filter((c) => {
+      const s = String(c.status || '').toLowerCase();
+      return s === 'inactive' || s === 'suspended' || s === 'paused';
+    }).length;
 
-    const formattedMrr = apiStats?.formattedMonthlyMrr || `₹${mrrNum.toLocaleString('en-IN')}`;
+    const mrrNum = list
+      .filter((c) => String(c.status || '').toLowerCase() === 'active')
+      .reduce((acc, c) => acc + (parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0), 0);
+
+    const formattedMrr = `₹${mrrNum.toLocaleString('en-IN')}`;
 
     return {
       total,
@@ -137,12 +128,12 @@ export default function CustomerSection({
       inactive,
       mrr: mrrNum,
       formattedMrr,
-      totalDesc: apiStats?.descriptions?.totalAccounts || 'All customer records',
-      activeDesc: apiStats?.descriptions?.activeClients || `Monthly MRR: ${formattedMrr}`,
-      demoDesc: apiStats?.descriptions?.demoTrials || '14-Day sandbox trials',
-      inactiveDesc: apiStats?.descriptions?.inactivePaused || 'Expired / pending renewals'
+      totalDesc: 'All customer records',
+      activeDesc: `Monthly MRR: ${formattedMrr}`,
+      demoDesc: '14-Day sandbox trials',
+      inactiveDesc: 'Expired / pending renewals'
     };
-  }, [apiStats, customers]);
+  }, [customers]);
 
   // Backward-compatible counts object for filters
   const counts = useMemo(() => ({
@@ -172,14 +163,14 @@ export default function CustomerSection({
 
       const matchesSearch = !q || searchable.some((value) => value.includes(q));
 
-      const custStatus = c.status?.toLowerCase();
+      const custStatus = String(c.status || '').toLowerCase();
       let matchesStatus = true;
       if (statusFilter === 'active') {
         matchesStatus = custStatus === 'active';
       } else if (statusFilter === 'demo') {
-        matchesStatus = custStatus === 'demo';
+        matchesStatus = custStatus === 'demo' || custStatus === 'trial';
       } else if (statusFilter === 'inactive') {
-        matchesStatus = custStatus === 'inactive' || custStatus === 'suspended';
+        matchesStatus = custStatus === 'inactive' || custStatus === 'suspended' || custStatus === 'paused';
       }
 
       const matchesDateRange = isWithinDateRange(c.createdAt || c.registered, dateFrom, dateTo);
@@ -494,13 +485,13 @@ export default function CustomerSection({
                   <span>Active</span>
                 </span>
               )}
-              {s === 'demo' && (
+              {(s === 'demo' || s === 'trial') && (
                 <span className="adm-status-pill demo">
                   <Clock size={12} />
                   <span>Demo Trial</span>
                 </span>
               )}
-              {(s === 'inactive' || s === 'suspended') && (
+              {(s === 'inactive' || s === 'suspended' || s === 'paused') && (
                 <span className="adm-status-pill inactive">
                   <XCircle size={12} />
                   <span>Inactive</span>

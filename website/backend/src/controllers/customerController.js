@@ -101,14 +101,18 @@ export const getCustomers = async (req, res) => {
       // Ensure self-registered customer accounts from 'users' collection are synced into 'customers'
       try {
         customerUsers = await User.find({ role: 'customer' })
-          .select('+password portalPassword lastLoginAt email customerId name')
+          .select('+password portalPassword lastLoginAt email customerId name phone')
           .lean();
         for (const u of customerUsers) {
           const uEmail = (u.email || '').toLowerCase();
+          const uPhone = String(u.phone || '').trim();
           const alreadyExists = list.some(
             (c) => (c.email && c.email.toLowerCase() === uEmail) || (c.customerId && u.customerId && c.customerId === u.customerId)
           );
-          if (!alreadyExists && uEmail) {
+          // A contact number is the one field this row cannot be created
+          // without, so an account that never gave one stays out of the
+          // directory instead of arriving with an invented number.
+          if (!alreadyExists && uEmail && uPhone) {
             const customerId = u.customerId || `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
             const backfillDoc = new Customer({
               customerId,
@@ -117,14 +121,10 @@ export const getCustomers = async (req, res) => {
               company: u.name || 'Personal Account',
               email: uEmail,
               loginEmail: uEmail,
-              portalPassword: u.portalPassword || 'Customer@12345',
-              phone: '9876543210',
+              portalPassword: u.portalPassword || '',
+              phone: uPhone,
               status: u.accountStatus || 'active',
-              plan: 'Tally Prime Cloud + VPS Gold',
-              serverNode: 'CtrlS-KOL-NODE-01',
-              mrr: '₹15,000',
               registered: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-              address: { city: 'Kolkata', state: 'West Bengal', country: 'India' },
               sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
             });
             await backfillDoc.save();
@@ -300,11 +300,11 @@ export const createCustomer = async (req, res) => {
       website: (website || '').trim(),
       industry: industry || 'Technology',
       accountRelationship: accountRelationship || 'Customer',
-      plan: plan || 'Tally Prime Cloud + VPS Gold',
-      serverNode: serverNode || 'CtrlS-KOL-NODE-01',
+      plan: (plan || '').trim(),
+      serverNode: (serverNode || '').trim(),
       status: status || 'active',
       registered: new Date().toISOString().split('T')[0],
-      mrr: mrr || '₹15,000',
+      mrr: (mrr || '').trim(),
       city: cityLoc,
       address: {
         street: address?.street || '',
@@ -356,10 +356,10 @@ export const createCustomer = async (req, res) => {
       };
     } else {
       savedCustomer.sangamCrm = {
-        status: 'failed',
+        status: 'pending',
         recordId: null,
-        lastSyncedAt: new Date().toISOString(),
-        syncError: syncResult.message
+        lastSyncedAt: syncResult.disabled ? null : new Date().toISOString(),
+        syncError: syncResult.disabled ? 'Sangam CRM synchronization disabled in configuration.' : syncResult.message
       };
     }
 
@@ -382,6 +382,7 @@ export const createCustomer = async (req, res) => {
           await User.create({
             name: fullName,
             email: cleanEmail,
+            phone: cleanPhone,
             password: rawPassword,
             portalPassword: rawPassword,
             role: 'customer',
@@ -445,6 +446,8 @@ export const createCustomer = async (req, res) => {
       sangamCrm: savedCustomer.sangamCrm,
       message: syncResult.success
         ? `Customer saved locally and synchronized to Sangam CRM Companies (Record ID: ${savedCustomer.sangamCrm.recordId})`
+        : syncResult.disabled
+        ? 'Customer created and saved in database successfully. (Sangam CRM sync is disabled)'
         : `Customer saved locally, but Sangam CRM sync failed: ${syncResult.message}`
     });
   } catch (err) {
@@ -477,6 +480,15 @@ export const syncCustomerToSangam = async (req, res) => {
 
     if (!customer) {
       return res.status(404).json({ success: false, error: `Customer "${id}" not found.` });
+    }
+
+    if (!sangamCrmService.isSyncEnabled()) {
+      return res.status(200).json({
+        success: false,
+        disabled: true,
+        sangamCrm: customer.sangamCrm || { status: 'pending', recordId: null },
+        message: 'Sangam CRM synchronization is currently disabled in .env (SANGAM_CRM_SYNC_ENABLED=false).'
+      });
     }
 
     console.log(`[CustomerController] Retrying Sangam CRM sync for customer: ${id}`);
@@ -839,13 +851,13 @@ export const importCompanies = async (req, res) => {
           website,
           industry,
           accountRelationship: 'Customer',
-          plan: item.plan || 'Tally Prime Cloud + VPS Gold',
-          serverNode: item.serverNode || 'CtrlS-KOL-NODE-01',
+          plan: String(item.plan || '').trim(),
+          serverNode: String(item.serverNode || '').trim(),
           status,
           registered: item.autoUpdatedAt
             ? new Date(item.autoUpdatedAt).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
-          mrr: item.mrr || '₹15,000',
+          mrr: String(item.mrr || '').trim(),
           city: `${city}, ${state}`,
           address: {
             street,
@@ -1092,15 +1104,12 @@ export const importContacts = async (req, res) => {
             name: fullName,
             company: accountName || `${fullName} (Individual)`,
             email: cleanEmail || `customer.${Date.now()}@nispl.in`,
-            phone: cleanPhone || '9876543210',
+            phone: cleanPhone,
             industry: 'Technology',
             accountRelationship: 'Customer',
-            plan: 'Tally Prime Cloud + VPS Gold',
-            serverNode: 'CtrlS-KOL-NODE-01',
             status: 'active',
             registered: new Date().toISOString().split('T')[0],
-            mrr: '₹15,000',
-            address: { city: 'Kolkata', state: 'West Bengal', country: 'India' },
+            address: { street: '', area: '', city: '', state: '', country: '', postalCode: '', addressType: '' },
             contacts: [
               {
                 firstName,

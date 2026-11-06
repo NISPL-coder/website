@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: 120 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   customerId: { type: String, unique: true, sparse: true, trim: true },
+  phone: { type: String, default: '', trim: true },
   password: { type: String, required: true, select: false },
   portalPassword: { type: String, default: '' },
   role: { type: String, enum: ['admin', 'manager', 'support', 'partner', 'customer'], required: true, index: true },

@@ -169,10 +169,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         country: selectedCountry,
         postalCode: formState.postalCode || ''
       },
-      plan: 'Tally Prime Cloud + VPS Gold',
-      serverNode: 'CtrlS-KOL-NODE-01',
       status: 'active',
-      mrr: '₹15,000',
       accountRelationship: 'Customer'
     };
 
@@ -190,7 +187,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       notificationApi.createNotification({
         type: 'customer_created',
         title: 'Customer Account Created',
-        message: `New customer account "${customerPayload.name}" (${customerPayload.company || customerPayload.email}) created for plan ${customerPayload.plan || 'Tally Prime Cloud'}.`,
+        message: `New customer account "${customerPayload.name}" (${customerPayload.company || customerPayload.email}) created.`,
         severity: 'success',
         entityType: 'customer',
         entityId: createdCustomer.customerId || createdCustomer.id || customerPayload.customerId,
@@ -200,10 +197,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
           company: customerPayload.company
         },
         metadata: {
-          customerId: createdCustomer.customerId || createdCustomer.id,
-          plan: customerPayload.plan,
-          serverNode: customerPayload.serverNode,
-          mrr: customerPayload.mrr
+          customerId: createdCustomer.customerId || createdCustomer.id
         }
       });
 
@@ -244,11 +238,8 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         address: addressParts || cityLoc,
         country: selectedCountry,
         state: selectedState,
-        plan: 'Tally Prime Cloud + VPS Gold',
-        serverNode: 'CtrlS-KOL-NODE-01',
         status: 'active',
         registered: new Date().toISOString().split('T')[0],
-        mrr: '₹15,000',
         sangamCrm: {
           status: 'failed',
           recordId: null,

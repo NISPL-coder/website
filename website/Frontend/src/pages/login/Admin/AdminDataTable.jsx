@@ -341,7 +341,7 @@ export default function AdminDataTable({
 
         const value = String(raw);
         return column.searchType === 'select'
-          ? value === query
+          ? value.toLowerCase() === query.toLowerCase()
           : value.toLowerCase().includes(query.toLowerCase());
       })
     );

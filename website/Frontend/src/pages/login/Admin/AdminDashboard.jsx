@@ -604,6 +604,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                 <ContractSection
                   contracts={contracts}
                   setContracts={setContracts}
+                  customers={customers}
                 />
               )}
 

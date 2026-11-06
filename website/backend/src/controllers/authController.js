@@ -154,12 +154,13 @@ export async function registerCustomer(req, res) {
   const cleanName = String(name || '').trim();
   const cleanEmail = String(email || '').trim().toLowerCase();
   const cleanCompany = String(company || companyName || cleanName).trim();
-  const cleanPhone = String(phone || mobile || '').trim() || '9876543210';
+  const cleanPhone = String(phone || mobile || '').trim();
   const cleanGst = String(gstNo || '').trim().toUpperCase();
-  const cleanPlan = plan || 'Tally Prime Cloud + VPS Gold';
+  const cleanPlan = String(plan || '').trim();
 
   if (!cleanName) throw new HttpError(400, 'Customer name is required.');
   if (!cleanEmail) throw new HttpError(400, 'Customer email is required.');
+  if (!cleanPhone) throw new HttpError(400, 'Contact mobile number is required.');
 
   // 1. Check existing account in User and Customer collections
   const existing = await User.findOne({ email: cleanEmail });
@@ -181,6 +182,7 @@ export async function registerCustomer(req, res) {
   const user = await User.create({
     name: cleanName,
     email: cleanEmail,
+    phone: cleanPhone,
     password,
     portalPassword: password,
     role: 'customer',
@@ -202,16 +204,14 @@ export async function registerCustomer(req, res) {
     status: 'active',
     registered: new Date().toISOString().split('T')[0],
     plan: cleanPlan,
-    serverNode: 'CtrlS-KOL-NODE-01',
-    mrr: '₹15,000',
     address: {
-      city: address?.city || city || 'Kolkata',
-      state: address?.state || 'West Bengal',
-      country: address?.country || 'India',
+      city: address?.city || city || '',
+      state: address?.state || '',
+      country: address?.country || '',
       street: address?.street || '',
       area: address?.area || '',
       postalCode: address?.postalCode || '',
-      addressType: address?.addressType || 'Office / Billing'
+      addressType: address?.addressType || ''
     },
     sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
   };

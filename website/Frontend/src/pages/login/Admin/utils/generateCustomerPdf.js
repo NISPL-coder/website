@@ -154,9 +154,9 @@ export function generateCustomerPdf(customer) {
       ['Website', customer.website || 'N/A'],
       ['Physical / Billing Address', addrText],
       ['GSTIN / Tax ID', customer.gstNo || 'Unregistered / Not Provided'],
-      ['Active Cloud Subscription', customer.plan || 'Tally Prime Cloud + VPS Gold'],
-      ['Provisioned Datacenter Node', customer.serverNode || 'CtrlS-KOL-NODE-01'],
-      ['Monthly Recurring Revenue (MRR)', customer.mrr || '₹15,000'],
+      ['Active Cloud Subscription', customer.plan || 'Not recorded'],
+      ['Provisioned Datacenter Node', customer.serverNode || 'Not recorded'],
+      ['Monthly Recurring Revenue (MRR)', customer.mrr || 'Not recorded'],
       ['Sangam CRM Sync Status', (customer.sangamCrm?.status || 'pending').toUpperCase()],
       ['Sangam CRM Record ID', customer.sangamCrm?.recordId || 'Pending Synchronization'],
       ['Last Synchronized Date', customer.sangamCrm?.lastSyncedAt ? new Date(customer.sangamCrm.lastSyncedAt).toLocaleString('en-IN') : 'N/A']

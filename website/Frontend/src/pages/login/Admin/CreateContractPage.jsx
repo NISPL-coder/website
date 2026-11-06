@@ -185,6 +185,10 @@ export default function CreateContractPage({ contracts, setContracts }) {
 
       setContracts([createdContract, ...(contracts || [])]);
 
+      contractApi.getContracts().then((live) => {
+        if (live && Array.isArray(live)) setContracts(live);
+      });
+
       if (res.sangamCrm?.status === 'synced') {
         toast.success(
           `Contract created for ${company} and synchronized to Sangam CRM! (Record ID: ${res.sangamCrm.recordId})`,
