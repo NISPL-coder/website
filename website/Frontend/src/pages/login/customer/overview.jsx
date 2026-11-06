@@ -144,20 +144,9 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const handleReceiptDownload = (payment) => {
     try {
-      // Payments store the billed total only, so no GST split is asserted on the receipt.
-      generateReceiptPdf(
-        {
-          id: payment.invoiceNumber || payment.id,
-          date: formatDate(payment.date),
-          expiryDate: payment.dueDate ? formatDate(payment.dueDate) : '',
-          service: payment.service,
-          paymentMode: payment.paymentMethod || '—',
-          baseAmount: formatINR(payment.amount),
-          totalAmount: formatINR(payment.amount),
-          status: payment.status
-        },
-        billing
-      );
+      // The same ledger row the Receipt tab lists, so both prints agree on the
+      // billed total, the booked GST split and any bank instrument reference.
+      generateReceiptPdf(toPortalReceiptRow(payment), billing);
     } catch (err) {
       console.warn('Receipt generation failed:', err);
       toast.error('The receipt could not be generated for this invoice.');

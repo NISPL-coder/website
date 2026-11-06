@@ -4,7 +4,7 @@ import Payment, {
   savePaymentProof,
   getPaymentProof
 } from '../models/Payment.js';
-import Customer from '../models/Customer.js';
+import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract from '../models/Contract.js';
 import mongoose from 'mongoose';
 import { logActivity } from '../utils/activityLogger.js';
@@ -637,6 +637,45 @@ const readProof = (proof) => {
 
 const isIsoDay = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')) && !Number.isNaN(Date.parse(value));
 
+/**
+ * A payment booked from the finance desk has no session behind it, so the notice
+ * has to be addressed to whichever mailbox the account record says can sign in.
+ * Without that the entry stays invisible in the customer's own notification
+ * stream, which only carries notices stamped with the account email.
+ */
+const noticeRecipient = async (row) => {
+  const email = String(row.email || '').trim().toLowerCase();
+  const customerId = String(row.customerId || '').trim();
+  const company = String(row.company || '').trim();
+
+  const queries = [
+    ...(customerId ? [{ customerId }] : []),
+    ...(company ? [{ company }] : []),
+    ...(email ? [{ email }, { loginEmail: email }] : [])
+  ];
+
+  let account = null;
+  if (queries.length) {
+    account = isMongoConnected()
+      ? await Customer.findOne({ $or: queries }).lean().catch(() => null)
+      : getCustomersFromFile().find(
+          (record) =>
+            (customerId && String(record.customerId || '').trim() === customerId) ||
+            (company && String(record.company || '').trim() === company) ||
+            (email &&
+              (String(record.email || '').trim().toLowerCase() === email ||
+                String(record.loginEmail || '').trim().toLowerCase() === email))
+        ) || null;
+  }
+
+  return {
+    name: account?.name || row.customer || '',
+    // The ledger already carries the payer's corporate email, which is the login
+    // for any account that registered itself, so it is the last fallback.
+    email: String(account?.loginEmail || account?.email || row.email || '').trim()
+  };
+};
+
 export const createPayment = async (req, res) => {
   try {
     const p = req.body || {};
@@ -700,6 +739,8 @@ export const createPayment = async (req, res) => {
     });
 
     if (newPaymentData.status === 'Received' || newPaymentData.status === 'Cleared') {
+      const recipient = await noticeRecipient(newPaymentData);
+
       await logNotification({
         type: 'payment_received',
         title: 'Payment Received',
@@ -707,7 +748,12 @@ export const createPayment = async (req, res) => {
         severity: 'success',
         entityType: 'payment',
         entityId: paymentId,
-        user: { name: newPaymentData.customer, company: newPaymentData.company },
+        user: {
+          name: recipient.name,
+          email: recipient.email,
+          role: recipient.email ? 'customer' : '',
+          company: newPaymentData.company
+        },
         metadata: newPaymentData
       });
     }
@@ -951,16 +997,24 @@ export const recordManualPayment = async (req, res) => {
       }${proof.fileName ? ` with proof ${proof.fileName}` : ''}`
     });
 
+    const recipient = await noticeRecipient(newPaymentData);
+    const settled = newPaymentData.status === 'Received' || newPaymentData.status === 'Cleared';
+
     await logNotification({
       type: 'payment_received',
-      title: 'Manual Payment Recorded',
-      message: `${instrument} payment of ${newPaymentData.receivedAmount} from ${company} recorded${
-        referenceNumber ? ` against reference ${referenceNumber}` : ''
-      }.`,
-      severity: 'success',
+      title: settled ? 'Payment Received' : 'Payment Awaiting Bank Clearance',
+      message: `${instrument} payment of ${newPaymentData.amount} from ${company}${
+        referenceNumber ? `, reference ${referenceNumber},` : ''
+      } ${settled ? 'has been recorded and settled' : 'has been recorded and is awaiting bank clearance'}.`,
+      severity: settled ? 'success' : 'warning',
       entityType: 'payment',
       entityId: paymentId,
-      user: { name: newPaymentData.customer, company },
+      user: {
+        name: recipient.name,
+        email: recipient.email,
+        role: recipient.email ? 'customer' : '',
+        company
+      },
       metadata: newPaymentData
     });
 

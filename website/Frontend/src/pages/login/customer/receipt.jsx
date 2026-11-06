@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
+import { isSettledStatus, receiptTotals } from '../../Dashboard/utils/portalReceiptRows';
 import { useIsMobile } from '../../../utils/useResponsive';
 
 export default function ReceiptSection({ receipts = [], customer, account, externalSearch = '' }) {
@@ -53,20 +54,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
   }, [externalSearch]);
 
   // Aggregate Metrics for FlowMail KPI Cards
-  const { totalPaidNum, totalTaxNum } = useMemo(() => {
-    let paid = 0;
-    let tax = 0;
-    receipts.forEach((r) => {
-      const p = parseFloat(String(r.totalAmount || '').replace(/[^\d.]/g, '')) || 0;
-      const t = parseFloat(String(r.taxAmount || '').replace(/[^\d.]/g, '')) || 0;
-      paid += p;
-      tax += t;
-    });
-    return {
-      totalPaidNum: Math.round(paid),
-      totalTaxNum: Math.round(tax)
-    };
-  }, [receipts]);
+  const totals = useMemo(() => receiptTotals(receipts), [receipts]);
 
   // Handle Sort Toggle
   const handleSort = (field) => {
@@ -82,10 +70,13 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
   const filteredReceipts = useMemo(() => {
     let result = receipts.filter((rec) => {
       const q = searchQuery.toLowerCase();
+      // A cheque or UTR reference is how the customer finds an offline payment,
+      // so the instrument number searches the same way the invoice number does.
       return (
         rec.id.toLowerCase().includes(q) ||
         rec.service.toLowerCase().includes(q) ||
         rec.paymentMode.toLowerCase().includes(q) ||
+        String(rec.referenceNumber || '').toLowerCase().includes(q) ||
         (rec.expiryDate && rec.expiryDate.toLowerCase().includes(q)) ||
         rec.date.toLowerCase().includes(q) ||
         rec.totalAmount.toLowerCase().includes(q)
@@ -126,6 +117,15 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
     } finally {
       setTimeout(() => setDownloadingId(null), 800);
     }
+  };
+
+  // An invoice whose money has not reached the bank account must not read on
+  // screen like a settled one, so the pill follows the ledger status.
+  const statusPill = (status) => {
+    if (isSettledStatus(status)) return 'positive';
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'overdue' || normalized === 'unpaid') return 'negative';
+    return 'amber';
   };
 
   return (
@@ -181,7 +181,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
             </div>
             <div className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem', padding: '3px 8px', whiteSpace: 'nowrap' }}>
               <CheckCircle2 size={12} />
-              <span>100% Verified</span>
+              <span>{totals.settled} of {receipts.length} settled</span>
             </div>
           </div>
         </div>
@@ -201,10 +201,10 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
           </div>
           <div className="flowmail-kpi-middle" style={{ gap: '8px', minWidth: 0 }}>
             <div className="flowmail-kpi-number" style={{ fontSize: '1.65rem' }}>
-              ₹<CountUp end={totalPaidNum} separator="," duration={1500} />
+              ₹<CountUp end={Math.round(totals.paid)} separator="," duration={1500} />
             </div>
             <div className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem', padding: '3px 8px', whiteSpace: 'nowrap' }}>
-              <span>Settled</span>
+              <span>Realised</span>
             </div>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
           </div>
           <div className="flowmail-kpi-middle" style={{ gap: '8px', minWidth: 0 }}>
             <div className="flowmail-kpi-number" style={{ fontSize: '1.65rem' }}>
-              ₹<CountUp end={totalTaxNum} separator="," duration={1400} />
+              ₹<CountUp end={Math.round(totals.gst)} separator="," duration={1400} />
             </div>
             <div className="flowmail-trend-pill indigo" style={{ fontSize: '0.74rem', padding: '3px 8px', whiteSpace: 'nowrap' }}>
               <span>18% Credit</span>
@@ -232,13 +232,13 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
           </div>
         </div>
 
-        {/* Card 4: Active Services */}
+        {/* Card 4: Balance still with the bank */}
         <div className="flowmail-kpi-card" style={{ padding: '18px 20px', minWidth: 0, overflow: 'hidden' }}>
           <div className="flowmail-kpi-top" style={{ marginBottom: '10px' }}>
             <div className="flowmail-kpi-label-group" style={{ minWidth: 0 }}>
-              <ShieldCheck size={16} className="flowmail-kpi-icon" />
+              <Clock size={16} className="flowmail-kpi-icon" />
               <span className="flowmail-kpi-label" style={{ fontSize: '0.86rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                Active Deployments
+                Outstanding Balance
               </span>
             </div>
             <button type="button" className="flowmail-dots-btn" aria-label="More options">
@@ -247,10 +247,17 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
           </div>
           <div className="flowmail-kpi-middle" style={{ gap: '8px', minWidth: 0 }}>
             <div className="flowmail-kpi-number" style={{ fontSize: '1.65rem' }}>
-              <CountUp end={receipts.length > 0 ? 3 : 0} duration={1600} /> Nodes
+              ₹<CountUp end={Math.round(totals.pending)} separator="," duration={1400} />
             </div>
-            <div className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem', padding: '3px 8px', whiteSpace: 'nowrap' }}>
-              <span>99.98% SLA</span>
+            <div
+              className={`flowmail-trend-pill ${totals.pending > 0 ? 'amber' : 'positive'}`}
+              style={{ fontSize: '0.74rem', padding: '3px 8px', whiteSpace: 'nowrap' }}
+            >
+              <span>
+                {totals.pending > 0
+                  ? `${receipts.length - totals.settled} invoice${receipts.length - totals.settled === 1 ? '' : 's'} not cleared`
+                  : 'All invoices cleared'}
+              </span>
             </div>
           </div>
         </div>
@@ -422,15 +429,30 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
                           <span>{rec.expiryDate || 'Active'}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '14px 20px', color: '#64748b', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                        {rec.paymentMode}
+                      <td style={{ padding: '14px 20px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                        <div style={{ color: '#475569', fontWeight: 600 }}>{rec.paymentMode}</div>
+                        {/* Money that arrived on a bank instrument carries the same
+                            number the customer's own passbook shows, and says which
+                            desk booked it in, so the entry is recognisable. */}
+                        {rec.referenceNumber ? (
+                          <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block' }}>
+                            Ref {rec.referenceNumber}
+                            {rec.bankName ? ` · ${rec.bankName}` : ''}
+                          </span>
+                        ) : (
+                          rec.bookedOffline && (
+                            <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block' }}>
+                              Booked by {rec.recordedBy || 'NISPL finance desk'}
+                            </span>
+                          )
+                        )}
                       </td>
                       <td style={{ padding: '14px 20px', textAlign: 'right', color: '#0f172a', fontWeight: '700', fontSize: '0.92rem', whiteSpace: 'nowrap' }}>
                         {rec.totalAmount}
                       </td>
                       <td style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                        <span className="flowmail-trend-pill positive">
-                          <CheckCircle2 size={12} />
+                        <span className={`flowmail-trend-pill ${statusPill(rec.status)}`}>
+                          {isSettledStatus(rec.status) ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                           <span>{rec.status || 'Paid'}</span>
                         </span>
                       </td>

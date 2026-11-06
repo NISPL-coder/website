@@ -215,6 +215,13 @@ export const mapPayment = async (payment) => {
     taxableAmount: parseAmount(payment.taxableAmount),
     gstAmount: parseAmount(payment.gstAmount),
     gstBasis: payment.gstBasis || null,
+    // How the money reached NISPL when a desk booked it in from a bank
+    // instrument instead of the gateway. The customer sees the same bank facts
+    // their own statement carries; internal remarks and the scan stay inside
+    // the console.
+    referenceNumber: payment.referenceNumber || null,
+    bankName: payment.bankName || null,
+    depositDate: isoDate(toDate(payment.depositDate)),
     lines: Array.isArray(payment.items) ? payment.items : []
   };
 };
@@ -446,6 +453,7 @@ export const searchCustomerPortal = async (req, res) => {
               { service: rx },
               { solutionCategory: rx },
               { paymentMethod: rx },
+              { referenceNumber: rx },
               { status: rx },
               { amount: rx },
               { receivedAmount: rx },

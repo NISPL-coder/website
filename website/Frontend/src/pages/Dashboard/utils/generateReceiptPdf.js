@@ -148,7 +148,12 @@ export function generateReceiptPdf(rec, customer) {
   doc.setTextColor(...mutedTextColor);
   doc.text(`Payment Mode:`, 115, 69);
   doc.setTextColor(...darkTextColor);
-  doc.text(`${rec.paymentMode || '—'}`, 140, 69);
+  doc.text(
+    `${rec.paymentMode || '—'}${rec.bankName ? ` (${rec.bankName})` : ''}`,
+    140,
+    69,
+    { maxWidth: 54 }
+  );
 
   const ledgerStatus = String(rec.status || '').trim();
   const isSettled = ['received', 'cleared', 'paid'].includes(ledgerStatus.toLowerCase());
@@ -158,6 +163,18 @@ export function generateReceiptPdf(rec, customer) {
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...(isSettled ? [5, 150, 105] : [217, 119, 6]));
   doc.text(isSettled ? 'PAID & VERIFIED' : (ledgerStatus || 'RECORDED').toUpperCase(), 140, 74);
+
+  // Only a payment booked from a bank instrument carries a reference, and it is
+  // the line the customer matches the receipt against in their own statement.
+  const bankReference = String(rec.referenceNumber || '').trim();
+  if (bankReference) {
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...mutedTextColor);
+    doc.text(`Bank Reference:`, 115, 79);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...darkTextColor);
+    doc.text(bankReference, 140, 79, { maxWidth: 54 });
+  }
 
   // 5. Line Items Table (jspdf-autotable)
   // Amounts are read from the ledger row; nothing is invented when a field is missing.

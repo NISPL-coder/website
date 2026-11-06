@@ -147,6 +147,10 @@ export function toReceiptPdfRow(receipt) {
     date: receipt.date,
     expiryDate: receipt.contract?.endDate || '',
     paymentMode: receipt.paymentMode,
+    // The instrument details an offline payment was reconciled with, printed on
+    // the invoice beside the payment mode.
+    referenceNumber: receipt.referenceNumber || '',
+    bankName: receipt.bankName || '',
     baseAmount: receipt.baseAmount,
     cgst: receipt.cgst,
     sgst: receipt.sgst,

@@ -22,6 +22,7 @@ import { authApi } from '../../services/authApi';
 import { cartApi } from '../../services/cartApi';
 import { dashboardApi } from '../../services/dashboardApi';
 import { formatINR } from './utils/pricingUtils';
+import { toPortalReceiptRows } from './utils/portalReceiptRows';
 import './Dashboard.css';
 
 const NAV_TO_PATH = {
@@ -40,20 +41,6 @@ const formatReceiptDate = (value) => {
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
-
-// The receipt ledger is this account's own payment rows, so the invoice a
-// search result names is the invoice the Receipt tab then shows.
-const toReceiptRows = (payments = []) =>
-  payments.map((payment) => ({
-    id: payment.invoiceNumber || payment.id,
-    service: payment.service,
-    date: formatReceiptDate(payment.date),
-    expiryDate: formatReceiptDate(payment.dueDate),
-    paymentMode: payment.paymentMethod || '—',
-    totalAmount: formatINR(payment.amount),
-    taxAmount: 'Not separately recorded',
-    status: payment.status || (payment.pending > 0 ? 'Pending' : 'Paid')
-  }));
 
 // Portal sections the header search can jump to. Record matches come from the
 // API; these are the pages themselves, matched on the words customers use.
@@ -197,7 +184,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
       const data = await dashboardApi.getMyOverview();
       setPortal(data);
       // The receipt ledger is this account's own payment rows.
-      setReceipts(toReceiptRows(data?.payments));
+      setReceipts(toPortalReceiptRows(data?.payments));
       return data;
     } catch (err) {
       console.warn('Account ledger API fallback:', err?.message);
