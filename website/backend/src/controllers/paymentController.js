@@ -487,8 +487,9 @@ export const getReceipts = async (req, res) => {
     let rows = [];
     if (isMongoConnected()) {
       rows = await Payment.find({}).sort({ createdAt: -1 }).lean();
+    } else {
+      rows = getPaymentsFromFile();
     }
-    if (!rows.length) rows = getPaymentsFromFile();
 
     const context = await loadReceiptContext(rows);
     const receipts = await Promise.all(rows.map((row) => buildReceipt(row, context)));
@@ -506,8 +507,7 @@ export const getPayments = async (req, res) => {
     let payments = [];
     if (isMongoConnected()) {
       payments = await Payment.find({}).sort({ createdAt: -1 }).lean();
-    }
-    if (!payments || payments.length === 0) {
+    } else {
       payments = getPaymentsFromFile();
     }
 
@@ -868,7 +868,7 @@ export const recordManualPayment = async (req, res) => {
     if (!referenceNumber && !REFERENCE_OPTIONAL_INSTRUMENTS.includes(instrument)) {
       return reject(
         'referenceNumber',
-        `The ${instrument} reference or UTR number is needed to match this payment against the bank statement.`
+        `The ${instrument} reference number is needed to match this payment against the bank statement.`
       );
     }
 

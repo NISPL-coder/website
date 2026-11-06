@@ -42,11 +42,11 @@ export const getDashboardOverview = async (req, res) => {
       customers = await Customer.find({}).lean();
       contracts = await Contract.find({}).lean();
       payments = await Payment.find({}).lean();
+    } else {
+      customers = getCustomersFromFile();
+      contracts = getContractsFromFile();
+      payments = getPaymentsFromFile();
     }
-
-    if (!customers || customers.length === 0) customers = getCustomersFromFile();
-    if (!contracts || contracts.length === 0) contracts = getContractsFromFile();
-    if (!payments || payments.length === 0) payments = getPaymentsFromFile();
 
     // 1. Customer Pipeline Breakdown
     const totalCustomers = customers.length;
