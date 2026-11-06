@@ -23,20 +23,15 @@ export default function SolutionCategorySelection({ onSelectCategory }) {
 
       {/* ── Two Large Selection Boxes (50% each on Desktop) ────── */}
       <div className="solutions-cards-grid" role="region" aria-label="Solution Selection">
-        {/* CARD 1: TALLY */}
+        {/* CARD 1: TALLY — not open for purchase yet, so it is deliberately
+            inert: no click, no keyboard activation, nothing to focus. */}
         <div
-          role="button"
-          tabIndex={0}
-          className="solution-hero-card tally-theme"
-          onClick={() => onSelectCategory('tally')}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelectCategory('tally');
-            }
-          }}
-          aria-label="Explore Tally Accounting & Business Management Solutions"
+          className="solution-hero-card tally-theme coming-soon"
+          aria-disabled="true"
+          title="Tally Prime & Customization is coming soon"
         >
+          <span className="solution-soon-pill">Coming Soon</span>
+
           {/* Decorative ambient background glow */}
           <div className="card-ambient-glow tally-glow" />
 
@@ -60,9 +55,8 @@ export default function SolutionCategorySelection({ onSelectCategory }) {
 
           {/* Action Link */}
           <div className="solution-explore-row">
-            <span className="solution-explore-btn tally-btn">
-              <span>Explore Tally Prime</span>
-              <ArrowRight size={16} className="btn-arrow-icon" />
+            <span className="solution-explore-btn tally-btn soon-btn">
+              <span>Coming Soon</span>
             </span>
           </div>
         </div>

@@ -23,7 +23,8 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
   ...env.CLIENT_ORIGINS,
-  'https://nispldemo.vercel.app'
+  'https://nispldemo.vercel.app',
+  'https://nispl.netlify.app'
 ];
 
 const isOriginAllowed = (origin) => {
@@ -31,8 +32,15 @@ const isOriginAllowed = (origin) => {
   if (allowedOrigins.includes(origin)) return true;
   // Allow any Vercel deployment (production or preview branch)
   if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) return true;
+  // Allow any Netlify deployment (production or deploy previews)
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*netlify\.app$/.test(origin)) return true;
+  // Allow custom NISPL production domains
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*nispl\.(in|com|app)$/.test(origin)) return true;
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*netinfotechsystem\.(in|com)$/.test(origin)) return true;
   // Allow localhost & local network for local testing
   if (/^http:\/\/localhost(:\d+)?$/.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
+  // Allow Render hosting
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*onrender\.com$/.test(origin)) return true;
   return false;
 };
 

@@ -12213,6 +12213,69 @@
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
 }
 
+/* ── Inert "Coming Soon" solution card ───────────────────────────────
+   The card stays in the grid to inform, so every hover and lift
+   affordance the clickable cards get is switched back off here. */
+.solution-hero-card.coming-soon {
+  cursor: not-allowed !important;
+  border-style: dashed !important;
+  border-color: #e2e8f0 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: none !important;
+}
+
+.solution-hero-card.coming-soon:hover,
+.solution-hero-card.tally-theme.coming-soon:hover {
+  transform: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+.solution-hero-card.coming-soon:hover .solution-center-logo-box,
+.solution-hero-card.tally-theme.coming-soon:hover .solution-center-logo-box {
+  transform: none !important;
+}
+
+.solution-hero-card.coming-soon .solution-center-logo-img {
+  filter: grayscale(0.55) opacity(0.75);
+}
+
+.solution-hero-card.coming-soon .card-ambient-glow {
+  opacity: 0.35;
+}
+
+.solution-soon-pill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 3;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+
+.solution-explore-btn.tally-btn.soon-btn {
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  border: 1px dashed #cbd5e1 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+.solution-hero-card.tally-theme.coming-soon:hover .solution-explore-btn.tally-btn.soon-btn {
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
 
 .flowmail-cart-row:hover {
   background: #fafbfc;

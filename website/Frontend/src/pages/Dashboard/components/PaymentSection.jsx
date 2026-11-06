@@ -165,7 +165,19 @@ export default function PaymentSection({
       return;
     }
 
-    if (canPayOnline) {
+    let currentGateway = gateway;
+    if (!currentGateway) {
+      try {
+        currentGateway = await razorpayApi.getConfig();
+        setGateway(currentGateway);
+      } catch {
+        currentGateway = { enabled: false };
+      }
+    }
+
+    const onlinePossible = Boolean(currentGateway?.enabled) && amount <= (Number(currentGateway?.maxAmount) || Infinity);
+
+    if (onlinePossible) {
       await handleGatewayPay();
       return;
     }

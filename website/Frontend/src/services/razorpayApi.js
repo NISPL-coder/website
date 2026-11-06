@@ -9,10 +9,11 @@ const isLocalhost = Boolean(
   )
 );
 
-const BACKEND_URL = isLocalhost
+const rawBackend = isLocalhost
   ? 'http://localhost:4000'
   : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
 
+const BACKEND_URL = String(rawBackend || '').replace(/\/+$/, '');
 const API_BASE_URL = `${BACKEND_URL}/api/payments/razorpay`;
 
 const CHECKOUT_SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -29,8 +30,9 @@ function getHeaders() {
 
 async function request(path, { method = 'GET', body } = {}) {
   let res;
+  const cleanPath = path ? (path.startsWith('/') ? path : `/${path}`) : '';
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, {
+    res = await fetch(`${API_BASE_URL}${cleanPath}`, {
       method,
       headers: getHeaders(),
       ...(body ? { body: JSON.stringify(body) } : null)
