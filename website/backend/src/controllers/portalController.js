@@ -615,7 +615,7 @@ const buildReceiptLine = (item, product) => {
     gstAmount: roundMoney(lineBase * GST_RATE),
     finalPrice: roundMoney(lineBase * (1 + GST_RATE)),
 
-    // What the subscription form actually showed when this was quoted: the
+    // What the order form actually showed when this was quoted: the
     // price of one unit, how many were bought and the term they cover.
     unitPrice: roundMoney(item.unitPrice),
     planQuantity: Math.min(Math.max(roundMoney(item.planQuantity) || 1, 1), MAX_LINE_QUANTITY),
@@ -893,7 +893,7 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   const subtotal = lines.reduce((sum, line) => sum + line.basePrice * line.quantity, 0);
   const gst = roundMoney(subtotal * GST_RATE);
   const total = subtotal + gst;
-  // Whoever sold the plan is entered on the subscription form, so the first
+  // Whoever sold the plan is entered on the order form, so the first
   // named sales person on the cart is the one credited for the payment.
   const salesPerson = cart.items.map((item) => item.salesPerson).find(Boolean) || '';
 

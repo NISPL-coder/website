@@ -65,7 +65,7 @@ export const MODULE_COLUMNS = {
     { id: 'customer', label: 'Customer & Billing Details', fields: ['customer'] },
     { id: 'product', label: 'Product / Plan', fields: ['productName', 'product'] },
     { id: 'items', label: 'Items Sold', fields: ['items', 'service'] },
-    { id: 'term', label: 'Purchased Term', fields: ['term'] },
+    { id: 'term', label: 'Duration', fields: ['term'] },
     { id: 'contract', label: 'Subscription', fields: ['contract', 'contractId', 'contractLink'] },
     { id: 'salesPerson', label: 'Sales Person', fields: ['salesPerson', 'raisedBy'] },
     { id: 'amount', label: 'Amount Paid', fields: ['amount', 'amountLabel', 'receivedAmount'] },

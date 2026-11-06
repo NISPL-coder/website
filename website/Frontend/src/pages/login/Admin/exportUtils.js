@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { receiptDuration } from './adminTableUtils';
 
 /**
  * Clean & write data to .xlsx file with auto-fitted column widths
@@ -129,8 +130,10 @@ export function formatReceiptsForExport(receipts) {
     GSTIN: r.customer?.gstNo || '—',
     'Product / Plan': r.productName || '—',
     'Sales Person': r.salesPerson || 'Not recorded',
-    Subscription: r.contract?.id || 'Unlinked',
-    'Subscription Term': r.contract?.subscriptionPeriod || '—',
+    Duration: receiptDuration(r).label || 'Not recorded',
+    'Valid From': r.term?.startDate || '—',
+    'Valid To': r.term?.endDate || '—',
+    'Contract No': r.contract?.id || 'Unlinked',
     'Taxable Value': r.baseAmount ?? '—',
     '18% GST': r.taxAmount ?? '—',
     CGST: r.cgst ?? '—',

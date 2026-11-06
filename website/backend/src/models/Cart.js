@@ -36,7 +36,7 @@ const cartItemSchema = new mongoose.Schema(
     billingCycle: { type: String, default: '' },
     image: { type: String, default: '' },
 
-    // ── New Subscription form, carried verbatim to the ledger ──────────────
+    // ── Create Order form, carried verbatim to the ledger ──────────────────
     // The form quotes one purchase whose line total already includes the units
     // bought and the months of the term, so `quantity` above stays the number
     // of such purchases in the cart and the ordered units are kept separately.

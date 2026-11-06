@@ -47,7 +47,7 @@ const paymentItemSchema = new mongoose.Schema(
     basePrice: { type: Number, default: 0 },
     gstAmount: { type: Number, default: 0 },
     finalPrice: { type: Number, default: 0 },
-    // Ordered detail copied from the subscription form at settlement. `quantity`
+    // Ordered detail copied from the order form at settlement. `quantity`
     // above is how many of this line were bought; planQuantity is the number of
     // units the line itself covers.
     unitPrice: { type: Number, default: 0 },

@@ -278,7 +278,7 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                   <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Product</th>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Configuration</th>
-                    <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Term</th>
+                    <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700 }}>Duration</th>
                     <th style={{ padding: '9px 12px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>
                       Taxable
                     </th>
@@ -424,13 +424,13 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                 </>
               ) : showTerm && receipt.term ? (
                 <>
-                  <Field label="Purchased term" value={text(termLabel(receipt.term))} />
+                  <Field label="Plan duration" value={text(termLabel(receipt.term))} />
                   <Field label="Start date" value={text(receipt.term.startDate)} />
                   <Field label="End date" value={text(receipt.term.endDate)} />
                   {receipt.term.derived ? (
                     <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: '0.74rem', color: '#94a3b8' }}>
                       Validity measured from the billing cycle — this payment was taken before the
-                      subscription term was recorded on the purchase.
+                      plan duration was recorded on the purchase.
                     </p>
                   ) : null}
                   {receipt.term.description ? (

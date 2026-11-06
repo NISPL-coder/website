@@ -107,6 +107,36 @@ export function compareText(getValue) {
 }
 
 /**
+ * The term a payment actually bought, in the words the order form used. Rows
+ * taken before the term was recorded fall back to the contract's period.
+ * @param {object} receipt
+ */
+export function receiptDuration(receipt) {
+  const term = receipt?.term || {};
+  const recordedMonths = Number(term.months) || 0;
+  const label =
+    term.period ||
+    (recordedMonths ? `${recordedMonths} month${recordedMonths === 1 ? '' : 's'}` : '') ||
+    receipt?.contract?.subscriptionPeriod ||
+    '';
+
+  return { label, months: durationInMonths(label, recordedMonths) };
+}
+
+function durationInMonths(label, recordedMonths) {
+  if (recordedMonths) return recordedMonths;
+  const text = String(label).toLowerCase();
+  const count = parseInt(text, 10);
+  const times = Number.isFinite(count) ? count : 1;
+  if (text.includes('year') || text.includes('annual')) return times * 12;
+  if (text.includes('quarter')) return times * 3;
+  if (text.includes('month')) return times;
+  if (text.includes('week')) return (times * 7) / 30;
+  if (text.includes('day')) return times / 30;
+  return 0;
+}
+
+/**
  * Map an admin receipt row to the flat shape the receipt PDF writer reads.
  * @param {object} receipt
  */

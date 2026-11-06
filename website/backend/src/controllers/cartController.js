@@ -55,11 +55,11 @@ const isoDay = (value) => {
 };
 
 /**
- * What the New Subscription form actually collected. These travel with the
+ * What the Create Order form actually collected. These travel with the
  * cart line so the payment written at settlement describes the purchase as it
  * was made, not as the catalogue reads on the day the receipt is opened.
  */
-function subscriptionDetails(body = {}) {
+function orderDetails(body = {}) {
   return {
     planId: text(body.planId),
     planName: text(body.planName),
@@ -158,7 +158,7 @@ export async function addItem(req, res) {
   if (unitPrice < 0) throw new HttpError(400, 'Product price is invalid.');
 
   const requestedQty = Math.min(Math.max(round(quantity) || 1, 1), MAX_LINE_QUANTITY);
-  const details = subscriptionDetails({ ...body, planId: body.planId || body.productId });
+  const details = orderDetails({ ...body, planId: body.planId || body.productId });
 
   const cart = (await loadCart(sessionId)) || new Cart({ sessionId });
   const account = await resolveAccount(req);

@@ -643,7 +643,7 @@ export default function NewSubscriptionView({
       return;
     }
 
-    // Standard / Custom subscription branch
+    // Standard / Custom order branch
     if (!selectedDurationKey || !selectedDuration) {
       toast.error('Please select a plan duration from dropdown.');
       return;
@@ -675,12 +675,12 @@ export default function NewSubscriptionView({
         startDate,
         endDate: toIsoDate(endDate)
       });
-      toast.success(`Subscription for ${planLabel} (${selectedDuration.label}) added to cart!`);
+      toast.success(`Order for ${planLabel} (${selectedDuration.label}) added to cart!`);
       if (onGoToCart) {
         onGoToCart();
       }
     } else {
-      toast.success('Subscription configured successfully!');
+      toast.success('Order configured successfully!');
       if (onBack) onBack();
     }
   };
@@ -722,7 +722,7 @@ export default function NewSubscriptionView({
           }}
         >
           <ArrowLeft size={19} />
-          <span>New Subscription</span>
+          <span>Create Order</span>
         </button>
       </div>
 
@@ -946,10 +946,10 @@ export default function NewSubscriptionView({
             </div>
           </div>
 
-          {/* Section: Subscription Term */}
+          {/* Section: Order Term */}
           <div style={{ marginTop: '6px' }}>
             <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 600, color: '#1e293b' }}>
-              Subscription Term
+              Order Term
             </h3>
           </div>
 
@@ -1141,7 +1141,7 @@ export default function NewSubscriptionView({
                   ? demoExtensionAllowed
                     ? `Extend Demo Trial (+${demoExtensionDays} Days)`
                     : 'Activate Demo Trial'
-                  : 'Subscribe Now'}
+                  : 'Create Order'}
               </span>
             </button>
             <button

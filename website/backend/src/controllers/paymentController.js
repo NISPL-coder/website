@@ -319,7 +319,7 @@ const addTerm = (iso, { months, days }) => {
 };
 
 /**
- * The purchased term is written on the receipt line when the subscription form
+ * The purchased term is written on the receipt line when the order form
  * supplies it. Older ledger rows carry only the billing cycle, so their
  * validity is measured from the day the money was taken and says so rather
  * than passing itself off as a recorded term.

@@ -10,7 +10,14 @@ import RowActionMenu from './RowActionMenu';
 import ViewReceiptModal from './ViewReceiptModal';
 import { usePermissions } from './PermissionsContext';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
-import { compareDate, compareNumber, compareText, isWithinDateRange, toReceiptPdfRow } from './adminTableUtils';
+import {
+  compareDate,
+  compareNumber,
+  compareText,
+  isWithinDateRange,
+  receiptDuration,
+  toReceiptPdfRow
+} from './adminTableUtils';
 
 const inr = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
@@ -35,7 +42,7 @@ const searchBlob = (row) =>
     row.product?.sku,
     row.contract?.id,
     row.contract?.name,
-    row.term?.period,
+    receiptDuration(row).label,
     row.salesPerson,
     row.paymentMode,
     row.status
@@ -156,45 +163,36 @@ export default function ReceiptSection({ receipts }) {
       )
     },
     {
-      id: 'contract',
-      name: 'Subscription',
-      selector: (row) => row.contract?.id || row.term?.period || '',
+      id: 'term',
+      name: 'Duration',
+      selector: (row) => receiptDuration(row).label,
       sortable: true,
-      sortFunction: compareText((row) => row.contract?.id || row.term?.period || ''),
+      sortFunction: compareNumber((row) => receiptDuration(row).months),
       minWidth: '150px',
-      cell: (r) =>
-        r.contract ? (
-          <div title={r.contractLink || undefined}>
-            <div style={{ fontFamily: 'monospace', fontSize: '0.76rem', fontWeight: 700, color: '#6366f1' }}>
-              {r.contract.id}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-              {[r.contract.type, r.contract.subscriptionPeriod].filter(Boolean).join(' • ')}
-            </div>
-          </div>
-        ) : r.term ? (
-          // A portal purchase settles without a Contract row, but the payment
-          // itself says what term was bought — that is what the admin needs.
+      cell: (r) => {
+        const { label } = receiptDuration(r);
+        if (!label) {
+          return <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>Not recorded</span>;
+        }
+        return (
           <div
             title={
-              r.term.derived
-                ? `Validity measured from the ${r.term.period} billing cycle; no term was recorded on this payment`
-                : 'No contract record for this payment'
+              r.term?.derived
+                ? `Measured from the ${r.term.period} billing cycle; no term was recorded on this purchase`
+                : r.contract?.id
+                  ? `Contract ${r.contract.id}`
+                  : undefined
             }
           >
-            <div style={{ fontWeight: 600, fontSize: '0.78rem' }}>
-              {r.term.period ||
-                (r.term.months
-                  ? `${r.term.months} month${r.term.months === 1 ? '' : 's'}`
-                  : 'Term recorded')}
-            </div>
+            <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{label}</div>
             <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-              {[r.term.startDate, r.term.endDate].filter(Boolean).join(' → ') || 'No contract on record'}
+              {[r.term?.startDate, r.term?.endDate].filter(Boolean).map(prettyDate).join(' → ') ||
+                r.contract?.id ||
+                'No validity on record'}
             </div>
           </div>
-        ) : (
-          <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>Unlinked</span>
-        )
+        );
+      }
     },
     {
       id: 'baseAmount',
@@ -303,7 +301,7 @@ export default function ReceiptSection({ receipts }) {
         <div className="adm-card-header-info">
           <h1 className="adm-section-title">Customer Payment Receipts</h1>
           <p className="adm-section-sub">
-            Every payment on the ledger with its customer, subscription, product and GST split.
+            Every payment on the ledger with its customer, product, duration and GST split.
           </p>
         </div>
 
