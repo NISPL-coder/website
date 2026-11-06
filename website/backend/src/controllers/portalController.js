@@ -287,6 +287,52 @@ const pickReminder = (payments, products) => {
   return null;
 };
 
+const collectAllReminders = (payments, products) => {
+  const list = [];
+  const dues = payments
+    .filter((payment) => payment.pending > 0)
+    .sort((a, b) => {
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate.localeCompare(b.dueDate);
+    });
+
+  for (const due of dues) {
+    list.push({
+      id: due.id || due.invoiceNumber,
+      kind: 'payment',
+      title: due.service,
+      invoiceNumber: due.invoiceNumber,
+      amount: due.pending,
+      dueDate: due.dueDate,
+      daysLeft: due.daysLeft,
+      overdue: due.daysLeft !== null && due.daysLeft < 0
+    });
+  }
+
+  const upcomingRenewals = products
+    .filter((product) => product.expiryDate && product.daysLeft !== null && product.amount > 0)
+    .filter((product) => product.daysLeft <= RENEWAL_REMINDER_WINDOW_DAYS)
+    .filter((product) => !isTermPaid(product, payments))
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+  for (const renewal of upcomingRenewals) {
+    list.push({
+      id: renewal.id || renewal.name,
+      kind: 'renewal',
+      contractId: renewal.id,
+      title: renewal.name,
+      invoiceNumber: null,
+      amount: renewal.amount,
+      dueDate: renewal.expiryDate,
+      daysLeft: renewal.daysLeft,
+      overdue: renewal.daysLeft < 0
+    });
+  }
+
+  return list;
+};
+
 // What the account already owns, resolved back to catalogue rows so the Products
 // page can mark the plan the customer actually paid for.
 const resolveCatalogueId = async (name) => {
@@ -562,7 +608,8 @@ export const getCustomerOverview = async (req, res) => {
         products,
         payments,
         entitlements,
-        recentPayments: payments.slice(0, 5),
+        recentPayments: payments.slice(0, 50),
+        reminders: collectAllReminders(payments, products),
         reminder: pickReminder(payments, products),
         identityMatched: identity.length > 0 && Boolean(customer)
       }

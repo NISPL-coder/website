@@ -2706,6 +2706,27 @@ input:checked + .adm-slider:before {
   color: var(--adm-blue);
 }
 
+/* Running GST split shown under an amount field, so the figure that lands in
+   the ledger is read before the form is submitted. */
+.adm-form-preview-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.adm-form-preview-strip strong {
+  color: var(--adm-text-main);
+  font-weight: 700;
+}
+
 /* 2-Column Responsive Form Layout */
 .adm-create-page-container .adm-form-grid {
   display: grid;

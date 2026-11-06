@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, X, Search, Clock } from 'lucide-react';
+import { CheckCircle2, Landmark, Paperclip, X, Search, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 import { compactSelectStyles } from './reactSelectStyles';
@@ -9,6 +9,7 @@ import { formatPaymentsForExport } from './exportUtils';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { usePermissions } from './PermissionsContext';
+import { paymentApi } from '../../../services/paymentApi';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 
 const getName = (row) => row.name || row.customer || '—';
@@ -20,16 +21,32 @@ const getPending = (row) => row.pendingPayment || '₹0';
 const getExpectedDate = (row) => row.expectedPaymentDate || '—';
 const getReceivedDate = (row) => row.paymentReceivedDate || row.date || '—';
 const getMethod = (row) => row.paymentMethod || row.method || '—';
+const getReference = (row) => row.referenceNumber || '';
+const getBank = (row) => row.bankName || '';
+const getProof = (row) => row.proof || null;
 const getFilterDate = (row) =>
   row.invoiceDate || row.date || row.paymentReceivedDate || row.expectedPaymentDate || row.createdAt;
 
+const proofSize = (bytes) =>
+  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(Math.round(bytes / 1024), 1)} KB`;
+
 export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
   const navigate = useNavigate();
-  const { visibleColumns } = usePermissions();
+  const { visibleColumns, can } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // The bytes of a proof are not carried by the ledger list, so the document is
+  // fetched and opened one payment at a time.
+  const openProof = async (row) => {
+    try {
+      await paymentApi.openProofDocument(row.paymentId || row.id || row.invoiceNumber);
+    } catch (err) {
+      toast.error(err.message || 'Could not open the proof document.');
+    }
+  };
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
@@ -39,6 +56,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       const invNumStr = (p.invoiceNumber || p.invoiceRef || '').toLowerCase();
       const methodStr = (p.paymentMethod || p.method || '').toLowerCase();
       const statusStr = (p.status || '').toLowerCase();
+      const referenceStr = String(p.referenceNumber || '').toLowerCase();
 
       const matchesSearch =
         !q ||
@@ -46,6 +64,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         accountStr.includes(q) ||
         invNumStr.includes(q) ||
         methodStr.includes(q) ||
+        referenceStr.includes(q) ||
         p.id.toLowerCase().includes(q);
 
       const matchesStatus =
@@ -182,6 +201,51 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       cell: (p) => <span className="adm-status-pill info">{getMethod(p)}</span>
     },
     {
+      id: 'reference',
+      name: 'Bank Reference',
+      selector: (row) => getReference(row),
+      sortable: true,
+      sortFunction: compareText(getReference),
+      width: '190px',
+      cell: (p) =>
+        getReference(p) || getBank(p) ? (
+          <div>
+            <div style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: '#334155' }}>
+              {getReference(p) || '—'}
+            </div>
+            {getBank(p) && (
+              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{getBank(p)}</div>
+            )}
+          </div>
+        ) : (
+          <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>Online payment</span>
+        )
+    },
+    {
+      id: 'proof',
+      name: 'Proof',
+      selector: () => '',
+      sortable: false,
+      width: '120px',
+      center: true,
+      ignoreRowClick: true,
+      searchable: false,
+      cell: (p) =>
+        getProof(p) ? (
+          <button
+            type="button"
+            className="adm-action-pill"
+            title={`${getProof(p).fileName} (${proofSize(getProof(p).sizeBytes)})`}
+            onClick={() => openProof(p)}
+          >
+            <Paperclip size={12} />
+            <span>Open</span>
+          </button>
+        ) : (
+          <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>—</span>
+        )
+    },
+    {
       id: 'status',
       name: 'Status',
       selector: (row) => row.status,
@@ -244,6 +308,16 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         </div>
 
         <div className="adm-card-header-action">
+          {can('manual_payment') && (
+            <button
+              type="button"
+              className="adm-btn-secondary"
+              onClick={() => navigate('/admin/manual-payment')}
+            >
+              <Landmark size={15} />
+              <span>Manual Payment</span>
+            </button>
+          )}
           <ExportDropdown
             data={filteredPayments}
             formatter={formatPaymentsForExport}
@@ -322,7 +396,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         defaultSortFieldId="invoiceDate"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={1750}
+        minWidth={2060}
         noDataMessage="No payment records found"
         noDataHint="Try a different search term or settlement filter."
         ariaLabel="Customer payments"

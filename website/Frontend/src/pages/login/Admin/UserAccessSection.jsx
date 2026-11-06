@@ -35,6 +35,7 @@ const MODULE_OPTIONS = [
   { id: 'customer', label: 'Customer' },
   { id: 'contract', label: 'Contract' },
   { id: 'payment', label: 'Payment' },
+  { id: 'manual_payment', label: 'Manual Payment' },
   { id: 'product', label: 'Product' },
   { id: 'receipt', label: 'Receipt' },
   { id: 'import_csv', label: 'Import CSV' },

@@ -78,6 +78,12 @@ app.options('*', cors());
 const razorpayWebhookParser = express.raw({ type: 'application/json' });
 app.post('/api/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
 app.post('/api/v1/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
+// A scan of the cheque travels inside the same request as the payment itself,
+// and base64 is a third larger than the file, so the manual endpoints need a
+// parser that can carry a 5 MB document. Every other route keeps 1 MB.
+const manualPaymentParser = express.json({ limit: '8mb' });
+app.use('/api/payments/manual', manualPaymentParser);
+app.use('/api/v1/payments/manual', manualPaymentParser);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());

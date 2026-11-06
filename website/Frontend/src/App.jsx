@@ -198,6 +198,7 @@ function MainApp() {
           <Route path="/admin/customer/payment/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/customer/contract" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/customer/payment" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/manual-payment" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/customer" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/customers" element={<Navigate to="/admin/customer" replace />} />
           <Route path="/admin/product/tally" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />

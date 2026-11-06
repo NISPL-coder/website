@@ -122,6 +122,9 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         source: 'subscription'
       }));
   const reminder = data?.reminder || null;
+  const reminders = Array.isArray(data?.reminders) && data.reminders.length > 0
+    ? data.reminders
+    : (reminder ? [reminder] : []);
 
   const greeting =
     account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
@@ -300,35 +303,43 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               </div>
             </div>
 
-            <div className={`flowmail-card flowmail-reminder-card ${reminder ? '' : 'is-clear'}`}>
+            <div className={`flowmail-card flowmail-reminder-card ${reminders.length ? '' : 'is-clear'}`}>
               <div className="flowmail-card-header-row">
                 <div>
                   <h3 className="flowmail-card-title">Payment Reminder</h3>
                   <p className="flowmail-card-subtitle">
-                    {reminder ? (reminder.kind === 'payment' ? 'Open invoice' : 'Upcoming renewal') : 'Nothing outstanding'}
+                    {reminders.length
+                      ? `${reminders.length} item${reminders.length === 1 ? '' : 's'} requiring attention`
+                      : 'Nothing outstanding'}
                   </p>
                 </div>
               </div>
 
-              {reminder ? (
-                <div className="flowmail-reminder-body">
-                  <span className={`flowmail-reminder-pill ${reminder.overdue ? 'is-overdue' : ''}`}>
-                    {dueInWords(reminder.daysLeft)}
-                  </span>
-                  <h4 className="flowmail-reminder-title">{reminder.title}</h4>
-                  <div className="flowmail-reminder-amount">{formatINR(reminder.amount)}</div>
-                  <p className="flowmail-reminder-meta">
-                    {reminder.invoiceNumber ? `Invoice ${reminder.invoiceNumber}` : 'No invoice reference'}
-                    {reminder.dueDate ? ` · ${formatDate(reminder.dueDate)}` : ''}
-                  </p>
-                  <div className="flowmail-reminder-actions">
-                    <button type="button" className="flowmail-btn-primary" onClick={() => goTo('payment')}>
-                      Pay Now
-                    </button>
-                    <button type="button" className="flowmail-btn-secondary" onClick={() => goTo('receipt')}>
-                      View Details
-                    </button>
-                  </div>
+              {reminders.length > 0 ? (
+                <div className="flowmail-reminder-scroll-wrap">
+                  {reminders.map((rem, idx) => (
+                    <div key={rem.id || rem.invoiceNumber || idx} className="flowmail-reminder-item">
+                      <div className="flowmail-reminder-item-header">
+                        <span className={`flowmail-reminder-pill ${rem.overdue ? 'is-overdue' : ''}`}>
+                          {dueInWords(rem.daysLeft)}
+                        </span>
+                        <span className="flowmail-reminder-item-amount">{formatINR(rem.amount)}</span>
+                      </div>
+                      <h4 className="flowmail-reminder-item-title">{rem.title}</h4>
+                      <p className="flowmail-reminder-item-meta">
+                        {rem.invoiceNumber ? `Invoice ${rem.invoiceNumber}` : 'Subscription renewal'}
+                        {rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}
+                      </p>
+                      <div className="flowmail-reminder-item-actions">
+                        <button type="button" className="flowmail-btn-primary" onClick={() => goTo('payment')}>
+                          Pay Now
+                        </button>
+                        <button type="button" className="flowmail-btn-secondary" onClick={() => goTo('receipt')}>
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flowmail-reminder-body flowmail-reminder-clear">

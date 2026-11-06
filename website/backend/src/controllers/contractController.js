@@ -2,6 +2,7 @@ import { logNotification } from '../services/notificationService.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import mongoose from 'mongoose';
 
@@ -569,6 +570,350 @@ export const deleteContract = async (req, res) => {
   } catch (err) {
     console.error('[ContractController] deleteContract error:', err);
     return res.status(500).json({ success: false, error: err.message || 'Failed to delete contract.' });
+  }
+};
+
+/**
+ * Sheets are written day-first while the register stores ISO days, so every
+ * uploaded date is converted before it is compared with an existing record.
+ */
+const toImportDate = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  const dmy = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+  if (dmy) {
+    const year = dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3];
+    const iso = `${year}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+    return Number.isNaN(Date.parse(iso)) ? '' : iso;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return '';
+
+  // A day written in words is read in the server's own calendar; toISOString
+  // would slide it back a day for any zone east of UTC.
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+};
+
+/**
+ * Sheets write the amount as "₹1,85,000", "Rs. 60,000/-" or "185000.00", so the
+ * grouping separators are noise and the first run of digits is the value. Stripping
+ * every non-digit instead would read "Rs. 60,000" as paise.
+ */
+const toImportValue = (value) => {
+  const amount = String(value ?? '')
+    .replace(/,/g, '')
+    .match(/\d+(?:\.\d+)?/);
+  // A trial row can legitimately carry ₹0; only a blank or unreadable cell is
+  // treated as missing, otherwise the sheet would be rejected for no reason.
+  return amount ? `₹${Number(amount[0]).toLocaleString('en-IN')}` : '';
+};
+
+const PERIOD_WORDS = {
+  monthly: '1 Month',
+  quarterly: '3 Months',
+  halfyearly: '6 Months',
+  semiyearly: '6 Months',
+  yearly: '1 Year',
+  annual: '1 Year',
+  annually: '1 Year'
+};
+
+/**
+ * Sangam counts the term in months while the register keeps the words the sheet
+ * used, so a bare number is read as months and every period is labelled.
+ */
+const toImportPeriod = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  const count = parseInt(raw, 10);
+  if (!Number.isFinite(count) || count <= 0) {
+    return PERIOD_WORDS[raw.toLowerCase().replace(/[^a-z]/g, '')] || raw;
+  }
+
+  const lower = raw.toLowerCase();
+  const unit = lower.includes('year') ? 'year' : lower.includes('day') ? 'day' : 'month';
+  const label = count === 1 ? unit : `${unit}s`;
+  return `${count} ${label.charAt(0).toUpperCase()}${label.slice(1)}`;
+};
+
+const toImportType = (value) => {
+  const raw = String(value ?? '').toLowerCase();
+  if (raw.includes('amc') || raw.includes('maintenance')) return 'AMC';
+  if (raw.includes('trial') || raw.includes('demo')) return 'Trial';
+  return 'Subscription';
+};
+
+const toImportStatus = (value) => {
+  const raw = String(value ?? '').toLowerCase();
+  if (raw.includes('inactiv') || raw.includes('closed') || raw.includes('expired') || raw.includes('completed')) {
+    return 'Inactive';
+  }
+  if (raw.includes('draft')) return 'draft';
+  if (raw.includes('notstarted') || raw.includes('not started') || raw.includes('pending') || raw.includes('progress')) {
+    return 'NotStarted';
+  }
+  return 'Active';
+};
+
+const toImportCategory = (contractType, value) => {
+  const raw = String(value ?? '').toLowerCase();
+  if (raw.includes('hardware') || raw.includes('device')) return 'Hardware';
+  if (raw.includes('service') || raw.includes('support')) return 'Service';
+  if (raw.includes('software') || raw.includes('license')) return 'Software';
+  if (contractType === 'Trial') return 'Trial';
+  return contractType === 'AMC' ? 'Service' : 'Software';
+};
+
+const escapeRegex = (value) => new RegExp(`^${String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
+/**
+ * A contract is only useful in the CRM once it hangs off an Account, so the
+ * firm named on the row is matched — or pushed to Sangam first — before the
+ * contract itself is dispatched.
+ */
+const linkImportedAccount = async ({ email, company, customer }) => {
+  try {
+    if (isMongoConnected()) {
+      const or = [];
+      if (email) or.push({ email });
+      if (company) or.push({ company: escapeRegex(company) });
+      if (customer) or.push({ name: escapeRegex(customer) });
+      if (!or.length) return null;
+
+      const found = await Customer.findOne({ $or: or });
+      if (!found) return null;
+
+      const stored = found.sangamCrm?.recordId;
+      if (stored && !String(stored).startsWith('SGM-ACC-')) return stored;
+
+      const synced = await sangamCrmService.createOrUpdateCompany(found);
+      if (synced.success && synced.recordId) {
+        await Customer.findByIdAndUpdate(found._id, {
+          $set: {
+            'sangamCrm.status': 'synced',
+            'sangamCrm.recordId': synced.recordId,
+            'sangamCrm.lastSyncedAt': new Date()
+          }
+        });
+        return synced.recordId;
+      }
+      return null;
+    }
+
+    const hit = getCustomersFromFile().find(
+      (c) =>
+        (email && String(c.email || '').toLowerCase() === email) ||
+        (company && String(c.company || '').toLowerCase() === company.toLowerCase()) ||
+        (customer && String(c.name || '').toLowerCase() === customer.toLowerCase())
+    );
+    const stored = hit?.sangamCrm?.recordId;
+    return stored && !String(stored).startsWith('SGM-ACC-') ? stored : null;
+  } catch (linkErr) {
+    console.warn('[ContractController] Could not link imported contract to an account:', linkErr.message);
+    return null;
+  }
+};
+
+/**
+ * Bulk import contracts from CSV. Each row is mapped, upserted against the
+ * contract register and dispatched to the Sangam CRM Contract module, so a
+ * signed sheet can be loaded once and both systems agree afterwards.
+ */
+export const importContracts = async (req, res) => {
+  try {
+    const rows = Array.isArray(req.body.contracts) ? req.body.contracts : [];
+    if (!rows.length) {
+      return res.status(400).json({ success: false, error: 'No contract records provided for import.' });
+    }
+
+    const raisedBy = req.user
+      ? { name: req.user.name || '', email: req.user.email || '', role: req.user.role || '' }
+      : { name: '', email: '', role: '' };
+
+    const results = [];
+    let succeededCount = 0;
+    let failedCount = 0;
+    let syncedCount = 0;
+
+    for (let i = 0; i < rows.length; i += 1) {
+      const item = rows[i] || {};
+      const cleanName = String(item.name || item.contractName || '').trim();
+      const company = String(item.company || item.accountName || '').trim();
+      const customer = String(item.customer || item.accountName || item.company || cleanName).trim();
+      const startDate = toImportDate(item.startDate);
+      const endDate = toImportDate(item.endDate || item.expiryDate);
+      const totalContractValue = toImportValue(item.totalContractValue ?? item.value);
+
+      const missing = [];
+      if (!cleanName) missing.push('Contract Name');
+      if (!startDate) missing.push('Start Date');
+      if (!endDate) missing.push('End Date');
+      if (!totalContractValue) missing.push('Total Contract Value');
+
+      if (missing.length) {
+        results.push({
+          row: i + 1,
+          name: cleanName || 'Unknown',
+          ok: false,
+          error: `Missing ${missing.join(', ')}.`
+        });
+        failedCount += 1;
+        continue;
+      }
+
+      try {
+        const contractType = toImportType(item.contractType);
+        const subscriptionPeriod = toImportPeriod(item.subscriptionPeriod || item.period || item.duration) || '1 Year';
+        const email = String(item.email || '').trim().toLowerCase() || 'contracts@nispl.in';
+        const effectiveCompany = company || customer;
+
+        const payload = {
+          name: cleanName,
+          company: effectiveCompany,
+          customer,
+          accountId: await linkImportedAccount({ email, company: effectiveCompany, customer }),
+          email,
+          service: String(item.service || '').trim() || `${contractType} (${subscriptionPeriod})`,
+          contractType,
+          subscriptionPeriod,
+          productCategory: toImportCategory(contractType, item.productCategory || item.service),
+          totalContractValue,
+          value: `${totalContractValue} / ${subscriptionPeriod.toLowerCase()}`,
+          startDate,
+          endDate,
+          expiryDate: endDate,
+          status: toImportStatus(item.status),
+          slaTier: String(item.slaTier || '').trim() || 'Tier-1 Priority NOC 99.99%',
+          description: String(item.description || '').trim(),
+          productId: String(item.productId || '').trim(),
+          salesPerson: String(item.salesPerson || '').trim() || raisedBy.name || raisedBy.email || ''
+        };
+
+        // Re-uploading the same sheet updates the deal it already described
+        // instead of raising a second contract and a second CRM record.
+        const suppliedCode = String(item.contractId || '').trim();
+        let existing = null;
+
+        if (isMongoConnected()) {
+          existing =
+            (suppliedCode && (await Contract.findOne({ contractId: suppliedCode }))) ||
+            (await Contract.findOne({
+              name: escapeRegex(cleanName),
+              ...(effectiveCompany ? { company: escapeRegex(effectiveCompany) } : {})
+            }));
+        } else {
+          existing =
+            getContractsFromFile().find(
+              (c) =>
+                (suppliedCode && c.contractId === suppliedCode) ||
+                (String(c.name || '').toLowerCase() === cleanName.toLowerCase() &&
+                  String(c.company || '').toLowerCase() === effectiveCompany.toLowerCase())
+            ) || null;
+        }
+
+        const contractCode = existing?.contractId || (await nextContractCode());
+        const previousCrm = existing?.sangamCrm || null;
+        let saved = null;
+
+        if (isMongoConnected()) {
+          const doc = existing
+            ? await Contract.findByIdAndUpdate(existing._id, { $set: payload }, { new: true })
+            : await Contract.create({
+                contractId: contractCode,
+                ...payload,
+                createdBy: raisedBy,
+                sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
+              });
+          saved = doc.toObject();
+        } else {
+          const fileList = getContractsFromFile();
+          const index = existing ? fileList.findIndex((c) => c.contractId === existing.contractId) : -1;
+          const record = {
+            ...(index !== -1 ? fileList[index] : {}),
+            contractId: contractCode,
+            id: contractCode,
+            ...payload,
+            createdBy: raisedBy,
+            sangamCrm: index !== -1 ? fileList[index].sangamCrm || {} : { status: 'pending', recordId: null },
+            createdAt: index !== -1 ? fileList[index].createdAt : new Date().toISOString()
+          };
+          if (index !== -1) fileList[index] = record;
+          else fileList.unshift(record);
+          saveContractsToFile(fileList);
+          saved = record;
+        }
+
+        const sangamResult = await sangamCrmService.createOrUpdateContract(saved);
+        const sangamCrm = {
+          status: sangamResult.success ? 'synced' : 'failed',
+          recordId: sangamResult.recordId || previousCrm?.recordId || null,
+          lastSyncedAt: new Date(),
+          syncError: sangamResult.success ? null : sangamResult.message
+        };
+        if (sangamResult.success) syncedCount += 1;
+
+        if (isMongoConnected()) {
+          await Contract.findOneAndUpdate({ contractId: contractCode }, { $set: { sangamCrm } });
+        } else {
+          const fileList = getContractsFromFile();
+          const index = fileList.findIndex((c) => c.contractId === contractCode);
+          if (index !== -1) {
+            fileList[index].sangamCrm = sangamCrm;
+            saveContractsToFile(fileList);
+          }
+        }
+
+        results.push({
+          row: i + 1,
+          contractId: contractCode,
+          name: cleanName,
+          company: effectiveCompany,
+          created: !existing,
+          sangamStatus: sangamCrm.status,
+          sangamRecordId: sangamCrm.recordId,
+          sangamError: sangamCrm.syncError,
+          ok: true
+        });
+        succeededCount += 1;
+      } catch (rowErr) {
+        results.push({ row: i + 1, name: cleanName || 'Unknown', ok: false, error: rowErr.message });
+        failedCount += 1;
+      }
+    }
+
+    await logNotification({
+      type: 'contract_created',
+      title: 'Bulk Contracts Import',
+      message: `Imported ${succeededCount} contract record(s), ${syncedCount} synchronized with Sangam CRM.`,
+      severity: 'success',
+      entityType: 'contract',
+      metadata: { total: rows.length, succeeded: succeededCount, failed: failedCount, synced: syncedCount }
+    });
+
+    await logActivity(req, {
+      action: 'IMPORT_CONTRACTS',
+      category: 'contract',
+      resource: 'Contract',
+      details: `Bulk imported ${succeededCount} contracts from CSV with Sangam CRM sync. (${failedCount} failed, ${syncedCount} synced)`,
+      changes: { total: rows.length, succeeded: succeededCount, failed: failedCount, synced: syncedCount }
+    });
+
+    return res.status(200).json({
+      success: true,
+      total: rows.length,
+      succeeded: succeededCount,
+      failed: failedCount,
+      synced: syncedCount,
+      results
+    });
+  } catch (err) {
+    console.error('[ContractController] importContracts error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Failed to import contracts.' });
   }
 };
 

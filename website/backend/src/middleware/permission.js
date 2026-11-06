@@ -6,6 +6,7 @@ export const PERMISSION_MODULES = [
   'customer',
   'contract',
   'payment',
+  'manual_payment',
   'product',
   'receipt',
   'import_csv',
@@ -54,14 +55,19 @@ export function hasPermission(user, module, action = 'view') {
   return false;
 }
 
+/**
+ * `module` may be a list, which opens the route to anyone holding the action on
+ * any one of them — an attachment is reached from several screens at once.
+ */
 export function requirePermission(module, action = 'view') {
+  const modules = Array.isArray(module) ? module : [module];
   return (req, res, next) => {
     if (!req.user) return next(new HttpError(401, 'Authentication required.'));
-    if (hasPermission(req.user, module, action)) return next();
+    if (modules.some((candidate) => hasPermission(req.user, candidate, action))) return next();
     return next(
       new HttpError(
         403,
-        `Your role does not allow you to ${action} in the ${module} module. Ask an administrator for access.`
+        `Your role does not allow you to ${action} in the ${modules.join(' or ')} module. Ask an administrator for access.`
       )
     );
   };

@@ -10,6 +10,7 @@ import {
   ReceiptText,
   FileUp,
   RefreshCw,
+  Landmark,
   UserCheck,
   Activity,
   Bell
@@ -40,6 +41,7 @@ import CreateProductPage from './CreateProductPage';
 import ProfilePage from './ProfilePage';
 import ImportCsvPage from './ImportCsvPage';
 import SangamSyncPage from './SangamSyncPage';
+import ManualPaymentPage from './ManualPaymentPage';
 import { authApi } from '../../../services/authApi';
 
 // Initial Datasets
@@ -63,6 +65,7 @@ const NAV_MODULE = {
   customer: 'customer',
   contract: 'contract',
   payment: 'payment',
+  'manual-payment': 'manual_payment',
   product: 'product',
   receipt: 'receipt',
   'import-csv': 'import_csv',
@@ -77,6 +80,7 @@ const FIRST_ALLOWED_ROUTE = [
   ['customer', '/admin/customer'],
   ['contract', '/admin/customer/contract'],
   ['payment', '/admin/customer/payment'],
+  ['manual_payment', '/admin/manual-payment'],
   ['product', '/admin/product'],
   ['receipt', '/admin/receipt'],
   ['import_csv', '/admin/import-csv'],
@@ -138,6 +142,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     const path = location.pathname;
     if (path.includes('/admin/customer/contract')) return 'contract';
     if (path.includes('/admin/customer/payment')) return 'payment';
+    if (path.includes('/admin/manual-payment')) return 'manual-payment';
     if (path === '/admin/customer' || path.startsWith('/admin/customer')) return 'customer';
     if (path.includes('/admin/user-access') || path.includes('/admin/staff')) return 'user-access';
     if (path.includes('/admin/activity-logs') || path.includes('/admin/activity_logs')) return 'activity-logs';
@@ -387,7 +392,8 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     const canCustomer = can('customer');
     const canContract = can('contract');
     const canPayment = can('payment');
-    if (canCustomer || canContract || canPayment) {
+    const canManualPayment = can('manual_payment');
+    if (canCustomer || canContract || canPayment || canManualPayment) {
       const submenu = [];
       if (canContract) {
         submenu.push({ id: 'contract', label: 'Contract', icon: FileText, path: '/admin/customer/contract', title: 'Customer Contracts' });
@@ -395,13 +401,22 @@ function AdminDashboardShell({ userSession, onSignOut }) {
       if (canPayment) {
         submenu.push({ id: 'payment', label: 'Payment', icon: CreditCard, path: '/admin/customer/payment', title: 'Customer Payments' });
       }
+      if (canManualPayment) {
+        submenu.push({ id: 'manual-payment', label: 'Manual Payment', icon: Landmark, path: '/admin/manual-payment', title: 'Record Cheque & Bank Payments' });
+      }
       items.push({
         id: 'customer',
         label: 'Customer',
         icon: Users,
         title: 'Customer Listing & Management',
         // A manager granted only a child module still needs a working parent entry
-        path: canCustomer ? '/admin/customer' : canContract ? '/admin/customer/contract' : '/admin/customer/payment',
+        path: canCustomer
+          ? '/admin/customer'
+          : canContract
+            ? '/admin/customer/contract'
+            : canPayment
+              ? '/admin/customer/payment'
+              : '/admin/manual-payment',
         submenu: submenu.length ? submenu : undefined
       });
     }
@@ -595,6 +610,16 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setPayments={setPayments}
                   contracts={contracts}
                   onGoToReceipt={() => navigate('/admin/receipt')}
+                />
+              )}
+
+              {activeNav === 'manual-payment' && (
+                <ManualPaymentPage
+                  payments={payments}
+                  setPayments={setPayments}
+                  customers={customers}
+                  contracts={contracts}
+                  products={products}
                 />
               )}
 

@@ -62,6 +62,32 @@ export const contractApi = {
   },
 
   /**
+   * Bulk import contracts from a parsed CSV. Each row is upserted locally and
+   * dispatched to the Sangam CRM Contract module by the backend.
+   * @param {Array<Object>} contracts
+   */
+  async importContracts(contracts) {
+    const res = await fetch(`${API_BASE_URL}/import`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({ contracts })
+    });
+    authApi._handleRefreshedToken(res);
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Bulk contracts import failed.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Bulk contracts import failed.');
+    }
+    return data;
+  },
+
+  /**
    * Trigger or retry synchronization of an existing contract to Sangam CRM
    * @param {string} contractId - e.g. CTR-2026-0891
    */

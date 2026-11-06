@@ -65,6 +65,44 @@ export const paymentApi = {
     return data.data;
   },
 
+  async recordManualPayment(payload) {
+    const res = await fetch(`${BASE_URL}/manual`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      const fieldNote = data.field ? ` (${data.field})` : '';
+      throw new Error(`${data.error || 'Failed to record the offline payment'}${fieldNote}`);
+    }
+    return data.data;
+  },
+
+  // Proof bytes are deliberately left out of the payment lists, so a document
+  // is fetched one at a time when the admin opens it.
+  async getPaymentProof(paymentId) {
+    const res = await fetch(`${BASE_URL}/${encodeURIComponent(paymentId)}/proof`, {
+      headers: getHeaders()
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'No proof document available.');
+    }
+    return data.data;
+  },
+
+  // A proof is stored as a data URL so it needs no file service, but a browser
+  // will only open a document of this size from a blob URL.
+  async openProofDocument(paymentId) {
+    const doc = await this.getPaymentProof(paymentId);
+    const blob = await (await fetch(doc.data)).blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return doc;
+  },
+
   async updatePayment(id, updates) {
     const res = await fetch(`${BASE_URL}/${id}`, {
       method: 'PUT',

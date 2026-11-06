@@ -799,13 +799,19 @@
 /* Modern Segmented Navigation Pill Bar */
 .adm-import-segmented-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: #f1f5f9;
   padding: 5px;
   border-radius: 14px;
   gap: 8px;
   border: 1px solid #e2e8f0;
   margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .adm-import-segmented-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {

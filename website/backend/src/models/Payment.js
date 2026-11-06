@@ -30,6 +30,48 @@ export const savePaymentsToFile = (payments) => {
   }
 };
 
+/**
+ * Without MongoDB the ledger falls back to payments.json, and a cheque photo is
+ * several hundred kilobytes of base64. Uploading one there would put a customer's
+ * bank document into git, so offline proofs are kept beside the ledger instead.
+ */
+const PROOF_DIR = path.resolve(__dirname, '../data/proofs');
+
+const proofFileName = (paymentId) => {
+  const safe = String(paymentId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+  return safe ? `${safe}.json` : '';
+};
+
+export const savePaymentProof = ({ paymentId, fileName, mimeType, sizeBytes, data }) => {
+  const file = proofFileName(paymentId);
+  if (!file || !data) return false;
+  try {
+    if (!fs.existsSync(PROOF_DIR)) fs.mkdirSync(PROOF_DIR, { recursive: true });
+    fs.writeFileSync(
+      path.join(PROOF_DIR, file),
+      JSON.stringify({ paymentId, fileName, mimeType, sizeBytes, data }, null, 2),
+      'utf-8'
+    );
+    return true;
+  } catch (err) {
+    console.error('[PaymentModel] Error saving payment proof file:', err.message);
+    return false;
+  }
+};
+
+export const getPaymentProof = (paymentId) => {
+  const file = proofFileName(paymentId);
+  if (!file) return null;
+  try {
+    const target = path.join(PROOF_DIR, file);
+    if (!fs.existsSync(target)) return null;
+    return JSON.parse(fs.readFileSync(target, 'utf-8'));
+  } catch (err) {
+    console.error('[PaymentModel] Error reading payment proof file:', err.message);
+    return null;
+  }
+};
+
 const paymentItemSchema = new mongoose.Schema(
   {
     productId: { type: String, default: '' },
@@ -193,9 +235,37 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    // ── Money that arrived outside the gateway ────────────────────────────────
+    // The bank's own identifier is what a statement is reconciled against, so it
+    // is kept even when the money came in without any invoice behind it.
+    referenceNumber: {
+      type: String,
+      default: '',
+      index: true
+    },
+    bankName: {
+      type: String,
+      default: ''
+    },
+    depositDate: {
+      type: String,
+      default: ''
+    },
+    notes: {
+      type: String,
+      default: ''
+    },
+    // Only the description of the attachment is read with the ledger; the bytes
+    // are fetched per payment so a list call never carries a cheque image.
+    proof: {
+      fileName: { type: String, default: '' },
+      mimeType: { type: String, default: '' },
+      sizeBytes: { type: Number, default: 0 },
+      data: { type: String, select: false, default: '' }
+    },
     source: {
       type: String,
-      enum: ['', 'portal', 'gateway', 'admin', 'import'],
+      enum: ['', 'portal', 'gateway', 'admin', 'manual', 'import'],
       default: ''
     },
     raisedBy: {

@@ -112,6 +112,9 @@ export function formatPaymentsForExport(payments) {
     'Expected Payment Date': p.expectedPaymentDate || '—',
     'Payment Received Date': p.paymentReceivedDate || p.date || '—',
     'Payment Method': p.paymentMethod || p.method || '—',
+    'Bank Reference': p.referenceNumber || '—',
+    'Bank / Branch': p.bankName || '—',
+    'Proof Document': p.proof?.fileName || '—',
     'Status': (p.status || '').toUpperCase()
   }));
 }

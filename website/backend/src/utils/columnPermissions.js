@@ -51,6 +51,12 @@ export const MODULE_COLUMNS = {
     { id: 'expectedPaymentDate', label: 'Expected Payment Date', fields: ['expectedPaymentDate'] },
     { id: 'paymentReceivedDate', label: 'Payment Received Date', fields: ['paymentReceivedDate'] },
     { id: 'paymentMethod', label: 'Payment Method', fields: ['paymentMethod', 'method'] },
+    {
+      id: 'reference',
+      label: 'Bank Reference & Remarks',
+      fields: ['referenceNumber', 'bankName', 'depositDate', 'notes']
+    },
+    { id: 'proof', label: 'Payment Proof', fields: ['proof'] },
     { id: 'status', label: 'Status', fields: ['status'] }
   ],
   product: [
@@ -78,6 +84,12 @@ export const MODULE_COLUMNS = {
       label: 'Payment Channel',
       fields: ['paymentMode', 'paymentMethod', 'source', 'razorpayOrderId', 'razorpayPaymentId']
     },
+    {
+      id: 'reference',
+      label: 'Bank Reference & Remarks',
+      fields: ['referenceNumber', 'bankName', 'depositDate', 'notes']
+    },
+    { id: 'proof', label: 'Payment Proof', fields: ['proof'] },
     { id: 'status', label: 'Status', fields: ['status'] }
   ],
   user_access: [

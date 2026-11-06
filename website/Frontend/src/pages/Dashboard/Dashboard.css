@@ -11322,9 +11322,45 @@
   font-weight: 700;
 }
 
-/* ── Recent Campaigns Table ─────────────────────────────────────────────── */
+/* ── Recent Campaigns / Invoices Table ─────────────────────────────────────── */
 .flowmail-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 295px;
   overflow-x: auto;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flowmail-table-wrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.flowmail-table-wrap::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.flowmail-table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.flowmail-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.flowmail-table-wrap thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #ffffff;
+  box-shadow: 0 1px 0 #f1f5f9;
 }
 
 .flowmail-table {
@@ -11510,6 +11546,105 @@
 
 .flowmail-reminder-card {
   background: linear-gradient(160deg, #ffffff 0%, #f8faff 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.flowmail-reminder-scroll-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 295px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flowmail-reminder-scroll-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flowmail-reminder-scroll-wrap::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.flowmail-reminder-scroll-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.flowmail-reminder-scroll-wrap::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.flowmail-reminder-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.flowmail-reminder-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+.flowmail-reminder-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.flowmail-reminder-item-title {
+  font-size: 0.92rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flowmail-reminder-item-amount {
+  font-size: 1.25rem;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.flowmail-reminder-item-meta {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.flowmail-reminder-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.flowmail-reminder-item-actions .flowmail-btn-primary {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+}
+
+.flowmail-reminder-item-actions .flowmail-btn-secondary {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 8px;
 }
 
 .flowmail-reminder-body {
@@ -11583,12 +11718,35 @@
 .flowmail-product-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
-  justify-content: center;
-  max-height: 330px;
+  justify-content: flex-start;
+  max-height: 295px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flowmail-product-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flowmail-product-list::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.flowmail-product-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.flowmail-product-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .flowmail-product-row {

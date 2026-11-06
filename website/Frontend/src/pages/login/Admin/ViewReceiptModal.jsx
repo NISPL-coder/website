@@ -9,10 +9,13 @@ import {
   Layers,
   Cpu,
   CheckCircle2,
+  Paperclip,
   Printer
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
 import { usePermissions } from './PermissionsContext';
+import { paymentApi } from '../../../services/paymentApi';
 import { toReceiptPdfRow } from './adminTableUtils';
 
 const inr = (value) =>
@@ -106,6 +109,16 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
   const showTax = canSeeColumn('receipt', 'taxAmount') || canSeeColumn('receipt', 'baseAmount');
   const showChannel = canSeeColumn('receipt', 'mode');
   const showTerm = canSeeColumn('receipt', 'term');
+  const showReference = canSeeColumn('receipt', 'reference');
+  const showProof = canSeeColumn('receipt', 'proof');
+
+  const openProof = async () => {
+    try {
+      await paymentApi.openProofDocument(receipt.paymentId || receipt.id);
+    } catch (err) {
+      toast.error(err.message || 'Could not open the proof document.');
+    }
+  };
 
   const customer = receipt.customer || {};
   const product = receipt.product || {};
@@ -378,12 +391,46 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                 <Field label="Channel" value={text(receipt.paymentMode)} />
                 <Field
                   label="Recorded through"
-                  value={text(receipt.source === 'gateway' ? 'Razorpay gateway' : receipt.source)}
+                  value={text(
+                    receipt.source === 'gateway'
+                      ? 'Razorpay gateway'
+                      : receipt.source === 'manual'
+                        ? 'Offline entry by staff'
+                        : receipt.source
+                  )}
                 />
                 {receipt.razorpayPaymentId ? (
                   <Field label="Gateway payment ref" value={receipt.razorpayPaymentId} mono />
                 ) : null}
               </>
+            )}
+            {/* Money that arrived on paper is reconciled by the bank's own
+                reference, not by a gateway id, so it is shown in its own block. */}
+            {showReference && (receipt.referenceNumber || receipt.bankName || receipt.notes) && (
+              <>
+                {receipt.referenceNumber ? (
+                  <Field label="Bank / cheque reference" value={receipt.referenceNumber} mono />
+                ) : null}
+                {receipt.bankName ? <Field label="Bank / branch" value={receipt.bankName} /> : null}
+                {receipt.depositDate ? (
+                  <Field label="Deposit / realisation date" value={receipt.depositDate} />
+                ) : null}
+                {receipt.notes ? <Field label="Remarks" value={receipt.notes} /> : null}
+              </>
+            )}
+            {showProof && receipt.proof?.fileName && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Proof document</label>
+                <button
+                  type="button"
+                  className="adm-action-pill"
+                  style={{ marginTop: '6px' }}
+                  onClick={openProof}
+                >
+                  <Paperclip size={12} />
+                  <span>{receipt.proof.fileName}</span>
+                </button>
+              </div>
             )}
             {showSales && receipt.raisedBy?.name ? (
               <Field label="Entered by" value={`${receipt.raisedBy.name}${receipt.raisedBy.role ? ` (${receipt.raisedBy.role})` : ''}`} />

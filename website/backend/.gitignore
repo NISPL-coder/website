@@ -2,3 +2,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Offline payment proofs (cheque images, bank receipts) are customer bank
+# documents and must never be committed.
+src/data/proofs/
