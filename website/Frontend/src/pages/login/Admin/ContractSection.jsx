@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   X,
-  CheckCircle2,
   Search,
-  ExternalLink,
-  Clock,
-  AlertCircle,
+  Eye,
+  Edit3,
+  Printer,
+  Trash2,
   RotateCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -24,7 +24,18 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import { generateContractPdf } from './utils/generateContractPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
-import { compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import {
+  CONTRACT_STATUSES,
+  normalizeContractStatus,
+  normalizeContractType,
+  contractStatusTone,
+  contractPersonEmail,
+  contractPersonMobile,
+  contractActorName,
+  formatContractStamp,
+  matchesStatusFilter
+} from './contractVocabulary';
 import { usePermissions } from './PermissionsContext';
 
 const getContractId = (row) => row.id || row.contractId;
@@ -112,29 +123,23 @@ export default function ContractSection({ contracts, setContracts }) {
       const q = searchQuery.toLowerCase();
       const code = (c.id || c.contractId || '').toLowerCase();
       const name = (c.name || '').toLowerCase();
-      const client = (c.customer || c.company || '').toLowerCase();
-      const service = (c.service || '').toLowerCase();
-      const sangamId = (c.sangamCrm?.recordId || '').toLowerCase();
-      const sangamStatus = (c.sangamCrm?.status || '').toLowerCase();
+      const company = (c.company || '').toLowerCase();
+      const email = contractPersonEmail(c).toLowerCase();
+      const mobile = contractPersonMobile(c).toLowerCase();
+      const type = normalizeContractType(c.contractType).toLowerCase();
+      const amount = String(c.totalContractValue || c.value || '').toLowerCase();
 
       const matchesSearch =
         !q ||
         code.includes(q) ||
         name.includes(q) ||
-        client.includes(q) ||
-        service.includes(q) ||
-        sangamId.includes(q) ||
-        sangamStatus.includes(q);
+        company.includes(q) ||
+        email.includes(q) ||
+        mobile.includes(q) ||
+        type.includes(q) ||
+        amount.includes(q);
 
-      const contractStatus = (c.status || '').toLowerCase();
-      let matchesStatus = true;
-      if (statusFilter === 'active') {
-        matchesStatus = contractStatus === 'active';
-      } else if (statusFilter === 'notstarted') {
-        matchesStatus = contractStatus === 'notstarted' || contractStatus === 'draft';
-      } else if (statusFilter === 'inactive') {
-        matchesStatus = contractStatus === 'inactive' || contractStatus === 'expired';
-      }
+      const matchesStatus = matchesStatusFilter(c, statusFilter);
 
       const matchesDateRange = isWithinDateRange(
         c.startDate || c.createdAt || c.expiryDate,
@@ -151,80 +156,105 @@ export default function ContractSection({ contracts, setContracts }) {
     });
   }, [contracts, searchQuery, statusFilter, dateFrom, dateTo]);
 
+  // One option per status in the register, counted from the rows themselves.
+  const statusFilterOptions = useMemo(() => {
+    const counts = CONTRACT_STATUSES.reduce((map, status) => {
+      const next = { ...map };
+      next[status] = contracts.filter((c) => normalizeContractStatus(c.status) === status).length;
+      return next;
+    }, {});
+
+    return [
+      { value: 'all', label: `All Statuses (${contracts.length})` },
+      ...CONTRACT_STATUSES.map((status) => ({
+        value: status.toLowerCase().replace(/\s+/g, ''),
+        label: `${status} (${counts[status]})`
+      }))
+    ];
+  }, [contracts]);
+
   const columns = [
     {
-      id: 'id',
-      name: 'Contract Code',
-      selector: (row) => getContractId(row),
-      sortable: true,
-      sortFunction: compareText(getContractId),
-      width: '150px',
-      cell: (c) => <span className="adm-code-badge blue">{getContractId(c)}</span>
-    },
-    {
       id: 'name',
-      name: 'Contract Title',
+      name: 'Contract ID',
       selector: (row) => row.name,
       sortable: true,
       sortFunction: compareText((row) => row.name),
       minWidth: '220px',
       grow: 1.2,
       wrap: true,
-      cell: (c) => (
-        <div>
-          <div className="adm-primary-text">{c.name || 'Cloud Services Agreement'}</div>
-          <div className="adm-secondary-text">
-            Type: {c.contractType || 'Subscription'} ({c.subscriptionPeriod || '1 Year'})
-          </div>
-        </div>
-      )
+      cell: (c) => <div className="adm-primary-text">{c.name || '—'}</div>
     },
     {
-      id: 'customer',
-      name: 'Client / Representative',
-      selector: (row) => row.company || row.customer,
+      id: 'company',
+      name: 'Company Name',
+      selector: (row) => row.company,
       sortable: true,
-      sortFunction: compareText((row) => row.company || row.customer),
-      minWidth: '210px',
+      sortFunction: compareText((row) => row.company),
+      minWidth: '180px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => <div className="adm-primary-text">{c.company || '—'}</div>
+    },
+    {
+      id: 'status',
+      name: 'Status',
+      selector: (row) => normalizeContractStatus(row.status),
+      sortable: true,
+      sortFunction: compareText((row) => normalizeContractStatus(row.status)),
+      width: '130px',
+      cell: (c) => (
+        <span className={`adm-status-pill ${contractStatusTone(c.status)}`}>
+          {normalizeContractStatus(c.status) || '—'}
+        </span>
+      ),
+      searchType: 'select'
+    },
+    {
+      id: 'personEmail',
+      name: 'Person Email',
+      selector: (row) => contractPersonEmail(row),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonEmail(row)),
+      minWidth: '200px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonEmail(c) || '—'}</span>
+    },
+    {
+      id: 'personMobile',
+      name: 'Person Mobile',
+      selector: (row) => contractPersonMobile(row),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonMobile(row)),
+      width: '140px',
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonMobile(c) || '—'}</span>
+    },
+    {
+      id: 'contractType',
+      name: 'Contract Type',
+      selector: (row) => normalizeContractType(row.contractType),
+      sortable: true,
+      sortFunction: compareText((row) => normalizeContractType(row.contractType)),
+      minWidth: '170px',
       grow: 1,
       wrap: true,
       cell: (c) => (
-        <div>
-          <div className="adm-primary-text">{c.company || c.customer}</div>
-          <div className="adm-secondary-text">{c.customer}</div>
-        </div>
-      )
-    },
-    {
-      id: 'service',
-      name: 'Service Scope & Tier',
-      selector: (row) => row.service,
-      sortable: true,
-      sortFunction: compareText((row) => row.service),
-      minWidth: '220px',
-      grow: 1.1,
-      wrap: true,
-      cell: (c) => (
-        <div>
-          <div className="adm-primary-text">
-            {c.service || `${c.contractType} (${c.subscriptionPeriod})`}
-          </div>
-          <div className="adm-secondary-text" style={{ color: '#6366f1', fontWeight: 600 }}>
-            {c.slaTier || 'Tier-1 Priority NOC 99.99%'}
-          </div>
-        </div>
+        <span style={{ fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>
+          {normalizeContractType(c.contractType) || '—'}
+        </span>
       )
     },
     {
       id: 'value',
-      name: 'Contract Value',
+      name: 'Total Contract Value',
       selector: (row) => row.totalContractValue || row.value,
       sortable: true,
       sortFunction: compareNumber((row) => row.totalContractValue || row.value),
       width: '150px',
       cell: (c) => (
         <span className="adm-mrr-text" style={{ fontSize: '0.92rem' }}>
-          {c.totalContractValue || c.value}
+          {c.totalContractValue || c.value || '—'}
         </span>
       )
     },
@@ -235,152 +265,58 @@ export default function ContractSection({ contracts, setContracts }) {
       sortable: true,
       sortFunction: compareText((row) => row.startDate),
       width: '130px',
-      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.startDate}</span>
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.startDate || '—'}</span>
     },
     {
-      id: 'expiryDate',
-      name: 'Expiry Date',
+      id: 'endDate',
+      name: 'End Date',
       selector: (row) => row.endDate || row.expiryDate,
       sortable: true,
       sortFunction: compareText((row) => row.endDate || row.expiryDate),
       width: '130px',
       cell: (c) => (
-        <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.endDate || c.expiryDate}</span>
+        <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.endDate || c.expiryDate || '—'}</span>
       )
     },
     {
-      id: 'status',
-      name: 'Status',
-      selector: (row) => row.status,
+      id: 'updatedAt',
+      name: 'Updated At',
+      selector: (row) => row.updatedAt || '',
       sortable: true,
-      sortFunction: compareText((row) => row.status),
-      width: '130px',
-      cell: (c) => (
-        <>
-          {c.status?.toLowerCase() === 'active' && (
-            <span className="adm-status-pill active">Active</span>
-          )}
-          {(c.status?.toLowerCase() === 'notstarted' || c.status?.toLowerCase() === 'draft') && (
-            <span className="adm-status-pill demo">Not Started</span>
-          )}
-          {(c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'expired') && (
-            <span className="adm-status-pill inactive">Inactive</span>
-          )}
-        </>
-      ),
-      searchType: 'select'
+      sortFunction: compareDate((row) => row.updatedAt || ''),
+      width: '165px',
+      cell: (c) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatContractStamp(c.updatedAt)}</span>
     },
     {
-      id: 'sangam',
-      name: 'Sangam CRM',
-      selector: (row) => row.sangamCrm?.status || 'pending',
+      id: 'updatedBy',
+      name: 'Updated By',
+      selector: (row) => contractActorName(row.updatedBy),
       sortable: true,
-      sortFunction: compareText((row) => row.sangamCrm?.status || 'pending'),
-      minWidth: '200px',
+      sortFunction: compareText((row) => contractActorName(row.updatedBy)),
+      minWidth: '160px',
       grow: 0.9,
-      cell: (c) => {
-        const cId = getContractId(c);
-        const isSyncing = !!syncingIds[cId];
-        const crm = c.sangamCrm || {};
-        const crmStatus = crm.status || 'pending';
-        const crmId = crm.recordId;
-
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '160px', whiteSpace: 'nowrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {crmStatus === 'synced' && (
-                <span
-                  className="adm-status-pill active"
-                  style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', whiteSpace: 'nowrap' }}
-                  title={`Synced with Sangam CRM Contracts (Record ID: ${crmId})`}
-                >
-                  <CheckCircle2 size={11} />
-                  <span>Synced</span>
-                </span>
-              )}
-              {crmStatus === 'pending' && (
-                <span
-                  className="adm-status-pill demo"
-                  style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fde68a', whiteSpace: 'nowrap' }}
-                  title="Waiting for Sangam CRM contract synchronization"
-                >
-                  <Clock size={11} />
-                  <span>Pending</span>
-                </span>
-              )}
-              {crmStatus === 'failed' && (
-                <span
-                  className="adm-status-pill inactive"
-                  style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', whiteSpace: 'nowrap' }}
-                  title={`Sync error: ${crm.syncError || 'API Failed'}`}
-                >
-                  <AlertCircle size={11} />
-                  <span>Failed</span>
-                </span>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
-              <span
-                style={{
-                  fontSize: '0.70rem',
-                  fontFamily: 'monospace',
-                  color: '#475569',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {crmId ? (crmId.length > 18 ? `${crmId.substring(0, 15)}...` : crmId) : 'No Record ID'}
-              </span>
-              {crmId && (
-                <a
-                  href={contractApi.getSangamContractUrl(crmId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#6366f1', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}
-                  title="View Contract in Sangam CRM"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink size={11} />
-                </a>
-              )}
-            </div>
-
-            {crm.lastSyncedAt && (
-              <span style={{ fontSize: '0.67rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                {new Date(crm.lastSyncedAt).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </span>
-            )}
-
-            {(crmStatus === 'failed' || crmStatus === 'pending') && can('contract', 'edit') && (
-              <button
-                type="button"
-                className="adm-action-pill"
-                onClick={(e) => handleRetrySync(e, c)}
-                disabled={isSyncing}
-                style={{
-                  marginTop: '2px',
-                  padding: '2px 8px',
-                  fontSize: '0.68rem',
-                  color: '#6366f1',
-                  borderColor: '#c7d2fe',
-                  background: '#f5f3ff',
-                  alignSelf: 'flex-start',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <RotateCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                <span>{isSyncing ? 'Syncing...' : 'Retry Sync'}</span>
-              </button>
-            )}
-          </div>
-        );
-      }
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.8rem', color: '#475569' }}>{contractActorName(c.updatedBy) || '—'}</span>
+    },
+    {
+      id: 'createdAt',
+      name: 'Created At',
+      selector: (row) => row.createdAt || '',
+      sortable: true,
+      sortFunction: compareDate((row) => row.createdAt || ''),
+      width: '165px',
+      cell: (c) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatContractStamp(c.createdAt)}</span>
+    },
+    {
+      id: 'createdBy',
+      name: 'Created By',
+      selector: (row) => contractActorName(row.createdBy),
+      sortable: true,
+      sortFunction: compareText((row) => contractActorName(row.createdBy)),
+      minWidth: '160px',
+      grow: 0.9,
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.8rem', color: '#475569' }}>{contractActorName(c.createdBy) || '—'}</span>
     },
     {
       id: 'actions',
@@ -390,18 +326,52 @@ export default function ContractSection({ contracts, setContracts }) {
       button: true,
       allowOverflow: true,
       ignoreRowClick: true,
-      cell: (c) => (
-        <RowActionMenu
-          module="contract"
-          onView={() => setViewingContract(c)}
-          onEdit={() => setEditingContract(c)}
-          onPrint={() => {
-            generateContractPdf(c);
-            toast.success(`PDF generated for ${c.name}`);
-          }}
-          onDelete={() => setDeletingContract(c)}
-        />
-      )
+      cell: (c) => {
+        const cId = getContractId(c);
+        const isSyncing = !!syncingIds[cId];
+        const crmStatus = c.sangamCrm?.status || 'pending';
+
+        return (
+          <RowActionMenu
+            module="contract"
+            items={[
+              { label: 'View', icon: Eye, tone: 'blue', onClick: () => setViewingContract(c) },
+              {
+                label: 'Edit',
+                icon: Edit3,
+                tone: 'purple',
+                hidden: !can('contract', 'edit'),
+                onClick: () => setEditingContract(c)
+              },
+              {
+                label: 'Print (PDF)',
+                icon: Printer,
+                tone: 'green',
+                onClick: () => {
+                  generateContractPdf(c);
+                  toast.success(`PDF generated for ${c.name}`);
+                }
+              },
+              {
+                label: isSyncing ? 'Syncing...' : 'Retry CRM Sync',
+                icon: RotateCw,
+                tone: 'orange',
+                hidden: crmStatus === 'synced' || !can('contract', 'edit'),
+                onClick: (e) => handleRetrySync(e, c)
+              },
+              {
+                label: 'Delete',
+                icon: Trash2,
+                tone: 'red',
+                danger: true,
+                divider: true,
+                hidden: !can('contract', 'delete'),
+                onClick: () => setDeletingContract(c)
+              }
+            ]}
+          />
+        );
+      }
     }
   ];
 
@@ -410,9 +380,9 @@ export default function ContractSection({ contracts, setContracts }) {
       {/* 1. Header with Title and Create Contract button */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
-          <h1 className="adm-section-title">Customer Contract Management</h1>
+          <h1 className="adm-section-title">Contract List</h1>
           <p className="adm-section-sub">
-            Monitor customer master service agreements (MSA), SLA performance tiers, contract terms, and renewal cycles.
+            Complete data of all assigned contracts
           </p>
         </div>
 
@@ -442,7 +412,7 @@ export default function ContractSection({ contracts, setContracts }) {
           <Search className="adm-search-icon" size={16} />
           <input
             type="text"
-            placeholder="Search by code, company, client..."
+            placeholder="Search by contract ID, company, person, type..."
             className="adm-search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -473,23 +443,11 @@ export default function ContractSection({ contracts, setContracts }) {
             <Select
               styles={compactSelectStyles}
               isSearchable={false}
-              options={[
-                { value: 'all', label: `All Statuses (${contracts.length})` },
-                { value: 'active', label: 'Active Only' },
-                { value: 'notstarted', label: 'Not Started / Draft' },
-                { value: 'inactive', label: 'Inactive / Closed' }
-              ]}
-              value={{
-                value: statusFilter,
-                label:
-                  statusFilter === 'all'
-                    ? `All Statuses (${contracts.length})`
-                    : statusFilter === 'active'
-                    ? 'Active Only'
-                    : statusFilter === 'notstarted'
-                    ? 'Not Started / Draft'
-                    : 'Inactive / Closed'
-              }}
+              options={statusFilterOptions}
+              value={
+                statusFilterOptions.find((option) => option.value === statusFilter) ||
+                statusFilterOptions[0]
+              }
               onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
               classNamePrefix="react-select"
             />
@@ -505,7 +463,7 @@ export default function ContractSection({ contracts, setContracts }) {
         defaultSortFieldId="startDate"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={1680}
+        minWidth={2200}
         noDataMessage="No contract agreements found"
         noDataHint="Try a different search term or status filter."
         ariaLabel="Customer contracts"

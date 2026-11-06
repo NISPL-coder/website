@@ -16,6 +16,12 @@ import {
 } from 'lucide-react';
 import { contractApi } from '../../../services/contractApi';
 import { generateContractPdf } from './utils/generateContractPdf';
+import {
+  contractStatusColor,
+  contractPersonEmail,
+  describeContractTerm,
+  normalizeContractStatus
+} from './contractVocabulary';
 
 export default function ViewContractModal({ contract, isOpen, onClose }) {
   useEffect(() => {
@@ -108,9 +114,10 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               </span>
             </div>
             <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
-              Account Holder: <strong>{contract.company || contract.customer || 'N/A'}</strong> • Type:{' '}
+              <strong>{contract.company || 'N/A'}</strong>
+              {contract.customer ? ` • Signed by ${contract.customer}` : ''} • Type:{' '}
               <span style={{ fontWeight: 600, color: '#0f172a' }}>
-                {contract.contractType || 'Subscription'} ({contract.subscriptionPeriod || '1 Year'})
+                {describeContractTerm(contract)}
               </span>
             </p>
           </div>
@@ -152,15 +159,19 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               style={{
                 fontSize: '0.92rem',
                 fontWeight: 700,
-                color: contract.status?.toLowerCase() === 'active' ? '#059669' : '#d97706',
+                color: contractStatusColor(contract.status),
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
                 marginTop: '4px'
               }}
             >
-              <CheckCircle2 size={13} />
-              {contract.status || 'Active'}
+              {normalizeContractStatus(contract.status) === 'In Progress' ? (
+                <CheckCircle2 size={13} />
+              ) : (
+                <Clock size={13} />
+              )}
+              {normalizeContractStatus(contract.status) || '—'}
             </span>
           </div>
 
@@ -190,7 +201,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               Service Scope & SLA Tier
             </label>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
-              {contract.service || `${contract.contractType || 'Subscription'} (${contract.subscriptionPeriod || '1 Year'})`}
+              {contract.service || describeContractTerm(contract)}
             </p>
             <span style={{ fontSize: '0.76rem', color: '#6366f1', fontWeight: 600 }}>
               {contract.slaTier || 'Tier-1 Priority NOC 99.99%'}
@@ -202,7 +213,16 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               Registered Contact Email
             </label>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
-              {contract.email || 'contracts@nispl.in'}
+              {contractPersonEmail(contract) || '—'}
+            </p>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
+              Order Date
+            </label>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
+              {contract.orderDate || 'Not recorded'}
             </p>
           </div>
 

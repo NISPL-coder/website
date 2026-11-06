@@ -29,6 +29,11 @@ import { customerApi } from '../../../services/customerApi';
 import { contractApi } from '../../../services/contractApi';
 import { notificationApi } from '../../../services/notificationApi';
 import { usePermissions } from './PermissionsContext';
+import {
+  contractStatusTone,
+  normalizeContractStatus,
+  normalizeContractType
+} from './contractVocabulary';
 import './AdminTools.css';
 
 /* ------------------------------------------------------------------ *
@@ -121,15 +126,17 @@ const CONTACT_FIELDS = [
  * the Sangam CRM Contract module fields
  * ------------------------------------------------------------------ */
 const CONTRACT_FIELDS = [
-  { key: 'contractId', label: 'Contract ID', required: false, aliases: ['contractid', 'contractcode', 'contractno', 'ctr'] },
-  { key: 'name', label: 'Contract Name', required: true, aliases: ['contractname', 'name', 'title', 'agreement', 'contracttitle'] },
-  { key: 'company', label: 'Account Name', required: false, aliases: ['accountname', 'company', 'organization', 'firm', 'client'] },
+  { key: 'contractId', label: 'Register Code', required: false, aliases: ['contractcode', 'contractno', 'ctr', 'registercode'] },
+  { key: 'name', label: 'Contract ID', required: true, aliases: ['contractid', 'contractname', 'name', 'title', 'agreement', 'contracttitle'] },
+  { key: 'company', label: 'Company Name', required: false, aliases: ['companyname', 'accountname', 'company', 'organization', 'firm', 'client'] },
+  { key: 'customer', label: 'Person', required: false, aliases: ['person', 'customer', 'contactperson', 'signatory', 'clientname', 'authorizedsignatory'] },
   { key: 'email', label: 'Email', required: false, aliases: ['email', 'emailaddress', 'contactemail', 'mail'] },
   { key: 'service', label: 'Service / Product', required: false, aliases: ['service', 'product', 'servicename', 'productname', 'plan'] },
   { key: 'contractType', label: 'Contract Type', required: false, aliases: ['contracttype', 'type', 'dealtype'] },
   { key: 'subscriptionPeriod', label: 'Duration', required: false, aliases: ['duration', 'subscriptionperiod', 'period', 'term', 'planduration', 'validity'] },
   { key: 'productCategory', label: 'Product Category', required: false, aliases: ['productcategory', 'category', 'subcategory', 'productssubcategory'] },
   { key: 'totalContractValue', label: 'Total Contract Value', required: true, aliases: ['totalcontractvalue', 'contractvalue', 'value', 'amount', 'tcv', 'totalvalue'] },
+  { key: 'orderDate', label: 'Order Date', required: false, aliases: ['orderdate', 'orderedon', 'bookingdate', 'purchasedate'] },
   { key: 'startDate', label: 'Start Date', required: true, aliases: ['startdate', 'start', 'commencementdate', 'fromdate'] },
   { key: 'endDate', label: 'End Date', required: true, aliases: ['enddate', 'end', 'expirydate', 'validupto', 'todate'] },
   { key: 'status', label: 'Status', required: false, aliases: ['status', 'contractstatus', 'dealstatus'] },
@@ -154,10 +161,10 @@ Guy,Miller,,9240490510,kevin.flatley@hotmail.com,Edwardo
 Abe,Sylvester,,9047571021,esta.labadie@rutherford.biz,Keven`;
 
 /* Column order follows CONTRACT_FIELDS; values containing commas are quoted. */
-const DEMO_CONTRACTS_CSV = `Contract Name,Account Name,Email,Service / Product,Contract Type,Duration,Product Category,Total Contract Value,Start Date,End Date,Status,Sales Person,SLA Tier,Description
-NISPL Cloud Services Agreement,Northgate Textiles Pvt Ltd,billing@northgate.com,Tally Prime Cloud + VPS Gold,Subscription,1 Year,Software,"₹1,85,000",01-04-2026,31-03-2027,Active,Sourav Mukherjee,Tier-1 Priority NOC 99.99%,Managed Tally Prime hosting with daily backups
-AMC Support Contract,Mahadev Logistics,accounts@mahadevlogistics.com,Tally AMC & Remote Support,AMC,12 Months,Service,"₹60,000",15-04-2026,14-04-2027,Active,Nilmoni Ghosal,Tier-2 Business Hours NOC 99.9%,Annual maintenance and licence care
-Trial Proof Of Concept,Kaveri Foods,private@kaverifoods.com,Tally Prime Cloud Trial,Trial,1 Month,Software,0,20-10-2026,19-11-2026,NotStarted,Online Customer Portal,Tier-3 Standard NOC 99.5%,Evaluation of the cloud setup before purchase`;
+const DEMO_CONTRACTS_CSV = `Contract ID,Company Name,Person,Email,Service / Product,Contract Type,Duration,Product Category,Total Contract Value,Order Date,Start Date,End Date,Status,Sales Person,SLA Tier,Description
+NISPL Cloud Services Agreement,Northgate Textiles Pvt Ltd,Priya Nair,billing@northgate.com,Tally Prime Cloud + VPS Gold,Comprehensive,1 Year,Service,"₹1,85,000",12-03-2026,01-04-2026,31-03-2027,In Progress,Sourav Mukherjee,Tier-1 Priority NOC 99.99%,Managed Tally Prime hosting with daily backups
+AMC Support Contract,Mahadev Logistics,Anil Ghosh,accounts@mahadevlogistics.com,Tally AMC & Remote Support,AMC,12 Months,Service,"₹60,000",02-04-2026,15-04-2026,14-04-2027,In Progress,Nilmoni Ghosal,Tier-2 Business Hours NOC 99.9%,Annual maintenance and licence care
+Trial Proof Of Concept,Kaveri Foods,Rina Das,private@kaverifoods.com,Tally Prime Cloud Trial,SHARED,1 Month,Software,0,10-10-2026,20-10-2026,19-11-2026,DEMO,Online Customer Portal,Tier-3 Standard NOC 99.5%,Evaluation of the cloud setup before purchase`;
 
 export default function ImportCsvPage({ setCustomers }) {
   const { can } = usePermissions();
@@ -1371,11 +1378,11 @@ export default function ImportCsvPage({ setCustomers }) {
                   </p>
 
                   <div className="adm-import-chip-list">
-                    <span className="adm-import-col-chip required">Contract Name *</span>
+                    <span className="adm-import-col-chip required">Contract ID *</span>
                     <span className="adm-import-col-chip required">Total Contract Value *</span>
                     <span className="adm-import-col-chip required">Start Date *</span>
                     <span className="adm-import-col-chip required">End Date *</span>
-                    <span className="adm-import-col-chip">Contract ID</span>
+                    <span className="adm-import-col-chip">Register Code</span>
                     <span className="adm-import-col-chip">Account Name</span>
                     <span className="adm-import-col-chip">Email</span>
                     <span className="adm-import-col-chip">Service / Product</span>
@@ -1496,8 +1503,9 @@ export default function ImportCsvPage({ setCustomers }) {
                   <thead>
                     <tr>
                       <th style={{ width: '60px', textAlign: 'center' }}>S/No.</th>
-                      <th>Contract Name</th>
-                      <th>Account</th>
+                      <th>Contract ID</th>
+                      <th>Company Name</th>
+                      <th>Person</th>
                       <th>Service / Product</th>
                       <th>Type</th>
                       <th>Duration</th>
@@ -1513,24 +1521,17 @@ export default function ImportCsvPage({ setCustomers }) {
                         <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{idx + 1}</td>
                         <td style={{ fontWeight: 700, color: '#0f172a' }}>{rec.name}</td>
                         <td>{rec.company || <span style={{ color: '#94a3b8' }}>— Auto Link —</span>}</td>
+                        <td>{rec.customer || <span style={{ color: '#94a3b8' }}>—</span>}</td>
                         <td style={{ color: '#475569' }}>{rec.service || '—'}</td>
-                        <td>{rec.contractType || 'Subscription'}</td>
+                        <td>{normalizeContractType(rec.contractType) || '—'}</td>
                         <td>{rec.subscriptionPeriod || '—'}</td>
                         <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{rec.totalContractValue || '—'}</td>
                         <td style={{ fontSize: '0.76rem' }}>
                           {[rec.startDate, rec.endDate].filter(Boolean).join(' → ') || '—'}
                         </td>
                         <td>
-                          <span
-                            className={`adm-status-pill ${
-                              ['inactive', 'expired', 'closed'].includes((rec.status || '').toLowerCase())
-                                ? 'inactive'
-                                : ['notstarted', 'pending', 'draft'].includes((rec.status || '').toLowerCase())
-                                  ? 'pending'
-                                  : 'active'
-                            }`}
-                          >
-                            {rec.status || 'Active'}
+                          <span className={`adm-status-pill ${contractStatusTone(rec.status)}`}>
+                            {normalizeContractStatus(rec.status) || '—'}
                           </span>
                         </td>
                         <td>{rec.salesPerson || '—'}</td>
@@ -1573,8 +1574,8 @@ export default function ImportCsvPage({ setCustomers }) {
                   <thead>
                     <tr>
                       <th style={{ width: '60px', textAlign: 'center' }}>Row</th>
+                      <th>Register Code</th>
                       <th>Contract ID</th>
-                      <th>Contract Name</th>
                       <th>Account</th>
                       <th>Register</th>
                       <th>Sangam CRM</th>

@@ -1,6 +1,6 @@
 import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
-import Contract from '../models/Contract.js';
+import Contract, { getContractsFromFile } from '../models/Contract.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
@@ -47,6 +47,45 @@ export const computeCustomerStats = (customerList = []) => {
       inactivePaused: 'Expired / pending renewals'
     }
   };
+};
+
+/**
+ * How many orders an account has placed. The contract register is the order
+ * book — one agreement per sold subscription — so the count is read from it on
+ * every listing instead of stored, and a closed or deleted deal cannot leave a
+ * stale number behind. Matching is on the company name, falling back to the
+ * email when the deal was raised without one.
+ */
+const attachOrderCounts = async (list) => {
+  if (!Array.isArray(list) || list.length === 0) return list;
+
+  let orders = [];
+  try {
+    if (isMongoConnected()) {
+      orders = await Contract.find().select('company email').lean();
+    } else {
+      orders = getContractsFromFile();
+    }
+  } catch (err) {
+    console.warn('[CustomerController] Order count lookup failed:', err.message);
+    return list;
+  }
+
+  const byCompany = new Map();
+  const byEmail = new Map();
+  orders.forEach((order) => {
+    const company = String(order.company || '').trim().toLowerCase();
+    const email = String(order.email || '').trim().toLowerCase();
+    if (company) byCompany.set(company, (byCompany.get(company) || 0) + 1);
+    if (email) byEmail.set(email, (byEmail.get(email) || 0) + 1);
+  });
+
+  return list.map((customer) => {
+    const company = String(customer.company || '').trim().toLowerCase();
+    const email = String(customer.email || '').trim().toLowerCase();
+    const count = byCompany.get(company) ?? byEmail.get(email) ?? 0;
+    return { ...customer, orderCount: count };
+  });
 };
 
 /**
@@ -138,8 +177,9 @@ export const getCustomers = async (req, res) => {
       };
     });
 
-    const stats = computeCustomerStats(formatted);
-    const visible = redactRecords(req.user, 'customer', formatted);
+    const counted = await attachOrderCounts(formatted);
+    const stats = computeCustomerStats(counted);
+    const visible = redactRecords(req.user, 'customer', counted);
 
     return res.status(200).json({
       success: true,
@@ -151,11 +191,11 @@ export const getCustomers = async (req, res) => {
   } catch (err) {
     console.error('[CustomerController] getCustomers error:', err.message);
     const fileList = getCustomersFromFile();
-    const formattedFile = fileList.map((c) => ({
+    const formattedFile = await attachOrderCounts(fileList.map((c) => ({
       ...c,
       id: c.customerId || c._id || c.id,
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
-    }));
+    })));
     const stats = computeCustomerStats(formattedFile);
     const visibleFile = redactRecords(req.user, 'customer', formattedFile);
     return res.status(200).json({
@@ -175,6 +215,9 @@ export const createCustomer = async (req, res) => {
   try {
     const {
       name,
+      firstName,
+      lastName,
+      designation,
       company,
       email,
       phone,
@@ -187,11 +230,15 @@ export const createCustomer = async (req, res) => {
       status,
       mrr,
       address,
-      gstNo
+      gstNo,
+      tallySerialNo
     } = req.body;
 
+    const fullName = String(name || '').trim() ||
+      [firstName, lastName].map((part) => String(part || '').trim()).filter(Boolean).join(' ');
+
     // 1. Mandatory field validation
-    if (!name || !name.trim()) {
+    if (!fullName) {
       return res.status(400).json({ success: false, error: 'Contact person or company name is required.' });
     }
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -203,7 +250,7 @@ export const createCustomer = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Phone number is required.' });
     }
 
-    const companyName = (company || name).trim();
+    const companyName = (company || fullName).trim();
     const city = address?.city || 'Kolkata';
     const state = address?.state || 'West Bengal';
     const cityLoc = `${city}, ${state}`;
@@ -240,7 +287,10 @@ export const createCustomer = async (req, res) => {
     const newCustomerData = {
       customerId,
       id: customerId,
-      name: name.trim(),
+      name: fullName,
+      firstName: String(firstName || '').trim(),
+      lastName: String(lastName || '').trim(),
+      designation: String(designation || '').trim(),
       company: companyName,
       email: cleanEmail,
       loginEmail: cleanEmail,
@@ -263,9 +313,12 @@ export const createCustomer = async (req, res) => {
         state: state,
         country: address?.country || 'India',
         postalCode: address?.postalCode || '',
-        addressType: address?.addressType || 'Office / Billing'
+        // Nothing is typed on the create form any more, so the register stores
+        // what was sent instead of claiming an office/billing address.
+        addressType: address?.addressType || ''
       },
       gstNo: (gstNo || '').trim().toUpperCase(),
+      tallySerialNo: (tallySerialNo || '').trim(),
       sangamCrm: {
         status: 'pending',
         recordId: null,
@@ -280,6 +333,10 @@ export const createCustomer = async (req, res) => {
       const doc = new Customer(newCustomerData);
       await doc.save();
       savedCustomer = doc.toJSON();
+    } else {
+      // Only Mongoose stamps the dates for us; the register has to do it itself.
+      const stamp = new Date().toISOString();
+      savedCustomer = { ...savedCustomer, createdAt: stamp, updatedAt: stamp };
     }
     const currentFiles = getCustomersFromFile();
     saveCustomersToFile([savedCustomer, ...currentFiles]);
@@ -323,7 +380,7 @@ export const createCustomer = async (req, res) => {
         const existingUser = await User.findOne({ email: cleanEmail });
         if (!existingUser) {
           await User.create({
-            name: name.trim(),
+            name: fullName,
             email: cleanEmail,
             password: rawPassword,
             portalPassword: rawPassword,
@@ -332,7 +389,7 @@ export const createCustomer = async (req, res) => {
             accountStatus: status || 'active'
           });
         } else {
-          existingUser.name = name.trim();
+          existingUser.name = fullName;
           existingUser.customerId = customerId;
           existingUser.portalPassword = rawPassword;
           if (req.body.password) existingUser.password = rawPassword;
@@ -493,6 +550,9 @@ export const updateCustomer = async (req, res) => {
 
     const {
       name,
+      firstName,
+      lastName,
+      designation,
       company,
       email,
       phone,
@@ -505,12 +565,21 @@ export const updateCustomer = async (req, res) => {
       status,
       mrr,
       address,
-      gstNo
+      gstNo,
+      tallySerialNo
     } = req.body;
 
+    // The register keeps one display name, so an edit that only touches the
+    // two halves still leaves a readable name behind.
+    const joinedName = String(name || '').trim() ||
+      [firstName, lastName].map((part) => String(part || '').trim()).filter(Boolean).join(' ');
+
     const updatedData = {
-      ...(name && { name: name.trim() }),
-      ...((company || name) && { company: (company || name).trim() }),
+      ...(joinedName && { name: joinedName }),
+      ...(firstName !== undefined && { firstName: String(firstName).trim() }),
+      ...(lastName !== undefined && { lastName: String(lastName).trim() }),
+      ...(designation !== undefined && { designation: String(designation).trim() }),
+      ...((company || joinedName) && { company: (company || joinedName).trim() }),
       ...(email && { email: email.trim().toLowerCase() }),
       ...(phone && { phone: phone.trim() }),
       ...(alternatePhone !== undefined && { alternatePhone: alternatePhone.trim() }),
@@ -522,7 +591,8 @@ export const updateCustomer = async (req, res) => {
       ...(status && { status }),
       ...(mrr && { mrr }),
       ...(address && { address }),
-      ...(gstNo !== undefined && { gstNo: gstNo.trim().toUpperCase() })
+      ...(gstNo !== undefined && { gstNo: gstNo.trim().toUpperCase() }),
+      ...(tallySerialNo !== undefined && { tallySerialNo: String(tallySerialNo).trim() })
     };
 
     let savedCustomer = null;
@@ -532,7 +602,7 @@ export const updateCustomer = async (req, res) => {
       const fileList = getCustomersFromFile();
       const idx = fileList.findIndex((c) => c.customerId === id || c.id === id || c._id === id);
       if (idx !== -1) {
-        fileList[idx] = { ...fileList[idx], ...updatedData };
+        fileList[idx] = { ...fileList[idx], ...updatedData, updatedAt: new Date().toISOString() };
         saveCustomersToFile(fileList);
         savedCustomer = fileList[idx];
       }

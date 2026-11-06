@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
+import { normalizeContractStatus } from '../utils/contractVocabulary.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -77,8 +78,7 @@ export const getDashboardOverview = async (req, res) => {
     }, 0);
 
     const activeContractsCount = contracts.filter((c) => {
-      const s = (c.status || '').toLowerCase();
-      return s === 'active' || s === 'signed';
+      return normalizeContractStatus(c.status) === 'In Progress';
     }).length;
 
     // Annual Recurring Revenue: Annualized MRR + Total Contract Commitments

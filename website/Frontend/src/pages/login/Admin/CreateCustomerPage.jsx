@@ -21,14 +21,6 @@ import {
 import { customSelectStyles } from './reactSelectStyles';
 import { customerApi } from '../../../services/customerApi';
 
-const ADDRESS_TYPE_OPTIONS = [
-  { value: 'Office / Billing', label: 'Office / Billing Address' },
-  { value: 'Corporate HQ', label: 'Corporate Headquarters' },
-  { value: 'Branch Office', label: 'Branch / Regional Office' },
-  { value: 'Datacenter Node', label: 'Datacenter / Hypervisor Node' },
-  { value: 'Registered Legal', label: 'Registered Legal Entity' }
-];
-
 export default function CreateCustomerPage({ customers, setCustomers }) {
   const navigate = useNavigate();
 
@@ -40,11 +32,14 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
   // Contact & Address Details
   const [formState, setFormState] = useState({
-    name: '',
-    company: '',
+    firstName: '',
+    lastName: '',
+    designation: '',
     email: '',
     phone: '',
-    addressType: 'Office / Billing',
+    company: '',
+    gstNo: '',
+    tallySerialNo: '',
     street: '',
     area: '',
     postalCode: ''
@@ -116,8 +111,16 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formState.name.trim()) {
-      toast.error('Please enter the customer name.');
+
+    // The register keeps one display name for the person, so the two halves are
+    // joined before they leave the form; the halves are stored alongside it.
+    const fullName = [formState.firstName, formState.lastName]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(' ');
+
+    if (!fullName) {
+      toast.error('Please enter the first name.');
       return;
     }
     if (!formState.company.trim()) {
@@ -139,7 +142,6 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
     const cityLoc = `${effectiveCity}, ${selectedState}`;
     const addressParts = [
-      formState.addressType,
       formState.street,
       formState.area,
       effectiveCity,
@@ -149,10 +151,15 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
     ].filter(Boolean).join(', ');
 
     const customerPayload = {
-      name: formState.name.trim(),
-      company: formState.company.trim() || formState.name.trim(),
+      name: fullName,
+      firstName: formState.firstName.trim(),
+      lastName: formState.lastName.trim(),
+      designation: formState.designation.trim(),
+      company: formState.company.trim(),
       email: formState.email.trim(),
       phone: formState.phone.trim(),
+      gstNo: formState.gstNo.trim(),
+      tallySerialNo: formState.tallySerialNo.trim(),
       city: cityLoc,
       address: {
         street: formState.street || '',
@@ -160,8 +167,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         city: effectiveCity,
         state: selectedState,
         country: selectedCountry,
-        postalCode: formState.postalCode || '',
-        addressType: formState.addressType
+        postalCode: formState.postalCode || ''
       },
       plan: 'Tally Prime Cloud + VPS Gold',
       serverNode: 'CtrlS-KOL-NODE-01',
@@ -225,10 +231,15 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       const fallbackCustomer = {
         id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
         customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: formState.name.trim(),
-        company: formState.name.trim(),
+        name: fullName,
+        firstName: formState.firstName.trim(),
+        lastName: formState.lastName.trim(),
+        designation: formState.designation.trim(),
+        company: customerPayload.company,
         email: formState.email.trim(),
         phone: formState.phone.trim(),
+        gstNo: formState.gstNo.trim(),
+        tallySerialNo: formState.tallySerialNo.trim(),
         city: cityLoc,
         address: addressParts || cityLoc,
         country: selectedCountry,
@@ -339,31 +350,39 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
             </div>
 
             <div className="adm-form-grid">
-              <div className="adm-form-field full-width">
+              <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Name <span className="adm-required-star">*</span>
+                  First Name <span className="adm-required-star">*</span>
                 </label>
                 <input
                   type="text"
                   className="adm-form-input"
-                  placeholder="Enter your name"
-                  value={formState.name}
-                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  placeholder="Enter the first name"
+                  value={formState.firstName}
+                  onChange={(e) => setFormState({ ...formState, firstName: e.target.value })}
                   required
                 />
               </div>
 
-              <div className="adm-form-field full-width">
-                <label className="adm-form-label">
-                  Company Name <span className="adm-required-star">*</span>
-                </label>
+              <div className="adm-form-field">
+                <label className="adm-form-label">Last Name</label>
                 <input
                   type="text"
                   className="adm-form-input"
-                  placeholder="Enter company / firm name"
-                  value={formState.company}
-                  onChange={(e) => setFormState({ ...formState, company: e.target.value })}
-                  required
+                  placeholder="Enter the last name"
+                  value={formState.lastName}
+                  onChange={(e) => setFormState({ ...formState, lastName: e.target.value })}
+                />
+              </div>
+
+              <div className="adm-form-field">
+                <label className="adm-form-label">Designation</label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  placeholder="e.g. Finance Manager"
+                  value={formState.designation}
+                  onChange={(e) => setFormState({ ...formState, designation: e.target.value })}
                 />
               </div>
 
@@ -383,7 +402,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Phone <span className="adm-required-star">*</span>
+                  Phone No. <span className="adm-required-star">*</span>
                 </label>
                 <input
                   type="tel"
@@ -392,6 +411,42 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
                   value={formState.phone}
                   onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
                   required
+                />
+              </div>
+
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Company Name <span className="adm-required-star">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  placeholder="Enter company / firm name"
+                  value={formState.company}
+                  onChange={(e) => setFormState({ ...formState, company: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="adm-form-field">
+                <label className="adm-form-label">GSTIN</label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  placeholder="Enter the GSTIN"
+                  value={formState.gstNo}
+                  onChange={(e) => setFormState({ ...formState, gstNo: e.target.value })}
+                />
+              </div>
+
+              <div className="adm-form-field">
+                <label className="adm-form-label">Tally SL No.</label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  placeholder="Enter the Tally serial number"
+                  value={formState.tallySerialNo}
+                  onChange={(e) => setFormState({ ...formState, tallySerialNo: e.target.value })}
                 />
               </div>
             </div>
@@ -504,24 +559,6 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
                   placeholder="Enter your area"
                   value={formState.area}
                   onChange={(e) => setFormState({ ...formState, area: e.target.value })}
-                />
-              </div>
-
-              {/* Address Type with React Select */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">Address Type</label>
-                <Select
-                  styles={customSelectStyles}
-                  isSearchable={false}
-                  options={ADDRESS_TYPE_OPTIONS}
-                  value={
-                    ADDRESS_TYPE_OPTIONS.find((t) => t.value === formState.addressType) ||
-                    ADDRESS_TYPE_OPTIONS[0]
-                  }
-                  onChange={(opt) =>
-                    setFormState({ ...formState, addressType: opt?.value || 'Office / Billing' })
-                  }
-                  classNamePrefix="react-select"
                 />
               </div>
             </div>

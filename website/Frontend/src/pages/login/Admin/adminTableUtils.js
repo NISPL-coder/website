@@ -73,6 +73,23 @@ export function parseDateValue(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
 }
 
+/**
+ * A register stamp printed for a table cell. A value the record never carried
+ * shows a dash instead of "Invalid Date".
+ */
+export function formatStamp(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 /** True when a row date falls inside the inclusive [from, to] range. */
 export function isWithinDateRange(value, from, to) {
   if (!from && !to) return true;

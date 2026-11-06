@@ -4,10 +4,13 @@ import { createPortal } from 'react-dom';
 import { X, Check, Save, FileText, Layers, Calendar, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { contractApi } from '../../../services/contractApi';
-
-const STATUS_OPTIONS = ['Active', 'NotStarted', 'Inactive'];
-const PERIOD_OPTIONS = ['1 Month', '3 Months', '6 Months', '1 Year', '2 Years', '3 Years'];
-const TYPE_OPTIONS = ['Subscription', 'AMC'];
+import {
+  CONTRACT_STATUSES,
+  CONTRACT_TYPES,
+  normalizeContractStatus,
+  normalizeContractType,
+  contractPersonEmail
+} from './contractVocabulary';
 
 export default function EditContractModal({ contract, isOpen, onClose, onUpdated }) {
   const [formData, setFormData] = useState({
@@ -15,12 +18,12 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
     company: '',
     customer: '',
     email: '',
-    contractType: 'Subscription',
-    subscriptionPeriod: '1 Year',
+    contractType: 'Comprehensive',
+    orderDate: '',
     totalContractValue: '',
     startDate: '',
     endDate: '',
-    status: 'Active',
+    status: 'In Progress',
     slaTier: 'Tier-1 Priority NOC 99.99%',
     description: ''
   });
@@ -30,15 +33,15 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
     if (contract) {
       setFormData({
         name: contract.name || '',
-        company: contract.company || contract.customer || '',
-        customer: contract.customer || contract.company || '',
-        email: contract.email || 'contracts@nispl.in',
-        contractType: contract.contractType || 'Subscription',
-        subscriptionPeriod: contract.subscriptionPeriod || '1 Year',
+        company: contract.company || '',
+        customer: contract.customer || '',
+        email: contractPersonEmail(contract),
+        contractType: normalizeContractType(contract.contractType) || 'Comprehensive',
+        orderDate: contract.orderDate || '',
         totalContractValue: contract.totalContractValue || contract.value || '',
         startDate: contract.startDate || '',
         endDate: contract.endDate || contract.expiryDate || '',
-        status: contract.status || 'Active',
+        status: normalizeContractStatus(contract.status) || 'In Progress',
         slaTier: contract.slaTier || 'Tier-1 Priority NOC 99.99%',
         description: contract.description || ''
       });
@@ -63,10 +66,15 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
 
   if (!isOpen || !contract) return null;
 
+  // A row raised under the previous vocabulary stays listed while it is being
+  // edited, so opening the modal cannot silently rewrite its type or status.
+  const statusChoices = Array.from(new Set([...CONTRACT_STATUSES, formData.status].filter(Boolean)));
+  const typeChoices = Array.from(new Set([...CONTRACT_TYPES, formData.contractType].filter(Boolean)));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      toast.error('Please enter the contract name.');
+      toast.error('Please enter the contract ID.');
       return;
     }
 
@@ -186,9 +194,9 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
         {/* Form */}
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Contract Name */}
+            {/* Contract ID */}
             <div>
-              <label className="adm-form-label">Contract Name / Title *</label>
+              <label className="adm-form-label">Contract ID *</label>
               <input
                 type="text"
                 className="adm-form-input"
@@ -198,15 +206,26 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
               />
             </div>
 
-            {/* Account / Company & Contact Email */}
+            {/* Person, Company & Contact Email */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
-                <label className="adm-form-label">Client / Account Name *</label>
+                <label className="adm-form-label">Person *</label>
+                <input
+                  type="text"
+                  className="adm-form-input"
+                  value={formData.customer}
+                  onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="adm-form-label">Company Name *</label>
                 <input
                   type="text"
                   className="adm-form-input"
                   value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value, customer: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   required
                 />
               </div>
@@ -222,7 +241,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
               </div>
             </div>
 
-            {/* Contract Type, Subscription Period, Total Value */}
+            {/* Contract Type, Order Date, Total Value */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Contract Type</label>
@@ -231,23 +250,20 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   value={formData.contractType}
                   onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
                 >
-                  {TYPE_OPTIONS.map((t) => (
+                  {typeChoices.map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="adm-form-label">Subscription Period</label>
-                <select
+                <label className="adm-form-label">Order Date</label>
+                <input
+                  type="date"
                   className="adm-form-input"
-                  value={formData.subscriptionPeriod}
-                  onChange={(e) => setFormData({ ...formData, subscriptionPeriod: e.target.value })}
-                >
-                  {PERIOD_OPTIONS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
+                  value={formData.orderDate}
+                  onChange={(e) => setFormData({ ...formData, orderDate: e.target.value })}
+                />
               </div>
 
               <div>
@@ -294,7 +310,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 >
-                  {STATUS_OPTIONS.map((s) => (
+                  {statusChoices.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

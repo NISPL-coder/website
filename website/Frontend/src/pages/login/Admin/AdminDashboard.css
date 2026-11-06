@@ -2545,7 +2545,8 @@ input:checked + .adm-slider:before {
   flex-direction: column;
   gap: 24px;
   margin: 0 auto;
-  padding: 8px 0 40px;
+  padding: 8px 0 60px;
+  min-height: calc(100vh - 120px);
 }
 
 .adm-create-page-header {
@@ -2643,12 +2644,14 @@ input:checked + .adm-slider:before {
   line-height: 1.5;
 }
 
-.adm-form-card {
+.adm-form-card,
+.adm-table-card.adm-form-card {
   background: #ffffff;
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-radius-xl);
   padding: 34px 38px;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  overflow: visible !important;
 }
 
 .adm-form-section {
@@ -2660,7 +2663,17 @@ input:checked + .adm-slider:before {
 .adm-form-section:last-of-type {
   border-bottom: none;
   margin-bottom: 0;
-  padding-bottom: 6px;
+  padding-bottom: 32px;
+}
+
+/* Dedicated styling for create contract form to increase section length so dropdowns open with full clearance */
+.adm-create-contract-card {
+  min-height: 520px;
+}
+
+.adm-create-contract-section {
+  min-height: 380px;
+  padding-bottom: 140px !important;
 }
 
 .adm-form-section-title {

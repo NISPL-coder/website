@@ -1,5 +1,19 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  contractStatusColor,
+  contractPersonEmail,
+  describeContractTerm,
+  normalizeContractStatus,
+  normalizeContractType
+} from '../contractVocabulary';
+
+// jsPDF takes channels, the vocabulary keeps one hex string per status.
+const toRgb = (hex) => [
+  parseInt(hex.slice(1, 3), 16),
+  parseInt(hex.slice(3, 5), 16),
+  parseInt(hex.slice(5, 7), 16)
+];
 
 /**
  * Generate and download professional Contract Agreement & SLA PDF
@@ -68,8 +82,8 @@ export function generateContractPdf(contract) {
   doc.setTextColor(...mutedTextColor);
   doc.text('Term Status:', 122, 35);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(5, 150, 105);
-  doc.text(`${String(contract.status || 'Active').toUpperCase()}`, 150, 35);
+  doc.setTextColor(...toRgb(contractStatusColor(contract.status)));
+  doc.text(normalizeContractStatus(contract.status).toUpperCase() || 'Not recorded', 150, 35);
 
   // Divider Line
   doc.setDrawColor(...borderColor);
@@ -95,17 +109,17 @@ export function generateContractPdf(contract) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...mutedTextColor);
-  doc.text(`Account Entity:`, 18, 69);
+  doc.text(`Company:`, 18, 69);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkTextColor);
-  doc.text(`${contract.company || contract.customer || 'N/A'}`, 43, 69);
+  doc.text(`${contract.company || 'N/A'}`, 43, 69);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedTextColor);
   doc.text(`Contact Email:`, 18, 75);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkTextColor);
-  doc.text(`${contract.email || 'contracts@nispl.in'}`, 43, 75);
+  doc.text(`${contractPersonEmail(contract) || 'Not recorded'}`, 43, 75);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedTextColor);
@@ -116,10 +130,10 @@ export function generateContractPdf(contract) {
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...mutedTextColor);
-  doc.text(`Duration:`, 110, 75);
+  doc.text(`Signed by:`, 110, 75);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkTextColor);
-  doc.text(`${contract.subscriptionPeriod || '1 Year'} (${contract.contractType || 'Subscription'})`, 135, 75);
+  doc.text(`${contract.customer || 'N/A'}`, 135, 75);
 
   // 5. Contract Specification Table
   autoTable(doc, {
@@ -140,15 +154,17 @@ export function generateContractPdf(contract) {
     },
     head: [['Agreement Term', 'SLA Specification & Provisioning']],
     body: [
-      ['Contract Name / Title', contract.name || 'NISPL Cloud Services Agreement'],
-      ['Client Account / Company', contract.company || contract.customer || 'N/A'],
-      ['Contract Type', contract.contractType || 'Subscription'],
-      ['Subscription Period', contract.subscriptionPeriod || '1 Year'],
-      ['Product / Service Category', contract.productCategory || 'Software'],
-      ['Service Scope & SLA Tier', contract.service || `${contract.contractType} (${contract.subscriptionPeriod})`],
+      ['Contract ID', contract.name || 'NISPL Cloud Services Agreement'],
+      ['Company Name', contract.company || 'N/A'],
+      ['Person', contract.customer || 'N/A'],
+      ['Contract Type', normalizeContractType(contract.contractType) || 'Not recorded'],
+      ['Duration', contract.subscriptionPeriod || 'Not recorded'],
+      ['Order Date', contract.orderDate || 'Not recorded'],
+      ['Product / Service Category', contract.productCategory || 'Not recorded'],
+      ['Service Scope & SLA Tier', contract.service || describeContractTerm(contract)],
       ['SLA Performance Tier', contract.slaTier || 'Tier-1 Priority NOC 99.99%'],
       ['Total Contract Value', contract.totalContractValue || contract.value || 'N/A'],
-      ['Billing Term Rate', contract.value || `${contract.totalContractValue} / ${contract.subscriptionPeriod}`],
+      ['Billing Term Rate', contract.value || 'Not recorded'],
       ['Effective Start Date', contract.startDate || 'N/A'],
       ['Contract Expiry Date', contract.endDate || contract.expiryDate || 'N/A'],
       ['Sangam CRM Sync Status', (contract.sangamCrm?.status || 'pending').toUpperCase()],

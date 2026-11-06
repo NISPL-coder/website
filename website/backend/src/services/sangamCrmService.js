@@ -1,4 +1,5 @@
 import { env } from '../config/env.js';
+import { normalizeContractStatus } from '../utils/contractVocabulary.js';
 
 /**
  * Sangam CRM API Integration Service
@@ -117,31 +118,40 @@ class SangamCrmService {
    * Format contract data into exact supported Sangam CRM Contract fields
    */
   mapContractData(contract) {
+    // The console labels this value "Contract ID"; Sangam's Contract module
+    // calls the same field the contract name, so it travels unchanged.
     const contractName = contract.name || contract.contractName || 'NISPL Cloud Services Agreement';
 
-    // Status normalization: 'Active', 'InActive', 'NotStarted'
-    let status = 'Active';
-    const rawStatus = (contract.status || '').toLowerCase();
-    if (rawStatus === 'active') {
-      status = 'Active';
-    } else if (rawStatus === 'inactive' || rawStatus === 'closed' || rawStatus === 'expired') {
-      status = 'InActive';
-    } else if (rawStatus === 'draft' || rawStatus === 'in_progress' || rawStatus === 'pending' || rawStatus === 'notstarted') {
-      status = 'NotStarted';
-    }
+    // Sangam keeps three states; the console's five collapse onto them.
+    const CRM_STATUS = {
+      'In Progress': 'Active',
+      'Not Started': 'NotStarted',
+      DEMO: 'NotStarted',
+      Closed: 'InActive',
+      DISABLED: 'InActive'
+    };
+    const status = CRM_STATUS[normalizeContractStatus(contract.status)] || 'Active';
 
-    // Subscription Period mapping: '1', '2', '3', '6', '12', '24', '36'
-    let subPeriod = '12';
-    const rawPeriod = String(contract.subscriptionPeriod || contract.period || '').toLowerCase();
-    if (rawPeriod.includes('1 month') || rawPeriod === '1') subPeriod = '1';
-    else if (rawPeriod.includes('2 month') || rawPeriod === '2') subPeriod = '2';
-    else if (rawPeriod.includes('3 month') || rawPeriod === '3') subPeriod = '3';
-    else if (rawPeriod.includes('6 month') || rawPeriod === '6') subPeriod = '6';
-    else if (rawPeriod.includes('1 year') || rawPeriod.includes('12 month') || rawPeriod === '12') subPeriod = '12';
-    else if (rawPeriod.includes('2 year') || rawPeriod.includes('24 month') || rawPeriod === '24') subPeriod = '24';
-    else if (rawPeriod.includes('3 year') || rawPeriod.includes('36 month') || rawPeriod === '36') subPeriod = '36';
+    // Subscription Period mapping: '1', '2', '3', '6', '12', '24', '36'.
+    // The term is read as a count of months so that '1 Year' and '12 Months'
+    // cannot land in different buckets, and a length Sangam has no bucket for
+    // keeps the previous twelve-month default rather than a mis-parsed one.
+    const rawPeriod = String(contract.subscriptionPeriod || contract.period || '').trim().toLowerCase();
+    const periodCount = parseInt(rawPeriod, 10);
+    const periodMonths =
+      Number.isFinite(periodCount) && periodCount > 0
+        ? rawPeriod.includes('year')
+          ? periodCount * 12
+          : periodCount
+        : null;
+    const subPeriod =
+      periodMonths && ['1', '2', '3', '6', '12', '24', '36'].includes(String(periodMonths))
+        ? String(periodMonths)
+        : '12';
 
-    // Contract Type: 'Subscription' or 'AMC'
+    // Contract Type: Sangam only distinguishes a recurring subscription from a
+    // maintenance contract, so every commercial shape the console sells —
+    // comprehensive, rental, shared or dedicated — is a subscription there.
     let contractType = 'Subscription';
     if (String(contract.contractType || '').toUpperCase() === 'AMC') {
       contractType = 'AMC';

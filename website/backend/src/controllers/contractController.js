@@ -4,6 +4,13 @@ import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
+import {
+  CONTRACT_STATUSES,
+  normalizeContractStatus,
+  normalizeContractType,
+  contractTypeCategory,
+  periodFromDates
+} from '../utils/contractVocabulary.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -42,7 +49,9 @@ export const getContracts = async (req, res) => {
       list = getContractsFromFile();
     }
 
-    const formatted = redactRecords(req.user, 'contract', list.map((c) => ({
+    const withContacts = await attachCustomerContacts(list);
+
+    const formatted = redactRecords(req.user, 'contract', withContacts.map((c) => ({
       ...c,
       id: c.contractId || c._id || c.id,
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
@@ -82,6 +91,7 @@ export const createContract = async (req, res) => {
       productCategory,
       totalContractValue,
       value,
+      orderDate,
       startDate,
       endDate,
       status,
@@ -93,7 +103,7 @@ export const createContract = async (req, res) => {
 
     // 1. Mandatory field validation
     if (!name || !name.trim()) {
-      return res.status(400).json({ success: false, error: 'Contract name is required.' });
+      return res.status(400).json({ success: false, error: 'Contract ID is required.' });
     }
     if (!startDate) {
       return res.status(400).json({ success: false, error: 'Start date is required.' });
@@ -108,10 +118,17 @@ export const createContract = async (req, res) => {
     const cleanName = name.trim();
     const effectiveCustomer = (accountName || customer || company || cleanName).trim();
     const effectiveCompany = (company || accountName || effectiveCustomer).trim();
-    const effectiveEmail = (email || 'contracts@nispl.in').trim();
-    const effectiveContractType = contractType === 'AMC' ? 'AMC' : 'Subscription';
-    const effectiveSubPeriod = subscriptionPeriod || '1 Year';
-    const effectiveCategory = productCategory || (effectiveContractType === 'AMC' ? 'Service' : 'Software');
+    const requestedEmail = String(email || '').trim();
+    // Anything the console no longer recognises keeps the historical meaning it
+    // had before this vocabulary existed, so sheets and the trial flow still land
+    // on a readable row.
+    const effectiveContractType = normalizeContractType(contractType) || 'Subscription';
+    const effectiveStatus = normalizeContractStatus(status) || 'In Progress';
+    // The term is read off the validity dates rather than typed beside them.
+    const effectiveSubPeriod =
+      String(subscriptionPeriod || '').trim() || periodFromDates(startDate, endDate) || '1 Year';
+    const effectiveCategory =
+      productCategory || contractTypeCategory(effectiveContractType);
 
     const rawVal = String(totalContractValue || value).trim();
     const formattedVal = rawVal.startsWith('₹') ? rawVal : `₹${rawVal}`;
@@ -175,6 +192,12 @@ export const createContract = async (req, res) => {
       console.warn('[ContractController] Error resolving customer link for contract:', findCustErr.message);
     }
 
+    // The mailbox on the row belongs to the person named on it: either the one
+    // typed at creation or the one on the linked customer record. Nothing is
+    // invented when neither exists, because the Person Email column would then
+    // print the contract desk as if it were the client.
+    const effectiveEmail = (requestedEmail || targetCustomer?.email || '').trim();
+
     // 3. Save Contract locally first
     let savedContract = null;
     if (isMongoConnected()) {
@@ -191,10 +214,11 @@ export const createContract = async (req, res) => {
         productCategory: effectiveCategory,
         totalContractValue: formattedVal,
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
+        orderDate: String(orderDate || '').trim(),
         startDate,
         endDate,
         expiryDate: endDate,
-        status: status || 'Active',
+        status: effectiveStatus,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
         productId: String(productId || '').trim(),
@@ -225,10 +249,11 @@ export const createContract = async (req, res) => {
         productCategory: effectiveCategory,
         totalContractValue: formattedVal,
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
+        orderDate: String(orderDate || '').trim(),
         startDate,
         endDate,
         expiryDate: endDate,
-        status: status || 'Active',
+        status: effectiveStatus,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
         productId: String(productId || '').trim(),
@@ -438,6 +463,7 @@ export const updateContract = async (req, res) => {
       productCategory,
       totalContractValue,
       value,
+      orderDate,
       startDate,
       endDate,
       status,
@@ -451,6 +477,17 @@ export const updateContract = async (req, res) => {
       ? String(totalContractValue).startsWith('₹') ? totalContractValue : `₹${totalContractValue}`
       : value;
 
+    // Moving the validity dates moves the term, otherwise the receipt would keep
+    // printing the length of the old agreement.
+    const datesMoved = Boolean(startDate || endDate);
+    const effectivePeriod =
+      String(subscriptionPeriod || '').trim() ||
+      (datesMoved
+        ? periodFromDates(startDate || contract.startDate, endDate || contract.endDate)
+        : '') ||
+      contract.subscriptionPeriod ||
+      '1 Year';
+
     const updatedData = {
       ...(name && { name: name.trim() }),
       ...(company && { company: company.trim() }),
@@ -458,20 +495,28 @@ export const updateContract = async (req, res) => {
       ...(accountId !== undefined && { accountId }),
       ...(email && { email: email.trim() }),
       ...(service && { service: service.trim() }),
-      ...(contractType && { contractType }),
-      ...(subscriptionPeriod && { subscriptionPeriod }),
+      ...(contractType && { contractType: normalizeContractType(contractType) || contractType }),
+      ...(effectivePeriod && { subscriptionPeriod: effectivePeriod }),
       ...(productCategory && { productCategory }),
       ...(formattedVal && {
         totalContractValue: formattedVal,
-        value: `${formattedVal} / ${(subscriptionPeriod || contract.subscriptionPeriod || '1 year').toLowerCase()}`
+        value: `${formattedVal} / ${effectivePeriod.toLowerCase()}`
       }),
+      ...(orderDate !== undefined && { orderDate: String(orderDate).trim() }),
       ...(startDate && { startDate }),
       ...(endDate && { endDate, expiryDate: endDate }),
-      ...(status && { status }),
+      ...(status && { status: normalizeContractStatus(status) }),
       ...(slaTier && { slaTier }),
       ...(description !== undefined && { description }),
       ...(productId !== undefined && { productId: String(productId).trim() }),
-      ...(salesPerson !== undefined && { salesPerson: String(salesPerson).trim() })
+      ...(salesPerson !== undefined && { salesPerson: String(salesPerson).trim() }),
+      updatedBy: req.user
+        ? {
+            name: req.user.name || '',
+            email: req.user.email || '',
+            role: req.user.role || ''
+          }
+        : { name: '', email: '', role: '' }
     };
 
     let savedContract = null;
@@ -481,7 +526,8 @@ export const updateContract = async (req, res) => {
       const fileList = getContractsFromFile();
       const idx = fileList.findIndex((c) => c.contractId === id || c._id === id || c.id === id);
       if (idx !== -1) {
-        fileList[idx] = { ...fileList[idx], ...updatedData };
+        // Mongo stamps updatedAt for us; the register has to stamp it itself.
+        fileList[idx] = { ...fileList[idx], ...updatedData, updatedAt: new Date().toISOString() };
         saveContractsToFile(fileList);
         savedContract = fileList[idx];
       }
@@ -642,6 +688,9 @@ const toImportPeriod = (value) => {
 };
 
 const toImportType = (value) => {
+  const recognised = normalizeContractType(value);
+  if (recognised) return recognised;
+
   const raw = String(value ?? '').toLowerCase();
   if (raw.includes('amc') || raw.includes('maintenance')) return 'AMC';
   if (raw.includes('trial') || raw.includes('demo')) return 'Trial';
@@ -649,15 +698,18 @@ const toImportType = (value) => {
 };
 
 const toImportStatus = (value) => {
+  const recognised = normalizeContractStatus(value);
+  if (CONTRACT_STATUSES.includes(recognised)) return recognised;
+
   const raw = String(value ?? '').toLowerCase();
   if (raw.includes('inactiv') || raw.includes('closed') || raw.includes('expired') || raw.includes('completed')) {
-    return 'Inactive';
+    return 'Closed';
   }
-  if (raw.includes('draft')) return 'draft';
+  if (raw.includes('draft')) return 'Not Started';
   if (raw.includes('notstarted') || raw.includes('not started') || raw.includes('pending') || raw.includes('progress')) {
-    return 'NotStarted';
+    return 'Not Started';
   }
-  return 'Active';
+  return 'In Progress';
 };
 
 const toImportCategory = (contractType, value) => {
@@ -666,10 +718,83 @@ const toImportCategory = (contractType, value) => {
   if (raw.includes('service') || raw.includes('support')) return 'Service';
   if (raw.includes('software') || raw.includes('license')) return 'Software';
   if (contractType === 'Trial') return 'Trial';
-  return contractType === 'AMC' ? 'Service' : 'Software';
+  return contractTypeCategory(contractType);
 };
 
 const escapeRegex = (value) => new RegExp(`^${String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
+/**
+ * The register stores the person's name, not their mailbox, so the contact
+ * columns are read from the customer master every time the list is asked for.
+ * That keeps the table honest when a client's number changes, and a contract
+ * whose firm has no customer record simply prints its own email and no mobile.
+ */
+const attachCustomerContacts = async (list) => {
+  if (!Array.isArray(list) || list.length === 0) return list;
+
+  const names = list.flatMap((c) => [c.company, c.customer]).map((v) => String(v || '').trim()).filter(Boolean);
+  const distinct = [...new Set(names)];
+  if (distinct.length === 0) return list;
+
+  let customers = [];
+  try {
+    if (isMongoConnected()) {
+      const projection = 'name company email phone alternatePhone contacts';
+      // The indexed exact match covers almost every row; only the names that
+      // miss it are retried case-insensitively, so a large register does not
+      // turn into a collection scan on every page load.
+      customers = await Customer.find({
+        $or: [{ company: { $in: distinct } }, { name: { $in: distinct } }]
+      })
+        .select(projection)
+        .lean();
+
+      const matched = new Set(
+        customers.flatMap((cust) => [String(cust.company || '').trim(), String(cust.name || '').trim()].filter(Boolean))
+      );
+      const missed = distinct.filter((value) => !matched.has(value));
+
+      if (missed.length > 0) {
+        const fuzzy = await Customer.find({
+          $or: missed.flatMap((value) => [{ company: escapeRegex(value) }, { name: escapeRegex(value) }])
+        })
+          .select(projection)
+          .lean();
+        customers = customers.concat(fuzzy);
+      }
+    } else {
+      const lookup = new Set(distinct.map((v) => v.toLowerCase()));
+      customers = getCustomersFromFile().filter(
+        (c) => lookup.has(String(c.company || '').toLowerCase()) || lookup.has(String(c.name || '').toLowerCase())
+      );
+    }
+  } catch (err) {
+    console.warn('[ContractController] Customer contact lookup failed:', err.message);
+    return list;
+  }
+
+  const byCompany = new Map();
+  const byName = new Map();
+  customers.forEach((cust) => {
+    if (cust.company) byCompany.set(String(cust.company).trim().toLowerCase(), cust);
+    if (cust.name) byName.set(String(cust.name).trim().toLowerCase(), cust);
+  });
+
+  return list.map((c) => {
+    const company = String(c.company || '').trim().toLowerCase();
+    const person = String(c.customer || '').trim().toLowerCase();
+    const linked = byCompany.get(company) || byName.get(person) || byName.get(company) || null;
+    // The signer may be one of several contacts on the account.
+    const contact =
+      linked?.contacts?.find((entry) => String(entry.name || '').trim().toLowerCase() === person) || null;
+
+    return {
+      ...c,
+      personEmail: contact?.email || linked?.email || c.email || '',
+      personMobile: contact?.phone || linked?.phone || linked?.alternatePhone || ''
+    };
+  });
+};
 
 /**
  * A contract is only useful in the CRM once it hangs off an Account, so the
@@ -750,7 +875,7 @@ export const importContracts = async (req, res) => {
       const totalContractValue = toImportValue(item.totalContractValue ?? item.value);
 
       const missing = [];
-      if (!cleanName) missing.push('Contract Name');
+      if (!cleanName) missing.push('Contract ID');
       if (!startDate) missing.push('Start Date');
       if (!endDate) missing.push('End Date');
       if (!totalContractValue) missing.push('Total Contract Value');
@@ -768,7 +893,10 @@ export const importContracts = async (req, res) => {
 
       try {
         const contractType = toImportType(item.contractType);
-        const subscriptionPeriod = toImportPeriod(item.subscriptionPeriod || item.period || item.duration) || '1 Year';
+        const subscriptionPeriod =
+          toImportPeriod(item.subscriptionPeriod || item.period || item.duration) ||
+          periodFromDates(startDate, endDate) ||
+          '1 Year';
         const email = String(item.email || '').trim().toLowerCase() || 'contracts@nispl.in';
         const effectiveCompany = company || customer;
 
@@ -784,6 +912,7 @@ export const importContracts = async (req, res) => {
           productCategory: toImportCategory(contractType, item.productCategory || item.service),
           totalContractValue,
           value: `${totalContractValue} / ${subscriptionPeriod.toLowerCase()}`,
+          orderDate: String(item.orderDate || '').trim(),
           startDate,
           endDate,
           expiryDate: endDate,
@@ -822,7 +951,7 @@ export const importContracts = async (req, res) => {
 
         if (isMongoConnected()) {
           const doc = existing
-            ? await Contract.findByIdAndUpdate(existing._id, { $set: payload }, { new: true })
+            ? await Contract.findByIdAndUpdate(existing._id, { $set: { ...payload, updatedBy: raisedBy } }, { new: true })
             : await Contract.create({
                 contractId: contractCode,
                 ...payload,
@@ -839,8 +968,10 @@ export const importContracts = async (req, res) => {
             id: contractCode,
             ...payload,
             createdBy: raisedBy,
+            ...(index !== -1 && { updatedBy: raisedBy }),
             sangamCrm: index !== -1 ? fileList[index].sangamCrm || {} : { status: 'pending', recordId: null },
-            createdAt: index !== -1 ? fileList[index].createdAt : new Date().toISOString()
+            createdAt: index !== -1 ? fileList[index].createdAt : new Date().toISOString(),
+            updatedAt: index !== -1 ? new Date().toISOString() : undefined
           };
           if (index !== -1) fileList[index] = record;
           else fileList.unshift(record);

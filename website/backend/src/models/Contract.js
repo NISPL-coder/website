@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { CONTRACT_STATUSES, CONTRACT_TYPES, LEGACY_CONTRACT_TYPES } from '../utils/contractVocabulary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,8 +75,8 @@ const contractSchema = new mongoose.Schema(
     },
     contractType: {
       type: String,
-      enum: ['Subscription', 'AMC', 'Trial'],
-      default: 'Subscription'
+      enum: [...CONTRACT_TYPES, ...LEGACY_CONTRACT_TYPES],
+      default: 'Comprehensive'
     },
     subscriptionPeriod: {
       type: String,
@@ -94,6 +95,11 @@ const contractSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    // When the deal was ordered, which is not the day the term starts running.
+    orderDate: {
+      type: String,
+      default: ''
+    },
     startDate: {
       type: String,
       required: true
@@ -108,8 +114,18 @@ const contractSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Active', 'NotStarted', 'Inactive', 'InActive', 'active', 'inactive', 'expiring', 'draft'],
-      default: 'Active'
+      enum: [
+        ...CONTRACT_STATUSES,
+        'Active',
+        'NotStarted',
+        'Inactive',
+        'InActive',
+        'active',
+        'inactive',
+        'expiring',
+        'draft'
+      ],
+      default: 'In Progress'
     },
     slaTier: {
       type: String,
@@ -133,6 +149,22 @@ const contractSchema = new mongoose.Schema(
       default: ''
     },
     createdBy: {
+      name: {
+        type: String,
+        default: ''
+      },
+      email: {
+        type: String,
+        default: ''
+      },
+      role: {
+        type: String,
+        default: ''
+      }
+    },
+    // Set only by an actual edit, so a row that nobody has touched can print
+    // "never updated" instead of claiming the creator revised it.
+    updatedBy: {
       name: {
         type: String,
         default: ''

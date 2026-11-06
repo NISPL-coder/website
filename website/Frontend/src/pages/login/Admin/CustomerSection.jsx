@@ -8,10 +8,8 @@ import {
   CheckCircle2,
   Clock,
   X,
-  ExternalLink,
   RotateCw,
   XCircle,
-  AlertCircle,
   Eye,
   EyeOff,
   Copy,
@@ -34,8 +32,15 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
-import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { compareDate, compareNumber, compareText, formatStamp, isWithinDateRange } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
+
+// Rows saved before the address became structured hold one joined string, so
+// the city and state may only exist on the top level or not at all.
+function addressPart(cust, key) {
+  const fromAddress = cust.address && typeof cust.address === 'object' ? cust.address[key] : '';
+  return String(fromAddress || cust[key] || '').trim();
+}
 
 export default function CustomerSection({
   customers,
@@ -151,20 +156,21 @@ export default function CustomerSection({
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
       const q = searchQuery.toLowerCase();
-      const sangamId = (c.sangamCrm?.recordId || '').toLowerCase();
-      const sangamStatus = (c.sangamCrm?.status || '').toLowerCase();
 
-      const matchesSearch =
-        !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        (c.loginEmail && c.loginEmail.toLowerCase().includes(q)) ||
-        c.id.toLowerCase().includes(q) ||
-        sangamId.includes(q) ||
-        sangamStatus.includes(q) ||
-        (c.phone && c.phone.includes(q)) ||
-        (c.plan && c.plan.toLowerCase().includes(q));
+      const searchable = [
+        c.id,
+        c.name,
+        c.designation,
+        c.company,
+        c.email,
+        c.loginEmail,
+        c.phone,
+        addressPart(c, 'city'),
+        addressPart(c, 'state'),
+        c.status
+      ].map((value) => String(value || '').toLowerCase());
+
+      const matchesSearch = !q || searchable.some((value) => value.includes(q));
 
       const custStatus = c.status?.toLowerCase();
       let matchesStatus = true;
@@ -176,11 +182,7 @@ export default function CustomerSection({
         matchesStatus = custStatus === 'inactive' || custStatus === 'suspended';
       }
 
-      const matchesDateRange = isWithinDateRange(
-        c.registered || c.createdAt || c.lastSyncedAt,
-        dateFrom,
-        dateTo
-      );
+      const matchesDateRange = isWithinDateRange(c.createdAt || c.registered, dateFrom, dateTo);
 
       return matchesSearch && matchesStatus && matchesDateRange;
     }).sort((a, b) => {
@@ -278,17 +280,6 @@ export default function CustomerSection({
 
   const columns = [
     {
-      id: 'sno',
-      name: 'S/No.',
-      width: '65px',
-      center: true,
-      cell: (_row, index) => (
-        <span style={{ fontWeight: 600, color: '#64748b', fontSize: '0.8rem' }}>
-          {index + 1}
-        </span>
-      )
-    },
-    {
       id: 'id',
       name: 'Customer ID',
       selector: (row) => row.id,
@@ -300,29 +291,47 @@ export default function CustomerSection({
       )
     },
     {
+      id: 'name',
+      name: 'Customer Name',
+      selector: (row) => row.name,
+      sortable: true,
+      sortFunction: compareText((row) => row.name),
+      minWidth: '170px',
+      grow: 1,
+      cell: (cust) => (
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>{cust.name || '—'}</span>
+      )
+    },
+    {
+      id: 'designation',
+      name: 'Designation',
+      selector: (row) => row.designation,
+      sortable: true,
+      sortFunction: compareText((row) => row.designation),
+      minWidth: '130px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>{cust.designation || '—'}</span>
+      )
+    },
+    {
       id: 'company',
-      name: 'Organization & Client',
+      name: 'Company Name',
       selector: (row) => row.company,
       sortable: true,
       sortFunction: compareText((row) => row.company),
       minWidth: '190px',
       grow: 1.1,
-      cell: (cust) => (
-        <div>
-          <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
-        </div>
-      )
+      cell: (cust) => <span style={{ color: '#1e293b' }}>{cust.company || '—'}</span>
     },
     {
-      id: 'loginEmail',
-      name: 'Login Email',
-      selector: (row) => row.loginEmail || row.email,
+      id: 'email',
+      name: 'Email',
+      selector: (row) => row.email || row.loginEmail,
       sortable: true,
-      sortFunction: compareText((row) => row.loginEmail || row.email),
-      minWidth: '210px',
+      sortFunction: compareText((row) => row.email || row.loginEmail),
+      minWidth: '205px',
       cell: (cust) => {
-        const email = cust.loginEmail || cust.email || '—';
+        const email = cust.email || cust.loginEmail || '—';
         const isCopied = copiedKey === `email-${cust.id}`;
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -332,7 +341,7 @@ export default function CustomerSection({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  copyToClipboard(email, `email-${cust.id}`, 'Login email');
+                  copyToClipboard(email, `email-${cust.id}`, 'Email');
                 }}
                 style={{
                   background: 'none',
@@ -422,46 +431,8 @@ export default function CustomerSection({
       }
     },
     {
-      id: 'lastLogin',
-      name: 'Last Login',
-      selector: (row) => row.lastLoginAt,
-      sortable: true,
-      sortFunction: compareDate((row) => row.lastLoginAt),
-      minWidth: '160px',
-      cell: (cust) => {
-        if (!cust.lastLoginAt) {
-          return (
-            <span
-              style={{
-                fontSize: '0.72rem',
-                color: '#94a3b8',
-                background: '#f1f5f9',
-                padding: '3px 8px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                fontWeight: 500
-              }}
-            >
-              Never logged in
-            </span>
-          );
-        }
-        const d = new Date(cust.lastLoginAt);
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#0f172a' }}>
-              {d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </span>
-            <span style={{ fontSize: '0.70rem', color: '#64748b' }}>
-              {d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
-        );
-      }
-    },
-    {
       id: 'phone',
-      name: 'Phone / Mobile',
+      name: 'Phone No.',
       selector: (row) => row.phone,
       sortable: true,
       sortFunction: compareText((row) => row.phone),
@@ -473,35 +444,36 @@ export default function CustomerSection({
       )
     },
     {
-      id: 'plan',
-      name: 'Subscribed Plan',
-      selector: (row) => row.plan,
+      id: 'orders',
+      name: 'Orders',
+      selector: (row) => row.orderCount || 0,
       sortable: true,
-      sortFunction: compareText((row) => row.plan),
-      minWidth: '160px',
-      cell: (cust) => <span className="adm-status-pill info">{cust.plan}</span>
-    },
-    {
-      id: 'serverNode',
-      name: 'Server Node',
-      selector: (row) => row.serverNode,
-      sortable: true,
-      sortFunction: compareText((row) => row.serverNode),
-      minWidth: '180px',
+      sortFunction: compareNumber((row) => row.orderCount || 0),
+      width: '90px',
+      center: true,
       cell: (cust) => (
-        <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', display: 'inline-block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{cust.serverNode}</span>
+        <span style={{ fontWeight: 700, color: cust.orderCount ? '#0f172a' : '#94a3b8' }}>
+          {cust.orderCount || 0}
+        </span>
       )
     },
     {
-      id: 'mrr',
-      name: 'Monthly (MRR)',
-      selector: (row) => row.mrr,
+      id: 'city',
+      name: 'City',
+      selector: (row) => addressPart(row, 'city'),
       sortable: true,
-      sortFunction: compareNumber((row) => row.mrr),
-      width: '135px',
-      cell: (cust) => (
-        <span style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</span>
-      )
+      sortFunction: compareText((row) => addressPart(row, 'city')),
+      minWidth: '120px',
+      cell: (cust) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{addressPart(cust, 'city') || '—'}</span>
+    },
+    {
+      id: 'state',
+      name: 'State',
+      selector: (row) => addressPart(row, 'state'),
+      sortable: true,
+      sortFunction: compareText((row) => addressPart(row, 'state')),
+      minWidth: '130px',
+      cell: (cust) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{addressPart(cust, 'state') || '—'}</span>
     },
     {
       id: 'status',
@@ -593,121 +565,28 @@ export default function CustomerSection({
       ]
     },
     {
-      id: 'registered',
-      name: 'Registered',
-      selector: (row) => row.registered,
+      id: 'createdAt',
+      name: 'Created At',
+      selector: (row) => row.createdAt || row.registered,
       sortable: true,
-      sortFunction: compareDate((row) => row.registered),
-      width: '130px',
+      sortFunction: compareDate((row) => row.createdAt || row.registered),
+      width: '165px',
       cell: (cust) => (
-        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{cust.registered}</span>
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>
+          {formatStamp(cust.createdAt || cust.registered)}
+        </span>
       )
     },
     {
-      id: 'sangam',
-      name: 'Sangam CRM Status',
-      selector: (row) => row.sangamCrm?.status || 'synced',
+      id: 'updatedAt',
+      name: 'Updated At',
+      selector: (row) => row.updatedAt || '',
       sortable: true,
-      sortFunction: compareText((row) => row.sangamCrm?.status || 'synced'),
-      minWidth: '240px',
-      grow: 0.9,
-      cell: (cust) => {
-        const crm = cust.sangamCrm || {
-          status: 'synced',
-          recordId: `SGM-ACC-${cust.id.replace('CUST-', '')}`,
-          lastSyncedAt: cust.registered
-        };
-        const crmStatus = crm.status?.toLowerCase() || 'synced';
-        const crmId = crm.recordId;
-        const isSyncing = syncingIds[cust.id || cust.customerId];
-
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '160px', whiteSpace: 'nowrap' }}>
-            <div>
-              {crmStatus === 'synced' && (
-                <span
-                  className="adm-status-pill active"
-                  style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
-                  title={`Synced with Sangam CRM (Record ID: ${crmId})`}
-                >
-                  <CheckCircle2 size={11} />
-                  <span>Synced</span>
-                </span>
-              )}
-              {crmStatus === 'pending' && (
-                <span
-                  className="adm-status-pill demo"
-                  style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fde68a' }}
-                  title="Waiting for Sangam CRM synchronization"
-                >
-                  <Clock size={11} />
-                  <span>Pending</span>
-                </span>
-              )}
-              {crmStatus === 'failed' && (
-                <span
-                  className="adm-status-pill inactive"
-                  style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}
-                  title={`Sync error: ${crm.syncError || 'API Failed'}`}
-                >
-                  <AlertCircle size={11} />
-                  <span>Failed</span>
-                </span>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ fontSize: '0.70rem', fontFamily: 'monospace', color: '#475569', fontWeight: 600 }}>
-                {crmId || 'No Record ID'}
-              </span>
-              {crmId && (
-                <a
-                  href={customerApi.getSangamRecordUrl(crmId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#6366f1', display: 'inline-flex', alignItems: 'center' }}
-                  title="View Company in Sangam CRM"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink size={11} />
-                </a>
-              )}
-            </div>
-
-            {crm.lastSyncedAt && (
-              <span style={{ fontSize: '0.67rem', color: '#94a3b8' }}>
-                {new Date(crm.lastSyncedAt).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </span>
-            )}
-
-            {(crmStatus === 'failed' || crmStatus === 'pending') && can('customer', 'edit') && (
-              <button
-                type="button"
-                className="adm-action-pill"
-                onClick={(e) => handleRetrySync(e, cust)}
-                disabled={isSyncing}
-                style={{
-                  marginTop: '2px',
-                  padding: '2px 8px',
-                  fontSize: '0.68rem',
-                  color: '#6366f1',
-                  borderColor: '#c7d2fe',
-                  background: '#f5f3ff',
-                  alignSelf: 'flex-start'
-                }}
-              >
-                <RotateCw size={10} className={isSyncing ? 'animate-spin' : ''} />
-                <span>{isSyncing ? 'Syncing...' : 'Retry Sync'}</span>
-              </button>
-            )}
-          </div>
-        );
-      }
+      sortFunction: compareDate((row) => row.updatedAt || ''),
+      width: '165px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatStamp(cust.updatedAt)}</span>
+      )
     },
     {
       id: 'actions',
@@ -717,31 +596,43 @@ export default function CustomerSection({
       button: true,
       allowOverflow: true,
       ignoreRowClick: true,
-      cell: (cust) => (
-        <RowActionMenu
-          module="customer"
-          items={[
-            { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
-            can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
-            can('customer', 'edit') && {
-              label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
-              icon: Clock,
-              tone: 'amber',
-              onClick: () => handleAuthorizeDemoExtension(cust)
-            },
-            {
-              label: 'Print (PDF)',
-              icon: Printer,
-              tone: 'green',
-              onClick: () => {
-                generateCustomerPdf(cust);
-                toast.success(`PDF generated for ${cust.company || cust.name}`);
-              }
-            },
-            can('customer', 'delete') && { label: 'Delete', icon: Trash2, tone: 'red', danger: true, divider: true, onClick: () => setDeletingCustomer(cust) }
-          ].filter(Boolean)}
-        />
-      )
+      cell: (cust) => {
+        const crmStatus = String(cust.sangamCrm?.status || '').toLowerCase();
+        const isSyncing = syncingIds[cust.id || cust.customerId];
+        return (
+          <RowActionMenu
+            module="customer"
+            items={[
+              { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
+              can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
+              can('customer', 'edit') && {
+                label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
+                icon: Clock,
+                tone: 'amber',
+                onClick: () => handleAuthorizeDemoExtension(cust)
+              },
+              {
+                label: 'Print (PDF)',
+                icon: Printer,
+                tone: 'green',
+                onClick: () => {
+                  generateCustomerPdf(cust);
+                  toast.success(`PDF generated for ${cust.company || cust.name}`);
+                }
+              },
+              // A row that Sangam never accepted, or never heard of, is the only
+              // one worth pushing again; the retry would be a no-op otherwise.
+              can('customer', 'edit') && crmStatus !== 'synced' && {
+                label: isSyncing ? 'Syncing...' : 'Retry Sangam Sync',
+                icon: RotateCw,
+                tone: 'orange',
+                onClick: () => handleRetrySync(null, cust)
+              },
+              can('customer', 'delete') && { label: 'Delete', icon: Trash2, tone: 'red', danger: true, divider: true, onClick: () => setDeletingCustomer(cust) }
+            ].filter(Boolean)}
+          />
+        );
+      }
     }
   ];
 
@@ -851,7 +742,7 @@ export default function CustomerSection({
           <Search size={16} className="adm-search-icon" />
           <input
             type="text"
-            placeholder="Search by name, company, email..."
+            placeholder="Search by ID, name, company, email, city..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="adm-search-input"
@@ -912,10 +803,10 @@ export default function CustomerSection({
         columns={visibleColumns('customer', columns)}
         data={filteredCustomers}
         keyField="id"
-        defaultSortFieldId="registered"
+        defaultSortFieldId="createdAt"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={1750}
+        minWidth={2100}
         noDataMessage="No customer records found"
         noDataHint="Try a different search term or account status."
         ariaLabel="Customer accounts"

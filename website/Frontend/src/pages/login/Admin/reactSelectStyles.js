@@ -52,6 +52,10 @@ export const customSelectStyles = {
     marginTop: '6px',
     backgroundColor: '#ffffff'
   }),
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 99999
+  }),
   menuList: (base) => ({
     ...base,
     padding: '6px',

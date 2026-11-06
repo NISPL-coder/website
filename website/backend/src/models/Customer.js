@@ -49,6 +49,11 @@ const customerSchema = new mongoose.Schema(
       required: [true, 'Contact person name is required'],
       trim: true
     },
+    // The form captures the person as two names plus a role; `name` above keeps
+    // the joined value so every existing reader still has one string to show.
+    firstName: { type: String, default: '', trim: true },
+    lastName: { type: String, default: '', trim: true },
+    designation: { type: String, default: '', trim: true },
     company: {
       type: String,
       required: [true, 'Company name is required'],

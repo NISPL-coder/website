@@ -1,8 +1,6 @@
-import { notificationApi } from '../../../services/notificationApi';
-import React, { useState, useMemo, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
 import {
   Calendar,
   Check,
@@ -12,30 +10,48 @@ import {
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
 import { contractApi } from '../../../services/contractApi';
-import { productApi } from '../../../services/productApi';
-import { staffApi } from '../../../services/staffApi';
+import { customerApi } from '../../../services/customerApi';
+import { CONTRACT_STATUSES, CONTRACT_TYPES } from './contractVocabulary';
 
-const STATUS_OPTIONS = [
-  { value: 'Active', label: 'Active' },
-  { value: 'NotStarted', label: 'NotStarted' },
-  { value: 'Inactive', label: 'Inactive' }
-];
+const statusOptions = CONTRACT_STATUSES.map((status) => ({ value: status, label: status }));
+const typeOptions = CONTRACT_TYPES.map((type) => ({ value: type, label: type }));
 
-const SUBSCRIPTION_PERIOD_OPTIONS = [
-  { value: '1 Month', label: '1 Month' },
-  { value: '3 Months', label: '3 Months' },
-  { value: '6 Months', label: '6 Months' },
-  { value: '1 Year', label: '1 Year' },
-  { value: '2 Years', label: '2 Years' },
-  { value: '3 Years', label: '3 Years' }
-];
+/**
+ * Every person the desk can put on a contract, with the companies that person
+ * belongs to. Read from the live customer directory at open time, so a company
+ * renamed or added after the page loaded shows up on the next contract.
+ */
+function buildPartyDirectory(customers) {
+  const byPerson = new Map();
 
-const CONTRACT_TYPE_OPTIONS = [
-  { value: 'Subscription', label: 'Subscription' },
-  { value: 'AMC', label: 'AMC' }
-];
+  const add = (personName, companyName) => {
+    const name = String(personName || '').trim();
+    const company = String(companyName || '').trim();
+    if (!name || !company) return;
 
-export default function CreateContractPage({ contracts, setContracts, customers = [] }) {
+    const personKey = name.toLowerCase();
+    if (!byPerson.has(personKey)) byPerson.set(personKey, { name, companies: new Set() });
+    byPerson.get(personKey).companies.add(company);
+  };
+
+  (customers || []).forEach((customer) => {
+    add(customer.name, customer.company);
+    (customer.contacts || []).forEach((contact) => {
+      const fullName = String(contact.name || '').trim() ||
+        [contact.firstName, contact.lastName].filter(Boolean).join(' ');
+      add(fullName, customer.company);
+    });
+  });
+
+  return [...byPerson.values()]
+    .map((person) => ({
+      name: person.name,
+      companies: [...person.companies].sort((a, b) => a.localeCompare(b))
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export default function CreateContractPage({ contracts, setContracts }) {
   const navigate = useNavigate();
 
   const today = new Date().toISOString().split('T')[0];
@@ -44,238 +60,134 @@ export default function CreateContractPage({ contracts, setContracts, customers 
   const oneYearFromNow = nextYear.toISOString().split('T')[0];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // The catalogue and the staff list are fetched, never hardcoded: the product
-  // a contract is raised for is what a later receipt shows as "what was sold",
-  // and it must be the real product with the real name.
-  const [products, setProducts] = useState([]);
-  const [staff, setStaff] = useState([]);
+  // 'loading' until the directory answers, 'ready' with rows, 'unavailable'
+  // when the signed-in account cannot read customers or none exist yet.
+  const [directoryState, setDirectoryState] = useState('loading');
+  const [people, setPeople] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
-    productApi
-      .getProducts()
-      .then((rows) => {
-        if (!cancelled) setProducts(Array.isArray(rows) ? rows : []);
+
+    customerApi
+      .getCustomers()
+      .then((data) => {
+        if (cancelled) return;
+        const directory = buildPartyDirectory(Array.isArray(data) ? data : []);
+        setPeople(directory);
+        setDirectoryState(directory.length ? 'ready' : 'unavailable');
       })
       .catch(() => {
-        if (!cancelled) setProducts([]);
+        if (cancelled) return;
+        setPeople([]);
+        setDirectoryState('unavailable');
       });
+
     return () => {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    staffApi
-      .getStaff()
-      .then((rows) => {
-        if (!cancelled) setStaff(Array.isArray(rows) ? rows : []);
-      })
-      .catch(() => {
-        // A manager without user_access:view still needs the field, so the
-        // creatable dropdown below falls back to typing the name.
-        if (!cancelled) setStaff([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const productOptions = useMemo(
-    () =>
-      products
-        .filter((p) => p.available !== false && p.status !== 'inactive')
-        .map((p) => ({
-          value: p.productId || p.id || '',
-          label: p.name || p.productId || '',
-          product: p
-        }))
-        .filter((o) => o.value && o.label),
-    [products]
-  );
-
-  const salesPersonOptions = useMemo(
-    () =>
-      staff
-        .filter((s) => s.accountStatus !== 'inactive')
-        .map((s) => {
-          const value = s.name || s.email || '';
-          const title = s.designation || s.role || '';
-          return { value, label: title ? `${value} (${title})` : value };
-        })
-        .filter((o) => o.value),
-    [staff]
-  );
-
-  // Deduplicate account options by unique Customer Name / Company Name
-  const accountOptions = useMemo(() => {
-    const seen = new Set();
-    const uniqueOptions = [];
-
-    for (const c of customers) {
-      const nameKey = (c.company || c.name || '').trim();
-      if (!nameKey) continue;
-      const lowerKey = nameKey.toLowerCase();
-      if (!seen.has(lowerKey)) {
-        seen.add(lowerKey);
-        uniqueOptions.push({
-          value: nameKey,
-          label: nameKey,
-          customer: c
-        });
-      }
-    }
-
-    return uniqueOptions;
-  }, [customers]);
 
   const [formState, setFormState] = useState({
     name: '',
-    accountName: accountOptions[0]?.value || customers[0]?.company || customers[0]?.name || '',
-    productId: '',
-    salesPerson: '',
-    status: 'Active',
+    status: 'In Progress',
+    orderDate: today,
+    person: '',
+    company: '',
     startDate: today,
     endDate: oneYearFromNow,
-    totalContractValue: '',
-    subscriptionPeriod: '1 Year',
-    contractType: 'Subscription'
+    contractType: 'Comprehensive',
+    contractValue: ''
   });
 
-  // Sync default account name when account options are loaded
-  React.useEffect(() => {
-    if (!formState.accountName && accountOptions.length > 0) {
-      setFormState((prev) => ({
-        ...prev,
-        accountName: accountOptions[0].value
-      }));
-    }
-  }, [accountOptions, formState.accountName]);
+  const setField = (field) => (value) => setFormState((prev) => ({ ...prev, [field]: value }));
 
-  // Adjust End Date automatically when Subscription Period changes
-  const handlePeriodChange = (selectedPeriod) => {
-    const start = new Date(formState.startDate || today);
-    const end = new Date(start);
+  const personOptions = useMemo(
+    () => people.map((person) => ({ value: person.name, label: person.name, companies: person.companies })),
+    [people]
+  );
 
-    if (selectedPeriod === '1 Month') end.setMonth(end.getMonth() + 1);
-    else if (selectedPeriod === '3 Months') end.setMonth(end.getMonth() + 3);
-    else if (selectedPeriod === '6 Months') end.setMonth(end.getMonth() + 6);
-    else if (selectedPeriod === '1 Year') end.setFullYear(end.getFullYear() + 1);
-    else if (selectedPeriod === '2 Years') end.setFullYear(end.getFullYear() + 2);
-    else if (selectedPeriod === '3 Years') end.setFullYear(end.getFullYear() + 3);
+  const selectedPerson = useMemo(
+    () => personOptions.find((option) => option.value === formState.person) || null,
+    [personOptions, formState.person]
+  );
 
+  // One company means there is nothing to choose; several means the desk has
+  // to say which account this contract is raised for.
+  const personCompanyOptions = useMemo(
+    () => (selectedPerson && selectedPerson.companies.length > 1
+      ? selectedPerson.companies.map((company) => ({ value: company, label: company }))
+      : []),
+    [selectedPerson]
+  );
+
+  const handlePersonChange = (option) => {
+    const companies = option ? option.companies : [];
     setFormState((prev) => ({
       ...prev,
-      subscriptionPeriod: selectedPeriod,
-      endDate: end.toISOString().split('T')[0]
+      person: option ? option.value : '',
+      company: companies.length === 1 ? companies[0] : ''
     }));
   };
 
-  // Choosing the plan fills the name and the listed price from the catalogue,
-  // but never overwrites anything the admin already typed.
-  const handleProductChange = (opt) => {
-    const product = opt?.product;
-
-    setFormState((prev) => {
-      const nameWasAutoFilled =
-        !prev.name.trim() || productOptions.some((o) => o.label === prev.name.trim());
-      const listedPrice =
-        Number(product?.monthlyPrice) ||
-        parseFloat(String(product?.price || '').split('/')[0].replace(/[^0-9.]/g, '')) ||
-        0;
-
-      return {
-        ...prev,
-        productId: opt ? opt.value : '',
-        name: product && nameWasAutoFilled ? product.name : prev.name,
-        totalContractValue:
-          product && listedPrice && !prev.totalContractValue.trim()
-            ? `₹${listedPrice.toLocaleString('en-IN')}`
-            : prev.totalContractValue
-      };
-    });
-  };
+  const directoryHint = {
+    loading: 'Loading the customer directory...',
+    unavailable: 'No customer records available. Add the customer first, then raise the contract.'
+  }[directoryState];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const customerAccountName = (formState.accountName || '').trim();
-    if (!formState.name.trim() || !customerAccountName || !formState.totalContractValue.trim()) {
-      toast.error('Please enter Contract Name, Account Name, and Total Contract Value.');
+
+    const name = formState.name.trim();
+    const person = formState.person.trim();
+    const company = formState.company.trim();
+    const contractValue = formState.contractValue.trim();
+
+    if (!name || !person || !company || !contractValue) {
+      toast.error('Please complete the contract ID, person, company name and value.');
+      return;
+    }
+    if (!formState.orderDate || !formState.startDate || !formState.endDate) {
+      toast.error('Please set the order, start and end dates.');
+      return;
+    }
+    if (formState.endDate <= formState.startDate) {
+      toast.error('The end date must fall after the start date.');
       return;
     }
 
     setIsSubmitting(true);
-    const cleanVal = formState.totalContractValue.trim();
-    const formattedVal = cleanVal.startsWith('₹') ? cleanVal : `₹${cleanVal}`;
 
-    // Find if selected customer/account has Sangam CRM recordId
-    const matchedCustomer = customers.find(
-      (c) =>
-        c.name?.toLowerCase() === customerAccountName.toLowerCase() ||
-        c.company?.toLowerCase() === customerAccountName.toLowerCase() ||
-        c.customerId === customerAccountName
-    );
-    const sangamAccountId =
-      matchedCustomer?.sangamCrm?.recordId &&
-      !matchedCustomer.sangamCrm.recordId.startsWith('SGM-ACC-')
-        ? matchedCustomer.sangamCrm.recordId
-        : null;
+    const formattedVal = contractValue.startsWith('₹') ? contractValue : `₹${contractValue}`;
 
+    // The term, the service line and the Sangam account link are all worked out
+    // from these dates and this company name by the register, so the form sends
+    // only what the desk actually typed. The Contract ID travels as `name`,
+    // which is the field Sangam CRM labels Contract Name.
     const payload = {
-      name: formState.name.trim(),
-      accountName: customerAccountName,
-      customer: customerAccountName,
-      company: matchedCustomer?.company || customerAccountName,
+      name,
       status: formState.status,
+      orderDate: formState.orderDate,
+      customer: person,
+      company,
       startDate: formState.startDate,
       endDate: formState.endDate,
-      totalContractValue: formattedVal,
-      value: formattedVal,
-      subscriptionPeriod: formState.subscriptionPeriod,
       contractType: formState.contractType,
-      accountId: sangamAccountId,
-      email: matchedCustomer?.email || 'contracts@nispl.in',
-      phone: matchedCustomer?.phone || '',
-      service: `${formState.contractType} (${formState.subscriptionPeriod})`,
-      slaTier: 'Tier-1 Priority NOC 99.99%',
-      productId: formState.productId,
-      salesPerson: formState.salesPerson
+      totalContractValue: formattedVal,
+      value: formattedVal
     };
 
     try {
       const res = await contractApi.createContract(payload);
       const createdContract = res.contract || {
-        id: `CTR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: `CTR-${new Date().getFullYear()}-0000`,
         ...payload
       };
 
-      setContracts([createdContract, ...contracts]);
-
-      notificationApi.createNotification({
-        type: 'contract_created',
-        title: 'Contract Agreement Created',
-        message: `Contract "${createdContract.name || createdContract.contractCode}" created for ${customerAccountName} (Value: ${createdContract.contractValue || formState.contractValue}).`,
-        severity: 'success',
-        entityType: 'contract',
-        entityId: createdContract.contractCode || createdContract.id,
-        user: {
-          name: payload.primaryContact?.name,
-          email: payload.primaryContact?.email,
-          company: customerAccountName
-        },
-        metadata: {
-          contractCode: createdContract.contractCode || createdContract.id,
-          value: createdContract.contractValue,
-          serviceTier: createdContract.serviceTier,
-          expiryDate: createdContract.expiryDate
-        }
-      });
+      setContracts([createdContract, ...(contracts || [])]);
 
       if (res.sangamCrm?.status === 'synced') {
         toast.success(
-          `Contract created for ${customerAccountName} and synchronized to Sangam CRM! (Record ID: ${res.sangamCrm.recordId})`,
+          `Contract created for ${company} and synchronized to Sangam CRM! (Record ID: ${res.sangamCrm.recordId})`,
           {
             duration: 6000,
             style: {
@@ -306,6 +218,36 @@ export default function CreateContractPage({ contracts, setContracts, customers 
     }
   };
 
+  const dateField = (field, label, options = {}) => (
+    <div className="adm-form-field">
+      <label className="adm-form-label">
+        {label} <span className="adm-required-star">*</span>
+      </label>
+      <div style={{ position: 'relative' }}>
+        <input
+          type="date"
+          className="adm-form-input"
+          value={formState[field]}
+          min={options.min}
+          onChange={(e) => setField(field)(e.target.value)}
+          required
+          style={{ paddingRight: '36px' }}
+        />
+        <Calendar
+          size={16}
+          style={{
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#94a3b8',
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="adm-create-page-container animate-fade-in">
       {/* Top Header with Breadcrumbs & Action Buttons */}
@@ -334,10 +276,9 @@ export default function CreateContractPage({ contracts, setContracts, customers 
       </div>
 
       {/* Main Form Container */}
-      <div className="adm-table-card adm-form-card">
+      <div className="adm-table-card adm-form-card adm-create-contract-card">
         <form id="create-contract-form" onSubmit={handleSubmit}>
-          {/* Section: Overview (All Highlighted Fields) */}
-          <div className="adm-form-section">
+          <div className="adm-form-section adm-create-contract-section">
             <div
               style={{
                 display: 'grid',
@@ -346,74 +287,22 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 marginTop: '16px'
               }}
             >
-              {/* 1. Name */}
+              {/* 1. Contract ID */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Name <span className="adm-required-star">*</span>
+                  Contract ID <span className="adm-required-star">*</span>
                 </label>
                 <input
                   type="text"
                   className="adm-form-input"
-                  placeholder="Enter your contract name"
+                  placeholder="Enter the contract ID"
                   value={formState.name}
-                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  onChange={(e) => setField('name')(e.target.value)}
                   required
                 />
               </div>
 
-              {/* 2. Account Name (Customer Name in Sangam CRM) */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">
-                  Account Name <span className="adm-required-star">*</span>
-                </label>
-                <Select
-                  styles={customSelectStyles}
-                  isSearchable={true}
-                  options={accountOptions}
-                  value={
-                    accountOptions.find(
-                      (a) =>
-                        a.value === formState.accountName ||
-                        a.customer?.name === formState.accountName ||
-                        a.customer?.company === formState.accountName
-                    ) || (formState.accountName ? {
-                      value: formState.accountName,
-                      label: formState.accountName
-                    } : null)
-                  }
-                  onChange={(opt) =>
-                    setFormState({
-                      ...formState,
-                      accountName: opt ? opt.value : ''
-                    })
-                  }
-                  placeholder="Select customer account..."
-                  classNamePrefix="react-select"
-                  required
-                />
-              </div>
-
-              {/* 3. Product / Plan */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">
-                  Product / Plan <span className="adm-required-star">*</span>
-                </label>
-                <Select
-                  styles={customSelectStyles}
-                  isSearchable={true}
-                  options={productOptions}
-                  value={productOptions.find((p) => p.value === formState.productId) || null}
-                  onChange={handleProductChange}
-                  placeholder={
-                    productOptions.length ? 'Select the plan being sold...' : 'No catalogue products loaded'
-                  }
-                  noOptionsMessage={() => 'No products in the catalogue'}
-                  classNamePrefix="react-select"
-                  required
-                />
-              </div>
-
-              {/* 4. Status */}
+              {/* 2. Status */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
                   Status <span className="adm-required-star">*</span>
@@ -421,122 +310,95 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 <Select
                   styles={customSelectStyles}
                   isSearchable={false}
-                  options={STATUS_OPTIONS}
-                  value={
-                    STATUS_OPTIONS.find((s) => s.value.toLowerCase() === (formState.status || 'Active').toLowerCase()) || STATUS_OPTIONS[0]
-                  }
-                  onChange={(opt) =>
-                    setFormState({ ...formState, status: opt ? opt.value : 'Active' })
-                  }
+                  options={statusOptions}
+                  value={statusOptions.find((s) => s.value === formState.status) || statusOptions[0]}
+                  onChange={(opt) => setField('status')(opt ? opt.value : 'In Progress')}
                   placeholder="Select status..."
                   classNamePrefix="react-select"
+                  menuPlacement="auto"
                 />
               </div>
 
-              {/* 5. Sales Person */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">
-                  Sales Person <span className="adm-required-star">*</span>
-                </label>
-                <CreatableSelect
-                  styles={customSelectStyles}
-                  isSearchable={true}
-                  options={salesPersonOptions}
-                  value={
-                    formState.salesPerson
-                      ? { value: formState.salesPerson, label: formState.salesPerson }
-                      : null
-                  }
-                  onChange={(opt) =>
-                    setFormState({ ...formState, salesPerson: opt ? opt.value : '' })
-                  }
-                  onCreateOption={(text) => {
-                    const value = text.trim();
-                    if (value) setFormState({ ...formState, salesPerson: value });
-                  }}
-                  placeholder="Pick a team member or type a name..."
-                  classNamePrefix="react-select"
-                  required
-                />
-              </div>
+              {/* 3. Order Date */}
+              {dateField('orderDate', 'Order Date')}
 
-              {/* 6. Start Date */}
+              {/* 4. Person */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Start Date <span className="adm-required-star">*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="date"
-                    className="adm-form-input"
-                    value={formState.startDate}
-                    onChange={(e) => setFormState({ ...formState, startDate: e.target.value })}
-                    required
-                    style={{ paddingRight: '36px' }}
-                  />
-                  <Calendar
-                    size={16}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#94a3b8',
-                      pointerEvents: 'none'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* 4. End Date */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">
-                  End Date <span className="adm-required-star">*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="date"
-                    className="adm-form-input"
-                    value={formState.endDate}
-                    onChange={(e) => setFormState({ ...formState, endDate: e.target.value })}
-                    required
-                    style={{ paddingRight: '36px' }}
-                  />
-                  <Calendar
-                    size={16}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#94a3b8',
-                      pointerEvents: 'none'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* 5. Subscription Period */}
-              <div className="adm-form-field">
-                <label className="adm-form-label">
-                  Subscription Period <span className="adm-required-star">*</span>
+                  Person <span className="adm-required-star">*</span>
                 </label>
                 <Select
                   styles={customSelectStyles}
-                  isSearchable={false}
-                  options={SUBSCRIPTION_PERIOD_OPTIONS}
-                  value={
-                    SUBSCRIPTION_PERIOD_OPTIONS.find(
-                      (p) => p.value === formState.subscriptionPeriod
-                    ) || SUBSCRIPTION_PERIOD_OPTIONS[3]
-                  }
-                  onChange={(opt) => handlePeriodChange(opt ? opt.value : '1 Year')}
-                  placeholder="Select subscription period..."
+                  options={personOptions}
+                  value={personOptions.find((option) => option.value === formState.person) || null}
+                  onChange={handlePersonChange}
+                  isClearable
+                  placeholder={directoryState === 'loading'
+                    ? 'Loading customers...'
+                    : directoryState === 'unavailable'
+                      ? 'No customer records found'
+                      : 'Search customer by name...'}
+                  noOptionsMessage={() => 'No matching customer in the directory'}
+                  formatOptionLabel={(option, info) => {
+                    if (info.context === 'value') return option.label;
+                    const [first, ...rest] = option.companies;
+                    return (
+                      <span style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', width: '100%' }}>
+                        <span>{option.label}</span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.76rem' }}>
+                          {first ? `${first}${rest.length ? ` +${rest.length}` : ''}` : ''}
+                        </span>
+                      </span>
+                    );
+                  }}
                   classNamePrefix="react-select"
+                  menuPlacement="auto"
                 />
+                {directoryState !== 'ready' && (
+                  <p style={{ margin: '6px 0 0 0', fontSize: '0.72rem', color: '#94a3b8' }}>{directoryHint}</p>
+                )}
               </div>
 
-              {/* 6. Contract Type */}
+              {/* 5. Company Name */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Company Name <span className="adm-required-star">*</span>
+                </label>
+                {personCompanyOptions.length > 1 ? (
+                  <Select
+                    styles={customSelectStyles}
+                    options={personCompanyOptions}
+                    value={personCompanyOptions.find((option) => option.value === formState.company) || null}
+                    onChange={(opt) => setField('company')(opt ? opt.value : '')}
+                    placeholder="Select company..."
+                    classNamePrefix="react-select"
+                    menuPlacement="auto"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    className="adm-form-input"
+                    placeholder={selectedPerson ? '' : 'Choose the person first'}
+                    value={formState.company}
+                    onChange={(e) => setField('company')(e.target.value)}
+                    readOnly={!!selectedPerson}
+                    required
+                  />
+                )}
+                {personCompanyOptions.length > 1 && (
+                  <p style={{ margin: '6px 0 0 0', fontSize: '0.72rem', color: '#94a3b8' }}>
+                    This person is on more than one account — pick the company this contract covers.
+                  </p>
+                )}
+              </div>
+
+              {/* 6. Start Date */}
+              {dateField('startDate', 'Start Date')}
+
+              {/* 7. End Date */}
+              {dateField('endDate', 'End Date', { min: formState.startDate })}
+
+              {/* 8. Contract Type */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
                   Contract Type <span className="adm-required-star">*</span>
@@ -544,26 +406,19 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                 <Select
                   styles={customSelectStyles}
                   isSearchable={false}
-                  options={CONTRACT_TYPE_OPTIONS}
-                  value={
-                    CONTRACT_TYPE_OPTIONS.find((t) => t.value === formState.contractType) ||
-                    CONTRACT_TYPE_OPTIONS[0]
-                  }
-                  onChange={(opt) =>
-                    setFormState({
-                      ...formState,
-                      contractType: opt ? opt.value : 'Subscription'
-                    })
-                  }
+                  options={typeOptions}
+                  value={typeOptions.find((t) => t.value === formState.contractType) || typeOptions[0]}
+                  onChange={(opt) => setField('contractType')(opt ? opt.value : 'Comprehensive')}
                   placeholder="Select contract type..."
                   classNamePrefix="react-select"
+                  menuPlacement="auto"
                 />
               </div>
 
-              {/* 7. Total Contract Value */}
+              {/* 9. Contract Value */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Total Contract Value <span className="adm-required-star">*</span>
+                  Contract Value <span className="adm-required-star">*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <span
@@ -584,10 +439,8 @@ export default function CreateContractPage({ contracts, setContracts, customers 
                     type="text"
                     className="adm-form-input"
                     placeholder="Enter total contract value"
-                    value={formState.totalContractValue}
-                    onChange={(e) =>
-                      setFormState({ ...formState, totalContractValue: e.target.value })
-                    }
+                    value={formState.contractValue}
+                    onChange={(e) => setField('contractValue')(e.target.value)}
                     style={{ paddingLeft: '32px' }}
                     required
                   />

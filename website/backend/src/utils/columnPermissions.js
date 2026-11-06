@@ -13,33 +13,38 @@
  */
 export const MODULE_COLUMNS = {
   customer: [
-    { id: 'id', label: 'Customer ID', fields: ['customerId'] },
-    { id: 'company', label: 'Organization & Client', fields: ['company', 'name'] },
-    { id: 'loginEmail', label: 'Login Email', fields: ['loginEmail', 'email'] },
+    { id: 'id', label: 'Customer ID', fields: ['customerId', 'id'] },
+    { id: 'name', label: 'Customer Name', fields: ['name', 'firstName', 'lastName'] },
+    { id: 'designation', label: 'Designation', fields: ['designation'] },
+    { id: 'company', label: 'Company Name', fields: ['company'] },
+    { id: 'email', label: 'Email', fields: ['email', 'loginEmail'] },
     { id: 'password', label: 'Password', fields: ['password', 'portalPassword'] },
-    { id: 'lastLogin', label: 'Last Login', fields: ['lastLoginAt'] },
-    { id: 'phone', label: 'Phone & Mobile', fields: ['phone', 'alternatePhone'] },
-    { id: 'plan', label: 'Subscribed Plan', fields: ['plan'] },
-    { id: 'serverNode', label: 'Server Node', fields: ['serverNode'] },
-    { id: 'mrr', label: 'Monthly (MRR)', fields: ['mrr'] },
+    { id: 'phone', label: 'Phone No.', fields: ['phone', 'alternatePhone'] },
+    { id: 'orders', label: 'Orders', fields: ['orderCount'] },
+    { id: 'city', label: 'City', fields: ['address.city', 'city'] },
+    { id: 'state', label: 'State', fields: ['address.state', 'state'] },
     { id: 'status', label: 'Status', fields: ['status'] },
-    { id: 'registered', label: 'Registered', fields: ['registered', 'createdAt'] },
-    { id: 'sangam', label: 'Sangam CRM Status', fields: ['sangamCrm'] }
+    { id: 'createdAt', label: 'Created At', fields: ['createdAt', 'registered'] },
+    { id: 'updatedAt', label: 'Updated At', fields: ['updatedAt'] }
   ],
   contract: [
-    { id: 'id', label: 'Contract Code', fields: ['contractCode', 'contractId'] },
-    { id: 'name', label: 'Contract Title', fields: ['name'] },
-    { id: 'customer', label: 'Client & Representative', fields: ['customer', 'email', 'accountId'] },
-    {
-      id: 'service',
-      label: 'Service Scope & Tier',
-      fields: ['service', 'contractType', 'subscriptionPeriod', 'productCategory', 'slaTier', 'description']
-    },
-    { id: 'value', label: 'Contract Value', fields: ['totalContractValue', 'value'] },
-    { id: 'startDate', label: 'Start Date', fields: ['startDate'] },
-    { id: 'expiryDate', label: 'Expiry Date', fields: ['expiryDate', 'endDate'] },
+    { id: 'name', label: 'Contract ID', fields: ['name'] },
+    { id: 'company', label: 'Company Name', fields: ['company'] },
     { id: 'status', label: 'Status', fields: ['status'] },
-    { id: 'sangam', label: 'Sangam CRM', fields: ['sangamCrm'] }
+    { id: 'personEmail', label: 'Person Email Address', fields: ['personEmail', 'email'] },
+    { id: 'personMobile', label: 'Person Mobile', fields: ['personMobile'] },
+    {
+      id: 'contractType',
+      label: 'Contract Type',
+      fields: ['contractType', 'service', 'subscriptionPeriod', 'slaTier', 'productCategory', 'description']
+    },
+    { id: 'value', label: 'Total Contract Value', fields: ['totalContractValue', 'value'] },
+    { id: 'startDate', label: 'Start Date', fields: ['startDate'] },
+    { id: 'endDate', label: 'End Date', fields: ['endDate', 'expiryDate'] },
+    { id: 'updatedAt', label: 'Updated At', fields: ['updatedAt'] },
+    { id: 'updatedBy', label: 'Updated By', fields: ['updatedBy'] },
+    { id: 'createdAt', label: 'Created At', fields: ['createdAt'] },
+    { id: 'createdBy', label: 'Created By', fields: ['createdBy'] }
   ],
   payment: [
     { id: 'name', label: 'Name', fields: ['customer'] },
@@ -132,6 +137,36 @@ export function columnsForModule(module) {
   return MODULE_COLUMNS[module] || [];
 }
 
+/**
+ * Column ids stored before a module's column set was redrawn still have to mean
+ * something. Without the translation, a staff member granted `contract:service`
+ * would match none of the new ids and lose every column at once.
+ */
+const LEGACY_COLUMN_ALIASES = {
+  customer: {
+    // The old organization column showed the company with the contact name as a
+    // subline, so it now opens both of the columns it was split into.
+    company: ['company', 'name'],
+    loginEmail: ['email'],
+    registered: ['createdAt'],
+    // Retired from the customer table: the CRM status is granted by
+    // sangam_sync, and plan, server node, MRR and last login left the list.
+    lastLogin: [],
+    plan: [],
+    serverNode: [],
+    mrr: [],
+    sangam: []
+  },
+  contract: {
+    id: ['name'],
+    customer: ['personEmail', 'personMobile'],
+    service: ['contractType'],
+    expiryDate: ['endDate'],
+    // The CRM status left the contract table; it is granted by sangam_sync now.
+    sangam: []
+  }
+};
+
 /** The registry shape the grant UI renders: labels only, never field names. */
 export function columnRegistryForClient() {
   return Object.entries(MODULE_COLUMNS).map(([module, columns]) => ({
@@ -158,11 +193,21 @@ export function visibleColumnIds(user, module) {
   const granted = Array.isArray(user.permissions) ? user.permissions : [];
   if (granted.includes('*') || granted.includes(`${module}:*`)) return all;
 
-  const scoped = granted
+  const stored = granted
     .filter((entry) => String(entry || '').startsWith(`${module}:view:`))
     .map((entry) => entry.split(':')[2]);
 
-  if (scoped.length === 0) return all;
+  if (stored.length === 0) return all;
+
+  const aliases = LEGACY_COLUMN_ALIASES[module] || {};
+  // A legacy id can name a column that still exists but was widened — the old
+  // organization column showed company *and* contact name — so the grant keeps
+  // covering every column it was split into.
+  const scoped = stored.flatMap((id) => [
+    ...(all.includes(id) ? [id] : []),
+    ...(aliases[id] || [])
+  ]);
+
   return all.filter((id) => scoped.includes(id));
 }
 

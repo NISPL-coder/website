@@ -58,6 +58,7 @@ import { contractApi } from '../../../services/contractApi';
 import { paymentApi } from '../../../services/paymentApi';
 import { productApi } from '../../../services/productApi';
 import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
+import { normalizeContractStatus } from './contractVocabulary';
 
 // Which permission module unlocks each admin view
 const NAV_MODULE = {
@@ -265,7 +266,9 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     const now = new Date();
 
     contracts.forEach((c) => {
-      const isExpiringStatus = c.status === 'expiring';
+      // Only a term that is actually running can be renewed.
+      if (normalizeContractStatus(c.status) !== 'In Progress') return;
+
       let isNearExpiry = false;
 
       if (c.expiryDate) {
@@ -276,7 +279,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         }
       }
 
-      if (isExpiringStatus || isNearExpiry) {
+      if (isNearExpiry) {
         const renewalId = `renewal_${c.id || c.contractCode || c._id}`;
         notificationApi.createNotification({
           type: 'contract_renewal',
@@ -536,7 +539,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
               {(location.pathname === '/admin/customer/contract/create' ||
                 location.pathname === '/admin/contract/create') && (
-                <CreateContractPage contracts={contracts} setContracts={setContracts} customers={customers} />
+                <CreateContractPage contracts={contracts} setContracts={setContracts} />
               )}
 
               {(location.pathname === '/admin/customer/payment/create' ||

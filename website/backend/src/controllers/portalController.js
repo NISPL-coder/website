@@ -1274,11 +1274,18 @@ export const activateCustomerDemo = async (req, res) => {
       startDate,
       endDate: effectiveEndDate,
       expiryDate: effectiveEndDate,
-      status: 'Active',
+      status: 'DEMO',
       slaTier: 'Demo Trial 99.99%',
       description: `Active ${planName} trial for ${duration} (valid until ${effectiveEndDate}).`,
       productId,
-      salesPerson
+      salesPerson,
+      // A self-served trial is raised by the account holder, not by an admin.
+      createdBy: {
+        name: effectiveCustomer,
+        email: targetEmail || '',
+        role: 'customer'
+      },
+      createdAt: new Date().toISOString()
     };
 
     let savedContract = newContractData;

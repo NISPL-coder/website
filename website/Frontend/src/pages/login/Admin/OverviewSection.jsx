@@ -47,6 +47,20 @@ import EditContractModal from './EditContractModal';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { generateContractPdf } from './utils/generateContractPdf';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import {
+  CONTRACT_STATUSES,
+  contractStatusTone,
+  matchesStatusFilter,
+  normalizeContractStatus
+} from './contractVocabulary';
+
+const CONTRACT_STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  ...CONTRACT_STATUSES.map((status) => ({
+    value: status.toLowerCase().replace(/\s+/g, ''),
+    label: status
+  }))
+];
 
 // Geometry helper for Donut Pie Chart slices
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -124,7 +138,7 @@ export default function OverviewSection({
 
   // Overview Contract List Filter and Search
   const [contSearch, setContSearch] = useState('');
-  const [contStatusFilter, setContStatusFilter] = useState('all'); // 'all' | 'active' | 'notstarted' | 'inactive'
+  const [contStatusFilter, setContStatusFilter] = useState('all'); // 'all' | 'inprogress' | 'notstarted' | 'closed' | 'demo' | 'disabled'
   const [contDateFrom, setContDateFrom] = useState('');
   const [contDateTo, setContDateTo] = useState('');
 
@@ -215,11 +229,7 @@ export default function OverviewSection({
         (c.company || c.customer || '').toLowerCase().includes(q) ||
         (c.service || '').toLowerCase().includes(q);
 
-      const status = (c.status || '').toLowerCase();
-      let matchesStatus = true;
-      if (contStatusFilter === 'active') matchesStatus = status === 'active';
-      else if (contStatusFilter === 'notstarted') matchesStatus = status === 'notstarted' || status === 'draft';
-      else if (contStatusFilter === 'inactive') matchesStatus = status === 'inactive' || status === 'expired';
+      const matchesStatus = matchesStatusFilter(c, contStatusFilter);
 
       const matchesDateRange = isWithinDateRange(
         c.startDate || c.createdAt || c.expiryDate,
@@ -582,16 +592,19 @@ export default function OverviewSection({
     {
       id: 'status',
       name: 'Status',
-      selector: (row) => row.status,
+      selector: (row) => normalizeContractStatus(row.status),
       sortable: true,
-      sortFunction: compareText((row) => row.status),
+      sortFunction: compareText((row) => normalizeContractStatus(row.status)),
       width: '135px',
-      cell: (c) => (
-        <span className={`adm-status-pill ${c.status === 'active' ? 'active' : 'expiring'}`}>
-          <CheckCircle2 size={12} />
-          <span style={{ textTransform: 'capitalize' }}>{c.status}</span>
-        </span>
-      ),
+      cell: (c) => {
+        const tone = contractStatusTone(c.status);
+        return (
+          <span className={`adm-status-pill ${tone}`}>
+            {tone === 'active' && <CheckCircle2 size={12} />}
+            <span>{normalizeContractStatus(c.status)}</span>
+          </span>
+        );
+      },
       searchType: 'select'
     },
     {
@@ -845,23 +858,12 @@ export default function OverviewSection({
               <Select
                 styles={compactSelectStyles}
                 isSearchable={false}
-                options={[
-                  { value: 'all', label: 'All Statuses' },
-                  { value: 'active', label: 'Active Only' },
-                  { value: 'notstarted', label: 'Not Started / Draft' },
-                  { value: 'inactive', label: 'Inactive / Closed' }
-                ]}
-                value={{
-                  value: contStatusFilter,
-                  label:
-                    contStatusFilter === 'all'
-                      ? 'All Statuses'
-                      : contStatusFilter === 'active'
-                      ? 'Active Only'
-                      : contStatusFilter === 'notstarted'
-                      ? 'Not Started / Draft'
-                      : 'Inactive / Closed'
-                }}
+                options={CONTRACT_STATUS_FILTER_OPTIONS}
+                value={
+                  CONTRACT_STATUS_FILTER_OPTIONS.find(
+                    (option) => option.value === contStatusFilter
+                  ) || CONTRACT_STATUS_FILTER_OPTIONS[0]
+                }
                 onChange={(opt) => setContStatusFilter(opt ? opt.value : 'all')}
                 classNamePrefix="react-select"
               />

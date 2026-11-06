@@ -158,6 +158,26 @@ export function fromPermissionMatrix(matrix) {
  * column picker existed keeps working unchanged. Mirrors the backend rule in
  * Backend/src/utils/columnPermissions.js.
  */
+const LEGACY_COLUMN_ALIASES = {
+  customer: {
+    company: ['company', 'name'],
+    loginEmail: ['email'],
+    registered: ['createdAt'],
+    lastLogin: [],
+    plan: [],
+    serverNode: [],
+    mrr: [],
+    sangam: []
+  },
+  contract: {
+    id: ['name'],
+    customer: ['personEmail', 'personMobile'],
+    service: ['contractType'],
+    expiryDate: ['endDate'],
+    sangam: []
+  }
+};
+
 export function isPermissionColumnVisible(user, module, columnId) {
   if (!user) return true;
   if (user.role === 'admin' || user.isPrimaryAdmin) return true;
@@ -169,7 +189,14 @@ export function isPermissionColumnVisible(user, module, columnId) {
     .filter((entry) => String(entry || '').startsWith(`${module}:view:`))
     .map((entry) => entry.split(':')[2]);
   if (scoped.length === 0) return true;
-  return scoped.includes(columnId);
+  if (scoped.includes(columnId)) return true;
+
+  // A column set that was redrawn keeps the grants that pointed at its
+  // predecessor, otherwise a restricted account loses every column at once.
+  const aliases = LEGACY_COLUMN_ALIASES[module] || {};
+  return Object.entries(aliases).some(
+    ([legacyId, successors]) => scoped.includes(legacyId) && successors.includes(columnId)
+  );
 }
 
 /** `{ module: { columnId: boolean } }` read out of the stored permission strings. */

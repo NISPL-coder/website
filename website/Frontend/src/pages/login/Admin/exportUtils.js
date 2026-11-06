@@ -1,5 +1,13 @@
 import * as XLSX from 'xlsx';
-import { receiptDuration } from './adminTableUtils';
+import { formatStamp, receiptDuration } from './adminTableUtils';
+import {
+  normalizeContractStatus,
+  normalizeContractType,
+  contractPersonEmail,
+  contractPersonMobile,
+  contractActorName,
+  formatContractStamp
+} from './contractVocabulary';
 
 /**
  * Clean & write data to .xlsx file with auto-fitted column widths
@@ -51,30 +59,24 @@ export function exportToCsv(data, fileName = 'export') {
 }
 
 /**
- * Format Customer records for clean spreadsheet export
+ * Format Customer records for clean spreadsheet export: the same columns, in the
+ * same order, as the directory table.
  */
 export function formatCustomersForExport(customers) {
   return customers.map((c) => ({
-    'Customer ID': c.id,
-    'Company / Organization': c.company,
-    'Contact Representative': c.name,
-    'Login Email': c.loginEmail || c.email,
+    'Customer ID': c.id || '—',
+    'Customer Name': c.name || '—',
+    'Designation': c.designation || '—',
+    'Company Name': c.company || '—',
+    'Email': c.email || c.loginEmail || '—',
     'Password': c.password || c.portalPassword || '—',
-    'Last Login': c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleString('en-IN') : 'Never logged in',
-    'Email Address': c.email,
-    'Mobile / Phone': c.phone || '—',
-    'Subscription Tier': c.plan || '—',
-    'Monthly Recurring Revenue (MRR)': c.mrr || '—',
-    'Account Status': (c.status || '').toUpperCase(),
-    'Country': c.address?.country || c.country || 'India',
-    'State': c.address?.state || c.state || 'West Bengal',
-    'City': c.address?.city || c.city || 'Kolkata',
-    'Street / Area': [c.address?.street, c.address?.area].filter(Boolean).join(', ') || '—',
-    'Postal Code': c.address?.postalCode || c.postalCode || '—',
-    'Sangam CRM Status': (c.sangamCrm?.status || 'synced').toUpperCase(),
-    'Sangam CRM Record ID': c.sangamCrm?.recordId || '—',
-    'Last Synced At': c.sangamCrm?.lastSyncedAt || '—',
-    'Member Since': c.since || c.registered || '—'
+    'Phone No.': c.phone || '—',
+    'Orders': c.orderCount || 0,
+    'City': c.address?.city || c.city || '—',
+    'State': c.address?.state || c.state || '—',
+    'Status': (c.status || '—').toUpperCase(),
+    'Created At': formatStamp(c.createdAt || c.registered),
+    'Updated At': formatStamp(c.updatedAt)
   }));
 }
 
@@ -83,17 +85,19 @@ export function formatCustomersForExport(customers) {
  */
 export function formatContractsForExport(contracts) {
   return contracts.map((ctr) => ({
-    'Contract ID': ctr.id,
-    'Contract Name': ctr.name || ctr.company || 'Enterprise Contract',
-    'Company / Organization': ctr.company || ctr.name || '—',
-    'Contact Person': ctr.customer || ctr.client || 'Authorized Signatory',
-    'Contract Type': ctr.contractType || 'Subscription',
-    'Subscription Period': ctr.subscriptionPeriod || '1 Year',
-    'Total Contract Value': ctr.totalContractValue || ctr.value || '₹0',
-    'Start Date': ctr.startDate || ctr.start || '—',
-    'End Date': ctr.endDate || ctr.expiryDate || ctr.end || '—',
-    'Contract Status': (ctr.status || '').toUpperCase(),
-    'Service SLA Tier': ctr.service || ctr.plan || 'Cloud SLA Tier-1'
+    'Contract ID': ctr.name || '—',
+    'Company Name': ctr.company || '—',
+    'Status': normalizeContractStatus(ctr.status) || '—',
+    'Person Email': contractPersonEmail(ctr) || '—',
+    'Person Mobile': contractPersonMobile(ctr) || '—',
+    'Contract Type': normalizeContractType(ctr.contractType) || '—',
+    'Total Contract Value': ctr.totalContractValue || ctr.value || '—',
+    'Start Date': ctr.startDate || '—',
+    'End Date': ctr.endDate || ctr.expiryDate || '—',
+    'Updated At': formatContractStamp(ctr.updatedAt),
+    'Updated By': contractActorName(ctr.updatedBy) || '—',
+    'Created At': formatContractStamp(ctr.createdAt),
+    'Created By': contractActorName(ctr.createdBy) || '—'
   }));
 }
 
