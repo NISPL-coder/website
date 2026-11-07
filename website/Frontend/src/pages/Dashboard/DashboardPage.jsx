@@ -13,7 +13,6 @@ import CustomerProfilePage from './components/CustomerProfilePage';
 import CloudPortalOverview from '../login/customer/overview';
 import ProductsSection from '../login/customer/product';
 import CartSection from '../login/customer/cart';
-import PaymentSection from './components/PaymentSection';
 import ReceiptSection from '../login/customer/receipt';
 import HelpSection from '../login/customer/help';
 import SupportTicketModal from './components/SupportTicketModal';
@@ -23,6 +22,7 @@ import { cartApi } from '../../services/cartApi';
 import { dashboardApi } from '../../services/dashboardApi';
 import { formatINR } from './utils/pricingUtils';
 import { toPortalReceiptRows } from './utils/portalReceiptRows';
+import { useRazorpayCheckout } from '../../utils/useRazorpayCheckout';
 import './Dashboard.css';
 
 const NAV_TO_PATH = {
@@ -30,7 +30,6 @@ const NAV_TO_PATH = {
   products: '/customer/product',
   cart: '/customer/cart',
   receipt: '/customer/receipt',
-  payment: '/customer/payment',
   help: '/customer/help',
   profile: '/customer/profile'
 };
@@ -48,7 +47,6 @@ const SEARCH_PAGES = [
   { target: 'overview', title: 'Overview', subtitle: 'Products, payments and renewals at a glance', keywords: 'overview home dashboard summary start' },
   { target: 'products', title: 'Products & plans', subtitle: 'Browse and buy NISPL plans', keywords: 'product products plan plans catalogue buy store tally cloud subscription' },
   { target: 'cart', title: 'Cart', subtitle: 'Items waiting for checkout', keywords: 'cart checkout basket order items' },
-  { target: 'payment', title: 'Payment', subtitle: 'Pay a pending invoice', keywords: 'payment pay invoice due amount gateway make' },
   { target: 'receipt', title: 'Receipts', subtitle: 'Invoices and payment history', keywords: 'receipt receipts invoice invoices history download gst bill' },
   { target: 'help', title: 'Help Center', subtitle: 'Support, FAQs and contact', keywords: 'help support faq contact ticket raise issue' },
   { target: 'profile', title: 'Profile', subtitle: 'Account and company details', keywords: 'profile account details company address contact password' }
@@ -128,7 +126,6 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     if (pathname.includes('/customer/product')) return 'products';
     if (pathname.includes('/customer/cart')) return 'cart';
     if (pathname.includes('/customer/receipt')) return 'receipt';
-    if (pathname.includes('/customer/payment')) return 'payment';
     if (pathname.includes('/customer/help')) return 'help';
     if (pathname.includes('/customer/profile')) return 'profile';
     return 'overview';
@@ -137,7 +134,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   // State
   const [customer, setCustomer] = useState(null);
 
-  // Options: 'overview' | 'products' | 'payment' | 'cart' | 'receipt'
+  // Options: 'overview' | 'products' | 'cart' | 'receipt' | 'help' | 'profile'
   const [activeNav, setActiveNav] = useState(() => getNavFromPath(location.pathname));
 
   useEffect(() => {
@@ -166,17 +163,14 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   // Cart mirrors the backend cart for this account
   const [cartItems, setCartItems] = useState([]);
   const [cartSummary, setCartSummary] = useState(null);
-  const [fulfillmentMode, setFulfillmentMode] = useState('digital');
 
   // The account's own ledger from /api/dashboard/me: KPIs, products, payments, reminder
   const [portal, setPortal] = useState(null);
-  const [isLedgerLoading, setIsLedgerLoading] = useState(true);
 
   const applyCartPayload = (cartData) => {
     if (!cartData) return;
     if (Array.isArray(cartData.items)) setCartItems(cartData.items);
     if (cartData.summary) setCartSummary(cartData.summary);
-    if (cartData.fulfillmentMode) setFulfillmentMode(cartData.fulfillmentMode);
   };
 
   const syncPortal = async () => {
@@ -189,8 +183,6 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     } catch (err) {
       console.warn('Account ledger API fallback:', err?.message);
       return null;
-    } finally {
-      setIsLedgerLoading(false);
     }
   };
 
@@ -355,15 +347,6 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     }
   };
 
-  const handleUpdateFulfillmentMode = async (mode) => {
-    setFulfillmentMode(mode);
-    try {
-      await cartApi.updateFulfillmentMode(mode);
-    } catch (e) {
-      console.warn('Fulfillment mode sync fallback:', e);
-    }
-  };
-
   // Payment Handlers
   const handlePaymentSuccess = async () => {
     // The server already emptied the cart for a cart checkout, so both the
@@ -376,7 +359,10 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     } catch (e) {
       console.warn('Cart re-sync after payment fallback:', e);
     }
+    handleSelectNav('receipt');
   };
+
+  const { pay, isPaying } = useRazorpayCheckout({ onSuccess: handlePaymentSuccess });
 
   // What this account can pay right now, in priority order: a quoted cart, then
   // open invoices on the ledger, then the nearest renewal.
@@ -428,6 +414,11 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     return { mode: 'none', amount: 0, subtotal: 0, gst: 0 };
   }, [cartItems, cartSummary, portal]);
 
+  // Without a scope the prioritized checkout is priced: cart, then open
+  // invoices, then the nearest renewal. Overview passes an explicit scope
+  // when a specific invoice or renewal is being paid.
+  const startPayment = (scope) => pay(scope || checkout);
+
   const navItems = useMemo(
     () => [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/customer/overview' },
@@ -478,6 +469,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               customer={customer}
               portalData={portal}
               onNavigateTab={handleSelectNav}
+              onPay={startPayment}
               onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
@@ -497,31 +489,15 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
             </div>
           )}
 
-          {/* TAB 3: PAYMENT */}
-          {activeNav === 'payment' && (
-            <div className="flowmail-overview-container animate-fade-in">
-              <PaymentSection
-                checkout={checkout}
-                account={portal?.account}
-                customer={customer}
-                loading={isLedgerLoading}
-                onPaymentSuccess={handlePaymentSuccess}
-                onViewReceipts={() => handleSelectNav('receipt')}
-                onBrowseProducts={() => handleSelectNav('products')}
-              />
-            </div>
-          )}
-
-          {/* TAB 4: CART */}
+          {/* TAB 3: CART */}
           {activeNav === 'cart' && (
             <div className="flowmail-overview-container animate-fade-in">
               <CartSection
                 cartItems={cartItems}
-                fulfillmentMode={fulfillmentMode}
-                onUpdateFulfillmentMode={handleUpdateFulfillmentMode}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
-                onProceedToPayment={() => handleSelectNav('payment')}
+                onProceedToPayment={() => pay(checkout)}
+                isCheckingOut={isPaying}
                 onBrowseProducts={() => handleSelectNav('products')}
                 onAddToCart={handleAddToCart}
               />

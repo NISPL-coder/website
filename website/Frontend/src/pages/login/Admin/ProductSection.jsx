@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Zap,
   Globe,
-  Percent
+  Percent,
+  Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -23,6 +24,7 @@ import ctrlsLogo from '../../../assets/partners/ctrls.png';
 import { compactSelectStyles } from './reactSelectStyles';
 import AdminDataTable from './AdminDataTable';
 import CustomPricingPage from './CustomPricingPage';
+import AddonSection from './AddonSection';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
@@ -33,10 +35,10 @@ export default function ProductSection({ products, setProducts }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // /admin/product · /admin/product/{tally|cloud} · /admin/product/cloud/custom-pricing
+  // /admin/product · /admin/product/{tally|cloud|addons} · /admin/product/cloud/custom-pricing
   const [, , , categorySegment, actionSegment] = location.pathname.split('/');
   const selectedCategory =
-    categorySegment === 'tally' || categorySegment === 'cloud' ? categorySegment : null;
+    categorySegment === 'tally' || categorySegment === 'cloud' || categorySegment === 'addons' ? categorySegment : null;
   const selectedView = actionSegment === 'custom-pricing' ? 'custom-pricing' : null;
   const selectedCloudProvider = selectedCategory === 'cloud' ? 'ctrls-cloud' : null;
 
@@ -79,14 +81,6 @@ export default function ProductSection({ products, setProducts }) {
   ];
 
   // Calculate live counts
-  const tallyCount = useMemo(() => {
-    return products.filter((p) =>
-      p.category?.toLowerCase().includes('erp') ||
-      p.name?.toLowerCase().includes('tally') ||
-      p.provider === 'tally'
-    ).length;
-  }, [products]);
-
   const cloudCount = useMemo(() => {
     return products.filter((p) =>
       p.category?.toLowerCase().includes('cloud') ||
@@ -664,6 +658,13 @@ export default function ProductSection({ products, setProducts }) {
       )}
 
       {/* =========================================================================
+         VIEW 0.5: CHECKOUT ADD-ONS MANAGEMENT
+         ========================================================================= */}
+      {selectedCategory === 'addons' && (
+        <AddonSection onBack={() => updateRoute(null)} />
+      )}
+
+      {/* =========================================================================
          VIEW 1: INITIAL 2-CARD SOLUTION CATEGORY SELECTION (TALLY VS CLOUD)
          ========================================================================= */}
       {selectedCategory === null && selectedView !== 'custom-pricing' && (
@@ -683,20 +684,9 @@ export default function ProductSection({ products, setProducts }) {
           {/* 2 Big Hero Cards */}
           <div style={{ padding: '36px 32px 42px' }}>
             <div className="solutions-cards-grid">
-              {/* CARD 1: TALLY PRIME & CUSTOMIZATION */}
-              <div
-                role="button"
-                tabIndex={0}
-                className="solution-hero-card tally-theme"
-                onClick={() => updateRoute('tally')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    updateRoute('tally');
-                  }
-                }}
-              >
-                <div className="solution-center-logo-box tally-logo-center">
+              {/* CARD 1: TALLY PRIME & CUSTOMIZATION (COMING SOON) */}
+              <div className="solution-hero-card tally-theme" style={{ cursor: 'default' }} aria-disabled="true">
+                <div className="solution-center-logo-box tally-logo-center" style={{ opacity: 0.55, filter: 'grayscale(0.4)' }}>
                   <img
                     src={tallyLogo}
                     alt="Tally Prime"
@@ -716,20 +706,23 @@ export default function ProductSection({ products, setProducts }) {
                       marginTop: '8px',
                       fontSize: '0.75rem',
                       fontWeight: 600,
-                      color: '#b91c1c',
-                      background: '#fee2e2',
+                      color: '#92400e',
+                      background: '#fef3c7',
                       padding: '3px 10px',
                       borderRadius: '999px'
                     }}
                   >
-                    {tallyCount} Catalog Editions
+                    Coming Soon
                   </span>
                 </div>
 
                 <div className="solution-explore-row">
-                  <span className="solution-explore-btn tally-btn">
-                    <span>Explore Tally Prime</span>
-                    <ArrowRight size={16} />
+                  <span
+                    className="solution-explore-btn"
+                    style={{ background: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed', boxShadow: 'none' }}
+                  >
+                    <Clock size={15} />
+                    <span>Coming Soon</span>
                   </span>
                 </div>
               </div>

@@ -18,6 +18,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import razorpayRoutes from './routes/razorpayRoutes.js';
 import { razorpayWebhookHandler } from './controllers/razorpayController.js';
 import productRoutes from './routes/productRoutes.js';
+import addonRoutes from './routes/addonRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
@@ -130,6 +131,8 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/v1/addons', addonRoutes);
+app.use('/api/addons', addonRoutes);
 app.use('/api/v1/permissions', permissionRoutes);
 app.use('/api/permissions', permissionRoutes);
 

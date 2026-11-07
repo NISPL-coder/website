@@ -194,31 +194,6 @@ export const cartApi = {
   },
 
   /**
-   * Update shipping / fulfillment mode
-   */
-  async updateFulfillmentMode(mode) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/fulfillment`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          fulfillmentMode: mode
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to update fulfillment (${res.status})`);
-      }
-
-      const data = await res.json();
-      return data.data;
-    } catch (err) {
-      console.warn('[cartApi.updateFulfillmentMode] Error:', err.message);
-      throw err;
-    }
-  },
-
-  /**
    * Fetch dynamic add-ons catalog
    */
   async getAddons() {
@@ -233,10 +208,10 @@ export const cartApi = {
       }
 
       const data = await res.json();
-      return data.data?.addons || [];
+      return data.data || { showAddonsOnCheckout: true, addons: [] };
     } catch (err) {
       console.warn('[cartApi.getAddons] Offline or fallback:', err.message);
-      return [];
+      return { showAddonsOnCheckout: true, addons: [] };
     }
   }
 };

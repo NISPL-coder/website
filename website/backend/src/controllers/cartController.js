@@ -268,10 +268,11 @@ export async function updateFulfillment(req, res) {
   res.json({ success: true, data: withTotals(cart) });
 }
 
+import { getAddons as getDynamicAddons } from './addonController.js';
+
 /**
- * Add-ons are sold from the product catalogue, which is not in the database yet,
- * so the API reports none rather than inventing prices the business has not set.
+ * Add-ons dynamically served from the Addons catalog and checkout setting.
  */
 export async function getAddons(req, res) {
-  res.json({ success: true, data: { addons: [] } });
+  return getDynamicAddons(req, res);
 }

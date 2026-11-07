@@ -24,6 +24,10 @@ const cleanEnv = (val) => {
 const DEFAULT_TEST_KEY_ID = 'rzp_test_TwQCgfXiLnDMSa';
 const DEFAULT_TEST_KEY_SECRET = 'ivedlw4TxbIjZJEPGFqOWJ2x';
 
+// Verified NISPL live credentials
+const DEFAULT_LIVE_KEY_ID = 'rzp_live_TwpNQJ91W9n8I5';
+const DEFAULT_LIVE_KEY_SECRET = 'wVHavVJ294b6ms6u70SCLuMY';
+
 const rawTestMode = process.env.RAZORPAY_TEST_MODE;
 const rawKeyId = cleanEnv(
   process.env.RAZORPAY_KEY_ID ||
@@ -39,42 +43,24 @@ const rawKeySecret = cleanEnv(
   process.env.VITE_RAZORPAY_KEY_SECRET
 );
 
-const testKeyId = cleanEnv(process.env.RAZORPAY_TEST_KEY_ID || (rawKeyId.startsWith('rzp_test_') ? rawKeyId : ''));
-const testKeySecret = cleanEnv(process.env.RAZORPAY_TEST_KEY_SECRET || (rawKeyId.startsWith('rzp_test_') ? rawKeySecret : ''));
+const testKeyId = cleanEnv(process.env.RAZORPAY_TEST_KEY_ID) || (rawKeyId.startsWith('rzp_test_') ? rawKeyId : DEFAULT_TEST_KEY_ID);
+const testKeySecret = cleanEnv(process.env.RAZORPAY_TEST_KEY_SECRET) || (rawKeyId.startsWith('rzp_test_') ? rawKeySecret : DEFAULT_TEST_KEY_SECRET);
 
-const liveKeyId = cleanEnv(process.env.RAZORPAY_LIVE_KEY_ID || (rawKeyId.startsWith('rzp_live_') ? rawKeyId : ''));
-const liveKeySecret = cleanEnv(process.env.RAZORPAY_LIVE_KEY_SECRET || (rawKeyId.startsWith('rzp_live_') ? rawKeySecret : ''));
+const liveKeyId = cleanEnv(process.env.RAZORPAY_LIVE_KEY_ID) || (rawKeyId.startsWith('rzp_live_') ? rawKeyId : DEFAULT_LIVE_KEY_ID);
+const liveKeySecret = cleanEnv(process.env.RAZORPAY_LIVE_KEY_SECRET) || (rawKeyId.startsWith('rzp_live_') ? rawKeySecret : DEFAULT_LIVE_KEY_SECRET);
 
 let isTestMode = true;
 if (rawTestMode !== undefined) {
   const norm = String(rawTestMode).trim().toLowerCase();
-  isTestMode = norm === 'true' || norm === '1' || norm === 'test';
-} else if (liveKeyId && !testKeyId && !rawKeyId.startsWith('rzp_test_')) {
-  isTestMode = false;
+  isTestMode = norm === 'true' || norm === '1' || norm === 'test' || norm === 'yes';
 } else if (rawKeyId.startsWith('rzp_live_')) {
   isTestMode = false;
 } else {
   isTestMode = true;
 }
 
-let razorpayKeyId = '';
-let razorpayKeySecret = '';
-
-if (isTestMode) {
-  razorpayKeyId = testKeyId || rawKeyId || DEFAULT_TEST_KEY_ID;
-  razorpayKeySecret = testKeySecret || rawKeySecret || DEFAULT_TEST_KEY_SECRET;
-} else {
-  razorpayKeyId = liveKeyId || (rawKeyId.startsWith('rzp_live_') ? rawKeyId : '');
-  razorpayKeySecret = liveKeySecret || (rawKeyId.startsWith('rzp_live_') ? rawKeySecret : '');
-
-  // If live mode requested without live credentials, fall back safely to test credentials
-  if (!razorpayKeyId || !razorpayKeySecret) {
-    console.warn('[Razorpay] Live mode requested but live keys not found in environment. Falling back to verified test credentials.');
-    isTestMode = true;
-    razorpayKeyId = testKeyId || rawKeyId || DEFAULT_TEST_KEY_ID;
-    razorpayKeySecret = testKeySecret || rawKeySecret || DEFAULT_TEST_KEY_SECRET;
-  }
-}
+const razorpayKeyId = isTestMode ? testKeyId : liveKeyId;
+const razorpayKeySecret = isTestMode ? testKeySecret : liveKeySecret;
 
 const rawSangamSync = process.env.SANGAM_CRM_SYNC_ENABLED ?? process.env.SANGAM_CRM_SYNC;
 let isSangamSyncEnabled = true;

@@ -67,7 +67,7 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction }) {
   );
 }
 
-export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onOpenSupport }) {
+export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onPay, onOpenSupport }) {
   const [view, setView] = useState(() => ({
     status: portalData ? 'ready' : 'loading',
     data: portalData || null,
@@ -102,6 +102,19 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const goTo = (tab) => {
     if (onNavigateTab) onNavigateTab(tab);
+  };
+
+  // A reminder pays exactly its own charge: one invoice, or one renewal.
+  // Without a scope the portal prices whatever is due in priority order.
+  const payReminder = (rem) => {
+    if (!onPay) return;
+    if (rem.kind === 'renewal' && rem.contractId) {
+      onPay({ mode: 'renewal', contractId: rem.contractId, amount: rem.amount });
+    } else if (rem.invoiceNumber) {
+      onPay({ mode: 'invoice', invoiceNumber: rem.invoiceNumber, amount: rem.amount });
+    } else {
+      onPay();
+    }
   };
 
   const data = view.data;
@@ -208,7 +221,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               value={formatINR(kpi.totalPending || 0)}
               note={`${kpi.pendingInvoices || 0} open invoice${kpi.pendingInvoices === 1 ? '' : 's'}`}
               actionLabel="Pay now"
-              onAction={() => goTo('payment')}
+              onAction={() => onPay?.({ mode: 'dues', amount: kpi.totalPending || 0 })}
             />
           </section>
 
@@ -327,7 +340,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                         {rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}
                       </p>
                       <div className="flowmail-reminder-item-actions">
-                        <button type="button" className="flowmail-btn-primary" onClick={() => goTo('payment')}>
+                        <button type="button" className="flowmail-btn-primary" onClick={() => payReminder(rem)}>
                           Pay Now
                         </button>
                         <button type="button" className="flowmail-btn-secondary" onClick={() => goTo('receipt')}>
@@ -411,7 +424,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               </div>
 
               <div className="flowmail-quick-action-grid">
-                <button type="button" className="flowmail-quick-action" onClick={() => goTo('payment')}>
+                <button type="button" className="flowmail-quick-action" onClick={() => onPay?.()}>
                   <CreditCard size={17} />
                   <span>Make Payment</span>
                 </button>

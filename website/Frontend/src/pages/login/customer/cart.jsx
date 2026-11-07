@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
   ShoppingBag,
@@ -11,126 +11,36 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Zap,
-  Server,
-  Receipt,
-  CheckCircle2,
-  Lock,
-  Headphones
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi } from '../../../services/cartApi';
-import tallyLogo from '../../../assets/partners/tally.png';
-import tallyPrimeImg from '../../../assets/Industries/Tally Prime and Tally on Cloud.webp';
-import cloudHostingImg from '../../../assets/Industries/Clous Server & Hosting.webp';
-import itInfraImg from '../../../assets/Industries/IT infrastructure Managment.webp';
-import managedImg from '../../../assets/Industries/Managed IT services.webp';
-import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
-
-/* ── Fallback Add-ons Catalog (if offline) ────────────── */
-const FALLBACK_ADDONS = [
-  {
-    id: 'tally-whatsapp-automation',
-    name: 'WhatsApp Automation Module',
-    category: 'Automation Add-on',
-    badge: 'POPULAR',
-    badgeColor: '#059669',
-    badgeBg: '#ecfdf5',
-    basePrice: 3000,
-    desc: 'Instant PDF invoices & receipts dispatched directly via WhatsApp.',
-    image: managedImg,
-    spec: 'Meta Official API'
-  },
-  {
-    id: 'cloud-backup-100gb',
-    name: 'Encrypted Cloud Backup (100GB)',
-    category: 'Security & Backup',
-    badge: 'ESSENTIAL',
-    badgeColor: '#2563eb',
-    badgeBg: '#eff6ff',
-    basePrice: 1499,
-    desc: 'Automated nightly snapshot backup with 15-day recovery.',
-    image: itInfraImg,
-    spec: '100 GB NVMe'
-  },
-  {
-    id: 'tally-einvoice-api',
-    name: 'Direct e-Invoice & e-Way Bill API',
-    category: 'Government Compliance',
-    badge: 'COMPLIANCE',
-    badgeColor: '#7c3aed',
-    badgeBg: '#f5f3ff',
-    basePrice: 3500,
-    desc: 'Sub-second IRN & QR code generation directly from Tally.',
-    image: managedImg,
-    spec: 'Direct IRP Sync'
-  },
-  {
-    id: 'cloud-tally-business',
-    name: 'Tally on Cloud (3 Users)',
-    category: 'Cloud Hosting',
-    badge: 'BEST SELLER',
-    badgeColor: '#d97706',
-    badgeBg: '#fef3c7',
-    basePrice: 2499,
-    desc: 'High-speed remote cloud desktop accessible from Mac & Windows.',
-    image: cloudHostingImg,
-    spec: 'Tier-4 Enterprise Cloud'
-  },
-  {
-    id: 'tally-tss-single',
-    name: 'TSS 1-Year Renewal (Silver)',
-    category: 'Software Maintenance',
-    badge: 'TAX UPDATES',
-    badgeColor: '#dc2626',
-    badgeBg: '#fef2f2',
-    basePrice: 4500,
-    desc: 'Continuous statutory tax patches, banking API & reports.',
-    image: tallyLogo,
-    spec: '12-Month Support'
-  },
-  {
-    id: 'tally-lan-booster',
-    name: 'LAN Network Accelerator',
-    category: 'Network Optimization',
-    badge: 'UTILITY',
-    badgeColor: '#0891b2',
-    badgeBg: '#ecfeff',
-    basePrice: 2200,
-    desc: 'Zero-lag multi-workstation concurrency for retail billing.',
-    image: itInfraImg,
-    spec: 'Multi-LAN Routing'
-  }
-];
+import { useIsMobile } from '../../../utils/useResponsive';
 
 export default function CartSection({
   cartItems = [],
-  fulfillmentMode = 'digital',
-  onUpdateFulfillmentMode,
   onUpdateQuantity,
   onRemoveItem,
   onProceedToPayment,
+  isCheckingOut = false,
   onBrowseProducts,
   onAddToCart
 }) {
   const [justAddedAddonId, setJustAddedAddonId] = useState(null);
-  const [addonsList, setAddonsList] = useState(FALLBACK_ADDONS);
+  const [addonsList, setAddonsList] = useState([]);
+  const [showAddonsOnCheckout, setShowAddonsOnCheckout] = useState(true);
   const [activeAddonIndex, setActiveAddonIndex] = useState(0);
   const [isAddonHovered, setIsAddonHovered] = useState(false);
   const isMobile = useIsMobile();
-  const isPhone = useIsPhone();
 
-  // Exactly 2 cards shown one after the other (WhatsApp Automation & Cloud Backup)
-  const displayAddons = useMemo(() => {
-    return addonsList && addonsList.length >= 2 ? addonsList.slice(0, 2) : FALLBACK_ADDONS.slice(0, 2);
-  }, [addonsList]);
+  const displayAddons = useMemo(() => addonsList, [addonsList]);
 
-  // Auto horizontally change card every 3 seconds (pauses on hover)
+  // Auto horizontally change card every 3.5 seconds (pauses on hover)
   useEffect(() => {
     if (isAddonHovered || displayAddons.length <= 1) return;
     const timer = setInterval(() => {
       setActiveAddonIndex((prev) => (prev + 1) % displayAddons.length);
-    }, 3000);
+    }, 3500);
     return () => clearInterval(timer);
   }, [isAddonHovered, displayAddons.length]);
 
@@ -142,31 +52,20 @@ export default function CartSection({
     setActiveAddonIndex((prev) => (prev + 1) % displayAddons.length);
   };
 
-  // Dynamic image resolver for products & add-ons
-  const getItemImage = (item) => {
-    if (item.image) return item.image;
-    const name = (item.name || '').toLowerCase();
-    if (name.includes('cloud') || name.includes('vps') || name.includes('server')) return cloudHostingImg;
-    if (name.includes('whatsapp') || name.includes('automation') || name.includes('api') || name.includes('backup')) return managedImg;
-    if (name.includes('silver') || name.includes('gold') || name.includes('prime')) return tallyPrimeImg;
-    return tallyLogo;
-  };
-
-  // Fetch dynamic add-ons from live backend API
+  // Add-ons and the checkout visibility flag come only from the live API.
   useEffect(() => {
     let isMounted = true;
     const loadDynamicAddons = async () => {
       try {
-        const dynamicAddons = await cartApi.getAddons();
-        if (isMounted && Array.isArray(dynamicAddons) && dynamicAddons.length > 0) {
-          const enriched = dynamicAddons.map((addon) => ({
-            ...addon,
-            image: getItemImage(addon)
-          }));
-          setAddonsList(enriched);
-        }
+        const res = await cartApi.getAddons();
+        if (!isMounted) return;
+
+        setShowAddonsOnCheckout(res?.showAddonsOnCheckout ?? true);
+
+        const list = Array.isArray(res?.addons) ? res.addons : (Array.isArray(res) ? res : []);
+        setAddonsList(list.filter((a) => a.available !== false));
       } catch (err) {
-        console.warn('Dynamic addons fallback to local catalog:', err);
+        console.warn('Add-ons API unreachable:', err?.message);
       }
     };
 
@@ -186,21 +85,13 @@ export default function CartSection({
   const taxTotal = cgst + sgst;
   const grandTotal = subtotal + taxTotal;
 
-  // Resolve item code / SKU
-  const getItemSku = (item, idx) => {
-    if (item.sku) return item.sku;
-    const code = (item.id || `PROD${idx}`).toUpperCase().replace(/[^A-Z0-9]/g, '');
-    return `#2143${code.slice(-6).padStart(6, '0')}`;
-  };
-
   // Resolve item options & secondary line
   const getItemDetails = (item) => {
     const parts = [];
-    if (item.category) parts.push(`Type: ${item.category}`);
+    if (item.category) parts.push(item.category);
     if (item.billingCycle) parts.push(`Cycle: ${item.billingCycle}`);
     else if (item.duration) parts.push(`Duration: ${item.duration}`);
-    else parts.push('License: Genuine NISPL Key');
-    return parts.join(' // ');
+    return parts.join(' · ');
   };
 
   // Add-on click handler (triggers dynamic addition & API sync)
@@ -214,8 +105,7 @@ export default function CartSection({
         finalPrice: Math.round(addon.basePrice * 1.18),
         category: addon.category,
         billingCycle: 'Annual',
-        quantity: 1,
-        image: addon.image
+        quantity: 1
       });
       setJustAddedAddonId(addon.id);
       toast.success(`Added ${addon.name} to Cart!`, {
@@ -226,15 +116,9 @@ export default function CartSection({
     }
   };
 
-  const handleSelectFulfillment = (mode) => {
-    if (onUpdateFulfillmentMode) {
-      onUpdateFulfillmentMode(mode);
-    }
-  };
-
   return (
     <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* ── 1. Top Header Banner (FlowMail Style) ────────────────── */}
+      {/* ── 1. Top Header Banner ────────────────────────────────── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -253,7 +137,7 @@ export default function CartSection({
             </span>
           </div>
           <p className="flowmail-welcome-sub">
-            Review your selected software licenses, cloud compute packs, and configure fulfillment mode.
+            Review your selected software licenses and cloud compute packs before secure checkout.
           </p>
         </div>
         <button
@@ -267,15 +151,12 @@ export default function CartSection({
         </button>
       </section>
 
-
-
-      {/* ── 3. Main Content: Two-Column Layout ───────────────────── */}
+      {/* ── 2. Main Content: Two-Column Layout ───────────────────── */}
       {cartItems.length > 0 ? (
         <>
           <div className="cart-two-col-layout" style={{ gap: '24px' }}>
-            {/* ── Left Column: Items Table & Fulfillment Mode ──────── */}
+            {/* ── Left Column: Items Table ─────────────────────────── */}
             <div className="cart-col-main" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Cart Items Card */}
               <div className="flowmail-card" style={{ padding: '0', overflow: 'hidden' }}>
                 {/* Table Header Bar */}
                 <div className="flowmail-cart-head" style={{
@@ -284,15 +165,16 @@ export default function CartSection({
                   padding: '14px 24px',
                   background: '#f8fafc',
                   borderBottom: '1px solid #f1f5f9',
-                  fontSize: '0.76rem',
-                  fontWeight: '600',
-                  color: '#64748b',
-                  letterSpacing: '0.04em'
+                  fontSize: '0.72rem',
+                  fontWeight: '700',
+                  color: '#94a3b8',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase'
                 }}>
-                  <div>PRODUCT</div>
-                  <div>PRICE (INCL. GST)</div>
-                  <div style={{ textAlign: 'center' }}>QTY</div>
-                  <div style={{ textAlign: 'right' }}>TOTAL</div>
+                  <div>Product</div>
+                  <div>Price (incl. GST)</div>
+                  <div style={{ textAlign: 'center' }}>Qty</div>
+                  <div style={{ textAlign: 'right' }}>Total</div>
                 </div>
 
                 {/* Items List */}
@@ -302,8 +184,6 @@ export default function CartSection({
                     const unitBase = Number(item.basePrice) || Number(item.price) || 0;
                     const unitWithTax = Math.round(unitBase * 1.18);
                     const lineTotal = unitWithTax * qty;
-                    const imageSrc = getItemImage(item);
-                    const sku = getItemSku(item, idx);
                     const details = getItemDetails(item);
 
                     return (
@@ -321,33 +201,21 @@ export default function CartSection({
                         className="flowmail-cart-row"
                       >
                         {/* Product Info */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                          <div style={{
-                            width: '56px',
-                            height: '56px',
-                            borderRadius: '12px',
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
-                            padding: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                          }}>
-                            <img src={imageSrc} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                          </div>
-                          <div>
-                            <h4 style={{ margin: '0 0 3px 0', fontSize: '0.94rem', fontWeight: '600', color: '#0f172a' }}>
-                              {item.name}
-                            </h4>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <h4 style={{ margin: '0 0 5px 0', fontSize: '0.95rem', fontWeight: '600', color: '#0f172a', lineHeight: 1.4 }}>
+                            {item.name}
+                          </h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            {item.sku && (
                               <span className="flowmail-receipt-id-badge" style={{ fontSize: '0.72rem', padding: '2px 6px' }}>
-                                {sku}
+                                {item.sku}
                               </span>
+                            )}
+                            {details && (
                               <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
                                 {details}
                               </span>
-                            </div>
+                            )}
                           </div>
                         </div>
 
@@ -357,7 +225,7 @@ export default function CartSection({
                             ₹{unitWithTax.toLocaleString('en-IN')}
                           </div>
                           <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                            + 18% GST incl.
+                            incl. 18% GST
                           </span>
                         </div>
 
@@ -448,99 +316,9 @@ export default function CartSection({
                   })}
                 </div>
               </div>
-
-              {/* Fulfillment Mode Card (FlowMail Theme) */}
-              <div className="flowmail-card">
-                <div className="flowmail-card-header-row" style={{ marginBottom: '16px' }}>
-                  <div>
-                    <h3 className="flowmail-card-title">Choose Fulfillment &amp; Setup Mode</h3>
-                    <p className="flowmail-card-subtitle">Select how you would like your licenses and cloud instances configured</p>
-                  </div>
-                </div>
-
-                <div className="flowmail-fulfill-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'repeat(2, 1fr)', gap: isMobile ? '12px' : '16px' }}>
-                  {/* Digital Mode */}
-                  <div
-                    onClick={() => handleSelectFulfillment('digital')}
-                    style={{
-                      border: fulfillmentMode === 'digital' ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                      background: fulfillmentMode === 'digital' ? '#f5f3ff' : '#ffffff',
-                      borderRadius: '16px',
-                      padding: '16px 18px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px'
-                    }}
-                  >
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      border: fulfillmentMode === 'digital' ? '6px solid #6366f1' : '2px solid #cbd5e1',
-                      background: '#ffffff',
-                      marginTop: '2px',
-                      flexShrink: 0
-                    }} />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a' }}>
-                          Instant Digital Activation
-                        </span>
-                        <span className="flowmail-trend-pill positive" style={{ fontSize: '0.72rem', padding: '2px 6px' }}>
-                          FREE
-                        </span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.4 }}>
-                        Official serial license keys and cloud credentials dispatched to registered email in 15 minutes.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Assisted Remote Setup */}
-                  <div
-                    onClick={() => handleSelectFulfillment('assisted')}
-                    style={{
-                      border: fulfillmentMode === 'assisted' ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                      background: fulfillmentMode === 'assisted' ? '#f5f3ff' : '#ffffff',
-                      borderRadius: '16px',
-                      padding: '16px 18px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px'
-                    }}
-                  >
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      border: fulfillmentMode === 'assisted' ? '6px solid #6366f1' : '2px solid #cbd5e1',
-                      background: '#ffffff',
-                      marginTop: '2px',
-                      flexShrink: 0
-                    }} />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a' }}>
-                          Assisted Remote Setup
-                        </span>
-                        <span className="flowmail-trend-pill positive" style={{ fontSize: '0.72rem', padding: '2px 6px' }}>
-                          FREE
-                        </span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.4 }}>
-                        Priority remote configuration via AnyDesk / TeamViewer by certified senior NISPL engineers.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* ── Right Column: Order Summary + Add-Ons Below Checkout ── */}
+            {/* ── Right Column: Order Summary + Add-Ons ────────────── */}
             <div className="cart-col-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* 1. Order Summary Card */}
               <div className="flowmail-card">
@@ -551,7 +329,7 @@ export default function CartSection({
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
                     <span style={{ color: '#64748b' }}>Items Base Fare</span>
                     <span style={{ color: '#0f172a', fontWeight: '600' }}>₹{subtotal.toLocaleString('en-IN')}</span>
@@ -566,12 +344,20 @@ export default function CartSection({
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px 18px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
+                  border: '1px solid #e0e7ff'
+                }}>
                   <div>
-                    <span style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a' }}>Total Amount</span>
+                    <span style={{ fontSize: '0.96rem', fontWeight: '700', color: '#0f172a' }}>Total Amount</span>
                     <span style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8' }}>All taxes inclusive</span>
                   </div>
-                  <span style={{ fontSize: '1.5rem', fontWeight: '800', color: '#6366f1' }}>
+                  <span style={{ fontSize: '1.55rem', fontWeight: '800', color: '#6366f1', letterSpacing: '-0.01em' }}>
                     ₹{grandTotal.toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -581,15 +367,37 @@ export default function CartSection({
                   type="button"
                   className="flowmail-btn-primary"
                   onClick={onProceedToPayment}
-                  style={{ width: '100%', justifyContent: 'center', marginTop: '20px', padding: '12px 20px', fontSize: '0.94rem' }}
+                  disabled={isCheckingOut}
+                  style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '13px 20px', fontSize: '0.94rem' }}
                 >
                   <Lock size={15} />
-                  <span>Proceed to Payment</span>
+                  <span>{isCheckingOut ? 'Opening Razorpay…' : 'Proceed to Payment'}</span>
                   <ArrowRight size={16} />
                 </button>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '14px',
+                  marginTop: '14px',
+                  fontSize: '0.74rem',
+                  color: '#94a3b8',
+                  flexWrap: 'wrap'
+                }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <ShieldCheck size={13} color="#10b981" />
+                    Secured by Razorpay
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <Lock size={12} />
+                    256-bit SSL
+                  </span>
+                </div>
               </div>
 
-              {/* 2. Recommended Add-Ons Card */}
+              {/* 2. Recommended Add-Ons Card (Controlled by Admin showAddonsOnCheckout switch) */}
+              {showAddonsOnCheckout && displayAddons.length > 0 && (
               <div
                 className="flowmail-card"
                 onMouseEnter={() => setIsAddonHovered(true)}
@@ -685,40 +493,26 @@ export default function CartSection({
                               style={{
                                 fontSize: '0.72rem',
                                 fontWeight: '700',
-                                color: addon.badgeColor,
-                                background: addon.badgeBg,
+                                color: addon.badgeColor || '#6366f1',
+                                background: addon.badgeBg || '#ede9fe',
                                 padding: '2px 8px',
                                 borderRadius: '999px'
                               }}
                             >
-                              {addon.badge}
+                              {addon.badge || 'ADD-ON'}
                             </span>
-                            <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{addon.spec}</span>
+                            {addon.spec && (
+                              <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{addon.spec}</span>
+                            )}
                           </div>
 
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
-                            <div style={{
-                              width: '46px',
-                              height: '46px',
-                              borderRadius: '10px',
-                              background: '#ffffff',
-                              border: '1px solid #e2e8f0',
-                              padding: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0
-                            }}>
-                              <img src={addon.image} alt={addon.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            </div>
-                            <div>
-                              <h5 style={{ margin: '0 0 2px 0', fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>
-                                {addon.name}
-                              </h5>
-                              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.35 }}>
-                                {addon.desc}
-                              </p>
-                            </div>
+                          <div style={{ marginBottom: '14px' }}>
+                            <h5 style={{ margin: '0 0 3px 0', fontSize: '0.9rem', fontWeight: '600', color: '#0f172a' }}>
+                              {addon.name}
+                            </h5>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
+                              {addon.desc || addon.description}
+                            </p>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #eef2f6' }}>
@@ -765,10 +559,11 @@ export default function CartSection({
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
 
-          {/* ── 4. Sticky Bottom Checkout Bar (FlowMail Frosted Glass) ── */}
+          {/* ── 3. Sticky Bottom Checkout Bar (Frosted Glass) ──────── */}
           <div
             className="cart-sticky-checkout-bar"
             style={{
@@ -795,9 +590,10 @@ export default function CartSection({
                 type="button"
                 className="flowmail-btn-primary"
                 onClick={onProceedToPayment}
+                disabled={isCheckingOut}
                 style={{ padding: '12px 28px', fontSize: '0.94rem' }}
               >
-                <span>Proceed to Checkout</span>
+                <span>{isCheckingOut ? 'Opening Razorpay…' : 'Proceed to Checkout'}</span>
                 <span style={{ opacity: 0.85, fontWeight: '400' }}>| ₹{grandTotal.toLocaleString('en-IN')}</span>
                 <ArrowRight size={17} />
               </button>
@@ -805,7 +601,7 @@ export default function CartSection({
           </div>
         </>
       ) : (
-        /* ── Empty State (FlowMail Card) ─────────────────────────── */
+        /* ── Empty State ────────────────────────────────────────── */
         <div
           className="flowmail-card"
           style={{
@@ -865,5 +661,3 @@ export default function CartSection({
     </div>
   );
 }
-
-export { CartSection as Cart, CartSection as cart };

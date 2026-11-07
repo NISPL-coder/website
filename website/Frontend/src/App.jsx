@@ -178,7 +178,7 @@ function MainApp() {
           <Route path="/customer/products" element={<Navigate to="/customer/product" replace />} />
           <Route path="/customer/cart" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/receipt" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
-          <Route path="/customer/payment" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/payment" element={<Navigate to="/customer/overview" replace />} />
           <Route path="/customer/help" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/profile" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/help" element={<Navigate to="/customer/help" replace />} />
@@ -206,6 +206,8 @@ function MainApp() {
           <Route path="/admin/product/cloud" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/product/cloud/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/product/cloud/custom-pricing" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/product/addons" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/addons" element={<Navigate to="/admin/product/addons" replace />} />
           <Route path="/admin/product/create" element={<Navigate to="/admin/product" replace />} />
           <Route path="/admin/product" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/products" element={<Navigate to="/admin/product" replace />} />
