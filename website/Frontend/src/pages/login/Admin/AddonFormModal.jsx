@@ -112,30 +112,55 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
     <div className="adm-modal-backdrop-portal" onClick={onClose}>
       <div
         className="adm-modal-container animate-fade-in"
-        style={{ maxWidth: '640px', width: '92%' }}
+        style={{
+          maxWidth: '620px',
+          width: '92%',
+          background: '#ffffff',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="adm-modal-header" style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: '#ede9fe',
-              color: '#6366f1',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <Sparkles size={18} />
+        <div
+          className="adm-modal-header"
+          style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid #e2e8f0',
+            background: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: '#ede9fe',
+                color: '#6366f1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <Sparkles size={20} />
             </div>
             <div>
-              <h2 className="adm-modal-title" style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+              <h2
+                className="adm-modal-title"
+                style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#0f172a' }}
+              >
                 {isEdit ? 'Edit Checkout Add-On Product' : 'Create New Checkout Add-On Product'}
               </h2>
-              <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+              <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
                 Configure pricing, specifications, and display badge for customer checkout.
               </p>
             </div>
@@ -145,18 +170,48 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
             className="adm-modal-close"
             onClick={onClose}
             aria-label="Close modal"
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+            style={{
+              background: '#f1f5f9',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#64748b',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '72vh', overflowY: 'auto' }}>
+        <form onSubmit={handleSubmit} style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              padding: '24px',
+              background: '#ffffff',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              maxHeight: 'calc(85vh - 150px)',
+              overflowY: 'auto'
+            }}
+          >
             {/* Row 1: Name */}
             <div>
-              <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  color: '#1e293b',
+                  display: 'block',
+                  marginBottom: '6px'
+                }}
+              >
                 Add-on Product Name <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <input
@@ -166,21 +221,55 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                style={{ width: '100%', boxSizing: 'border-box' }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  height: '42px',
+                  padding: '0 12px',
+                  fontSize: '0.9rem'
+                }}
               />
             </div>
 
             {/* Row 2: Category & Billing Cycle */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '14px'
+              }}
+            >
               <div>
-                <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    color: '#1e293b',
+                    display: 'block',
+                    marginBottom: '6px'
+                  }}
+                >
                   Category
                 </label>
                 <select
                   className="adm-form-input"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    height: '42px',
+                    padding: '0 12px',
+                    fontSize: '0.9rem'
+                  }}
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -189,14 +278,32 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
               </div>
 
               <div>
-                <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    color: '#1e293b',
+                    display: 'block',
+                    marginBottom: '6px'
+                  }}
+                >
                   Billing Cycle
                 </label>
                 <select
                   className="adm-form-input"
                   value={billingCycle}
                   onChange={(e) => setBillingCycle(e.target.value)}
-                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    height: '42px',
+                    padding: '0 12px',
+                    fontSize: '0.9rem'
+                  }}
                 >
                   {BILLING_CYCLES.map((cycle) => (
                     <option key={cycle} value={cycle}>{cycle}</option>
@@ -206,13 +313,36 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
             </div>
 
             {/* Row 3: Amount & Live Price Preview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '14px'
+              }}
+            >
               <div>
-                <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    color: '#1e293b',
+                    display: 'block',
+                    marginBottom: '6px'
+                  }}
+                >
                   Base Amount (₹) <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#64748b' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontWeight: 700,
+                      color: '#64748b'
+                    }}
+                  >
                     ₹
                   </span>
                   <input
@@ -224,13 +354,43 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
-                    style={{ width: '100%', boxSizing: 'border-box', paddingLeft: '28px' }}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      paddingLeft: '28px',
+                      background: '#ffffff',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      height: '42px',
+                      fontSize: '0.9rem'
+                    }}
                   />
                 </div>
               </div>
 
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Customer Price (incl. 18% GST)</span>
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    textTransform: 'uppercase',
+                    color: '#64748b',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em'
+                  }}
+                >
+                  Customer Price (incl. 18% GST)
+                </span>
                 <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
                   ₹{totalWithTax.toLocaleString('en-IN')}
                   <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500, marginLeft: '6px' }}>
@@ -242,7 +402,15 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
 
             {/* Row 4: Specifications & Highlights */}
             <div>
-              <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  color: '#1e293b',
+                  display: 'block',
+                  marginBottom: '6px'
+                }}
+              >
                 Technical Specification / Highlight
               </label>
               <input
@@ -251,13 +419,31 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 placeholder="e.g. 1 Dedicated Static IPv4 / 100 GB NVMe / Meta Official API"
                 value={spec}
                 onChange={(e) => setSpec(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box' }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  height: '42px',
+                  padding: '0 12px',
+                  fontSize: '0.9rem'
+                }}
               />
             </div>
 
             {/* Row 5: Description */}
             <div>
-              <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  color: '#1e293b',
+                  display: 'block',
+                  marginBottom: '6px'
+                }}
+              >
                 Description / Benefit Note
               </label>
               <textarea
@@ -266,13 +452,32 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 placeholder="Explain the benefit of this add-on to the customer during checkout..."
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  resize: 'vertical',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  fontSize: '0.9rem',
+                  fontFamily: 'inherit'
+                }}
               />
             </div>
 
             {/* Row 6: Badge Settings & Presets */}
             <div>
-              <label className="adm-form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155', display: 'block', marginBottom: '6px' }}>
+              <label
+                style={{
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  color: '#1e293b',
+                  display: 'block',
+                  marginBottom: '6px'
+                }}
+              >
                 Checkout Badge &amp; Tag
               </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
@@ -284,11 +489,12 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                     style={{
                       border: badge === p.badge ? `2px solid ${p.color}` : '1px solid #cbd5e1',
                       borderRadius: '999px',
-                      padding: '3px 10px',
+                      padding: '4px 12px',
                       background: p.bg,
                       color: p.color,
                       fontSize: '0.72rem',
-                      fontWeight: 700,
+                      fontWeight: 800,
+                      letterSpacing: '0.04em',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
@@ -305,24 +511,61 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                   placeholder="Custom Badge (e.g. RECOMMENDED)"
                   value={badge}
                   onChange={(e) => setBadge(e.target.value.toUpperCase())}
-                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    height: '40px',
+                    padding: '0 12px',
+                    fontSize: '0.86rem'
+                  }}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input
                     type="color"
                     value={badgeColor}
                     onChange={(e) => setBadgeColor(e.target.value)}
-                    style={{ width: '40px', height: '36px', padding: 0, border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                    style={{
+                      width: '40px',
+                      height: '38px',
+                      padding: 0,
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      background: 'transparent'
+                    }}
                   />
-                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Badge Accent Color</span>
+                  <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
+                    Badge Accent Color
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Row 7: Availability Toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px'
+              }}
+            >
               <div>
-                <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a', display: 'block' }}>
+                <span
+                  style={{
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    display: 'block'
+                  }}
+                >
                   Active Availability
                 </span>
                 <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
@@ -341,7 +584,16 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
           </div>
 
           {/* Modal Footer */}
-          <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <div
+            style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '10px'
+            }}
+          >
             <button
               type="button"
               className="adm-btn-secondary"

@@ -3,7 +3,8 @@ import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import Cart from '../models/Cart.js';
-import Product from '../models/Product.js';
+import Product, { getProductsFromFile } from '../models/Product.js';
+import { Addon, getAddonsFromFile } from '../models/Addon.js';
 import { logNotification } from '../services/notificationService.js';
 import { crmRecordId, provisionContractsForPayment, syncContractToCrm } from '../services/contractProvisioning.js';
 
@@ -438,65 +439,300 @@ export const searchCustomerPortal = async (req, res) => {
     const query = String(req.query.q || '').trim().slice(0, 60);
     const groups = [];
 
-    if (query.length < 3) {
+    if (query.length < 2) {
       return res.json({ success: true, data: { query, groups } });
     }
 
     const user = req.user || {};
-    const customer = await findAccountRecord(user);
-    const identity = collectIdentityValues(user, customer);
-
-    if (!isMongoConnected() || identity.length === 0) {
-      return res.json({ success: true, data: { query, groups } });
-    }
-
+    const userRole = String(user.role || '').toLowerCase();
+    const isAdminStaff = ['admin', 'manager', 'support'].includes(userRole);
     const rx = new RegExp(escapeRegex(query), 'i');
-    const scope = buildIdentityMatch(identity);
 
-    const [contracts, paymentRows] = await Promise.all([
-      Contract.find({
-        $and: [
-          scope,
-          {
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1. ADMIN / STAFF GLOBAL SEARCH ACROSS ALL RECORDS
+    // ─────────────────────────────────────────────────────────────────────────
+    if (isAdminStaff) {
+      let rawCustomers = [];
+      let rawContracts = [];
+      let rawPayments = [];
+      let rawProducts = [];
+      let rawAddons = [];
+
+      if (isMongoConnected()) {
+        const [custRes, contRes, payRes, prodRes, addonRes] = await Promise.all([
+          Customer.find({
             $or: [
               { name: rx },
+              { companyName: rx },
+              { company: rx },
+              { email: rx },
+              { phone: rx },
+              { customerId: rx },
+              { gstNo: rx },
+              { city: rx },
+              { additionalEmails: rx },
+              { additionalPhones: rx }
+            ]
+          }).limit(SEARCH_SCAN_LIMIT).lean(),
+
+          Contract.find({
+            $or: [
+              { name: rx },
+              { company: rx },
+              { customer: rx },
+              { contractCode: rx },
+              { contractId: rx },
               { service: rx },
+              { serviceTier: rx },
+              { tier: rx },
               { productCategory: rx },
               { contractType: rx },
-              { contractId: rx },
-              { status: rx },
-              { value: rx },
-              { totalContractValue: rx }
+              { status: rx }
             ]
-          }
-        ]
-      })
-        .limit(SEARCH_SCAN_LIMIT)
-        .lean(),
-      Payment.find({
-        $and: [
-          scope,
-          {
+          }).limit(SEARCH_SCAN_LIMIT).lean(),
+
+          Payment.find({
             $or: [
               { invoiceNumber: rx },
               { invoiceRef: rx },
               { paymentId: rx },
+              { company: rx },
+              { customer: rx },
+              { accountName: rx },
               { productName: rx },
               { service: rx },
               { solutionCategory: rx },
               { paymentMethod: rx },
+              { paymentMode: rx },
               { referenceNumber: rx },
-              { status: rx },
-              { amount: rx },
-              { receivedAmount: rx },
-              { pendingPayment: rx }
+              { status: rx }
             ]
-          }
-        ]
-      })
-        .limit(SEARCH_SCAN_LIMIT)
-        .lean()
-    ]);
+          }).limit(SEARCH_SCAN_LIMIT).lean(),
+
+          Product.find({
+            $or: [
+              { name: rx },
+              { category: rx },
+              { provider: rx },
+              { serverConfiguration: rx },
+              { ipAddress: rx },
+              { tier: rx }
+            ]
+          }).limit(SEARCH_SCAN_LIMIT).lean(),
+
+          Addon.find({
+            $or: [
+              { name: rx },
+              { category: rx },
+              { spec: rx },
+              { desc: rx }
+            ]
+          }).limit(SEARCH_SCAN_LIMIT).lean()
+        ]);
+
+        rawCustomers = custRes || [];
+        rawContracts = contRes || [];
+        rawPayments = payRes || [];
+        rawProducts = prodRes || [];
+        rawAddons = addonRes || [];
+      } else {
+        // Fallback from local data files
+        rawCustomers = getCustomersFromFile().filter(
+          (c) =>
+            rx.test(c.name || '') ||
+            rx.test(c.companyName || '') ||
+            rx.test(c.company || '') ||
+            rx.test(c.email || '') ||
+            rx.test(c.phone || '') ||
+            rx.test(c.customerId || '')
+        ).slice(0, SEARCH_SCAN_LIMIT);
+
+        rawContracts = getContractsFromFile().filter(
+          (c) =>
+            rx.test(c.name || '') ||
+            rx.test(c.company || '') ||
+            rx.test(c.customer || '') ||
+            rx.test(c.contractCode || '') ||
+            rx.test(c.service || '')
+        ).slice(0, SEARCH_SCAN_LIMIT);
+
+        rawPayments = getPaymentsFromFile().filter(
+          (p) =>
+            rx.test(p.invoiceNumber || '') ||
+            rx.test(p.invoiceRef || '') ||
+            rx.test(p.company || '') ||
+            rx.test(p.customer || '') ||
+            rx.test(p.service || '')
+        ).slice(0, SEARCH_SCAN_LIMIT);
+
+        rawProducts = getProductsFromFile().filter(
+          (p) => rx.test(p.name || '') || rx.test(p.category || '') || rx.test(p.provider || '')
+        ).slice(0, SEARCH_SCAN_LIMIT);
+
+        rawAddons = getAddonsFromFile().filter(
+          (a) => rx.test(a.name || '') || rx.test(a.category || '') || rx.test(a.spec || '')
+        ).slice(0, SEARCH_SCAN_LIMIT);
+      }
+
+      // 1. Customers Group
+      const customerItems = rankByTitle(
+        rawCustomers.map((c) => ({
+          id: c.id || c._id || c.customerId,
+          title: c.companyName || c.company || c.name || 'Customer Account',
+          subtitle: [c.name, c.email, c.phone].filter(Boolean).join(' · '),
+          meta: c.customerId ? `#${c.customerId}` : 'Customer',
+          target: 'customer',
+          path: '/admin/customer',
+          seed: c.companyName || c.company || c.name || c.customerId
+        })),
+        query
+      );
+
+      // 2. Contracts Group
+      const contractItems = rankByTitle(
+        rawContracts.map((c) => ({
+          id: c.id || c._id || c.contractCode,
+          title: c.name || c.contractCode || c.service || 'Contract Agreement',
+          subtitle: [
+            c.company || c.customer,
+            c.serviceTier || c.tier || c.service,
+            formatLabelDate(c.expiryDate) ? `Renews ${formatLabelDate(c.expiryDate)}` : null
+          ].filter(Boolean).join(' · '),
+          meta: c.status || 'Active',
+          amount: parseAmount(c.contractValue || c.value || c.totalContractValue),
+          target: 'contract',
+          path: '/admin/customer/contract',
+          seed: c.contractCode || c.name || c.company
+        })),
+        query
+      );
+
+      // 3. Payments Group
+      const paymentItems = rankByTitle(
+        rawPayments.map((p) => ({
+          id: p.id || p._id || p.invoiceNumber,
+          title: p.invoiceNumber || p.invoiceRef || p.paymentId || 'Payment Invoice',
+          subtitle: [
+            p.company || p.customer || p.accountName,
+            p.service || p.productName,
+            formatLabelDate(p.paymentDate || p.date)
+          ].filter(Boolean).join(' · '),
+          meta: p.status || 'Paid',
+          amount: parseAmount(p.receivedAmount || p.amount || p.pendingPayment),
+          target: 'payment',
+          path: '/admin/customer/payment',
+          seed: p.invoiceNumber || p.company
+        })),
+        query
+      );
+
+      // 4. Products & Add-ons Group
+      const combinedProducts = [
+        ...rawProducts.map((p) => ({
+          id: p.id || p._id || p.productId,
+          title: p.name,
+          subtitle: [p.category || 'Cloud Hosting', p.serverConfiguration || p.tier || p.provider].filter(Boolean).join(' · '),
+          meta: p.available !== false && p.status !== 'inactive' ? 'Available' : 'Disabled',
+          amount: parseAmount(p.price || p.monthlyPrice),
+          target: 'product',
+          path: '/admin/product',
+          seed: p.name
+        })),
+        ...rawAddons.map((a) => ({
+          id: a.id || a._id,
+          title: a.name,
+          subtitle: [a.category || 'Checkout Add-on', a.spec || a.desc].filter(Boolean).join(' · '),
+          meta: a.available !== false ? 'Add-on' : 'Disabled',
+          amount: parseAmount(a.amount || a.basePrice),
+          target: 'addons',
+          path: '/admin/product/addons',
+          seed: a.name
+        }))
+      ];
+      const productItems = rankByTitle(combinedProducts, query);
+
+      if (customerItems.length > 0) {
+        groups.push({ key: 'customers', label: 'Customers', items: customerItems });
+      }
+      if (contractItems.length > 0) {
+        groups.push({ key: 'contracts', label: 'Contracts & Subscriptions', items: contractItems });
+      }
+      if (paymentItems.length > 0) {
+        groups.push({ key: 'payments', label: 'Payments & Receipts', items: paymentItems });
+      }
+      if (productItems.length > 0) {
+        groups.push({ key: 'products', label: 'Products & Add-Ons', items: productItems });
+      }
+
+      return res.json({ success: true, data: { query, role: userRole, groups } });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2. CUSTOMER IDENTITY-SCOPED SEARCH (ONLY THEIR OWN RECORDS)
+    // ─────────────────────────────────────────────────────────────────────────
+    const customer = await findAccountRecord(user);
+    const identity = collectIdentityValues(user, customer);
+
+    if (identity.length === 0) {
+      return res.json({ success: true, data: { query, role: userRole, groups } });
+    }
+
+    let contracts = [];
+    let paymentRows = [];
+
+    if (isMongoConnected()) {
+      const scope = buildIdentityMatch(identity);
+      const [contRes, payRes] = await Promise.all([
+        Contract.find({
+          $and: [
+            scope,
+            {
+              $or: [
+                { name: rx },
+                { service: rx },
+                { productCategory: rx },
+                { contractType: rx },
+                { contractId: rx },
+                { status: rx },
+                { value: rx },
+                { totalContractValue: rx }
+              ]
+            }
+          ]
+        }).limit(SEARCH_SCAN_LIMIT).lean(),
+        Payment.find({
+          $and: [
+            scope,
+            {
+              $or: [
+                { invoiceNumber: rx },
+                { invoiceRef: rx },
+                { paymentId: rx },
+                { productName: rx },
+                { service: rx },
+                { solutionCategory: rx },
+                { paymentMethod: rx },
+                { referenceNumber: rx },
+                { status: rx },
+                { amount: rx },
+                { receivedAmount: rx },
+                { pendingPayment: rx }
+              ]
+            }
+          ]
+        }).limit(SEARCH_SCAN_LIMIT).lean()
+      ]);
+      contracts = contRes || [];
+      paymentRows = payRes || [];
+    } else {
+      contracts = filterByIdentity(getContractsFromFile(), identity).filter(
+        (c) => rx.test(c.name || '') || rx.test(c.service || '')
+      ).slice(0, SEARCH_SCAN_LIMIT);
+
+      paymentRows = filterByIdentity(getPaymentsFromFile(), identity).filter(
+        (p) => rx.test(p.invoiceNumber || '') || rx.test(p.service || '')
+      ).slice(0, SEARCH_SCAN_LIMIT);
+    }
 
     const productItems = rankByTitle(
       (await Promise.all(contracts.map(mapContract))).map((product) => ({
@@ -510,7 +746,9 @@ export const searchCustomerPortal = async (req, res) => {
         ].join(' · '),
         meta: product.status,
         amount: product.amount,
-        target: 'products'
+        target: 'products',
+        path: '/customer/product',
+        seed: product.name
       })),
       query
     );
@@ -522,7 +760,9 @@ export const searchCustomerPortal = async (req, res) => {
         subtitle: [payment.service, formatLabelDate(payment.date)].filter(Boolean).join(' · '),
         meta: payment.status,
         amount: payment.pending || payment.received || payment.amount,
-        target: 'receipt'
+        target: 'receipt',
+        path: '/customer/receipt',
+        seed: payment.invoiceNumber || payment.service
       })),
       query
     );
@@ -534,9 +774,9 @@ export const searchCustomerPortal = async (req, res) => {
       groups.push({ key: 'payments', label: 'Payments & receipts', items: paymentItems });
     }
 
-    res.json({ success: true, data: { query, groups } });
+    return res.json({ success: true, data: { query, role: userRole, groups } });
   } catch (err) {
-    console.error('Error searching customer portal:', err);
+    console.error('Error searching portal:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };

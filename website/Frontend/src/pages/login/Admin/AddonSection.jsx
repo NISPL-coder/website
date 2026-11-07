@@ -326,7 +326,7 @@ export default function AddonSection({ onBack }) {
     if (onBack) {
       onBack();
     } else {
-      navigate('/admin/product');
+      navigate('/admin/product/cloud');
     }
   };
 

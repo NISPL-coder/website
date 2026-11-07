@@ -314,6 +314,9 @@ export default function ConsoleShell({
                       .filter((group) => group.items?.length)
                       .map((group) => (
                         <div className="adm-search-group" key={group.key}>
+                          {group.label && (
+                            <div className="adm-search-group-title">{group.label}</div>
+                          )}
                           {flatResults
                             .filter((item) => item.groupKey === group.key)
                             .map((item) => (
@@ -339,6 +342,11 @@ export default function ConsoleShell({
                                     <span className="adm-search-result-subtitle">{item.subtitle}</span>
                                   )}
                                 </span>
+                                {(item.trailing || item.meta) && (
+                                  <span className="adm-search-result-trailing">
+                                    {item.trailing || item.meta}
+                                  </span>
+                                )}
                               </button>
                             ))}
                         </div>

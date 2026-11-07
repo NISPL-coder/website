@@ -57,8 +57,58 @@ import { notificationApi } from '../../../services/notificationApi';
 import { contractApi } from '../../../services/contractApi';
 import { paymentApi } from '../../../services/paymentApi';
 import { productApi } from '../../../services/productApi';
+import { dashboardApi } from '../../../services/dashboardApi';
 import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
 import { normalizeContractStatus } from './contractVocabulary';
+
+const formatINR = (val) => {
+  const num = Number(val);
+  if (Number.isNaN(num)) return '₹0';
+  return `₹${Math.round(num).toLocaleString('en-IN')}`;
+};
+
+const ADMIN_PAGES = [
+  { path: '/admin/overview', title: 'Dashboard Overview', subtitle: 'KPIs, charts and performance metrics', keywords: 'overview home dashboard analytics metrics kpi' },
+  { path: '/admin/customer', title: 'Customers Directory', subtitle: 'View customer accounts, company details and contacts', keywords: 'customer customers client clients account accounts directory list' },
+  { path: '/admin/customer/contract', title: 'Contracts & Subscriptions', subtitle: 'Active contracts, renewal dates and plans', keywords: 'contract contracts subscription subscriptions renewal renew plan plans agreements' },
+  { path: '/admin/customer/payment', title: 'Payments & Transactions', subtitle: 'Invoice history, collections and payment statuses', keywords: 'payment payments transaction transactions invoice invoices bill billing' },
+  { path: '/admin/manual-payment', title: 'Manual Payment Entry', subtitle: 'Record offline or manual bank/cash payments', keywords: 'manual payment offline cash bank deposit record' },
+  { path: '/admin/product', title: 'Products & Solutions', subtitle: 'Cloud VPS, Tally on Cloud and custom packages', keywords: 'product products server cloud tally vps hosting packages' },
+  { path: '/admin/product/addons', title: 'Product Add-ons', subtitle: 'Manage add-ons and customer checkout toggles', keywords: 'addon addons add-on add-ons extra backup storage ram ip' },
+  { path: '/admin/receipt', title: 'Receipts & Proofs', subtitle: 'Payment receipts, tax invoices and download proofs', keywords: 'receipt receipts invoice invoices tax slip proof download' },
+  { path: '/admin/import-csv', title: 'Import CSV Data', subtitle: 'Batch import customers, contracts and records', keywords: 'import csv upload bulk excel spreadsheet' },
+  { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
+  { path: '/admin/user-access', title: 'User Access & Permissions', subtitle: 'Manage admin, manager and support staff roles', keywords: 'user access permission permissions role roles team staff grant' },
+  { path: '/admin/activity-logs', title: 'Activity Logs', subtitle: 'Audit trail and security event logs', keywords: 'activity logs audit security trail event history' },
+  { path: '/admin/customer/create', title: 'Create Customer', subtitle: 'Onboard a new customer account', keywords: 'create customer add new customer' },
+  { path: '/admin/customer/contract/create', title: 'Create Contract', subtitle: 'Generate a new contract agreement', keywords: 'create contract new contract add agreement' },
+  { path: '/admin/customer/payment/create', title: 'Create Payment', subtitle: 'Log a new payment receipt', keywords: 'create payment add payment new invoice' }
+];
+
+const pageRelevance = (page, needle) => {
+  if (page.title.toLowerCase().startsWith(needle)) return 0;
+  if (page.title.toLowerCase().includes(needle)) return 1;
+  if (page.keywords.toLowerCase().includes(needle)) return 2;
+  if (page.subtitle.toLowerCase().includes(needle)) return 3;
+  return -1;
+};
+
+const buildAdminPagesGroup = (term) => {
+  const needle = term.toLowerCase();
+  const items = ADMIN_PAGES.map((page) => ({ page, score: pageRelevance(page, needle) }))
+    .filter(({ score }) => score >= 0)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 3)
+    .map(({ page }) => ({
+      id: `page-${page.path}`,
+      title: page.title,
+      subtitle: page.subtitle,
+      trailing: 'Page',
+      path: page.path
+    }));
+
+  return items.length ? [{ key: 'pages', label: 'Console Navigation', items }] : [];
+};
 
 // Which permission module unlocks each admin view
 const NAV_MODULE = {
@@ -190,9 +240,72 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
   // Global search & refresh states
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [sectionSearch, setSectionSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   // Bumped after a manual sync so the shell's bell re-reads the live stream.
   const [notifRefreshKey, setNotifRefreshKey] = useState(0);
+
+  // Debounced search query to unified search API (/api/dashboard/search)
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 2) {
+      setSearchResults([]);
+      setIsSearchLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setIsSearchLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await dashboardApi.searchPortal(term);
+        if (cancelled) return;
+        const recordGroups = (data?.groups || []).map((group) => ({
+          ...group,
+          items: (group.items || []).map((item) => ({
+            ...item,
+            trailing: item.amount ? formatINR(item.amount) : item.meta || item.trailing || '—'
+          }))
+        }));
+        setSearchResults([...buildAdminPagesGroup(term), ...recordGroups]);
+      } catch (err) {
+        console.warn('Admin portal search failed:', err?.message);
+        if (!cancelled) setSearchResults(buildAdminPagesGroup(term));
+      } finally {
+        if (!cancelled) setIsSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const handleSearchResultSelect = (item) => {
+    if (!item) return;
+    setSearchQuery('');
+    if (item.seed) {
+      setSectionSearch(item.seed);
+    }
+    if (item.path) {
+      navigate(item.path);
+    } else if (item.target) {
+      const targetMap = {
+        customer: '/admin/customer',
+        contract: '/admin/customer/contract',
+        payment: '/admin/customer/payment',
+        product: '/admin/product',
+        addons: '/admin/product/addons',
+        receipt: '/admin/receipt'
+      };
+      const dest = targetMap[item.target] || '/admin/overview';
+      navigate(dest);
+    }
+  };
 
   // Handle removed receipt/product create page redirects
   useEffect(() => {
@@ -514,6 +627,9 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         searchPlaceholder="Search contracts, payments, products, receipts..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
+        searchResults={searchResults}
+        isSearchLoading={isSearchLoading}
+        onSearchResultSelect={handleSearchResultSelect}
         navItems={navItems}
         activeNav={activeNav}
         sidebarAriaLabel="Admin Navigation Hierarchy"
@@ -597,6 +713,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   customerStats={customerStats}
                   setCustomerStats={setCustomerStats}
                   receipts={receipts}
+                  externalSearch={sectionSearch}
                 />
               )}
 
@@ -605,6 +722,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   contracts={contracts}
                   setContracts={setContracts}
                   customers={customers}
+                  externalSearch={sectionSearch}
                 />
               )}
 
@@ -614,6 +732,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setPayments={setPayments}
                   contracts={contracts}
                   onGoToReceipt={() => navigate('/admin/receipt')}
+                  externalSearch={sectionSearch}
                 />
               )}
 

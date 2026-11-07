@@ -250,6 +250,15 @@
   border-top: 1px solid #eef1f7;
 }
 
+.adm-search-group-title {
+  padding: 6px 10px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--adm-text-light);
+}
+
 .adm-search-result {
   display: flex;
   align-items: center;
@@ -291,6 +300,20 @@
   font-size: 0.78rem;
   color: var(--adm-text-light);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-search-result-trailing {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--adm-purple);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 6px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -3474,6 +3497,17 @@ input:checked + .adm-slider:before {
   padding: 20px !important;
   box-sizing: border-box !important;
   animation: admFadeIn 0.2s ease;
+}
+
+.adm-modal-container {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--adm-border) !important;
+  box-shadow: 0 25px 60px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+  max-width: 620px;
+  width: 92%;
+  overflow: hidden;
+  animation: admScaleIn 0.2s ease;
 }
 
 /* Declared after the portal backdrop rule above so the viewport-unit sizing,

@@ -15,7 +15,8 @@ import {
   Zap,
   Globe,
   Percent,
-  Clock
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -35,11 +36,17 @@ export default function ProductSection({ products, setProducts }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // /admin/product · /admin/product/{tally|cloud|addons} · /admin/product/cloud/custom-pricing
-  const [, , , categorySegment, actionSegment] = location.pathname.split('/');
-  const selectedCategory =
-    categorySegment === 'tally' || categorySegment === 'cloud' || categorySegment === 'addons' ? categorySegment : null;
-  const selectedView = actionSegment === 'custom-pricing' ? 'custom-pricing' : null;
+  // /admin/product · /admin/product/{tally|cloud|addons} · /admin/product/cloud/custom-pricing · /admin/product/cloud/addons
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const isAddonsRoute = pathParts.includes('addons');
+  const selectedCategory = isAddonsRoute
+    ? 'addons'
+    : pathParts.includes('tally')
+    ? 'tally'
+    : pathParts.includes('cloud')
+    ? 'cloud'
+    : null;
+  const selectedView = pathParts.includes('custom-pricing') ? 'custom-pricing' : null;
   const selectedCloudProvider = selectedCategory === 'cloud' ? 'ctrls-cloud' : null;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -661,7 +668,7 @@ export default function ProductSection({ products, setProducts }) {
          VIEW 0.5: CHECKOUT ADD-ONS MANAGEMENT
          ========================================================================= */}
       {selectedCategory === 'addons' && (
-        <AddonSection onBack={() => updateRoute(null)} />
+        <AddonSection onBack={() => updateRoute('cloud')} />
       )}
 
       {/* =========================================================================
@@ -678,6 +685,19 @@ export default function ProductSection({ products, setProducts }) {
               <p className="adm-section-sub">
                 Select a solution category below to browse verified software licenses and cloud infrastructure.
               </p>
+            </div>
+
+            <div className="adm-card-header-action">
+              <button
+                type="button"
+                className="adm-btn-secondary"
+                onClick={() => updateRoute('addons')}
+                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                title="Manage checkout add-ons and customer visibility"
+              >
+                <Sparkles size={14} />
+                <span>Checkout Add-Ons</span>
+              </button>
             </div>
           </div>
 

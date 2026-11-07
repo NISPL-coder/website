@@ -30,10 +30,16 @@ const getFilterDate = (row) =>
 const proofSize = (bytes) =>
   bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(Math.round(bytes / 1024), 1)} KB`;
 
-export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt }) {
+export default function PaymentSection({ payments, setPayments, contracts, onGoToReceipt, externalSearch = '' }) {
   const navigate = useNavigate();
   const { visibleColumns, can } = usePermissions();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');

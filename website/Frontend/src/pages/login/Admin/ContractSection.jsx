@@ -40,10 +40,16 @@ import { usePermissions } from './PermissionsContext';
 
 const getContractId = (row) => row.id || row.contractId;
 
-export default function ContractSection({ contracts, setContracts, customers = [] }) {
+export default function ContractSection({ contracts, setContracts, customers = [], externalSearch = '' }) {
   const navigate = useNavigate();
   const { can, visibleColumns } = usePermissions();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
