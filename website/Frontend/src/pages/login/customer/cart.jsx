@@ -75,7 +75,7 @@ const FALLBACK_ADDONS = [
     basePrice: 2499,
     desc: 'High-speed remote cloud desktop accessible from Mac & Windows.',
     image: cloudHostingImg,
-    spec: 'Tier-4 CtrlS'
+    spec: 'Tier-4 Enterprise Cloud'
   },
   {
     id: 'tally-tss-single',

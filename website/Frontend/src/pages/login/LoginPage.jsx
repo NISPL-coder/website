@@ -207,7 +207,7 @@ export default function LoginPage({ lockedPortal }) {
         name: response.user.name,
         role: response.user.tier || 'Authorized User',
         clearance: activePortal === 'admin' ? 'Tier-1 Root Security Clearance' : 'Certified Partner Tier-Gold',
-        location: activePortal === 'admin' ? 'CtrlS Kolkata Rated-4 Primary NOC Node' : 'Eastern India Channel Hub'
+        location: activePortal === 'admin' ? 'Kolkata Primary Cloud NOC Node' : 'Eastern India Channel Hub'
       });
     } catch (err) {
       setIsLoading(false);

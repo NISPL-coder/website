@@ -4,7 +4,6 @@ import HeroCarousel from './sections/HeroCarousel/HeroCarousel';
 import InnovatorsPartnersSection from './sections/InnovatorsPartners/InnovatorsPartnersSection';
 import StrategicServicesAccordion from './sections/StrategicServices/StrategicServicesAccordion';
 import AuthorizedPartnersSection from './sections/AuthorizedPartners/AuthorizedPartnersSection';
-import CtrlSKolkataSection from './sections/CtrlSKolkata/CtrlSKolkataSection';
 import TestimonialsSection from '../../components/TestimonialsSection';
 import OurClientsSection from './sections/OurClients/OurClientsSection';
 import Footer from '../../components/Footer';
@@ -36,12 +35,7 @@ export default function Homepage({
         onOpenConsultation={onOpenConsultation} 
       />
 
-      {/* 5. CtrlS Kolkata Rated-4 Datacenter Showcase */}
-      <CtrlSKolkataSection 
-        onOpenConsultation={onOpenConsultation} 
-      />
-
-      {/* 6. Authorized Enterprise Technology Partners Showcase */}
+      {/* 5. Authorized Enterprise Technology Partners Showcase */}
       <AuthorizedPartnersSection />
 
       {/* 6. Testimonials Section (Cyberswift 3-Card Style) */}

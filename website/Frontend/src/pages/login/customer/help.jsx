@@ -293,7 +293,7 @@ export default function HelpSection({ customer }) {
                     >
                       <option value="Tally Prime Support & Licensing">Tally Prime Support & Licensing</option>
                       <option value="Tally on Cloud Hosting">Tally on Cloud Hosting</option>
-                      <option value="CtrlS / Azure / AWS Cloud Server">CtrlS / Azure / AWS Cloud Server</option>
+                      <option value="Enterprise / Azure / AWS Cloud Server">Enterprise / Azure / AWS Cloud Server</option>
                       <option value="IT Hardware, Servers & AMC">IT Hardware, Servers & AMC</option>
                       <option value="Cybersecurity & Network Support">Cybersecurity & Network Support</option>
                       <option value="Billing & Invoicing Query">Billing & Invoicing Query</option>

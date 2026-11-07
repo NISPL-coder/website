@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { authenticate, authorizeRole } from '../middleware/authenticate.js';
 import { validateBody, adminCreateUserSchema } from '../middleware/validate.js';
-import { listUsers, createUser, updateUser, changeOwnPassword, getOwnProfile } from '../controllers/userController.js';
+import { listUsers, createUser, updateUser, changeOwnPassword, getOwnProfile, updateOwnProfile } from '../controllers/userController.js';
 
 const router = Router();
 router.use(authenticate);
 router.get('/me', getOwnProfile);
 router.get('/profile', getOwnProfile);
+router.patch('/me', updateOwnProfile);
 router.get('/', authorizeRole('admin'), listUsers);
 router.post('/', authorizeRole('admin'), validateBody(adminCreateUserSchema), createUser);
 router.patch('/:id', authorizeRole('admin'), updateUser);

@@ -177,7 +177,7 @@ export const TALLY_PRODUCTS = [
     categoryLabel: 'Tally on Cloud',
     name: 'Tally on Cloud Basic',
     fullName: 'Dedicated Tally on Cloud — Standard Edition (Monthly)',
-    shortDesc: 'Secure, high-availability Tally hosting on dedicated Windows Server VPS located in Tier-4 CtrlS Kolkata Datacenter.',
+    shortDesc: 'Secure, high-availability Tally hosting on dedicated Windows Server VPS in high-speed enterprise cloud infrastructure.',
     conciseDesc: 'Work on Tally from any device, anytime with high security.',
     image: cloudHostingImg,
     badge: 'RECOMMENDED',
@@ -198,7 +198,7 @@ export const TALLY_PRODUCTS = [
       { label: 'Compute', value: '4 vCPU Intel Xeon Dedicated' },
       { label: 'RAM', value: '4 GB DDR4 ECC RAM' },
       { label: 'Storage', value: '50 GB Enterprise NVMe SSD' },
-      { label: 'Datacenter', value: 'CtrlS Kolkata (Tier-4, 99.98% SLA)' }
+      { label: 'Cloud Infrastructure', value: 'Kolkata Tier-4 Cloud Node (99.98% SLA)' }
     ],
     features: [
       'Access Tally from Windows, Mac, Linux, iPad, Android, or browser terminal',
@@ -313,7 +313,7 @@ export const CLOUD_PRODUCTS = [
     cpu: '4 vCPU (Intel Xeon E5)',
     ram: '4 GB DDR4 ECC RAM',
     storage: '50 GB Enterprise NVMe SSD',
-    os: 'Windows Server 2022 Datacenter',
+    os: 'Windows Server 2022 Enterprise Edition',
     connections: 'Up to 3 Users Concurrent',
     billingCycle: 'Monthly',
     basePrice: 2499,
@@ -355,7 +355,7 @@ export const CLOUD_PRODUCTS = [
     cpu: '8 vCPU (Intel Xeon Gold)',
     ram: '8 GB DDR4 ECC Dedicated',
     storage: '100 GB High-Speed NVMe',
-    os: 'Windows Server 2022 Datacenter',
+    os: 'Windows Server 2022 Enterprise Edition',
     connections: 'Up to 10 Users Concurrent',
     billingCycle: 'Monthly',
     basePrice: 4500,
@@ -370,7 +370,7 @@ export const CLOUD_PRODUCTS = [
       { label: 'Storage Array', value: '100 GB NVMe Storage' },
       { label: 'Network SLA', value: '99.98% High Availability' },
       { label: 'Concurrent Users', value: '10 Concurrent Sessions' },
-      { label: 'Datacenter Cluster', value: 'CtrlS Rated-4 Kolkata' }
+      { label: 'Cloud Infrastructure', value: 'High-Availability Tier-4 Cluster' }
     ],
     features: [
       '8 dedicated virtual cores handling heavy ledger voucher posting smoothly',
@@ -438,7 +438,7 @@ export const CLOUD_PRODUCTS = [
     planName: 'Bare-Metal Enterprise Host',
     cpu: 'Dual Intel Xeon Silver (16 Cores / 32 Threads)',
     ram: '32 GB DDR4 ECC Reg',
-    storage: '2 x 500 GB NVMe Datacenter Edition',
+    storage: '2 x 500 GB NVMe Enterprise Edition',
     os: 'Windows Server / VMware ESXi / Proxmox',
     connections: 'Unlimited Organization Users',
     billingCycle: 'Monthly',
@@ -598,7 +598,7 @@ export function buildCtrlSPlans(ratePerUserPerMonth = CTRL_S_RATE_PER_USER_PER_M
       tierName: label,
       users: config.users,
       userBadge: `${config.cpu} / ${config.ram} / ${config.storage}`,
-      name: `CtrlS Cloud Server — ${label}`,
+      name: `Enterprise Cloud Server — ${label}`,
       monthlyPrice: config.users * ratePerUserPerMonth,
       isPopular: config.users === 5,
       popularBadge: 'Most Popular',
@@ -611,7 +611,7 @@ export function buildCtrlSPlans(ratePerUserPerMonth = CTRL_S_RATE_PER_USER_PER_M
         { label: 'Dedicated IP', value: '1 IP' }
       ],
       features: [
-        'Tier-4 CtrlS Kolkata Datacenter hosting with N+N dual power feed redundancy',
+        'Tier-4 Enterprise Cloud hosting with N+N dual power feed redundancy',
         'Windows Server licence, dedicated enterprise SSD array & daily backup image'
       ]
     };
@@ -619,7 +619,7 @@ export function buildCtrlSPlans(ratePerUserPerMonth = CTRL_S_RATE_PER_USER_PER_M
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CTRLS ENTERPRISE 4-TIER PACKS (STARTER, SILVER, GOLD, PREMIUM)
+   ENTERPRISE 4-TIER CLOUD PACKS (STARTER, SILVER, GOLD, PREMIUM)
 ───────────────────────────────────────────────────────────────────────────── */
 export const CTRLS_TIER_PLANS = [
   {
@@ -627,21 +627,21 @@ export const CTRLS_TIER_PLANS = [
     tier: 'Starter',
     tierName: 'Starters',
     userBadge: '1 - 2 Users / 2-3 Core / 3 GB RAM',
-    name: 'CtrlS Cloud Server — Starter',
+    name: 'Enterprise Cloud Server — Starter',
     monthlyPrice: 1000,
     originalPrice: 1200,
     discountText: 'Save 15% annually',
     isPopular: false,
     theme: 'default',
     specs: [
-      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Cloud Infrastructure', value: 'Tier-4 Cloud Node' },
       { label: 'Compute', value: '2 - 3 Cores Dedicated' },
       { label: 'Memory', value: '3 GB High-Speed RAM' },
       { label: 'Storage', value: '50 GB Enterprise SSD' },
       { label: 'SLA Uptime', value: '99.995% Guaranteed' }
     ],
     features: [
-      'Rated-4 Kolkata Datacenter hosting with N+N dual power feed',
+      'High-Availability Cloud hosting with N+N dual power feed',
       'Windows Server license & automated daily backup snapshot',
       'High-speed remote desktop with low-latency Bengal routing'
     ]
@@ -651,7 +651,7 @@ export const CTRLS_TIER_PLANS = [
     tier: 'Silver',
     tierName: 'Silver',
     userBadge: '3 - 5 Users / 4 Core / 8 GB RAM',
-    name: 'CtrlS Cloud Server — Silver',
+    name: 'Enterprise Cloud Server — Silver',
     monthlyPrice: 2500,
     originalPrice: 2800,
     discountText: 'Save 10% annually',
@@ -659,7 +659,7 @@ export const CTRLS_TIER_PLANS = [
     popularBadge: 'Most Popular',
     theme: 'blue',
     specs: [
-      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Cloud Infrastructure', value: 'Tier-4 Cloud Node' },
       { label: 'Compute', value: '4 Core High-Compute CPU' },
       { label: 'Memory', value: '8 GB DDR4 Dedicated RAM' },
       { label: 'Storage', value: '100 GB NVMe SSD' },
@@ -676,17 +676,17 @@ export const CTRLS_TIER_PLANS = [
     tier: 'Gold',
     tierName: 'Gold',
     userBadge: '6 - 10 Users / 6 Core / 12 GB RAM',
-    name: 'CtrlS Cloud Server — Gold',
+    name: 'Enterprise Cloud Server — Gold',
     monthlyPrice: 5000,
     originalPrice: 5500,
     discountText: 'Save 10% annually',
     isPopular: false,
     theme: 'default',
     specs: [
-      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Cloud Infrastructure', value: 'Tier-4 Cloud Node' },
       { label: 'Compute', value: '6 Core Xeon Scalable' },
       { label: 'Memory', value: '12 GB Dedicated ECC RAM' },
-      { label: 'Storage', value: '100 GB NVMe Datacenter SSD' },
+      { label: 'Storage', value: '100 GB NVMe Enterprise SSD' },
       { label: 'SLA Uptime', value: '99.995% Guaranteed' }
     ],
     features: [
@@ -700,14 +700,14 @@ export const CTRLS_TIER_PLANS = [
     tier: 'Premium',
     tierName: 'Premium',
     userBadge: '12 - 30 Users / 8 Core / 32 GB RAM',
-    name: 'CtrlS Cloud Server — Premium Enterprise',
+    name: 'Enterprise Cloud Server — Premium Enterprise',
     monthlyPrice: 15000,
     originalPrice: 16500,
     discountText: 'Save 10% annually',
     isPopular: false,
     theme: 'gold',
     specs: [
-      { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+      { label: 'Cloud Infrastructure', value: 'Tier-4 Cloud Node' },
       { label: 'Compute', value: '8 Core Enterprise Xeon' },
       { label: 'Memory', value: '32 GB Dedicated ECC RAM' },
       { label: 'Storage', value: '300 GB Enterprise SSD Array' },
@@ -722,17 +722,17 @@ export const CTRLS_TIER_PLANS = [
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CLOUD PROVIDERS CATALOG (CTRLS TIER-4 HOSTING EXCLUSIVE)
+   CLOUD PROVIDERS CATALOG (TIER-4 HOSTING EXCLUSIVE)
 ───────────────────────────────────────────────────────────────────────────── */
 export const CLOUD_PROVIDERS = [
   {
     id: 'ctrls-cloud',
-    name: 'CtrlS Cloud server',
-    badge: 'Tier-4 Datacenter Hosting',
-    shortDesc: 'Rated-4 fault-tolerant datacenter cloud VPS infrastructure with 99.995% uptime SLA.',
+    name: 'Enterprise Cloud Server',
+    badge: 'Tier-4 Cloud Hosting',
+    shortDesc: 'Fault-tolerant enterprise cloud VPS infrastructure with 99.995% uptime SLA.',
     accentColor: '#0284c7',
-    logoType: 'ctrls',
-    logo: ctrlsLogo,
+    logoType: 'cloud-server',
+    logo: null,
     gradient: 'from-cyan-500/10 to-blue-500/10',
     billingModel: 'per_user',
     ratePerUserPerMonth: CTRL_S_RATE_PER_USER_PER_MONTH,

@@ -55,7 +55,7 @@ const ASSOCIATES = [
     id: 'support',
     badge: 'Hardware & AMC',
     name: 'IT Infrastructure & AMC Support',
-    role: 'Data Center, Network Infrastructure & Annual Maintenance',
+    role: 'Cloud Infrastructure, Network & Annual Maintenance',
     email: 'support@netinfotechsystem.com',
     phone: '+91 9330113000',
     address: 'Webel Tower 1, Sector-V, Salt Lake, Kolkata - 700091',
@@ -71,7 +71,7 @@ const FAQS = [
   },
   {
     q: 'What is the standard SLA for critical software or server issues?',
-    a: 'For Critical / Severity-1 incidents (such as complete server unreachability or accounting downtime), our response SLA is under 15 minutes. Our NOC monitors all CtrlS and Azure instances 24/7/365.'
+    a: 'For Critical / Severity-1 incidents (such as complete server unreachability or accounting downtime), our response SLA is under 15 minutes. Our NOC monitors all cloud instances 24/7/365.'
   },
   {
     q: 'How do I request emergency remote assistance for Tally errors?',
@@ -322,7 +322,7 @@ export default function Help() {
                     >
                       <option value="Tally Prime License & Installation">Tally Prime License & Installation</option>
                       <option value="Tally on Cloud Hosting">Tally on Cloud Hosting</option>
-                      <option value="CtrlS / Azure / AWS Cloud Infrastructure">CtrlS / Azure / AWS Cloud Infrastructure</option>
+                      <option value="Enterprise / Azure / AWS Cloud Infrastructure">Enterprise / Azure / AWS Cloud Infrastructure</option>
                       <option value="IT Hardware, Servers & AMC Support">IT Hardware, Servers & AMC Support</option>
                       <option value="Cybersecurity & Firewall Configuration">Cybersecurity & Firewall Configuration</option>
                       <option value="Data Backup & Disaster Recovery">Data Backup & Disaster Recovery</option>

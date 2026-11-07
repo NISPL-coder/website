@@ -83,7 +83,7 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
     { label: 'Portal Access', value: portalName, icon: ShieldCheck },
     { label: 'Role', value: role, icon: UserCog },
     { label: 'Designation', value: profile?.designation || '—', icon: BadgeCheck },
-    { label: 'Data Centre / Location', value: profile?.location || '—', icon: Server },
+    { label: 'Server Region / Location', value: profile?.location || '—', icon: Server },
     { label: 'Service Tier', value: profile?.tier || '—', icon: Layers },
     { label: 'Member Since', value: formatDate(profile?.createdAt), icon: CalendarDays }
   ];

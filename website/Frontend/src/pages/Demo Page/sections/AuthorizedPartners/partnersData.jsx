@@ -13,35 +13,7 @@ import canonLogo from '../../../../assets/partners/canon.webp';
 
 // ── Direct Partners (Tier-1 Cloud Infrastructure & Business ERP) ──
 const DIRECT_PARTNERS = [
-  // 1. CTRLS
-  {
-    id: 'ctrls',
-    name: 'CTRLS',
-    category: 'Direct Partner',
-    logo: ctrlsLogo,
-    website: 'https://www.ctrls.com/datacenter-kolkata/',
-    render: () => (
-      <a 
-        href="https://www.ctrls.com/datacenter-kolkata/" 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className="demo-big-logo-item demo-ctrls-partner" 
-        title="CTRLS - Official Website (Direct Partner)"
-      >
-        <img 
-          src={ctrlsLogo} 
-          alt="CTRLS - Direct Partner" 
-          className="partner-brand-img" 
-          width="120"
-          height="32"
-          loading="lazy"
-          decoding="async"
-        />
-      </a>
-    )
-  },
-
-  // 2. Tally
+  // 1. Tally
   {
     id: 'tally',
     name: 'Tally',

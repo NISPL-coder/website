@@ -135,6 +135,11 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
       toast.error('Please enter the phone number.');
       return;
     }
+    const cleanPhoneDigits = formState.phone.trim().replace(/\D/g, '');
+    if (cleanPhoneDigits.length !== 10) {
+      toast.error(`Phone number must be exactly 10 digits (currently ${cleanPhoneDigits.length} digits).`);
+      return;
+    }
     if (isCustomCity && !customCityInput.trim()) {
       toast.error('Please enter your custom city name.');
       return;
@@ -395,14 +400,27 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
                 <label className="adm-form-label">
                   Phone No. <span className="adm-required-star">*</span>
                 </label>
-                <input
-                  type="tel"
-                  className="adm-form-input"
-                  placeholder="Enter your phone number"
-                  value={formState.phone}
-                  onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                  required
-                />
+                <div className="adm-form-field">
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    className="adm-form-input"
+                    placeholder="Enter your 10-digit phone number"
+                    value={formState.phone}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .replace(/\D/g, '')
+                        .slice(0, 10);
+
+                      setFormState((prev) => ({
+                        ...prev,
+                        phone: value
+                      }));
+                    }}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="adm-form-field">
@@ -519,16 +537,29 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
 
               {/* Postal Code */}
               <div className="adm-form-field">
-                <label className="adm-form-label">Postal / PIN Code</label>
+                <label className="adm-form-label">
+                  Postal / PIN Code
+                </label>
+
                 <input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={6}
                   className="adm-form-input"
-                  placeholder="Enter your postal code"
+                  placeholder="Enter 6-digit PIN code"
                   value={formState.postalCode}
-                  onChange={(e) => setFormState({ ...formState, postalCode: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value
+                      .replace(/\D/g, '')
+                      .slice(0, 6);
+
+                    setFormState((prev) => ({
+                      ...prev,
+                      postalCode: value
+                    }));
+                  }}
                 />
               </div>
-
               {/* Street Address (Full Width for clarity) */}
               <div className="adm-form-field full-width">
                 <label className="adm-form-label">Street / Location</label>

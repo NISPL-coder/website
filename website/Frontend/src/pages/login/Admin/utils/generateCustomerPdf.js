@@ -155,7 +155,7 @@ export function generateCustomerPdf(customer) {
       ['Physical / Billing Address', addrText],
       ['GSTIN / Tax ID', customer.gstNo || 'Unregistered / Not Provided'],
       ['Active Cloud Subscription', customer.plan || 'Not recorded'],
-      ['Provisioned Datacenter Node', customer.serverNode || 'Not recorded'],
+      ['Provisioned Server Node', customer.serverNode || 'Not recorded'],
       ['Monthly Recurring Revenue (MRR)', customer.mrr || 'Not recorded'],
       ['Sangam CRM Sync Status', (customer.sangamCrm?.status || 'pending').toUpperCase()],
       ['Sangam CRM Record ID', customer.sangamCrm?.recordId || 'Pending Synchronization'],

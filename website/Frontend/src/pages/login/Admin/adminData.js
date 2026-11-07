@@ -35,7 +35,7 @@ export const INITIAL_PRODUCTS = [
     category: 'Infrastructure',
     price: '₹38,000',
     frequency: '/ month',
-    description: 'High-IOPS virtual server hosted at CtrlS Kolkata Tier-4 datacenter with root credentials.',
+    description: 'High-IOPS virtual server hosted on Tier-4 enterprise cloud infrastructure with root credentials.',
     available: true
   },
   {

@@ -20,7 +20,7 @@ export default function DemoModal({ isOpen, onClose, onSubmitSuccess }) {
     phone: '',
     email: '',
     businessType: 'IT & Software Enterprises',
-    moduleInterest: 'CtrlS Kolkata Datacenter',
+    moduleInterest: 'Enterprise Cloud Infrastructure',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -206,7 +206,7 @@ export default function DemoModal({ isOpen, onClose, onSubmitSuccess }) {
                       onChange={(e) => setFormData({ ...formData, moduleInterest: e.target.value })}
                       className="demo-form-select"
                     >
-                      <option value="CtrlS Kolkata Datacenter">CtrlS Kolkata Datacenter</option>
+                      <option value="Enterprise Cloud Infrastructure">Enterprise Cloud Infrastructure</option>
                       <option value="Cloud Server & Hosting">Cloud Server & Hosting</option>
                       <option value="Enterprise ERP & Tally on Cloud">Enterprise ERP / Tally Cloud</option>
                       <option value="Cybersecurity & Zero-Trust">Cybersecurity & Zero-Trust</option>

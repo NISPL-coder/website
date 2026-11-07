@@ -7,9 +7,10 @@ import { dashboardApi } from '../../../services/dashboardApi';
 import { formatINR } from '../utils/pricingUtils';
 import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
-/** Customers choose by capacity, so the datacenter brand is dropped from the label. */
+/** Customers choose by capacity, so the brand prefix is dropped from the label. */
 const stripProviderBrand = (name = '') =>
   name
+    .replace(/^enterprise\s+cloud\s+server\s*[—–-]?\s*/i, '')
     .replace(/^ctrls\s+cloud\s+server\s*[—–-]?\s*/i, '')
     .replace(/^ctrls\s+/i, '')
     .trim();

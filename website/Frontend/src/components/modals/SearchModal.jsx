@@ -54,12 +54,12 @@ export default function SearchModal({
     },
     {
       id: 'cloud-hosting',
-      title: 'Data Center, Cloud Server & Hosting',
+      title: 'Enterprise Cloud Server & Hosting',
       desc: 'Windows/Linux server deployment, Microsoft Azure & AWS hybrid cloud infrastructure',
       badge: 'Service',
       badgeClass: 'badge-service',
       path: '/services/data-center-cloud',
-      keywords: 'data center cloud server hosting azure aws windows linux tier 4 datacenter'
+      keywords: 'cloud server hosting azure aws windows linux tier 4 cloud infrastructure'
     },
     {
       id: 'it-infra',

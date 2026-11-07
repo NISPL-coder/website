@@ -504,11 +504,11 @@ export const CORE_SERVICES = [
     badge: "99.99% Uptime"
   },
   {
-    id: "data-center-cloud",
+    id: "enterprise-cloud-server",
     number: "03",
-    title: "Data Center, Cloud Server & Hosting",
+    title: "Enterprise Cloud Server & Hosting",
     tagline: "Business applications, websites workloads - cloud infrastructure & hosting solutions.",
-    description: "Scalable enterprise data center hosting powered by top-tier Tier-4 architecture, Microsoft Azure, and AWS with managed disaster recovery and pro-active monitoring.",
+    description: "Scalable enterprise cloud hosting powered by top-tier Tier-4 architecture, Microsoft Azure, and AWS with managed disaster recovery and pro-active monitoring.",
     icon: "Server",
     color: "#2563EB",
     gradient: "linear-gradient(135deg, #2563EB, #1D4ED8)",

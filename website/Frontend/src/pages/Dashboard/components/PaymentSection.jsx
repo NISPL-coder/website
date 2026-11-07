@@ -146,7 +146,8 @@ export default function PaymentSection({
       date: prettyDate(payment.date),
       count: Array.isArray(data?.payments) ? data.payments.length : 1,
       alreadySettled: Boolean(data?.alreadySettled),
-      gatewayPaymentId: data?.gateway?.paymentId || ''
+      gatewayPaymentId: data?.gateway?.paymentId || '',
+      contracts: Array.isArray(data?.contracts) ? data.contracts : []
     });
     setPaymentDone(true);
 
@@ -392,6 +393,16 @@ export default function PaymentSection({
                 <span style={{ color: '#64748b' }}>Razorpay Payment ID</span>
                 <span style={{ color: '#0f172a', fontWeight: '500', wordBreak: 'break-all' }}>
                   {paid.gatewayPaymentId}
+                </span>
+              </div>
+            )}
+            {paid?.contracts?.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.86rem' }}>
+                <span style={{ color: '#64748b' }}>
+                  Contract{paid.contracts.length > 1 ? 's' : ''} Raised
+                </span>
+                <span style={{ color: '#0f172a', fontWeight: '500', textAlign: 'right' }}>
+                  {paid.contracts.map((contract) => contract.contractId).join(', ')}
                 </span>
               </div>
             )}

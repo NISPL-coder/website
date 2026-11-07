@@ -316,38 +316,93 @@ export default function CustomerSection({
     },
     {
       id: 'email',
-      name: 'Email',
+      name: 'Email(s)',
       selector: (row) => row.email || row.loginEmail,
       sortable: true,
       sortFunction: compareText((row) => row.email || row.loginEmail),
-      minWidth: '205px',
+      minWidth: '220px',
       cell: (cust) => {
         const email = cust.email || cust.loginEmail || '—';
+        const additional = Array.isArray(cust.additionalEmails) ? cust.additionalEmails.filter(Boolean) : [];
         const isCopied = copiedKey === `email-${cust.id}`;
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 500 }}>{email}</span>
-            {email !== '—' && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  copyToClipboard(email, `email-${cust.id}`, 'Email');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: isCopied ? '#16a34a' : '#94a3b8',
-                  padding: '2px',
-                  display: 'inline-flex',
-                  alignItems: 'center'
-                }}
-                title={isCopied ? 'Copied' : 'Copy Email'}
-              >
-                {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
-              </button>
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 600 }}>{email}</span>
+              {additional.length > 0 && (
+                <span
+                  style={{
+                    fontSize: '0.64rem',
+                    background: '#ede9fe',
+                    color: '#6d28d9',
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    fontWeight: 700
+                  }}
+                  title="Primary Login Email"
+                >
+                  Primary
+                </span>
+              )}
+              {email !== '—' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(email, `email-${cust.id}`, 'Primary Email');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isCopied ? '#16a34a' : '#94a3b8',
+                    padding: '2px',
+                    display: 'inline-flex',
+                    alignItems: 'center'
+                  }}
+                  title={isCopied ? 'Copied' : 'Copy Primary Email'}
+                >
+                  {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                </button>
+              )}
+            </div>
+            {additional.map((extraEm, idx) => {
+              const isExtraCopied = copiedKey === `email-${cust.id}-extra-${idx}`;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.74rem',
+                    color: '#64748b'
+                  }}
+                >
+                  <span style={{ color: '#a5b4fc', fontSize: '0.8rem' }}>↳</span>
+                  <span>{extraEm}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(extraEm, `email-${cust.id}-extra-${idx}`, 'Secondary Email');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isExtraCopied ? '#16a34a' : '#94a3b8',
+                      padding: '1px 2px',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                    title={isExtraCopied ? 'Copied' : 'Copy Secondary Email'}
+                  >
+                    {isExtraCopied ? <Check size={10} color="#16a34a" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         );
       }
@@ -423,16 +478,103 @@ export default function CustomerSection({
     },
     {
       id: 'phone',
-      name: 'Phone No.',
+      name: 'Phone No.(s)',
       selector: (row) => row.phone,
       sortable: true,
       sortFunction: compareText((row) => row.phone),
-      minWidth: '140px',
-      cell: (cust) => (
-        <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#475569' }}>
-          {cust.phone || '—'}
-        </span>
-      )
+      minWidth: '160px',
+      cell: (cust) => {
+        const primaryPhone = cust.phone || '—';
+        const additionalPhones = [
+          ...(Array.isArray(cust.additionalPhones) ? cust.additionalPhones : []),
+          ...(cust.alternatePhone && !cust.additionalPhones?.includes(cust.alternatePhone) ? [cust.alternatePhone] : [])
+        ].filter(Boolean);
+        const isCopied = copiedKey === `phone-${cust.id}`;
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#1e293b', fontWeight: 600 }}>
+                {primaryPhone}
+              </span>
+              {additionalPhones.length > 0 && (
+                <span
+                  style={{
+                    fontSize: '0.64rem',
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    fontWeight: 700
+                  }}
+                  title="Primary Phone"
+                >
+                  Primary
+                </span>
+              )}
+              {primaryPhone !== '—' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(primaryPhone, `phone-${cust.id}`, 'Primary Phone');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isCopied ? '#16a34a' : '#94a3b8',
+                    padding: '2px',
+                    display: 'inline-flex',
+                    alignItems: 'center'
+                  }}
+                  title={isCopied ? 'Copied' : 'Copy Primary Phone'}
+                >
+                  {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                </button>
+              )}
+            </div>
+            {additionalPhones.map((extraPh, idx) => {
+              const isExtraCopied = copiedKey === `phone-${cust.id}-extra-${idx}`;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.74rem',
+                    color: '#64748b',
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>↳</span>
+                  <span>{extraPh}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(extraPh, `phone-${cust.id}-extra-${idx}`, 'Secondary Phone');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isExtraCopied ? '#16a34a' : '#94a3b8',
+                      padding: '1px 2px',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                    title={isExtraCopied ? 'Copied' : 'Copy Secondary Phone'}
+                  >
+                    {isExtraCopied ? <Check size={10} color="#16a34a" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
     },
     {
       id: 'orders',

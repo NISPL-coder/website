@@ -2,6 +2,7 @@ import { logNotification } from '../services/notificationService.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { nextContractCode } from '../services/contractProvisioning.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import {
@@ -14,28 +15,6 @@ import {
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
-
-/**
- * The next CTR code. Random four-digit codes collide, and a duplicate
- * contractId would make every downstream lookup — payments and receipts
- * included — resolve to the wrong subscription.
- */
-const nextContractCode = async () => {
-  const prefix = `CTR-${new Date().getFullYear()}-`;
-  const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
-
-  let latest = null;
-  if (isMongoConnected()) {
-    latest = await Contract.findOne({ contractId: pattern }).sort({ contractId: -1 }).lean();
-  } else {
-    latest = getContractsFromFile()
-      .filter((c) => String(c.contractId || '').startsWith(prefix))
-      .sort((a, b) => String(b.contractId).localeCompare(String(a.contractId)))[0] || null;
-  }
-
-  const tail = parseInt(String(latest?.contractId || '').split('-').pop(), 10);
-  return `${prefix}${Number.isFinite(tail) ? tail + 1 : 1000}`;
-};
 
 /**
  * Get all contracts with Sangam CRM sync statuses

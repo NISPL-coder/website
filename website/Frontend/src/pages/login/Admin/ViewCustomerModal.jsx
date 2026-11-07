@@ -575,13 +575,60 @@ export default function ViewCustomerModal({
           }}
         >
           <div>
-            <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Corporate Email</span>
-            <div style={{ fontWeight: 600, color: '#0f172a' }}>{customer.email}</div>
+            <span style={{ color: '#64748b', fontSize: '0.78rem', display: 'block', marginBottom: '4px' }}>
+              Corporate Email(s)
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ fontWeight: 600, color: '#0f172a' }}>{customer.email || '—'}</div>
+              <span style={{ fontSize: '0.64rem', background: '#ede9fe', color: '#6d28d9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                Primary
+              </span>
+            </div>
+            {Array.isArray(customer.additionalEmails) && customer.additionalEmails.length > 0 && (
+              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {customer.additionalEmails.map((extraEm, idx) => (
+                  <div key={idx} style={{ fontSize: '0.78rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ color: '#94a3b8' }}>↳</span>
+                    <span>{extraEm}</span>
+                    <span style={{ fontSize: '0.62rem', background: '#f1f5f9', color: '#64748b', padding: '0 4px', borderRadius: '3px' }}>
+                      Secondary
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
-            <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Phone / WhatsApp</span>
-            <div style={{ fontWeight: 600, color: '#0f172a' }}>{customer.phone}</div>
+            <span style={{ color: '#64748b', fontSize: '0.78rem', display: 'block', marginBottom: '4px' }}>
+              Phone / WhatsApp
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ fontWeight: 600, color: '#0f172a', fontFamily: 'monospace' }}>{customer.phone || '—'}</div>
+              <span style={{ fontSize: '0.64rem', background: '#f1f5f9', color: '#475569', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                Primary
+              </span>
+            </div>
+            {(() => {
+              const extraPhones = [
+                ...(Array.isArray(customer.additionalPhones) ? customer.additionalPhones : []),
+                ...(customer.alternatePhone && !customer.additionalPhones?.includes(customer.alternatePhone) ? [customer.alternatePhone] : [])
+              ].filter(Boolean);
+              if (extraPhones.length === 0) return null;
+              return (
+                <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  {extraPhones.map((extraPh, idx) => (
+                    <div key={idx} style={{ fontSize: '0.78rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'monospace' }}>
+                      <span style={{ color: '#94a3b8' }}>↳</span>
+                      <span>{extraPh}</span>
+                      <span style={{ fontSize: '0.62rem', background: '#f1f5f9', color: '#64748b', padding: '0 4px', borderRadius: '3px' }}>
+                        Secondary
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           <div>

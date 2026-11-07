@@ -45,7 +45,7 @@ const ASSOCIATES = [
     id: 'support',
     badge: 'Hardware & AMC',
     name: 'IT Infrastructure & AMC Support',
-    role: 'Data Center, Network Infrastructure & Annual Maintenance',
+    role: 'Cloud Infrastructure, Network & Annual Maintenance',
     email: 'support@netinfotechsystem.com',
     phone: '+91 9330113000',
     address: 'Webel Tower 1, Sector-V, Salt Lake, Kolkata - 700091',
@@ -342,7 +342,7 @@ export default function ContactPage() {
                     >
                       <option value="">Select an option...</option>
                       <option value="Tally Prime Solutions & Customization">Tally Prime Solutions & Customization</option>
-                      <option value="Cloud Hosting & Infrastructure (AWS / Azure / CtrlS)">Cloud Hosting & Infrastructure (AWS / Azure / CtrlS)</option>
+                      <option value="Cloud Hosting & Infrastructure (AWS / Azure / Enterprise Cloud)">Cloud Hosting & Infrastructure (AWS / Azure / Enterprise Cloud)</option>
                       <option value="Enterprise ERP & Custom Software Development">Enterprise ERP & Custom Software Development</option>
                       <option value="IT Hardware, Servers & AMC Support">IT Hardware, Servers & AMC Support</option>
                       <option value="Cybersecurity & Network Infrastructure">Cybersecurity & Network Infrastructure</option>

@@ -94,13 +94,13 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
   const providers = [
     {
       id: 'ctrls-cloud',
-      name: 'CtrlS Cloud Server',
-      oneLiner: 'Tier-4 Datacenter High-Speed Enterprise Compute',
-      logoType: 'ctrls',
-      badge: 'Tier-4 Kolkata',
+      name: 'Enterprise Cloud Server',
+      oneLiner: 'High-Speed Enterprise Cloud Infrastructure & Dedicated VPS',
+      logoType: 'cloud-server',
+      badge: 'Enterprise Cloud',
       badgeClass: 'positive',
-      exploreText: 'Explore CtrlS Cloud',
-      highlights: ['CtrlS Rated-4 Kolkata Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote']
+      exploreText: 'Explore Cloud Servers',
+      highlights: ['High-Performance Cloud Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote']
     }
   ];
 
@@ -164,13 +164,11 @@ export default function CloudProviderSelection({ onSelectProvider, onBack }) {
                   alignItems: 'center'
                 }}>
                   {p.logoType === 'aws' && <AwsIcon size={46} />}
-                  {p.logoType === 'ctrls' && (
-                    <img
-                      src={ctrlsLogo}
-                      alt="CtrlS Cloud Server"
-                      style={{ height: '42px', maxWidth: '140px', objectFit: 'contain' }}
-                      loading="lazy"
-                    />
+                  {p.logoType === 'cloud-server' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6366f1' }}>
+                      <Server size={32} />
+                      <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>NISPL Cloud</span>
+                    </div>
                   )}
                   {p.logoType === 'azure' && <AzureIcon size={44} />}
                 </div>

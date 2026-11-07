@@ -9,7 +9,7 @@ import {
   LifeBuoy
 } from 'lucide-react';
 import ConsoleShell from '../login/Admin/ConsoleShell';
-import ProfilePage from '../login/Admin/ProfilePage';
+import CustomerProfilePage from './components/CustomerProfilePage';
 import CloudPortalOverview from '../login/customer/overview';
 import ProductsSection from '../login/customer/product';
 import CartSection from '../login/customer/cart';
@@ -546,12 +546,11 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               <HelpSection customer={customer} />
             </div>
           )}
-          {/* TAB 7: PROFILE (same account page the console uses) */}
+          {/* TAB 7: PROFILE */}
           {activeNav === 'profile' && (
-            <ProfilePage
-              adminName={customer?.name}
-              adminEmail={customer?.email}
-              portalName="NISPL Customer Portal"
+            <CustomerProfilePage
+              customer={customer}
+              onSignOut={propOnSignOut}
             />
           )}
       </ConsoleShell>

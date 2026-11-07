@@ -221,6 +221,8 @@ export const createCustomer = async (req, res) => {
       company,
       email,
       phone,
+      additionalEmails,
+      additionalPhones,
       alternatePhone,
       website,
       industry,
@@ -296,6 +298,8 @@ export const createCustomer = async (req, res) => {
       loginEmail: cleanEmail,
       portalPassword: rawPassword,
       phone: cleanPhone,
+      additionalEmails: Array.isArray(additionalEmails) ? additionalEmails.filter(Boolean).map(e => String(e).trim().toLowerCase()) : [],
+      additionalPhones: Array.isArray(additionalPhones) ? additionalPhones.filter(Boolean).map(p => String(p).trim()) : [],
       alternatePhone: (alternatePhone || '').trim(),
       website: (website || '').trim(),
       industry: industry || 'Technology',
@@ -568,6 +572,8 @@ export const updateCustomer = async (req, res) => {
       company,
       email,
       phone,
+      additionalEmails,
+      additionalPhones,
       alternatePhone,
       website,
       industry,
@@ -593,7 +599,17 @@ export const updateCustomer = async (req, res) => {
       ...(designation !== undefined && { designation: String(designation).trim() }),
       ...((company || joinedName) && { company: (company || joinedName).trim() }),
       ...(email && { email: email.trim().toLowerCase() }),
+      ...(additionalEmails !== undefined && {
+        additionalEmails: Array.isArray(additionalEmails)
+          ? additionalEmails.filter(Boolean).map(e => String(e).trim().toLowerCase())
+          : []
+      }),
       ...(phone && { phone: phone.trim() }),
+      ...(additionalPhones !== undefined && {
+        additionalPhones: Array.isArray(additionalPhones)
+          ? additionalPhones.filter(Boolean).map(p => String(p).trim())
+          : []
+      }),
       ...(alternatePhone !== undefined && { alternatePhone: alternatePhone.trim() }),
       ...(website !== undefined && { website: website.trim() }),
       ...(industry && { industry }),
@@ -640,6 +656,28 @@ export const updateCustomer = async (req, res) => {
       }
     } catch (crmErr) {
       console.warn('[CustomerController] Sangam CRM re-sync warning on update:', crmErr.message);
+    }
+
+    // Keep linked User account in sync
+    try {
+      if (isMongoConnected() && (savedCustomer.customerId || savedCustomer.email)) {
+        const userUpdates = {};
+        if (savedCustomer.name) userUpdates.name = savedCustomer.name;
+        if (savedCustomer.phone) userUpdates.phone = savedCustomer.phone;
+        if (savedCustomer.company) userUpdates.company = savedCustomer.company;
+        if (savedCustomer.gstNo) userUpdates.gstNo = savedCustomer.gstNo;
+        if (savedCustomer.designation) userUpdates.designation = savedCustomer.designation;
+        if (savedCustomer.additionalEmails !== undefined) userUpdates.additionalEmails = savedCustomer.additionalEmails;
+        if (savedCustomer.additionalPhones !== undefined) userUpdates.additionalPhones = savedCustomer.additionalPhones;
+        if (savedCustomer.status) userUpdates.accountStatus = savedCustomer.status;
+
+        await User.findOneAndUpdate(
+          { $or: [{ customerId: savedCustomer.customerId }, { email: savedCustomer.email }] },
+          { $set: userUpdates }
+        );
+      }
+    } catch (uErr) {
+      console.warn('[CustomerController] User update sync note:', uErr.message);
     }
 
     await logNotification({

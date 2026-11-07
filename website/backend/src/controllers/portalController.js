@@ -5,6 +5,7 @@ import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import { logNotification } from '../services/notificationService.js';
+import { crmRecordId, provisionContractsForPayment, syncContractToCrm } from '../services/contractProvisioning.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -917,8 +918,7 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
         gst: gstAmount,
         lines: [line],
         gstBasis: `Renewal value taken as GST-inclusive and split at ${GST_RATE * 100}%`,
-        salesPerson: contract.salesPerson || '',
-        label
+        salesPerson: contract.salesPerson || ''
       }
     };
   }
@@ -975,7 +975,9 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
    never duplicates income.
 ───────────────────────────────────────────────────────────────────────── */
 export const settlePortalCharge = async ({ user, customer, scope, quote, method }) => {
-  const { mode, snapshot } = quote;
+  // The label lives on the quote itself: a gateway intent persists the snapshot
+  // separately, so reading it from there would lose what was sold.
+  const { mode, label, snapshot } = quote;
 
   if (mode === 'invoice') {
     const payment = await findScopedPayment(scope, snapshot.invoiceNumber);
@@ -1029,7 +1031,7 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
       customer,
       method,
       total: snapshot.total,
-      label: snapshot.label,
+      label,
       lines: snapshot.lines,
       contractId: snapshot.contractId,
       salesPerson: snapshot.salesPerson,
@@ -1058,7 +1060,7 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
     customer,
     method,
     total: snapshot.total,
-    label: snapshot.label,
+    label,
     lines: snapshot.lines,
     salesPerson: snapshot.salesPerson || '',
     subtotal: snapshot.subtotal,
@@ -1075,10 +1077,20 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
 
   await notifyPaymentReceived(user, customer, created);
 
+  // What the customer just bought is now a subscription the business owes them,
+  // so the contract register is written from the same receipt the ledger holds.
+  const contracts = await provisionContractsForPayment({
+    payment: created,
+    user,
+    customer,
+    lines: snapshot.lines
+  });
+
   return {
     statusCode: 201,
     data: {
       payment: await mapPayment(created.toObject()),
+      contracts,
       totals: {
         subtotal: snapshot.subtotal,
         gst: snapshot.gst,
@@ -1223,6 +1235,7 @@ export const activateCustomerDemo = async (req, res) => {
         existingTrial.extensionDays = 0;
         existingTrial.description = `Demo trial extended by administrator authorization until ${extendedEndDate} (+${additionalDays} days).`;
         await existingTrial.save();
+        await syncContractToCrm(existingTrial);
       }
 
       if (targetCustomer && isMongoConnected()) {
@@ -1262,6 +1275,9 @@ export const activateCustomerDemo = async (req, res) => {
       customer: effectiveCustomer,
       accountName: effectiveCompany,
       email: targetEmail,
+      // Links the trial to the company's Sangam account, the same way a contract
+      // raised by an admin or by a paid order is linked.
+      accountId: crmRecordId(targetCustomer?.sangamCrm?.recordId),
       contractType: 'Trial',
       subscriptionPeriod: duration,
       productCategory: 'Trial',
@@ -1312,6 +1328,10 @@ export const activateCustomerDemo = async (req, res) => {
     } catch (e) {
       console.warn('Could not save contract to file:', e.message);
     }
+
+    // A self-served trial is a contract like any other, so it reaches Sangam
+    // without an admin having to press Retry CRM Sync on it.
+    savedContract = await syncContractToCrm(savedContract);
 
     await logNotification({
       type: 'demo_activated',

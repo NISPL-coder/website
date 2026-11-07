@@ -1,6 +1,6 @@
 # Net Infotech System Pvt. Ltd. (NISPL)
 
-> Net Infotech System Pvt. Ltd. (NISPL) is Eastern India's premier IT solutions provider and Certified Tally 3-Star Partner. Headquartered at Webel Tower 1, Sector V, Salt Lake City, Kolkata - 700091, NISPL provides enterprise cloud hosting, Tally on Cloud, 24/7 managed IT services, cybersecurity defense, Microsoft licensing, IT infrastructure management, and CtrlS Kolkata Rated-4 datacenter colocation.
+> Net Infotech System Pvt. Ltd. (NISPL) is Eastern India's premier IT solutions provider and Certified Tally 3-Star Partner. Headquartered at Webel Tower 1, Sector V, Salt Lake City, Kolkata - 700091, NISPL provides enterprise cloud hosting, Tally on Cloud, 24/7 managed IT services, cybersecurity defense, Microsoft licensing, IT infrastructure management, and Enterprise Rated-4 Cloud Server Infrastructure.
 
 ## Core Navigation Pages
 
@@ -36,7 +36,7 @@
 6. **Microsoft 365 Licensing & Cloud Modernization**
    - Official Microsoft Solutions Partner providing Microsoft 365, Teams, OneDrive, Exchange, Windows Server, Entra ID, and Intune device fleet management.
 
-7. **CtrlS Kolkata Rated-4 Datacenter Colocation**
+7. **Enterprise Tier-4 Cloud Server Infrastructure**
    - 16 MW AI-ready facility at Bengal Silicon Valley, New Town Kolkata with 99.995% uptime SLA and military-grade physical security.
 
 ## Company Information

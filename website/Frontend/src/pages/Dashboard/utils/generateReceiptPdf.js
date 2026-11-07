@@ -344,7 +344,7 @@ export function generateReceiptPdf(rec, customer) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...mutedTextColor);
-  doc.text('Net Infotech System Pvt. Ltd. | CIN: U72200WB2010PTC148921 | Kolkata Datacenter Cluster', 105, 292, { align: 'center' });
+  doc.text('Net Infotech System Pvt. Ltd. | CIN: U72200WB2010PTC148921 | Kolkata Cloud NOC Cluster', 105, 292, { align: 'center' });
 
   // Trigger browser download
   doc.save(`Receipt_${rec.id}.pdf`);

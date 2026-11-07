@@ -148,6 +148,13 @@ const contractSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    // The settled invoice a portal purchase was raised from. It is what makes
+    // provisioning idempotent when a gateway retry lands on the same payment.
+    paymentInvoiceNumber: {
+      type: String,
+      default: '',
+      index: true
+    },
     createdBy: {
       name: {
         type: String,

@@ -1,3 +1,3 @@
-import CtrlSKolkataSection from '../CtrlSKolkata/CtrlSKolkataSection';
-
-export default CtrlSKolkataSection;
+export default function CompanyStatsStrip() {
+  return null;
+}

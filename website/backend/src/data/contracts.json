@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "contractId": "CTR-2026-1001",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "Demo test Company",
+    "customer": "Demo Test",
+    "accountId": "d47e5fb1-ff7f-4f8f-a979-a7f7a182b4a6",
+    "email": "demotest@gmail.com",
+    "service": "Subscription (1 Month)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Month",
+    "productCategory": "Software",
+    "totalContractValue": "₹590",
+    "value": "₹590 / 1 month",
+    "orderDate": "2026-11-07",
+    "startDate": "2026-11-07",
+    "endDate": "2026-12-07",
+    "expiryDate": "2026-12-07",
+    "status": "In Progress",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1001 (PAY-2026-1001).",
+    "productId": "PROD-1794030538612",
+    "salesPerson": "Sourav Mukherjee",
+    "paymentInvoiceNumber": "INV-2026-1001",
+    "createdBy": {
+      "name": "Demo Test",
+      "email": "demotest@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": "Sangam CRM synchronization disabled in configuration."
+    },
+    "id": "CTR-2026-1001",
+    "createdAt": "2026-11-07T06:06:20.341Z"
+  }
+]

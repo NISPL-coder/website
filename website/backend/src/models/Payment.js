@@ -190,7 +190,7 @@ const paymentSchema = new mongoose.Schema(
     },
     solutionCategory: {
       type: String,
-      default: 'Tally Prime & Customization'
+      default: ''
     },
     razorpayOrderId: {
       type: String,
@@ -209,6 +209,12 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: '',
       index: true
+    },
+    // One purchase can hold several products, and each becomes its own
+    // subscription. contractId above stays the first one for older readers.
+    contractIds: {
+      type: [String],
+      default: []
     },
     // What was sold, frozen at the moment of payment. Prices and specifications
     // are copied here rather than referenced, so editing the catalogue later

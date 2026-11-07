@@ -62,12 +62,12 @@ export default function ProductSection({ products, setProducts }) {
   const CLOUD_PROVIDERS_CONFIG = [
     {
       id: 'ctrls-cloud',
-      name: 'CtrlS Cloud Server',
-      oneLiner: 'Tier-4 Datacenter High-Speed Enterprise Compute',
-      badge: 'Tier-4 Kolkata',
+      name: 'Enterprise Cloud Server',
+      oneLiner: 'High-Speed Enterprise Cloud Infrastructure & Compute',
+      badge: 'Enterprise Cloud',
       badgeClass: 'positive',
-      exploreText: 'Manage CtrlS Cloud',
-      highlights: ['CtrlS Rated-4 Kolkata Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote'],
+      exploreText: 'Manage Cloud Servers',
+      highlights: ['High-Performance Cloud Facility', 'Ultra-Low Latency Bengal Routing', 'Zero-Lag Multi-User Tally Remote'],
       filter: (p) =>
         p.provider === 'ctrls-cloud' ||
         p.id?.startsWith('ctrls-') ||
@@ -796,13 +796,13 @@ export default function ProductSection({ products, setProducts }) {
               <h1 className="adm-section-title">
                 {selectedCategory === 'tally'
                   ? 'Tally Prime & Customization Editions'
-                  : 'CtrlS Cloud Server Infrastructure (Tier-4 Datacenter)'}
+                  : 'Enterprise Cloud Server Infrastructure (Tier-4 Cloud)'}
               </h1>
 
               <p className="adm-section-sub">
                 {selectedCategory === 'tally'
                   ? 'Manage official Tally Prime software licenses, multi-user editions, and TSS renewals.'
-                  : 'Manage CtrlS Kolkata Tier-4 datacenter VPS nodes, static IP allocations, pricing, and live customer portal availability.'}
+                  : 'Manage high-speed enterprise VPS nodes, static IP allocations, pricing, and live customer portal availability.'}
               </p>
             </div>
 

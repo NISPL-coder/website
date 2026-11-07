@@ -110,18 +110,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const payments = (data?.recentPayments && data.recentPayments.length > 0)
     ? data.recentPayments
     : (data?.payments || []);
-  const products = (data?.products && data.products.length > 0)
-    ? data.products
-    : (data?.entitlements || []).map((e) => ({
-        id: e.contractId || e.productId || e.name,
-        name: e.name,
-        category: 'Service',
-        contractType: 'AMC',
-        expiryDate: e.expiryDate,
-        daysLeft: e.daysLeft ?? null,
-        status: 'Active',
-        source: 'subscription'
-      }));
+  const products = data?.products || [];
   const reminder = data?.reminder || null;
   const reminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders

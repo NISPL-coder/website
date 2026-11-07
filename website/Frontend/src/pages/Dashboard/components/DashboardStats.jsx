@@ -26,7 +26,7 @@ export default function DashboardStats({ stats }) {
       id: 'uptime',
       title: 'Cloud High Availability',
       value: stats?.cloudUptime || '99.98%',
-      subtext: 'Tier-4 Tier Data Center SLA',
+      subtext: 'Tier-4 Enterprise Cloud SLA',
       icon: Activity,
       color: '#8b5cf6',
       bg: '#ede9fe'

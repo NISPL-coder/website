@@ -22,6 +22,8 @@ const INDUSTRY_OPTIONS = [
 ];
 
 export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated }) {
+  const [additionalEmails, setAdditionalEmails] = useState([]);
+  const [additionalPhones, setAdditionalPhones] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -47,6 +49,8 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
 
   useEffect(() => {
     if (customer) {
+      setAdditionalEmails(Array.isArray(customer.additionalEmails) ? customer.additionalEmails : []);
+      setAdditionalPhones(Array.isArray(customer.additionalPhones) ? customer.additionalPhones : []);
       const addr = customer.address || {};
       setFormData({
         name: customer.name || '',
@@ -101,6 +105,30 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       return;
     }
 
+    const cleanPhone = formData.phone.trim().replace(/\D/g, '');
+    if (!cleanPhone) {
+      toast.error('Primary phone number is required.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error(`Primary phone number must be exactly 10 digits (currently ${cleanPhone.length} digits).`);
+      return;
+    }
+
+    for (let i = 0; i < additionalPhones.length; i++) {
+      const cleanExtraPhone = additionalPhones[i].trim().replace(/\D/g, '');
+      if (cleanExtraPhone && cleanExtraPhone.length !== 10) {
+        toast.error(`Secondary phone #${i + 1} must be exactly 10 digits (currently ${cleanExtraPhone.length} digits).`);
+        return;
+      }
+    }
+
+    // A row saved before the field was capped can still hold a longer PIN.
+    if (formData.postalCode.trim().length > 6) {
+      toast.error('PIN code must be at most 6 digits.');
+      return;
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading('Saving updates & syncing to Sangam CRM...');
 
@@ -108,7 +136,9 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       name: formData.name.trim(),
       company: formData.company.trim(),
       email: formData.email.trim(),
-      phone: formData.phone.trim(),
+      additionalEmails: additionalEmails.map((e) => e.trim()).filter(Boolean),
+      phone: cleanPhone,
+      additionalPhones: additionalPhones.map((p) => p.trim().replace(/\D/g, '')).filter(Boolean),
       alternatePhone: formData.alternatePhone.trim(),
       website: formData.website.trim(),
       industry: formData.industry,
@@ -272,7 +302,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             {/* Email & Phone */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div>
-                <label className="adm-form-label">Corporate Email *</label>
+                <label className="adm-form-label">Corporate Email (Primary Login) *</label>
                 <input
                   type="email"
                   className="adm-form-input"
@@ -283,14 +313,155 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
               </div>
 
               <div>
-                <label className="adm-form-label">Primary Phone *</label>
+                <label className="adm-form-label">Primary Phone (10 digits) *</label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   className="adm-form-input"
+                  placeholder="10-digit mobile number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                   required
                 />
+              </div>
+            </div>
+
+            {/* Additional Secondary Emails */}
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                  Secondary / Additional Emails ({additionalEmails.length})
+                </span>
+                <button
+                  type="button"
+                  style={{
+                    background: '#ede9fe',
+                    color: '#6d28d9',
+                    border: '1px solid #ddd6fe',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setAdditionalEmails((prev) => [...prev, ''])}
+                >
+                  + Add Email
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {additionalEmails.map((extraEm, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="email"
+                      className="adm-form-input"
+                      placeholder={`Secondary email ${idx + 1}`}
+                      value={extraEm}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setAdditionalEmails((prev) => {
+                          const copy = [...prev];
+                          copy[idx] = val;
+                          return copy;
+                        });
+                      }}
+                      style={{ flex: 1, padding: '5px 10px', fontSize: '0.82rem' }}
+                    />
+                    <button
+                      type="button"
+                      style={{
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        fontSize: '0.76rem',
+                        fontWeight: 700
+                      }}
+                      onClick={() => setAdditionalEmails((prev) => prev.filter((_, i) => i !== idx))}
+                      title="Remove email"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {additionalEmails.length === 0 && (
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                    No secondary emails added. Click "+ Add Email" to add one.
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Additional Secondary Phones */}
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                  Secondary / Additional Phones ({additionalPhones.length})
+                </span>
+                <button
+                  type="button"
+                  style={{
+                    background: '#ede9fe',
+                    color: '#6d28d9',
+                    border: '1px solid #ddd6fe',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setAdditionalPhones((prev) => [...prev, ''])}
+                >
+                  + Add Phone
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {additionalPhones.map((extraPh, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="adm-form-input"
+                      placeholder={`10-digit secondary phone ${idx + 1}`}
+                      value={extraPh}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setAdditionalPhones((prev) => {
+                          const copy = [...prev];
+                          copy[idx] = val;
+                          return copy;
+                        });
+                      }}
+                      style={{ flex: 1, padding: '5px 10px', fontSize: '0.82rem' }}
+                    />
+                    <button
+                      type="button"
+                      style={{
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        fontSize: '0.76rem',
+                        fontWeight: 700
+                      }}
+                      onClick={() => setAdditionalPhones((prev) => prev.filter((_, i) => i !== idx))}
+                      title="Remove phone"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {additionalPhones.length === 0 && (
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                    No secondary phones added. Click "+ Add Phone" to add one.
+                  </span>
+                )}
               </div>
             </div>
 
@@ -418,9 +589,12 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
                 <label className="adm-form-label">PIN / Postal Code</label>
                 <input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={6}
                   className="adm-form-input"
+                  placeholder="6-digit PIN code"
                   value={formData.postalCode}
-                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                 />
               </div>
             </div>

@@ -257,7 +257,7 @@ export default function GoogleReviewsSection() {
               >
                 <option value="Tally Prime">Tally Prime</option>
                 <option value="Tally on Cloud">Tally on Cloud</option>
-                <option value="Data Center & Cloud">Data Center & Cloud</option>
+                <option value="Enterprise Cloud Server">Enterprise Cloud Server</option>
                 <option value="IT Infra & Security">IT Infrastructure & Security</option>
                 <option value="Hardware Repair">Hardware Repair & Maintenance</option>
                 <option value="IT Rentals">IT Rentals & Hardware Sales</option>

@@ -377,7 +377,7 @@ export default function CustomPricingPage({ products, setProducts }) {
                 className="adm-btn-secondary"
                 onClick={backToProducts}
                 style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                title="Return to the CtrlS Cloud catalog"
+                title="Return to the Cloud catalog"
               >
                 <ArrowLeft size={14} />
                 <span>Back to Products</span>

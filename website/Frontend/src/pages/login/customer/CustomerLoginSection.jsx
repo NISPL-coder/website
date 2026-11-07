@@ -54,7 +54,7 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
         role: response.user.tier || 'Enterprise Cloud ERP & Tally Prime Subscriber',
         user: response.user.email || clientEmail,
         accessLevel: 'Dedicated Cloud VPS Environment',
-        location: 'CtrlS Tier-4 Datacenter, Kolkata Host Node #04',
+        location: 'Tier-4 Cloud Infrastructure, Kolkata Host Node #04',
         tenantId: response.user.customerId || cloudTenant || 'NIS-CLOUD-AUTO'
       });
     } catch (err) {

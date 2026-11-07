@@ -67,11 +67,19 @@ const customerSchema = new mongoose.Schema(
       trim: true,
       index: true
     },
+    additionalEmails: {
+      type: [String],
+      default: []
+    },
     phone: {
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
       index: true
+    },
+    additionalPhones: {
+      type: [String],
+      default: []
     },
     alternatePhone: {
       type: String,

@@ -58,11 +58,11 @@ const PRODUCT_TYPE_CONFIG = {
   },
   cloud: {
     label: 'Cloud Infrastructure',
-    pageTitle: 'Create CtrlS Cloud Server Product',
+    pageTitle: 'Create Enterprise Cloud Server Product',
     pageSubtitle:
-      'Publish CtrlS Kolkata Tier-4 datacenter VPS nodes based on verified User & Server Configuration specifications.',
+      'Publish enterprise cloud VPS nodes based on verified User & Server Configuration specifications.',
     categories: [
-      { value: 'Infrastructure', label: 'Infrastructure (CtrlS VPS)' },
+      { value: 'Infrastructure', label: 'Infrastructure (Cloud VPS)' },
       { value: 'Cloud Hosting', label: 'Cloud Hosting' },
       { value: 'Automation', label: 'Automation & Add-ons' },
       { value: 'Security & Backup', label: 'Security & Backup' }
@@ -71,13 +71,13 @@ const PRODUCT_TYPE_CONFIG = {
     defaultPrice: '₹4,500',
     defaultFrequency: '/ month',
     defaultDescription:
-      'Tier-4 CtrlS Kolkata Datacenter VPS hosting node with dedicated IP address, N+N redundancy, and 24/7 SLA.',
+      'Tier-4 Enterprise Cloud VPS hosting node with dedicated IP address, N+N redundancy, and 24/7 SLA.',
     returnPath: '/admin/product/cloud'
   }
 };
 
 const CLOUD_PROVIDER_OPTIONS = [
-  { value: 'ctrls-cloud', label: 'CtrlS Cloud Server (Tier-4 Datacenter)' }
+  { value: 'ctrls-cloud', label: 'Enterprise Cloud Server (Tier-4 Cloud)' }
 ];
 
 const AVAILABILITY_OPTIONS = [
@@ -110,10 +110,10 @@ export default function CreateProductPage({ products, setProducts, productType =
   const [customStorage, setCustomStorage] = useState(defaultTemplate.storage);
 
   const [formState, setFormState] = useState({
-    name: isCtrlS ? `CtrlS Cloud Server — ${defaultTemplate.userLabel}` : (isCloud ? 'Cloud Server Tier' : ''),
+    name: isCtrlS ? `Enterprise Cloud Server — ${defaultTemplate.userLabel}` : (isCloud ? 'Cloud Server Tier' : ''),
     provider: isCloud ? 'ctrls-cloud' : 'tally',
     ipAddress: isCtrlS ? defaultTemplate.ip : (isCloud ? `103.115.220.${Math.floor(71 + Math.random() * 20)}` : ''),
-    sku: `NIS-${isCloud ? 'CTRLS' : 'SKU'}-${Math.floor(100 + Math.random() * 900)}`,
+    sku: `NIS-${isCloud ? 'CLOUD' : 'SKU'}-${Math.floor(100 + Math.random() * 900)}`,
     users: defaultTemplate.user,
     tier: defaultTemplate.userLabel,
     cores: defaultTemplate.cores,
@@ -139,7 +139,7 @@ export default function CreateProductPage({ products, setProducts, productType =
 
     setFormState((prev) => ({
       ...prev,
-      name: `CtrlS Cloud Server — ${template.userLabel}`,
+      name: `Enterprise Cloud Server — ${template.userLabel}`,
       tier: template.userLabel,
       users: template.user,
       cores: template.cores,
@@ -147,9 +147,9 @@ export default function CreateProductPage({ products, setProducts, productType =
       storage: template.storage,
       serverConfiguration: template.config,
       ipAddress: template.ip,
-      sku: `NIS-CTRLS-${template.user}U`,
+      sku: `NIS-CLOUD-${template.user}U`,
       price: `₹${template.price.toLocaleString('en-IN')}`,
-      description: `CtrlS Kolkata Tier-4 Datacenter Cloud Server (${template.config}) with N+N dual power feed redundancy.`
+      description: `Enterprise Tier-4 Cloud Server (${template.config}) with N+N dual power feed redundancy.`
     }));
   };
 
@@ -165,7 +165,7 @@ export default function CreateProductPage({ products, setProducts, productType =
 
     setFormState((prev) => ({
       ...prev,
-      name: `CtrlS Cloud Server — ${newUser} User`,
+      name: `Enterprise Cloud Server — ${newUser} User`,
       tier: `${newUser} User`,
       users: newUser,
       cores: newCores,
@@ -173,7 +173,7 @@ export default function CreateProductPage({ products, setProducts, productType =
       storage: newStorage,
       serverConfiguration: formattedConfig,
       price: `₹${calculatedPrice.toLocaleString('en-IN')}`,
-      description: `CtrlS Kolkata Tier-4 Datacenter Cloud Server (${formattedConfig}) with N+N dual power feed redundancy.`
+      description: `Enterprise Tier-4 Cloud Server (${formattedConfig}) with N+N dual power feed redundancy.`
     }));
   };
 
@@ -200,7 +200,7 @@ export default function CreateProductPage({ products, setProducts, productType =
       name: formState.name.trim(),
       provider: isCloud ? formState.provider : 'tally',
       ipAddress: ipClean,
-      sku: formState.sku.trim() || `NIS-CTRLS-${formState.users || 1}U`,
+      sku: formState.sku.trim() || `NIS-CLOUD-${formState.users || 1}U`,
       category: formState.category,
       price: priceClean,
       monthlyPrice: monthlyNum,
@@ -212,7 +212,7 @@ export default function CreateProductPage({ products, setProducts, productType =
       cores: formState.cores || customCores,
       ram: formState.ram || customRam,
       storage: formState.storage || customStorage,
-      description: formState.description.trim() || `CtrlS Kolkata Tier-4 Cloud Server (${finalServerConfig})`,
+      description: formState.description.trim() || `Enterprise Tier-4 Cloud Server (${finalServerConfig})`,
       available: formState.available,
       status: formState.available ? 'active' : 'inactive',
       specs: isCloud
@@ -222,12 +222,12 @@ export default function CreateProductPage({ products, setProducts, productType =
             { label: 'RAM', value: formState.ram || customRam },
             { label: 'Storage', value: formState.storage || customStorage },
             { label: 'Static IP', value: ipClean },
-            { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' }
+            { label: 'Cloud Infrastructure', value: 'Tier-4 Cloud Node' }
           ]
         : [],
       features: isCloud
         ? [
-            `Tier-4 CtrlS Kolkata Datacenter Hosting (Dedicated Static IP: ${ipClean})`,
+            `Tier-4 Enterprise Cloud Hosting (Dedicated Static IP: ${ipClean})`,
             `Server Configuration: ${finalServerConfig}`,
             'Windows Server licence, enterprise SSD array & daily snapshot image',
             'N+N dual power feed redundancy with 99.995% uptime guarantee'
@@ -244,7 +244,7 @@ export default function CreateProductPage({ products, setProducts, productType =
       // Dispatch real-time product notification to admin
       notificationApi.createNotification({
         type: 'product_created',
-        title: isCtrlS ? 'CtrlS Cloud Node Provisioned' : 'Product Added to Catalog',
+        title: isCtrlS ? 'Cloud Node Provisioned' : 'Product Added to Catalog',
         message: `Product "${finalProduct.name}" (${finalProduct.price} ${finalProduct.frequency}, Config: ${finalServerConfig}, IP: ${ipClean}) was added to catalog.`,
         severity: 'info',
         entityType: 'product',
@@ -252,7 +252,7 @@ export default function CreateProductPage({ products, setProducts, productType =
         metadata: { ipAddress: ipClean, price: finalProduct.price, provider: payload.provider, config: finalServerConfig }
       });
 
-      toast.success(`CtrlS Product "${finalProduct.name}" published to database!`, {
+      toast.success(`Product "${finalProduct.name}" published to database!`, {
         style: {
           borderRadius: '12px',
           background: '#0f172a',
@@ -284,7 +284,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                 navigate(config.returnPath)
               }
             >
-              {isCtrlS ? 'CtrlS Cloud Server' : config.label}
+              {isCtrlS ? 'Enterprise Cloud Server' : config.label}
             </span>
             <span className="adm-breadcrumb-sep">/</span>
             <span className="adm-breadcrumb-active">Add Product</span>
@@ -292,11 +292,11 @@ export default function CreateProductPage({ products, setProducts, productType =
 
           <div className="adm-create-title-group">
             <h1 className="adm-section-title">
-              {isCtrlS ? 'Add CtrlS Cloud Server Product' : config.pageTitle}
+              {isCtrlS ? 'Add Enterprise Cloud Server Product' : config.pageTitle}
             </h1>
             <p className="adm-section-sub">
               {isCtrlS
-                ? 'Create CtrlS Tier-4 Cloud Server tiers based on verified User & Server Configuration specifications.'
+                ? 'Create Tier-4 Enterprise Cloud Server tiers based on verified User & Server Configuration specifications.'
                 : config.pageSubtitle}
             </p>
           </div>
@@ -316,7 +316,7 @@ export default function CreateProductPage({ products, setProducts, productType =
         </div>
       </div>
 
-      {/* CtrlS Standard Matrix Reference & Quick Template Selector */}
+      {/* Cloud Server Standard Matrix Reference & Quick Template Selector */}
       {isCtrlS && (
         <div
           className="adm-table-card"
@@ -331,7 +331,7 @@ export default function CreateProductPage({ products, setProducts, productType =
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Server size={18} color="#4f46e5" />
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                CtrlS Cloud Server Configuration Matrix (Verified Specs)
+                Enterprise Cloud Server Configuration Matrix (Verified Specs)
               </h3>
             </div>
             <span
@@ -410,7 +410,7 @@ export default function CreateProductPage({ products, setProducts, productType =
               <Server size={18} className="adm-form-section-icon purple" />
               <span>
                 {isCtrlS
-                  ? 'User & Server Configuration (CtrlS Standard Format)'
+                  ? 'User & Server Configuration (Standard Format)'
                   : 'Product Classification & Identity'}
               </span>
             </div>
@@ -466,7 +466,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                 <input
                   type="text"
                   className="adm-form-input"
-                  placeholder="e.g. CtrlS Cloud Server — 9 User"
+                  placeholder="e.g. Enterprise Cloud Server — 9 User"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                   required
@@ -692,7 +692,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                 <textarea
                   className="adm-form-input"
                   rows={2}
-                  placeholder="Enter datacenter tier, power redundancy, and specifications"
+                  placeholder="Enter cloud infrastructure tier, power redundancy, and specifications"
                   value={formState.description}
                   onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                 />
@@ -714,7 +714,7 @@ export default function CreateProductPage({ products, setProducts, productType =
             </button>
             <button type="submit" className="adm-btn-primary" disabled={isSubmitting}>
               <Plus size={16} />
-              <span>{isSubmitting ? 'Provisioning...' : 'Provision CtrlS Server Node'}</span>
+              <span>{isSubmitting ? 'Provisioning...' : 'Provision Cloud Server Node'}</span>
             </button>
           </div>
         </form>

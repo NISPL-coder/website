@@ -342,6 +342,32 @@ export const authApi = {
   },
 
   /**
+   * Update the logged in user's own profile (contact info, multiple emails/phones, company details)
+   * @param {Object} updates
+   */
+  async updateOwnProfile(updates) {
+    const token = this.getAuthToken();
+    const res = await fetch(`${BACKEND_URL}/api/v1/users/me`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updates)
+    });
+    this._handleRefreshedToken(res);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to update profile.');
+    }
+    if (data.user) {
+      const freshToken = res.headers.get('x-refreshed-token') || token;
+      this.setAuthSession(freshToken, data.user);
+    }
+    return data;
+  },
+
+  /**
    * Change the current user's password.
    * Revokes all active sessions server-side, so the caller must sign the user out afterwards.
    * @param {string} currentPassword

@@ -1,10 +1,204 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Session from '../models/Session.js';
+import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import { HttpError } from '../utils/httpError.js';
 import { logActivity } from '../utils/activityLogger.js';
 
+function isMongoConnected() {
+  return mongoose.connection.readyState === 1;
+}
+
 export async function getOwnProfile(req, res) {
-  res.json({ success: true, user: req.user.toSafeJSON() });
+  const safeUser = req.user.toSafeJSON();
+
+  // If customer, merge latest Customer record details (company, gstNo, address, etc.)
+  if (req.user.role === 'customer' || req.user.customerId) {
+    let customerDoc = null;
+    const custId = req.user.customerId;
+    const email = req.user.email;
+
+    if (isMongoConnected()) {
+      if (custId) {
+        customerDoc = await Customer.findOne({ customerId: custId }).lean();
+      }
+      if (!customerDoc && email) {
+        customerDoc = await Customer.findOne({ email }).lean();
+      }
+    }
+
+    if (!customerDoc) {
+      const fileList = getCustomersFromFile();
+      customerDoc = fileList.find((c) => (custId && c.customerId === custId) || (email && c.email === email));
+    }
+
+    if (customerDoc) {
+      safeUser.company = customerDoc.company || safeUser.company || '';
+      safeUser.gstNo = customerDoc.gstNo || safeUser.gstNo || '';
+      safeUser.designation = customerDoc.designation || safeUser.designation || '';
+      safeUser.phone = customerDoc.phone || safeUser.phone || '';
+      safeUser.additionalEmails = Array.isArray(customerDoc.additionalEmails) && customerDoc.additionalEmails.length > 0
+        ? customerDoc.additionalEmails
+        : safeUser.additionalEmails || [];
+      safeUser.additionalPhones = Array.isArray(customerDoc.additionalPhones) && customerDoc.additionalPhones.length > 0
+        ? customerDoc.additionalPhones
+        : (customerDoc.alternatePhone ? [customerDoc.alternatePhone] : safeUser.additionalPhones || []);
+      safeUser.address = customerDoc.address || safeUser.address || null;
+      if (customerDoc.customerId && !safeUser.customerId) {
+        safeUser.customerId = customerDoc.customerId;
+      }
+    }
+  }
+
+  res.json({ success: true, user: safeUser });
+}
+
+export async function updateOwnProfile(req, res) {
+  const user = await User.findById(req.user._id);
+  if (!user) throw new HttpError(404, 'User not found.');
+
+  const {
+    name,
+    phone,
+    additionalEmails,
+    additionalPhones,
+    company,
+    gstNo,
+    designation,
+    address
+  } = req.body;
+
+  if (name !== undefined) {
+    const cleanName = String(name).trim();
+    if (!cleanName) throw new HttpError(400, 'Name cannot be empty.');
+    user.name = cleanName;
+  }
+
+  if (phone !== undefined) {
+    const digitsOnly = String(phone).replace(/\D/g, '');
+    if (digitsOnly && digitsOnly.length !== 10) {
+      throw new HttpError(400, `Primary phone number must be exactly 10 digits (received ${digitsOnly.length} digits).`);
+    }
+    user.phone = digitsOnly;
+  }
+
+  // Validate and sanitize additional emails (cannot contain primary login email)
+  let cleanAdditionalEmails = undefined;
+  if (additionalEmails !== undefined) {
+    if (!Array.isArray(additionalEmails)) {
+      throw new HttpError(400, 'additionalEmails must be an array of email strings.');
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    cleanAdditionalEmails = [];
+    for (const em of additionalEmails) {
+      const trimmed = String(em || '').trim().toLowerCase();
+      if (!trimmed) continue;
+      if (!emailRegex.test(trimmed)) {
+        throw new HttpError(400, `Invalid email address format: "${trimmed}"`);
+      }
+      if (trimmed === user.email.toLowerCase()) {
+        continue; // primary email already handles login, ignore duplicate
+      }
+      if (!cleanAdditionalEmails.includes(trimmed)) {
+        cleanAdditionalEmails.push(trimmed);
+      }
+    }
+    user.additionalEmails = cleanAdditionalEmails;
+  }
+
+  // Validate and sanitize additional phones (must be 10 digits)
+  let cleanAdditionalPhones = undefined;
+  if (additionalPhones !== undefined) {
+    if (!Array.isArray(additionalPhones)) {
+      throw new HttpError(400, 'additionalPhones must be an array of phone strings.');
+    }
+    cleanAdditionalPhones = [];
+    for (const ph of additionalPhones) {
+      const digitsOnly = String(ph || '').replace(/\D/g, '');
+      if (!digitsOnly) continue;
+      if (digitsOnly.length !== 10) {
+        throw new HttpError(400, `Secondary phone number "${ph}" must be exactly 10 digits (received ${digitsOnly.length} digits).`);
+      }
+      if (!cleanAdditionalPhones.includes(digitsOnly)) {
+        cleanAdditionalPhones.push(digitsOnly);
+      }
+    }
+    user.additionalPhones = cleanAdditionalPhones;
+  }
+
+  if (company !== undefined) user.company = String(company).trim();
+  if (gstNo !== undefined) user.gstNo = String(gstNo).trim().toUpperCase();
+  if (designation !== undefined) user.designation = String(designation).trim();
+
+  await user.save();
+
+  // If customer, also synchronize changes with Customer collection and local customers.json
+  let updatedCustomerDoc = null;
+  const custId = user.customerId;
+  const primaryEmail = user.email;
+
+  const customerUpdates = {};
+  if (user.name) customerUpdates.name = user.name;
+  if (user.phone) customerUpdates.phone = user.phone;
+  if (cleanAdditionalEmails !== undefined) customerUpdates.additionalEmails = cleanAdditionalEmails;
+  if (cleanAdditionalPhones !== undefined) {
+    customerUpdates.additionalPhones = cleanAdditionalPhones;
+    customerUpdates.alternatePhone = cleanAdditionalPhones[0] || '';
+  }
+  if (company !== undefined) customerUpdates.company = String(company).trim();
+  if (gstNo !== undefined) customerUpdates.gstNo = String(gstNo).trim().toUpperCase();
+  if (designation !== undefined) customerUpdates.designation = String(designation).trim();
+  if (address && typeof address === 'object') customerUpdates.address = address;
+
+  if (Object.keys(customerUpdates).length > 0) {
+    const custQuery = custId ? { customerId: custId } : { email: primaryEmail };
+
+    if (isMongoConnected()) {
+      updatedCustomerDoc = await Customer.findOneAndUpdate(
+        custQuery,
+        { $set: customerUpdates },
+        { new: true }
+      ).lean();
+    }
+
+    const fileList = getCustomersFromFile();
+    const idx = fileList.findIndex((c) => (custId && c.customerId === custId) || (primaryEmail && c.email === primaryEmail));
+    if (idx !== -1) {
+      fileList[idx] = { ...fileList[idx], ...customerUpdates, updatedAt: new Date().toISOString() };
+      saveCustomersToFile(fileList);
+      if (!updatedCustomerDoc) updatedCustomerDoc = fileList[idx];
+    }
+  }
+
+  const safeUser = user.toSafeJSON();
+  if (updatedCustomerDoc) {
+    safeUser.company = updatedCustomerDoc.company || safeUser.company || '';
+    safeUser.gstNo = updatedCustomerDoc.gstNo || safeUser.gstNo || '';
+    safeUser.additionalEmails = updatedCustomerDoc.additionalEmails || safeUser.additionalEmails || [];
+    safeUser.additionalPhones = updatedCustomerDoc.additionalPhones || safeUser.additionalPhones || [];
+    safeUser.phone = updatedCustomerDoc.phone || safeUser.phone || '';
+    safeUser.address = updatedCustomerDoc.address || null;
+  }
+
+  await logActivity(req, {
+    action: 'PROFILE_UPDATED',
+    category: 'auth',
+    resource: 'User',
+    resourceId: user.email,
+    details: `${user.name} (${user.role.toUpperCase()}) updated profile information`,
+    changes: {
+      name: user.name,
+      additionalEmails: user.additionalEmails,
+      additionalPhones: user.additionalPhones,
+      phone: user.phone
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Profile updated successfully.',
+    user: safeUser
+  });
 }
 
 export async function listUsers(req, res) {

@@ -112,14 +112,14 @@ export default function CloudPlansPricingView({
                 ? p.specs
                 : [
                   { label: 'Server Configuration', value: serverConfig },
-                  { label: 'Datacenter', value: 'CtrlS Kolkata Tier-4' },
+                  { label: 'Cloud Infrastructure', value: 'Kolkata Tier-4 Cloud Node' },
                   { label: 'Static IP', value: p.ipAddress || '103.115.220.41' }
                 ],
               features: p.features && p.features.length > 0
                 ? p.features
                 : [
                   `Server Configuration: ${serverConfig}`,
-                  `CtrlS Tier-4 Datacenter hosting (Static IP: ${p.ipAddress || '103.115.220.41'})`,
+                  `Enterprise Tier-4 Cloud hosting (Static IP: ${p.ipAddress || '103.115.220.41'})`,
                   'Windows Server licence & daily snapshot backup',
                   'N+N dual power feed redundancy'
                 ],
