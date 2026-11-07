@@ -11,19 +11,45 @@ import { ChevronDown } from 'lucide-react';
  * console can pass only the RBAC-granted modules.
  */
 export default function ConsoleSidebar({
-  items,
+  items = [],
   activeNav,
   onNavigate,
   isMobileOpen = false,
   ariaLabel = 'Portal Navigation',
   emptyNote = ''
 }) {
-  const [openGroups, setOpenGroups] = useState({});
+  // All expandable sections/submenus are open by default
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = {};
+    (items || []).forEach((item) => {
+      if (item.submenu?.length) {
+        initial[item.id] = true;
+      }
+    });
+    return initial;
+  });
+
+  // Keep all submenu items open by default even if items change dynamically
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      (items || []).forEach((item) => {
+        if (item.submenu?.length && next[item.id] === undefined) {
+          next[item.id] = true;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [items]);
 
   // A child route keeps its parent expanded, so deep links stay navigable.
   useEffect(() => {
     const parent = items.find((item) => item.submenu?.some((child) => child.id === activeNav));
-    if (parent) setOpenGroups((prev) => (prev[parent.id] ? prev : { ...prev, [parent.id]: true }));
+    if (parent && !openGroups[parent.id]) {
+      setOpenGroups((prev) => ({ ...prev, [parent.id]: true }));
+    }
   }, [items, activeNav]);
 
   const toggleGroup = (event, id) => {
