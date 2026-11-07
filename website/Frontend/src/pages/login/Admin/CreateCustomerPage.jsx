@@ -316,21 +316,12 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         <div className="adm-create-header-action adm-header-actions-group">
           <button
             type="button"
-            className="adm-btn-secondary"
+            className="adm-back-btn"
             onClick={() => navigate('/admin/customer')}
             disabled={isSubmitting}
           >
-            <X size={15} />
-            <span>Cancel</span>
-          </button>
-          <button
-            type="submit"
-            form="create-customer-form"
-            className="adm-btn-primary"
-            disabled={isSubmitting}
-          >
-            <Check size={15} />
-            <span>{isSubmitting ? 'Syncing...' : 'Save'}</span>
+            <ArrowLeft size={16} />
+            <span>Back to Customers</span>
           </button>
         </div>
       </div>

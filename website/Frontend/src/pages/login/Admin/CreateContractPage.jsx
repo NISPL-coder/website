@@ -5,7 +5,8 @@ import {
   Calendar,
   Check,
   X,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
@@ -276,6 +277,17 @@ export default function CreateContractPage({ contracts, setContracts }) {
               Enter contract overview parameters, validity periods, and commercial values.
             </p>
           </div>
+        </div>
+
+        <div className="adm-create-header-action">
+          <button
+            type="button"
+            className="adm-back-btn"
+            onClick={() => navigate('/admin/customer/contract')}
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Contracts</span>
+          </button>
         </div>
       </div>
 

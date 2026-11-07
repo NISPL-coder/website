@@ -725,6 +725,32 @@ export default function NewSubscriptionView({
           <ArrowLeft size={19} />
           <span>Create Order</span>
         </button>
+
+        {/* Fixed Back button on top-right section */}
+        <button
+          type="button"
+          onClick={onBack}
+          className="adm-back-btn"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#ffffff',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '999px',
+            padding: '8px 18px',
+            fontSize: '0.92rem',
+            fontWeight: 600,
+            color: '#334155',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)'
+          }}
+          title="Back to products"
+        >
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
       </div>
 
       {/* ── Main Form Card ── */}
