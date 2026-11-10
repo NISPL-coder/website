@@ -160,19 +160,19 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               style={{
                 fontSize: '0.92rem',
                 fontWeight: 700,
-                color: contractStatusColor(contract.status),
+                color: contractStatusColor(contract.status, contract),
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
                 marginTop: '4px'
               }}
             >
-              {normalizeContractStatus(contract.status) === 'In Progress' ? (
+              {normalizeContractStatus(contract.status, contract) === 'In Progress' ? (
                 <CheckCircle2 size={13} />
               ) : (
                 <Clock size={13} />
               )}
-              {normalizeContractStatus(contract.status) || '—'}
+              {normalizeContractStatus(contract.status, contract) || '—'}
             </span>
           </div>
 

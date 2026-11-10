@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Building2, 
-  UserPlus, 
-  ArrowRight, 
+import {
+  User,
+  Mail,
+  Phone,
+  Building2,
+  UserPlus,
+  ArrowRight,
   AlertCircle,
   Image as ImageIcon,
   Upload,
@@ -82,7 +82,9 @@ export default function CustomerFormCard({
             type="tel"
             placeholder="Enter Mobile Number"
             value={formData.mobile}
-            onChange={(e) => onChange('mobile', e.target.value)}
+            onChange={(e) =>
+              onChange('mobile', e.target.value.replace(/\D/g, '').slice(0, 10))
+            }
             icon={Phone}
             error={errors.mobile}
           />
@@ -211,8 +213,8 @@ export default function CustomerFormCard({
         {/* Sign In Alternative Link */}
         <div className="ebolt-card-footer-link">
           Already have an active account?{' '}
-          <Link 
-            to="/customer-login" 
+          <Link
+            to="/customer-login"
             style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}
           >
             Sign In here

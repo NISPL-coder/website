@@ -398,9 +398,9 @@ export default function ActivityLogsSection() {
             <Activity size={24} />
           </div>
           <div>
-            <h1 className="act-header-title">Activity Logs & Audit Trail</h1>
+            <h1 className="act-header-title">Activity Logs</h1>
             <p className="act-header-subtitle">
-              Live audit stream of administrative actions, user access changes, and IP telemetry
+              View all recorded admin and staff actions.
             </p>
           </div>
         </div>

@@ -69,7 +69,7 @@ const formatINR = (val) => {
 
 const ADMIN_PAGES = [
   { path: '/admin/overview', title: 'Dashboard Overview', subtitle: 'KPIs, charts and performance metrics', keywords: 'overview home dashboard analytics metrics kpi' },
-  { path: '/admin/customer', title: 'Customers Directory', subtitle: 'View customer accounts, company details and contacts', keywords: 'customer customers client clients account accounts directory list' },
+  { path: '/admin/customer', title: 'Customer List', subtitle: 'View customer accounts, company details and contacts', keywords: 'customer customers client clients account accounts directory list' },
   { path: '/admin/customer/contract', title: 'Contracts & Subscriptions', subtitle: 'Active contracts, renewal dates and plans', keywords: 'contract contracts subscription subscriptions renewal renew plan plans agreements' },
   { path: '/admin/customer/payment', title: 'Payments & Transactions', subtitle: 'Invoice history, collections and payment statuses', keywords: 'payment payments transaction transactions invoice invoices bill billing' },
   { path: '/admin/manual-payment', title: 'Manual Payment Entry', subtitle: 'Record offline or manual bank/cash payments', keywords: 'manual payment offline cash bank deposit record' },
@@ -288,9 +288,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const handleSearchResultSelect = (item) => {
     if (!item) return;
     setSearchQuery('');
-    if (item.seed) {
-      setSectionSearch(item.seed);
-    }
+    setSectionSearch(item.seed || '');
     if (item.path) {
       navigate(item.path);
     } else if (item.target) {
@@ -750,10 +748,13 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                 <ProductSection
                   products={products}
                   setProducts={setProducts}
+                  externalSearch={sectionSearch}
                 />
               )}
 
-              {activeNav === 'receipt' && <ReceiptSection receipts={receipts} />}
+              {activeNav === 'receipt' && (
+                <ReceiptSection receipts={receipts} externalSearch={sectionSearch} />
+              )}
 
               {activeNav === 'import-csv' && (
                 <ImportCsvPage setCustomers={setCustomers} />

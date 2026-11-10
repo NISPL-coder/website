@@ -306,7 +306,7 @@ export default function CreateContractPage({ contracts, setContracts }) {
               {/* 1. Contract ID */}
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Contract ID <span className="adm-required-star">*</span>
+                  Contract Name/ID <span className="adm-required-star">*</span>
                 </label>
                 <input
                   type="text"

@@ -69,6 +69,15 @@ if (rawSangamSync !== undefined) {
   isSangamSyncEnabled = norm === 'true' || norm === '1' || norm === 'yes';
 }
 
+// A login may never outlive one day, whatever the deployment config says.
+const MAX_SESSION_SECONDS = 24 * 60 * 60;
+const durationSeconds = (value, fallback) => {
+  const match = /^(\d+)\s*([smhd])?$/.exec(String(value || '').trim());
+  if (!match) return fallback;
+  return Number(match[1]) * ({ s: 1, m: 60, h: 3600, d: 86400 }[match[2] || 's']);
+};
+const cappedSeconds = (value) => Math.min(durationSeconds(value, MAX_SESSION_SECONDS), MAX_SESSION_SECONDS);
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 4000),
@@ -76,8 +85,10 @@ export const env = {
   CLIENT_ORIGINS: (process.env.CLIENT_ORIGINS || 'http://localhost:5173,https://nispldemo.vercel.app').split(',').map(v => v.trim()),
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
-  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || '7d',
-  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  JWT_ACCESS_EXPIRES_IN: cappedSeconds(process.env.JWT_ACCESS_EXPIRES_IN),
+  JWT_REFRESH_EXPIRES_IN: cappedSeconds(process.env.JWT_REFRESH_EXPIRES_IN),
+  SESSION_MAX_SECONDS: MAX_SESSION_SECONDS,
+  SESSION_IDLE_MINUTES: Math.max(1, Number(process.env.SESSION_IDLE_MINUTES || 30)),
   REFRESH_COOKIE_NAME: process.env.REFRESH_COOKIE_NAME || 'nispl_refresh',
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
   COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || 'lax',

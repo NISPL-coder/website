@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { customerLifecycleLabel } from '../../../../utils/customerLifecycle';
 
 /**
  * Generate and download professional Customer Profile & Cloud Specification PDF
@@ -69,7 +70,7 @@ export function generateCustomerPdf(customer) {
   doc.text('Account Status:', 126, 35);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(5, 150, 105);
-  doc.text(`${String(customer.status || 'Active').toUpperCase()}`, 154, 35);
+  doc.text(`${customerLifecycleLabel(customer.status)}`, 154, 35);
 
   // Divider Line
   doc.setDrawColor(...borderColor);

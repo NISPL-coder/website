@@ -30,7 +30,7 @@ import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
 
-export default function ProductSection({ products, setProducts }) {
+export default function ProductSection({ products, setProducts, externalSearch }) {
   const { can, visibleColumns } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,8 +49,14 @@ export default function ProductSection({ products, setProducts }) {
   const selectedView = pathParts.includes('custom-pricing') ? 'custom-pricing' : null;
   const selectedCloudProvider = selectedCategory === 'cloud' ? 'ctrls-cloud' : null;
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
 
   // Older ?category=… links keep working by moving the query into the path
   useEffect(() => {
@@ -668,7 +674,7 @@ export default function ProductSection({ products, setProducts }) {
          VIEW 0.5: CHECKOUT ADD-ONS MANAGEMENT
          ========================================================================= */}
       {selectedCategory === 'addons' && (
-        <AddonSection onBack={() => updateRoute('cloud')} />
+        <AddonSection onBack={() => updateRoute('cloud')} externalSearch={externalSearch} />
       )}
 
       {/* =========================================================================
@@ -680,10 +686,10 @@ export default function ProductSection({ products, setProducts }) {
           <div className="adm-card-header">
             <div className="adm-card-header-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 className="adm-section-title">Explore Our Solutions</h1>
+                <h1 className="adm-section-title">Product List</h1>
               </div>
               <p className="adm-section-sub">
-                Select a solution category below to browse verified software licenses and cloud infrastructure.
+                Browse and manage products by category.
               </p>
             </div>
 
@@ -807,15 +813,13 @@ export default function ProductSection({ products, setProducts }) {
           <div className="adm-card-header">
             <div className="adm-card-header-info">
               <h1 className="adm-section-title">
-                {selectedCategory === 'tally'
-                  ? 'Tally Prime & Customization Editions'
-                  : 'Enterprise Cloud Server Infrastructure (Tier-4 Cloud)'}
+                {selectedCategory === 'tally' ? 'Tally Product List' : 'Cloud Product List'}
               </h1>
 
               <p className="adm-section-sub">
                 {selectedCategory === 'tally'
-                  ? 'Manage official Tally Prime software licenses, multi-user editions, and TSS renewals.'
-                  : 'Manage high-speed enterprise VPS nodes, static IP allocations, pricing, and live customer portal availability.'}
+                  ? 'View and manage Tally Prime licenses and editions.'
+                  : 'View and manage cloud server plans and pricing.'}
               </p>
             </div>
 

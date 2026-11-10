@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../services/authApi';
+import { useSessionGuard } from '../../utils/useSessionGuard';
 
 /**
  * ProtectedRoute Component
@@ -13,6 +14,8 @@ export default function ProtectedRoute({
   redirectTo = '/login'
 }) {
   const location = useLocation();
+
+  useSessionGuard();
 
   const [authState, setAuthState] = useState(() => ({
     isAuthed: authApi.isAuthenticated(allowedRoles),

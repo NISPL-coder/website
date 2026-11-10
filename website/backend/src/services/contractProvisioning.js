@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
+import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import Payment from '../models/Payment.js';
 import Product from '../models/Product.js';
 import { sangamCrmService } from './sangamCrmService.js';
 import { logNotification } from './notificationService.js';
 import { contractTypeCategory, normalizeContractType, periodFromDates } from '../utils/contractVocabulary.js';
+import { refreshCustomerLifecycle } from './customerLifecycle.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -309,10 +311,142 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
       }
     }
 
+    // A settled payment is the only event that turns a demo into a paid account.
+    if (created.length > 0) {
+      try {
+        await activateAccountAfterPayment({
+          email,
+          company,
+          person,
+          accountId,
+          customerId: customer?.customerId,
+          planName: created[0]?.name || lines[0]?.name || 'Active Cloud Subscription',
+          contractId: created[0]?.contractId || ''
+        });
+      } catch (autoConvertErr) {
+        console.warn('[ContractProvisioning] Auto-converting demo status warning:', autoConvertErr.message);
+      }
+    }
+
     await linkPayment(payment, created);
     return created.map(summarize);
   } catch (err) {
     console.error(`[ContractProvisioning] could not process invoice ${invoiceNumber}:`, err.message);
     return [];
   }
+};
+
+/**
+ * A demo becomes a paid account only when money has actually been received —
+ * a settled checkout, an admin-recorded payment or a cleared offline instrument.
+ * Registration, trial activation and overview reads must never call this.
+ */
+export const activateAccountAfterPayment = async ({
+  email = '',
+  company = '',
+  person = '',
+  accountId = '',
+  customerId = '',
+  planName = '',
+  contractId = ''
+} = {}) => {
+  const custOrConditions = [];
+  if (email) custOrConditions.push({ email: new RegExp(`^${String(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+  if (customerId) custOrConditions.push({ customerId });
+  if (accountId) custOrConditions.push({ accountId });
+  if (company) custOrConditions.push({ company });
+  if (custOrConditions.length === 0) return { activated: false, converted: 0 };
+
+  const customerSet = planName ? { plan: planName } : null;
+
+  const demoOrConditions = [];
+  if (email) demoOrConditions.push({ email: new RegExp(`^${String(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+  if (company) demoOrConditions.push({ company });
+  if (person) demoOrConditions.push({ customer: person });
+  if (accountId) demoOrConditions.push({ accountId });
+  if (customerId) demoOrConditions.push({ customerId });
+
+  const demoMarker = {
+    $or: [
+      { isDemoTrial: true },
+      { contractType: 'Trial' },
+      { productCategory: 'Trial' },
+      { status: 'DEMO' },
+      { status: 'demo' }
+    ]
+  };
+  const conversionSet = {
+    status: 'Converted',
+    convertedToPaid: true,
+    convertedAt: new Date().toISOString(),
+    convertedToContractId: contractId
+  };
+
+  let converted = 0;
+  if (isMongoConnected()) {
+    if (customerSet) await Customer.updateMany({ $or: custOrConditions }, { $set: customerSet });
+    if (demoOrConditions.length > 0) {
+      const result = await Contract.updateMany(
+        {
+          $and: [
+            { $or: demoOrConditions },
+            demoMarker,
+            { status: { $nin: ['Closed', 'Converted', 'closed', 'converted'] } }
+          ]
+        },
+        { $set: conversionSet }
+      );
+      converted = result.modifiedCount ?? result.nModified ?? 0;
+    }
+  }
+
+  // File-based update for fallback
+  try {
+    const matchesCustomer = (c) =>
+      (email && String(c.email || '').toLowerCase() === String(email).toLowerCase()) ||
+      (company && String(c.company || '').toLowerCase() === String(company).toLowerCase()) ||
+      (customerId && c.customerId === customerId);
+    const updatedCusts = getCustomersFromFile().map((c) =>
+      matchesCustomer(c) && customerSet ? { ...c, ...customerSet } : c
+    );
+    saveCustomersToFile(updatedCusts);
+
+    const updatedCtrs = getContractsFromFile().map((c) => {
+      const matches =
+        (email && String(c.email || '').toLowerCase() === String(email).toLowerCase()) ||
+        (company && String(c.company || '').toLowerCase() === String(company).toLowerCase()) ||
+        (customerId && c.customerId === customerId);
+      const isDemo =
+        Boolean(c.isDemoTrial) ||
+        c.contractType === 'Trial' ||
+        c.productCategory === 'Trial' ||
+        String(c.status).toUpperCase() === 'DEMO';
+      if (matches && isDemo && c.status !== 'Converted' && c.status !== 'Closed') {
+        converted += 1;
+        return { ...c, ...conversionSet };
+      }
+      return c;
+    });
+    saveContractsToFile(updatedCtrs);
+  } catch (fileErr) {
+    console.warn('[ContractProvisioning] File fallback update note:', fileErr.message);
+  }
+
+  // InProgress while the service is unprovisioned, Active once a live paid
+  // contract exists — the lifecycle service reads both registers to decide.
+  await refreshCustomerLifecycle({ email, company, customerId, accountId });
+
+  if (converted > 0) {
+    await logNotification({
+      type: 'demo_converted_to_active',
+      title: 'Account Upgraded to Active Subscription',
+      message: `${company || person || email} has paid for a subscription (${planName || 'Active Product'}). Demo trials converted.`,
+      severity: 'success',
+      entityType: 'customer',
+      entityId: customerId || email,
+      metadata: { email, plan: planName, contractId }
+    });
+  }
+
+  return { activated: true, converted };
 };

@@ -4,6 +4,8 @@ const sessionSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   refreshTokenHash: { type: String, required: true, unique: true },
   expiresAt: { type: Date, required: true, index: { expires: 0 } },
+  startedAt: { type: Date, default: Date.now },
+  lastActivityAt: { type: Date, default: Date.now },
   revokedAt: { type: Date, default: null },
   userAgent: String,
   ipAddress: String

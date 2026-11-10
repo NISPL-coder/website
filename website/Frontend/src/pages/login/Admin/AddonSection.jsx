@@ -22,15 +22,21 @@ import AddonFormModal from './AddonFormModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { addonApi } from '../../../services/addonApi';
 
-export default function AddonSection({ onBack }) {
+export default function AddonSection({ onBack, externalSearch }) {
   const navigate = useNavigate();
 
   const [addons, setAddons] = useState([]);
   const [showAddonsOnCheckout, setShowAddonsOnCheckout] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isTogglingMaster, setIsTogglingMaster] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -336,10 +342,10 @@ export default function AddonSection({ onBack }) {
       <div className="adm-card-header">
         <div className="adm-card-header-info">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 className="adm-section-title">Checkout Add-Ons Management</h1>
+            <h1 className="adm-section-title">Add-on List</h1>
           </div>
           <p className="adm-section-sub">
-            Create and configure optional add-on products with amount and pricing, and toggle whether the add-ons block appears during customer checkout.
+            View and manage checkout add-ons and their pricing.
           </p>
         </div>
 

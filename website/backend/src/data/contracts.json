@@ -1,5 +1,45 @@
 [
   {
+    "contractId": "CTR-DEMO-4743",
+    "id": "CTR-DEMO-4743",
+    "name": "Trail",
+    "service": "Trail",
+    "company": "demo trail company",
+    "customer": "demo trail",
+    "accountName": "demo trail company",
+    "email": "demotrail@gmail.com",
+    "accountId": "dee4ecb0-f2c1-4009-82c1-b43974e77700",
+    "contractType": "Trial",
+    "subscriptionPeriod": "7 Days",
+    "productCategory": "Trial",
+    "isDemoTrial": true,
+    "trialUsed": true,
+    "extensionAllowed": false,
+    "extensionDays": 0,
+    "totalContractValue": "₹0",
+    "value": "₹0",
+    "startDate": "2026-11-10",
+    "endDate": "2026-11-17",
+    "expiryDate": "2026-11-17",
+    "status": "DEMO",
+    "slaTier": "Demo Trial 99.99%",
+    "description": "Active Trail trial for 7 Days (valid until 2026-11-17).",
+    "productId": "PROD-1794053582346",
+    "salesPerson": "Nilmoni Ghosal",
+    "createdBy": {
+      "name": "demo trail",
+      "email": "demotrail@gmail.com",
+      "role": "customer"
+    },
+    "createdAt": "2026-11-10T06:45:32.829Z",
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "8fa36405-98ab-4fc9-9779-3fedde00fe6a",
+      "lastSyncedAt": "2026-11-10T06:45:33.585Z",
+      "syncError": null
+    }
+  },
+  {
     "contractId": "CTR-DEMO-1521",
     "id": "CTR-DEMO-1521",
     "name": "Demo- 7 days",

@@ -50,6 +50,7 @@ import { formatINR } from '../../Dashboard/utils/pricingUtils';
 export default function ProductsSection({
   customer,
   account,
+  portalData,
   onAddToCart,
   onGoToCart,
   cartItemIds = [],
@@ -400,6 +401,7 @@ export default function ProductsSection({
       <NewSubscriptionView
         customer={customer}
         account={account}
+        portalData={portalData}
         onBack={backToCategories}
         onAddToCart={handleAdd}
         onGoToCart={onGoToCart}

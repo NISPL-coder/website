@@ -1155,6 +1155,7 @@
 
 .adm-status-pill.active { background: var(--adm-emerald-soft); color: var(--adm-emerald); border: 1px solid rgba(5, 150, 105, 0.2); }
 .adm-status-pill.demo { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.adm-status-pill.demoinactive, .adm-status-pill.demo-inactive { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid var(--adm-rose-border); }
 .adm-status-pill.inactive { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 .adm-status-pill.pending { background: var(--adm-amber-soft); color: var(--adm-amber); border: 1px solid rgba(217, 119, 6, 0.2); }
 .adm-status-pill.suspended, .adm-status-pill.expiring { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid rgba(225, 29, 72, 0.2); }
@@ -1978,6 +1979,7 @@ input:checked + .adm-slider:before {
 .adm-dot.amber { background-color: #f59e0b; }
 .adm-dot.purple { background-color: #6366f1; }
 .adm-dot.blue { background-color: #0ea5e9; }
+.adm-dot.rose, .adm-dot.red { background-color: #dc2626; }
 
 /* Interactive Bottom-Right Action Button */
 .adm-finance-link {
@@ -2294,7 +2296,7 @@ input:checked + .adm-slider:before {
    ========================================================================= */
 .adm-customer-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   padding: 0 28px 18px;
 }

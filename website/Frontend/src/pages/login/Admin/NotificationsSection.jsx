@@ -267,9 +267,9 @@ export default function NotificationsSection({ focusId }) {
             <Bell size={24} />
           </div>
           <div>
-            <h1 className="nts-header-title">Notifications &amp; Live Event Stream</h1>
+            <h1 className="nts-header-title">Notifications</h1>
             <p className="nts-header-subtitle">
-              Every customer, contract, payment, renewal and staff event raised by the platform
+              View all customer, contract, payment and staff events.
             </p>
           </div>
         </div>

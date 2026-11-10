@@ -47,7 +47,6 @@ export const activityLogApi = {
       method: 'GET',
       headers: getHeaders()
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to fetch activity logs.');
@@ -63,7 +62,6 @@ export const activityLogApi = {
       method: 'GET',
       headers: getHeaders()
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to fetch activity log details.');

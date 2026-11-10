@@ -8,6 +8,7 @@ import {
   contractActorName,
   formatContractStamp
 } from './contractVocabulary';
+import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
 
 /**
  * Clean & write data to .xlsx file with auto-fitted column widths
@@ -74,7 +75,7 @@ export function formatCustomersForExport(customers) {
     'Orders': c.orderCount || 0,
     'City': c.address?.city || c.city || '—',
     'State': c.address?.state || c.state || '—',
-    'Status': (c.status || '—').toUpperCase(),
+    'Status': c.status ? customerLifecycleLabel(c.status) : '—',
     'Created At': formatStamp(c.createdAt || c.registered),
     'Updated At': formatStamp(c.updatedAt)
   }));

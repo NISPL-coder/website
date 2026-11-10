@@ -2,8 +2,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { env } from '../config/env.js';
 
-export const createAccessToken = user => jwt.sign(
-  { sub: user._id.toString(), role: user.role, type: 'access' },
+export const createAccessToken = (user, sessionId) => jwt.sign(
+  { sub: user._id.toString(), role: user.role, type: 'access', sid: sessionId ? sessionId.toString() : undefined },
   env.JWT_ACCESS_SECRET,
   { expiresIn: env.JWT_ACCESS_EXPIRES_IN }
 );

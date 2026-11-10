@@ -25,7 +25,9 @@ const userSchema = new mongoose.Schema({
   location: { type: String, default: null, trim: true },
   passwordResetTokenHash: { type: String, select: false },
   passwordResetExpiresAt: { type: Date, select: false },
-  lastLoginAt: { type: Date, default: null }
+  lastLoginAt: { type: Date, default: null },
+  isEmailVerified: { type: Boolean, default: false },
+  emailVerifiedAt: { type: Date, default: null }
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {
@@ -58,6 +60,8 @@ userSchema.methods.toSafeJSON = function () {
     createdBy: this.createdBy || null,
     securityLevel: this.securityLevel,
     location: this.location,
+    isEmailVerified: Boolean(this.isEmailVerified),
+    emailVerifiedAt: this.emailVerifiedAt,
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt

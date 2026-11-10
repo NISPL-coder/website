@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Customer, { getCustomersFromFile } from '../models/Customer.js';
+import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import Cart from '../models/Cart.js';
@@ -7,6 +7,8 @@ import Product, { getProductsFromFile } from '../models/Product.js';
 import { Addon, getAddonsFromFile } from '../models/Addon.js';
 import { logNotification } from '../services/notificationService.js';
 import { crmRecordId, provisionContractsForPayment, syncContractToCrm } from '../services/contractProvisioning.js';
+import { deriveCustomerLifecycle, refreshCustomerLifecycle } from '../services/customerLifecycle.js';
+import { hasPermission } from '../middleware/permission.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -193,8 +195,18 @@ export const resolveDisplayName = async (raw, fallback = 'Subscription') => {
 const mapContract = async (contract) => {
   const expiry = toDate(contract.expiryDate) || toDate(contract.endDate);
   const start = toDate(contract.startDate);
+  const isDemo = Boolean(
+    contract.isDemoTrial ||
+    contract.contractType === 'Trial' ||
+    contract.productCategory === 'Trial' ||
+    String(contract.status).toUpperCase() === 'DEMO' ||
+    /demo/i.test(contract.name || '') ||
+    /trial/i.test(contract.name || '')
+  );
+
   return {
     id: contract.contractId || String(contract._id),
+    contractId: contract.contractId || String(contract._id),
     name: await resolveDisplayName(contract.name || contract.service || contract.productCategory, 'Subscription'),
     category: contract.productCategory || null,
     contractType: contract.contractType || null,
@@ -203,11 +215,25 @@ const mapContract = async (contract) => {
     status: contract.status || null,
     startDate: isoDate(start),
     expiryDate: isoDate(expiry),
+    endDate: isoDate(expiry),
+    rawExpiryDate: contract.expiryDate || contract.endDate || null,
     daysLeft: daysUntil(expiry),
     amount: parseAmount(contract.value || contract.totalContractValue),
     amountLabel: contract.value || contract.totalContractValue || null,
     expired: Boolean(expiry) && daysUntil(expiry) < 0,
-    source: 'contract'
+    source: 'contract',
+    isDemoTrial: isDemo,
+    subscriptionPeriod: contract.subscriptionPeriod || null,
+    description: contract.description || null,
+    slaTier: contract.slaTier || null,
+    serverConfiguration: contract.serverConfiguration || null,
+    serverNode: contract.serverNode || null,
+    cores: contract.cores || null,
+    ram: contract.ram || null,
+    storage: contract.storage || null,
+    extensionAllowed: Boolean(contract.extensionAllowed),
+    extensionDays: Number(contract.extensionDays || 0),
+    trialUsed: Boolean(contract.trialUsed)
   };
 };
 
@@ -447,6 +473,7 @@ export const searchCustomerPortal = async (req, res) => {
     const userRole = String(user.role || '').toLowerCase();
     const isAdminStaff = ['admin', 'manager', 'support'].includes(userRole);
     const rx = new RegExp(escapeRegex(query), 'i');
+    const allowed = (module) => hasPermission(user, module);
 
     // ─────────────────────────────────────────────────────────────────────────
     // 1. ADMIN / STAFF GLOBAL SEARCH ACROSS ALL RECORDS
@@ -635,7 +662,7 @@ export const searchCustomerPortal = async (req, res) => {
           meta: p.available !== false && p.status !== 'inactive' ? 'Available' : 'Disabled',
           amount: parseAmount(p.price || p.monthlyPrice),
           target: 'product',
-          path: '/admin/product',
+          path: /tally/i.test(`${p.category || ''} ${p.name || ''}`) ? '/admin/product/tally' : '/admin/product/cloud',
           seed: p.name
         })),
         ...rawAddons.map((a) => ({
@@ -651,17 +678,40 @@ export const searchCustomerPortal = async (req, res) => {
       ];
       const productItems = rankByTitle(combinedProducts, query);
 
-      if (customerItems.length > 0) {
+      // 5. Receipts Group (settled ledger rows)
+      const receiptItems = allowed('receipt')
+        ? rankByTitle(
+          rawPayments
+            .filter((p) => PAID_STATUSES.has(String(p.status || '').toLowerCase()))
+            .map((p) => ({
+              id: `receipt-${p.id || p._id || p.invoiceNumber}`,
+              title: p.invoiceNumber || p.invoiceRef || p.paymentId || 'Receipt',
+              subtitle: [p.company || p.customer || p.accountName, formatLabelDate(p.paymentDate || p.date)].filter(Boolean).join(' · '),
+              meta: p.status,
+              amount: parseAmount(p.receivedAmount || p.amount),
+              target: 'receipt',
+              path: '/admin/receipt',
+              seed: p.invoiceNumber || p.invoiceRef || p.paymentId
+            })),
+          query
+        )
+        : [];
+
+      // Search must never surface a module the staff role cannot open.
+      if (allowed('customer') && customerItems.length > 0) {
         groups.push({ key: 'customers', label: 'Customers', items: customerItems });
       }
-      if (contractItems.length > 0) {
+      if (allowed('contract') && contractItems.length > 0) {
         groups.push({ key: 'contracts', label: 'Contracts & Subscriptions', items: contractItems });
       }
-      if (paymentItems.length > 0) {
+      if ((allowed('payment') || allowed('manual_payment')) && paymentItems.length > 0) {
         groups.push({ key: 'payments', label: 'Payments & Receipts', items: paymentItems });
       }
-      if (productItems.length > 0) {
+      if (allowed('product') && productItems.length > 0) {
         groups.push({ key: 'products', label: 'Products & Add-Ons', items: productItems });
+      }
+      if (receiptItems.length > 0) {
+        groups.push({ key: 'receipts', label: 'Receipts & Proofs', items: receiptItems });
       }
 
       return res.json({ success: true, data: { query, role: userRole, groups } });
@@ -789,6 +839,8 @@ export const getCustomerOverview = async (req, res) => {
 
     let products = [];
     let payments = [];
+    let rawContracts = [];
+    let rawPayments = [];
 
     if (isMongoConnected() && identity.length > 0) {
       const match = buildIdentityMatch(identity);
@@ -796,6 +848,8 @@ export const getCustomerOverview = async (req, res) => {
         Contract.find(match).lean(),
         Payment.find(match).lean()
       ]);
+      rawContracts = contracts;
+      rawPayments = paymentRows;
       products = await Promise.all(contracts.map(mapContract));
       payments = await Promise.all(paymentRows.map(mapPayment));
     }
@@ -807,6 +861,7 @@ export const getCustomerOverview = async (req, res) => {
     if (products.length === 0 && identity.length > 0) {
       const matched = filterByIdentity(getContractsFromFile(), identity);
       if (matched.length > 0) {
+        rawContracts = matched;
         products = await Promise.all(matched.map(mapContract));
         products.sort((a, b) => (a.expiryDate || '9999').localeCompare(b.expiryDate || '9999'));
       }
@@ -815,6 +870,7 @@ export const getCustomerOverview = async (req, res) => {
     if (payments.length === 0 && identity.length > 0) {
       const matchedPayments = filterByIdentity(getPaymentsFromFile(), identity);
       if (matchedPayments.length > 0) {
+        rawPayments = matchedPayments;
         payments = await Promise.all(matchedPayments.map(mapPayment));
       }
     }
@@ -823,8 +879,121 @@ export const getCustomerOverview = async (req, res) => {
 
     const totalPaid = payments.reduce((sum, payment) => sum + (payment.received || 0), 0);
     const totalPending = payments.reduce((sum, payment) => sum + (payment.pending || 0), 0);
-    const renewal = pickRenewal(products);
-    const activeProducts = products.filter((product) => !product.expired).length;
+
+    // Identify demo contracts vs regular paid contracts
+    const isDemoProduct = (p) =>
+      Boolean(
+        p.isDemoTrial ||
+        p.contractType === 'Trial' ||
+        p.category === 'Trial' ||
+        String(p.status).toUpperCase() === 'DEMO' ||
+        String(p.status).toUpperCase() === 'DEMO-INACTIVE'
+      );
+
+    const regularProducts = products.filter((product) => !isDemoProduct(product));
+    const activePaidCount = regularProducts.filter(
+      (p) => !p.expired && ['in progress', 'active'].includes(String(p.status || '').toLowerCase())
+    ).length;
+
+    const demoProducts = products.filter((product) => isDemoProduct(product));
+
+    const hasPurchasedPaidProduct =
+      activePaidCount > 0 ||
+      totalPaid > 0 ||
+      payments.some((p) => ['received', 'cleared'].includes(String(p.status || '').toLowerCase()));
+
+    // Rule: "once demo is issued and then purchased the products the demo will be convert.
+    // both demo and active product cannot be there."
+    // Admin requirement: "once the Demo is over or customer purchased the product at that time it will be DEMO-Inactive (in red) for the Admin portal"
+    let activeDemos = [];
+    let hasConvertedDemo = false;
+
+    if (hasPurchasedPaidProduct) {
+      const unconvertedDemoIds = [];
+      const conversionTimestamp = new Date().toISOString();
+
+      products.forEach((p) => {
+        if (isDemoProduct(p) || p.convertedToPaid) {
+          hasConvertedDemo = true;
+          p.status = 'DEMO-Inactive';
+          p.convertedToPaid = true;
+          p.isDemoTrial = false;
+          p.convertedAt = p.convertedAt || conversionTimestamp;
+          if (p.id) unconvertedDemoIds.push(p.id);
+          if (p.contractId) unconvertedDemoIds.push(p.contractId);
+        }
+      });
+
+      // Persist conversion in MongoDB if connected
+      if (isMongoConnected() && unconvertedDemoIds.length > 0) {
+        try {
+          const objectIds = unconvertedDemoIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+          await Contract.updateMany(
+            {
+              $or: [
+                { _id: { $in: objectIds } },
+                { contractId: { $in: unconvertedDemoIds } }
+              ],
+              status: { $ne: 'DEMO-Inactive' }
+            },
+            {
+              $set: {
+                status: 'DEMO-Inactive',
+                convertedToPaid: true,
+                convertedAt: new Date(),
+                convertedToContractId: regularProducts[0]?.id || regularProducts[0]?.contractId || ''
+              }
+            }
+          );
+
+          await Customer.updateMany(
+            {
+              $or: identity.map((id) => ({ email: id })).concat(identity.map((id) => ({ customerId: id })))
+            },
+            {
+              $set: {
+                demoTrialUsed: true,
+                plan: regularProducts[0]?.name || customer?.plan
+              }
+            }
+          );
+        } catch (dbErr) {
+          console.warn('[PortalController] Demo auto-conversion persistence note:', dbErr.message);
+        }
+      }
+
+      // Persist conversion to file store
+      try {
+        const fileCtrs = getContractsFromFile();
+        let changed = false;
+        const updated = fileCtrs.map((c) => {
+          const matches =
+            filterByIdentity([c], identity).length > 0 &&
+            (Boolean(c.isDemoTrial) || c.contractType === 'Trial' || c.productCategory === 'Trial' || String(c.status).toUpperCase() === 'DEMO' || String(c.status).toUpperCase() === 'DEMO-INACTIVE');
+          if (matches && c.status !== 'DEMO-Inactive') {
+            changed = true;
+            return { ...c, status: 'DEMO-Inactive', convertedToPaid: true, convertedAt: conversionTimestamp };
+          }
+          return c;
+        });
+        if (changed) saveContractsToFile(updated);
+      } catch (fileErr) {
+        console.warn('[PortalController] File fallback update note:', fileErr.message);
+      }
+
+      // Both demo and active product cannot be there
+      activeDemos = [];
+    } else {
+      activeDemos = demoProducts.filter(
+        (p) => !p.expired && !p.convertedToPaid && String(p.status).toUpperCase() === 'DEMO'
+      );
+      hasConvertedDemo = products.some(
+        (p) => p.convertedToPaid || ['CONVERTED', 'DEMO-INACTIVE'].includes(String(p.status).toUpperCase())
+      );
+    }
+
+    const activeDemoCount = activeDemos.length;
+    const renewal = pickRenewal(regularProducts.length > 0 ? regularProducts : products);
     const entitlements = await buildEntitlements(products, payments);
 
     res.json({
@@ -837,16 +1006,29 @@ export const getCustomerOverview = async (req, res) => {
           email: customer?.email || user.email || null,
           phone: customer?.phone || user.phone || null,
           plan: customer?.plan || null,
-          status: customer?.status || null,
+          status: deriveCustomerLifecycle(
+            customer || {
+              email: user.email,
+              customerId: user.customerId,
+              company: user.company,
+              name: user.name
+            },
+            rawContracts,
+            rawPayments
+          ),
           serverNode: customer?.serverNode || null,
           gstNo: customer?.gstNo || null,
           registered: customer?.registered || null,
-          demoTrialUsed: Boolean(customer?.demoTrialUsed),
+          demoTrialUsed: Boolean(customer?.demoTrialUsed || hasConvertedDemo),
           demoExtensionAllowed: Boolean(customer?.demoExtensionAllowed),
-          demoExtensionDays: Number(customer?.demoExtensionDays || 0)
+          demoExtensionDays: Number(customer?.demoExtensionDays || 0),
+          isEmailVerified: Boolean(customer?.isEmailVerified || user?.isEmailVerified),
+          emailVerifiedAt: customer?.emailVerifiedAt || user?.emailVerifiedAt || null
         },
         kpi: {
-          activeProducts,
+          activeProducts: activePaidCount,
+          demoProducts: activeDemoCount,
+          activeDemoProducts: activeDemoCount,
           totalPaid,
           totalPending,
           pendingInvoices: payments.filter((payment) => payment.pending > 0).length,
@@ -855,6 +1037,9 @@ export const getCustomerOverview = async (req, res) => {
           renewalDaysLeft: renewal?.daysLeft ?? null
         },
         products,
+        allProducts: products,
+        demoProducts: activeDemos,
+        hasConvertedDemo,
         payments,
         entitlements,
         recentPayments: payments.slice(0, 50),
@@ -1317,6 +1502,14 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
 
   await notifyPaymentReceived(user, customer, created);
 
+  // Verified money moves the account to InProgress; provisioning below moves
+  // it on to Active once the subscription contract is actually raised.
+  await refreshCustomerLifecycle({
+    customerId: user.customerId || customer?.customerId,
+    email: user.email || customer?.email,
+    company: customer?.company || user.company
+  });
+
   // What the customer just bought is now a subscription the business owes them,
   // so the contract register is written from the same receipt the ledger holds.
   const contracts = await provisionContractsForPayment({
@@ -1470,7 +1663,9 @@ export const activateCustomerDemo = async (req, res) => {
       if (existingTrial && isMongoConnected()) {
         existingTrial.endDate = extendedEndDate;
         existingTrial.expiryDate = extendedEndDate;
-        existingTrial.status = 'Active';
+        // An extension adds trial days; it is not a purchase, so the contract
+        // stays a demo until a payment settles.
+        existingTrial.status = 'DEMO';
         existingTrial.extensionAllowed = false; // consume authorization
         existingTrial.extensionDays = 0;
         existingTrial.description = `Demo trial extended by administrator authorization until ${extendedEndDate} (+${additionalDays} days).`;
@@ -1498,7 +1693,7 @@ export const activateCustomerDemo = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: `Demo trial successfully extended until ${extendedEndDate} with administrator authorization!`,
-        data: existingTrial || { expiryDate: extendedEndDate, status: 'Active' }
+        data: existingTrial || { expiryDate: extendedEndDate, status: 'DEMO' }
       });
     }
 
@@ -1515,6 +1710,7 @@ export const activateCustomerDemo = async (req, res) => {
       customer: effectiveCustomer,
       accountName: effectiveCompany,
       email: targetEmail,
+      customerId: targetCustomer?.customerId || customer?.customerId || '',
       // Links the trial to the company's Sangam account, the same way a contract
       // raised by an admin or by a paid order is linked.
       accountId: crmRecordId(targetCustomer?.sangamCrm?.recordId),
@@ -1561,6 +1757,31 @@ export const activateCustomerDemo = async (req, res) => {
         );
       }
     }
+
+    try {
+      const fileCustomers = getCustomersFromFile();
+      const updatedCusts = fileCustomers.map((fc) => {
+        if (fc.email === targetEmail || (targetCustomer && fc.customerId === targetCustomer.customerId)) {
+          return {
+            ...fc,
+            plan: `${planName} (Trial)`,
+            demoTrialUsed: true
+          };
+        }
+        return fc;
+      });
+      saveCustomersToFile(updatedCusts);
+    } catch (e) {
+      console.warn('Could not save customer status to file:', e.message);
+    }
+
+    // The trial contract now exists, so the derived lifecycle is Demo — unless
+    // a paid subscription is already live, which must never be downgraded.
+    await refreshCustomerLifecycle({
+      customerId: targetCustomer?.customerId || customer?.customerId,
+      email: targetEmail,
+      company: effectiveCompany
+    });
 
     try {
       const existing = getContractsFromFile();

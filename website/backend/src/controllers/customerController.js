@@ -1,33 +1,59 @@
 import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile } from '../models/Contract.js';
+import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
+import { deriveCustomerLifecycle, refreshCustomerLifecycle } from '../services/customerLifecycle.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 /**
+ * Helper to match a customer record against a contract record by any identity field
+ */
+const isCustomerMatch = (cust, ctr) => {
+  const custIds = [cust.email, cust.customerId, cust.company, cust.name]
+    .filter(Boolean)
+    .map((s) => String(s).toLowerCase().trim());
+  const ctrIds = [ctr.email, ctr.customerId, ctr.company, ctr.customer, ctr.accountName]
+    .filter(Boolean)
+    .map((s) => String(s).toLowerCase().trim());
+  return custIds.some((id) => ctrIds.some((cid) => cid === id || cid.includes(id) || id.includes(cid)));
+};
+
+/**
  * Helper to compute dynamic customer summary cards data
  */
-export const computeCustomerStats = (customerList = []) => {
+export const computeCustomerStats = (customerList = [], contractList = [], paymentList = []) => {
   const totalAccounts = customerList.length;
-  const activeClients = customerList.filter(
-    (c) => (c.status || '').toLowerCase() === 'active'
-  ).length;
-  const demoTrials = customerList.filter((c) => {
-    const s = (c.status || '').toLowerCase();
-    return s === 'demo' || s === 'trial';
-  }).length;
-  const inactivePaused = customerList.filter((c) => {
-    const s = (c.status || '').toLowerCase();
-    return s === 'inactive' || s === 'suspended' || s === 'paused';
-  }).length;
+
+  let contracts = contractList;
+  if (!Array.isArray(contracts) || contracts.length === 0) {
+    try {
+      contracts = getContractsFromFile();
+    } catch {
+      contracts = [];
+    }
+  }
+
+  let activeClients = 0;
+  let demoTrials = 0;
+  let inProgressClients = 0;
+  let inactivePaused = 0;
+
+  customerList.forEach((c) => {
+    const bucket = deriveCustomerLifecycle(c, contracts, paymentList);
+    if (bucket === 'Active') activeClients++;
+    else if (bucket === 'Demo') demoTrials++;
+    else if (bucket === 'InProgress') inProgressClients++;
+    else inactivePaused++;
+  });
 
   const monthlyMrr = customerList
-    .filter((c) => (c.status || '').toLowerCase() === 'active')
+    .filter((c) => deriveCustomerLifecycle(c, contracts, paymentList) === 'Active')
     .reduce((sum, c) => {
       const val = parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0;
       return sum + val;
@@ -37,14 +63,16 @@ export const computeCustomerStats = (customerList = []) => {
     totalAccounts,
     activeClients,
     demoTrials,
+    inProgressClients,
     inactivePaused,
     monthlyMrr,
     formattedMonthlyMrr: `₹${monthlyMrr.toLocaleString('en-IN')}`,
     descriptions: {
       totalAccounts: 'All customer records',
       activeClients: `Monthly MRR: ₹${monthlyMrr.toLocaleString('en-IN')}`,
-      demoTrials: '14-Day sandbox trials',
-      inactivePaused: 'Expired / pending renewals'
+      demoTrials: 'Trials running, nothing purchased yet',
+      inProgressClients: 'Paid, service activation pending',
+      inactivePaused: 'Registered without demo or purchase'
     }
   };
 };
@@ -57,18 +85,18 @@ export const computeCustomerStats = (customerList = []) => {
  * email when the deal was raised without one.
  */
 const attachOrderCounts = async (list) => {
-  if (!Array.isArray(list) || list.length === 0) return list;
+  if (!Array.isArray(list) || list.length === 0) return { list: list || [], orders: [] };
 
   let orders = [];
   try {
     if (isMongoConnected()) {
-      orders = await Contract.find().select('company email').lean();
+      orders = await Contract.find().lean();
     } else {
       orders = getContractsFromFile();
     }
   } catch (err) {
     console.warn('[CustomerController] Order count lookup failed:', err.message);
-    return list;
+    return { list, orders: [] };
   }
 
   const byCompany = new Map();
@@ -80,12 +108,33 @@ const attachOrderCounts = async (list) => {
     if (email) byEmail.set(email, (byEmail.get(email) || 0) + 1);
   });
 
-  return list.map((customer) => {
+  const updated = list.map((customer) => {
     const company = String(customer.company || '').trim().toLowerCase();
     const email = String(customer.email || '').trim().toLowerCase();
     const count = byCompany.get(company) ?? byEmail.get(email) ?? 0;
-    return { ...customer, orderCount: count };
+    const hasDemoOrder = orders.some(
+      (ctr) =>
+        Boolean(
+          ctr.isDemoTrial ||
+          ctr.trialUsed ||
+          ctr.contractType === 'Trial' ||
+          ctr.productCategory === 'Trial' ||
+          String(ctr.status).toUpperCase() === 'DEMO' ||
+          String(ctr.status).toUpperCase() === 'CONVERTED' ||
+          /demo|trial/i.test(ctr.name || ctr.service || '')
+        ) && isCustomerMatch(customer, ctr)
+    );
+    const demoTrialUsed = Boolean(
+      customer.demoTrialUsed ||
+      (customer.status || '').toLowerCase() === 'demo' ||
+      (customer.status || '').toLowerCase() === 'trial' ||
+      /demo|trial/i.test(customer.plan || '') ||
+      hasDemoOrder
+    );
+    return { ...customer, orderCount: count, demoTrialUsed };
   });
+
+  return { list: updated, orders };
 };
 
 /**
@@ -123,7 +172,9 @@ export const getCustomers = async (req, res) => {
               loginEmail: uEmail,
               portalPassword: u.portalPassword || '',
               phone: uPhone,
-              status: u.accountStatus || 'active',
+              // Login availability is not the commercial lifecycle; a backfilled
+              // account has taken nothing yet and starts Inactive.
+              status: 'Inactive',
               registered: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
               sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
             });
@@ -177,9 +228,13 @@ export const getCustomers = async (req, res) => {
       };
     });
 
-    const counted = await attachOrderCounts(formatted);
-    const stats = computeCustomerStats(counted);
-    const visible = redactRecords(req.user, 'customer', counted);
+    const { list: counted, orders } = await attachOrderCounts(formatted);
+    const ledger = isMongoConnected() ? await Payment.find().lean() : getPaymentsFromFile();
+    // Report the lifecycle the registers prove, so a stale stored status word
+    // cannot show an unpaid trial as an active account.
+    const lifecycle = counted.map((c) => ({ ...c, status: deriveCustomerLifecycle(c, orders, ledger) }));
+    const stats = computeCustomerStats(lifecycle, orders, ledger);
+    const visible = redactRecords(req.user, 'customer', lifecycle);
 
     return res.status(200).json({
       success: true,
@@ -191,13 +246,15 @@ export const getCustomers = async (req, res) => {
   } catch (err) {
     console.error('[CustomerController] getCustomers error:', err.message);
     const fileList = getCustomersFromFile();
-    const formattedFile = await attachOrderCounts(fileList.map((c) => ({
+    const { list: formattedFile, orders: fileOrders } = await attachOrderCounts(fileList.map((c) => ({
       ...c,
       id: c.customerId || c._id || c.id,
       sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
     })));
-    const stats = computeCustomerStats(formattedFile);
-    const visibleFile = redactRecords(req.user, 'customer', formattedFile);
+    const fileLedger = getPaymentsFromFile();
+    const lifecycleFile = formattedFile.map((c) => ({ ...c, status: deriveCustomerLifecycle(c, fileOrders, fileLedger) }));
+    const stats = computeCustomerStats(lifecycleFile, fileOrders, fileLedger);
+    const visibleFile = redactRecords(req.user, 'customer', lifecycleFile);
     return res.status(200).json({
       success: true,
       count: visibleFile.length,
@@ -229,7 +286,6 @@ export const createCustomer = async (req, res) => {
       accountRelationship,
       plan,
       serverNode,
-      status,
       mrr,
       address,
       gstNo,
@@ -306,7 +362,8 @@ export const createCustomer = async (req, res) => {
       accountRelationship: accountRelationship || 'Customer',
       plan: (plan || '').trim(),
       serverNode: (serverNode || '').trim(),
-      status: status || 'active',
+      // Lifecycle is system-derived; a brand-new account has taken nothing yet.
+      status: 'Inactive',
       registered: new Date().toISOString().split('T')[0],
       mrr: (mrr || '').trim(),
       city: cityLoc,
@@ -391,20 +448,33 @@ export const createCustomer = async (req, res) => {
             portalPassword: rawPassword,
             role: 'customer',
             customerId: customerId,
-            accountStatus: status || 'active'
+            // Login availability is separate from the commercial lifecycle:
+            // an Inactive or Demo customer must still reach the portal.
+            accountStatus: 'active'
           });
         } else {
           existingUser.name = fullName;
           existingUser.customerId = customerId;
           existingUser.portalPassword = rawPassword;
           if (req.body.password) existingUser.password = rawPassword;
-          if (status) existingUser.accountStatus = status;
           await existingUser.save();
         }
       }
     } catch (userSyncErr) {
       console.warn('[CustomerController] User account creation note:', userSyncErr.message);
     }
+
+    // A new account can share a company name with an existing contract register;
+    // derive what the records prove instead of assuming a blank slate.
+    const lifecycleChanges = await refreshCustomerLifecycle({
+      customerId,
+      email: cleanEmail,
+      company: companyName
+    }).catch((err) => {
+      console.warn('[CustomerController] Lifecycle refresh note:', err.message);
+      return [];
+    });
+    if (lifecycleChanges.length > 0) savedCustomer.status = lifecycleChanges[0].status;
 
     await logNotification({
       type: 'customer_created',
@@ -580,7 +650,6 @@ export const updateCustomer = async (req, res) => {
       accountRelationship,
       plan,
       serverNode,
-      status,
       mrr,
       address,
       gstNo,
@@ -616,7 +685,6 @@ export const updateCustomer = async (req, res) => {
       ...(accountRelationship && { accountRelationship }),
       ...(plan && { plan }),
       ...(serverNode && { serverNode }),
-      ...(status && { status }),
       ...(mrr && { mrr }),
       ...(address && { address }),
       ...(gstNo !== undefined && { gstNo: gstNo.trim().toUpperCase() }),
@@ -639,6 +707,18 @@ export const updateCustomer = async (req, res) => {
     if (!savedCustomer) {
       savedCustomer = { ...customer.toObject?.() || customer, ...updatedData };
     }
+
+    // Lifecycle is derived from the contract and payment registers, never
+    // hand-edited; an email or company rename can re-link records, so re-derive.
+    const lifecycleChanges = await refreshCustomerLifecycle({
+      customerId: savedCustomer.customerId,
+      email: savedCustomer.email,
+      company: savedCustomer.company
+    }).catch((err) => {
+      console.warn('[CustomerController] Lifecycle refresh note:', err.message);
+      return [];
+    });
+    if (lifecycleChanges.length > 0) savedCustomer.status = lifecycleChanges[0].status;
 
     // Synchronize changes to Sangam CRM
     try {
@@ -669,7 +749,6 @@ export const updateCustomer = async (req, res) => {
         if (savedCustomer.designation) userUpdates.designation = savedCustomer.designation;
         if (savedCustomer.additionalEmails !== undefined) userUpdates.additionalEmails = savedCustomer.additionalEmails;
         if (savedCustomer.additionalPhones !== undefined) userUpdates.additionalPhones = savedCustomer.additionalPhones;
-        if (savedCustomer.status) userUpdates.accountStatus = savedCustomer.status;
 
         await User.findOneAndUpdate(
           { $or: [{ customerId: savedCustomer.customerId }, { email: savedCustomer.email }] },
@@ -891,7 +970,9 @@ export const importCompanies = async (req, res) => {
           accountRelationship: 'Customer',
           plan: String(item.plan || '').trim(),
           serverNode: String(item.serverNode || '').trim(),
-          status,
+          // The sheet's accountStatus gates login only; the commercial lifecycle
+          // starts Inactive and is derived from the contract/payment registers.
+          status: 'Inactive',
           registered: item.autoUpdatedAt
             ? new Date(item.autoUpdatedAt).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
@@ -998,6 +1079,10 @@ export const importCompanies = async (req, res) => {
             await existingUser.save();
           }
         }
+
+        await refreshCustomerLifecycle({ customerId, email: cleanEmail, company: accountName }).catch((err) =>
+          console.warn('[CustomerController] Import lifecycle note:', err.message)
+        );
 
         credentials.push({
           company: accountName,
@@ -1145,7 +1230,7 @@ export const importContacts = async (req, res) => {
             phone: cleanPhone,
             industry: 'Technology',
             accountRelationship: 'Customer',
-            status: 'active',
+            status: 'Inactive',
             registered: new Date().toISOString().split('T')[0],
             address: { street: '', area: '', city: '', state: '', country: '', postalCode: '', addressType: '' },
             contacts: [
@@ -1345,36 +1430,70 @@ export const allowDemoExtension = async (req, res) => {
     customer.demoExtensionDays = additionalDays;
     await customer.save();
 
-    // If an existing trial contract exists, mark extensionAllowed = true and extensionDays on it too
+    // Apply the extension immediately on any LIVE demo trial contract, not just
+    // stamp an authorization. The customer portal reads the renewal date from
+    // the contract's own expiry, so moving expiryDate is what makes the extra
+    // trial days visibly show up on the customer's overview right away.
+    let appliedTo = 0;
+    let latestExtendedExpiry = null;
     if (isMongoConnected()) {
-      await Contract.updateMany(
-        {
-          $and: [
-            {
-              $or: [
-                { email: customer.email },
-                { email: new RegExp(`^${customer.email}$`, 'i') },
-                { customer: customer.name },
-                { company: customer.company }
-              ]
-            },
-            {
-              $or: [
-                { contractType: 'Trial' },
-                { productCategory: 'Trial' },
-                { isDemoTrial: true }
-              ]
-            }
-          ]
-        },
-        {
-          $set: {
-            extensionAllowed: true,
-            extensionDays: additionalDays
+      const trialMatcher = {
+        $and: [
+          {
+            $or: [
+              { email: customer.email },
+              { email: new RegExp(`^${customer.email}$`, 'i') },
+              { customer: customer.name },
+              { company: customer.company }
+            ]
+          },
+          {
+            $or: [
+              { contractType: 'Trial' },
+              { productCategory: 'Trial' },
+              { isDemoTrial: true }
+            ]
           }
+        ]
+      };
+
+      const trialContracts = await Contract.find(trialMatcher);
+      for (const trial of trialContracts) {
+        const stillDemo = String(trial.status || '').toUpperCase() === 'DEMO';
+        if (stillDemo) {
+          const now = new Date();
+          const currentExpiry = trial.expiryDate ? new Date(trial.expiryDate) : null;
+          // Extend from the existing future expiry; an already-lapped trial gets
+          // the extra days measured from today.
+          const base = currentExpiry && !Number.isNaN(currentExpiry.getTime()) && currentExpiry > now ? currentExpiry : now;
+          const extended = new Date(base.getTime() + additionalDays * 24 * 60 * 60 * 1000);
+          const isoDate = extended.toISOString().slice(0, 10);
+          trial.expiryDate = isoDate;
+          trial.endDate = isoDate;
+          trial.status = 'DEMO';
+          // The authorization is consumed here — the admin already spent it.
+          trial.extensionAllowed = false;
+          trial.extensionDays = 0;
+          trial.description = `Demo trial extended by administrator until ${isoDate} (+${additionalDays} days). ${notes}`;
+          await trial.save();
+          appliedTo++;
+          latestExtendedExpiry = isoDate;
+        } else {
+          // Non-active trial rows only carry the authorization for later flows.
+          trial.extensionAllowed = true;
+          trial.extensionDays = additionalDays;
+          await trial.save();
         }
-      );
+      }
+
+      // Once the extension is already applied to the live trial, the customer
+      // must not be able to double-apply the same authorization themselves.
+      if (appliedTo > 0) {
+        customer.demoExtensionAllowed = false;
+        await customer.save();
+      }
     }
+    const extendedExpiryForResponse = appliedTo > 0 && latestExtendedExpiry ? latestExtendedExpiry : null;
 
     await logNotification({
       type: 'demo_extension_authorized',
@@ -1396,12 +1515,16 @@ export const allowDemoExtension = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Successfully authorized ${additionalDays} additional demo trial days for ${customer.name || customer.company}.`,
+      message: appliedTo > 0 && extendedExpiryForResponse
+        ? `Successfully extended the demo trial for ${customer.name || customer.company} by ${additionalDays} days, now valid until ${extendedExpiryForResponse}.`
+        : `Successfully authorized ${additionalDays} additional demo trial days for ${customer.name || customer.company}.`,
       data: {
         customerId: customer.customerId,
         email: customer.email,
-        demoExtensionAllowed: true,
-        demoExtensionDays: additionalDays
+        demoExtensionAllowed: appliedTo === 0,
+        demoExtensionDays: additionalDays,
+        trialsExtended: appliedTo,
+        newTrialExpiry: extendedExpiryForResponse
       }
     });
   } catch (err) {

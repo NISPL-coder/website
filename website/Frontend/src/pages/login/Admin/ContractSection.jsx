@@ -166,15 +166,15 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const statusFilterOptions = useMemo(() => {
     const counts = CONTRACT_STATUSES.reduce((map, status) => {
       const next = { ...map };
-      next[status] = contracts.filter((c) => normalizeContractStatus(c.status) === status).length;
+      next[status] = contracts.filter((c) => normalizeContractStatus(c.status, c) === status).length;
       return next;
     }, {});
 
     return [
       { value: 'all', label: `All Statuses (${contracts.length})` },
       ...CONTRACT_STATUSES.map((status) => ({
-        value: status.toLowerCase().replace(/\s+/g, ''),
-        label: `${status} (${counts[status]})`
+        value: status.toLowerCase().replace(/[\s_-]+/g, ''),
+        label: `${status} (${counts[status] || 0})`
       }))
     ];
   }, [contracts]);
@@ -182,7 +182,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const columns = [
     {
       id: 'name',
-      name: 'Contract ID',
+      name: 'Contract Name/ID',
       selector: (row) => row.name,
       sortable: true,
       sortFunction: compareText((row) => row.name),
@@ -205,15 +205,19 @@ export default function ContractSection({ contracts, setContracts, customers = [
     {
       id: 'status',
       name: 'Status',
-      selector: (row) => normalizeContractStatus(row.status),
+      selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
-      sortFunction: compareText((row) => normalizeContractStatus(row.status)),
-      width: '130px',
-      cell: (c) => (
-        <span className={`adm-status-pill ${contractStatusTone(c.status)}`}>
-          {normalizeContractStatus(c.status) || '—'}
-        </span>
-      ),
+      sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
+      width: '145px',
+      cell: (c) => {
+        const status = normalizeContractStatus(c.status, c);
+        const tone = contractStatusTone(status, c);
+        return (
+          <span className={`adm-status-pill ${tone}`}>
+            {status || '—'}
+          </span>
+        );
+      },
       searchType: 'select'
     },
     {
@@ -388,7 +392,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
         <div className="adm-card-header-info">
           <h1 className="adm-section-title">Contract List</h1>
           <p className="adm-section-sub">
-            Complete data of all assigned contracts
+            View and manage all customer contracts and subscriptions.
           </p>
         </div>
 

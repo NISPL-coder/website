@@ -3,6 +3,7 @@ import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 import { normalizeContractStatus } from '../utils/contractVocabulary.js';
+import { deriveCustomerLifecycle } from '../services/customerLifecycle.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -173,12 +174,19 @@ export const getDashboardOverview = async (req, res) => {
     const buckets = buildBuckets(window, period, now);
     const inWindow = (date) => date && date >= window.start && date <= window.end;
 
-    // 1. Customer pipeline
-    const activeCustomers = customers.filter((c) => (c.status || '').toLowerCase() === 'active');
-    const demoCustomers = customers.filter((c) => (c.status || '').toLowerCase() === 'demo');
-    const inactiveCustomers = customers.filter((c) => {
-      const status = (c.status || '').toLowerCase();
-      return status === 'inactive' || status === 'suspended';
+    // 1. Customer pipeline — the same authoritative lifecycle the customer
+    // list and the portal read, derived from contracts and the payment ledger.
+    const activeCustomers = [];
+    const demoCustomers = [];
+    const inProgressCustomers = [];
+    const inactiveCustomers = [];
+
+    customers.forEach((c) => {
+      const bucket = deriveCustomerLifecycle(c, contracts, payments);
+      if (bucket === 'Active') activeCustomers.push(c);
+      else if (bucket === 'Demo') demoCustomers.push(c);
+      else if (bucket === 'InProgress') inProgressCustomers.push(c);
+      else inactiveCustomers.push(c);
     });
     const accountsAddedInWindow = customers.filter((c) => inWindow(accountStartDate(c))).length;
 
@@ -298,6 +306,7 @@ export const getDashboardOverview = async (req, res) => {
           totalPipelineCount: customers.length,
           activeCount: activeCustomers.length,
           demoCount: demoCustomers.length,
+          inProgressCount: inProgressCustomers.length,
           inactiveCount: inactiveCustomers.length,
           accountsAdded: accountsAddedInWindow
         },

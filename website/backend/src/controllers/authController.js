@@ -3,14 +3,15 @@ import crypto from 'node:crypto';
 import User from '../models/User.js';
 import Session from '../models/Session.js';
 import AdminOtp from '../models/AdminOtp.js';
+import EmailVerificationOtp from '../models/EmailVerificationOtp.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/httpError.js';
-import { createAccessToken, createRefreshToken, hashToken, verifyRefreshToken } from '../utils/tokens.js';
-import { sendPasswordResetEmail, sendAdminOtpEmail } from '../utils/mailer.js';
+import { createAccessToken, createRefreshToken, hashToken, verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
+import { sendPasswordResetEmail, sendAdminOtpEmail, sendCustomerVerificationOtpEmail } from '../utils/mailer.js';
 
 function isMongoConnected() {
   return mongoose.connection.readyState === 1;
@@ -21,23 +22,31 @@ function cookieOptions() {
     secure: env.COOKIE_SECURE,
     sameSite: env.COOKIE_SAME_SITE,
     path: '/',
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: env.SESSION_MAX_SECONDS * 1000
   };
 }
 
-async function issueSession(user, req, res) {
+async function issueSession(user, req, res, startedAt = new Date()) {
   const refreshToken = createRefreshToken(user);
   const decoded = verifyRefreshToken(refreshToken);
-  await Session.create({
+  const session = await Session.create({
     user: user._id,
     refreshTokenHash: hashToken(refreshToken),
-    expiresAt: new Date(decoded.exp * 1000),
+    expiresAt: new Date(Math.min(decoded.exp * 1000, startedAt.getTime() + env.SESSION_MAX_SECONDS * 1000)),
+    startedAt,
+    lastActivityAt: new Date(),
     userAgent: req.get('user-agent'),
     ipAddress: req.ip
   });
   res.cookie(env.REFRESH_COOKIE_NAME, refreshToken, cookieOptions());
-  return createAccessToken(user);
+  return { accessToken: createAccessToken(user, session._id), session };
 }
+
+const sessionPolicy = (session) => ({
+  expiresAt: session.expiresAt.toISOString(),
+  idleMinutes: env.SESSION_IDLE_MINUTES,
+  maxHours: env.SESSION_MAX_SECONDS / 3600
+});
 
 export async function login(req, res) {
   const rawIdentifier = req.body.identifier || req.body.email || req.body.username;
@@ -124,7 +133,7 @@ export async function login(req, res) {
     });
   }
 
-  const accessToken = await issueSession(user, req, res);
+  const { accessToken, session } = await issueSession(user, req, res);
   res.json({
     success: true,
     message: 'Login successful.',
@@ -132,6 +141,7 @@ export async function login(req, res) {
     user: user.toSafeJSON(),
     role: user.role,
     portal: resolvedPortal,
+    session: sessionPolicy(session),
     redirect: user.role === 'customer' ? '/customer/overview' : (isAdminPortalUser ? '/admin/overview' : '/partner-dashboard')
   });
 }
@@ -201,7 +211,9 @@ export async function registerCustomer(req, res) {
     portalPassword: password,
     phone: cleanPhone,
     gstNo: cleanGst,
-    status: 'active',
+    // Registration alone proves nothing was taken or bought; the lifecycle
+    // moves only on demo activation, settled payment and provisioning.
+    status: 'Inactive',
     registered: new Date().toISOString().split('T')[0],
     plan: cleanPlan,
     address: {
@@ -244,7 +256,7 @@ export async function registerCustomer(req, res) {
     console.warn('[registerCustomer] Sangam CRM sync exception:', syncErr.message);
   }
 
-  const accessToken = await issueSession(user, req, res);
+  const { accessToken, session } = await issueSession(user, req, res);
   await logNotification({
     type: 'customer_created',
     title: 'Customer Self-Registration',
@@ -261,7 +273,8 @@ export async function registerCustomer(req, res) {
     message: 'Account created successfully.',
     accessToken,
     user: user.toSafeJSON(),
-    customer: savedCustomer
+    customer: savedCustomer,
+    session: sessionPolicy(session)
   });
 }
 
@@ -281,19 +294,35 @@ export async function refresh(req, res) {
   const tokenHash = hashToken(token);
   const session = await Session.findOne({ refreshTokenHash: tokenHash, revokedAt: null });
   if (!session || session.expiresAt <= new Date()) throw new HttpError(401, 'Refresh session has expired.');
+  if (Date.now() - session.lastActivityAt.getTime() > env.SESSION_IDLE_MINUTES * 60 * 1000) {
+    throw new HttpError(401, 'You were signed out after a period of inactivity. Please sign in again.');
+  }
 
   const user = await User.findById(payload.sub);
   if (!user || user.accountStatus !== 'active') throw new HttpError(401, 'Account is unavailable.');
 
   session.revokedAt = new Date();
   await session.save();
-  const accessToken = await issueSession(user, req, res);
-  res.json({ success: true, accessToken, user: user.toSafeJSON() });
+  // Rotating the refresh token must not reset the one-day login cap.
+  const { accessToken, session: nextSession } = await issueSession(user, req, res, session.startedAt || session.createdAt);
+  res.json({ success: true, accessToken, user: user.toSafeJSON(), session: sessionPolicy(nextSession) });
 }
 
 export async function logout(req, res) {
   const token = req.cookies?.[env.REFRESH_COOKIE_NAME];
   if (token) await Session.updateOne({ refreshTokenHash: hashToken(token), revokedAt: null }, { $set: { revokedAt: new Date() } });
+  const header = req.headers.authorization || '';
+  const bearer = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (bearer) {
+    try {
+      const payload = verifyAccessToken(bearer);
+      if (payload?.sid) {
+        await Session.updateOne({ _id: payload.sid, revokedAt: null }, { $set: { revokedAt: new Date() } });
+      }
+    } catch {
+      // Expired token on logout: nothing left to revoke.
+    }
+  }
   res.clearCookie(env.REFRESH_COOKIE_NAME, { ...cookieOptions(), maxAge: undefined });
   res.json({ success: true, message: 'Logged out successfully.' });
 }
@@ -469,5 +498,189 @@ export async function verifyAndCreateAdmin(req, res) {
     success: true,
     message: 'Admin account created successfully! You can now log in.',
     user: user.toSafeJSON()
+  });
+}
+
+/**
+ * In-memory fallback cache for OTPs if Mongo is temporarily disconnected
+ */
+const fallbackCustomerOtps = new Map();
+
+/**
+ * Send 6-digit OTP to customer's primary email address
+ */
+export async function sendCustomerVerificationOtp(req, res) {
+  const targetEmail = String(req.user?.email || req.body?.email || '').trim().toLowerCase();
+  if (!targetEmail) {
+    throw new HttpError(400, 'Customer primary email address is required.');
+  }
+
+  // Find user to ensure existence
+  let user = null;
+  if (isMongoConnected()) {
+    user = await User.findOne({ email: targetEmail });
+  } else {
+    const fileCustomers = getCustomersFromFile();
+    const match = fileCustomers.find((c) => (c.email || '').toLowerCase() === targetEmail);
+    if (match) {
+      user = { _id: match._id || match.id || 'cust-dev-id', name: match.name, email: targetEmail, isEmailVerified: Boolean(match.isEmailVerified) };
+    }
+  }
+
+  if (!user && req.user) {
+    user = req.user;
+  }
+
+  if (!user) {
+    throw new HttpError(404, 'Customer account not found for this email address.');
+  }
+
+  if (user.isEmailVerified) {
+    return res.json({
+      success: true,
+      alreadyVerified: true,
+      message: 'Your primary email is already verified.',
+      email: targetEmail
+    });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  if (isMongoConnected()) {
+    await EmailVerificationOtp.deleteMany({ email: targetEmail });
+    await EmailVerificationOtp.create({
+      email: targetEmail,
+      userId: user._id,
+      otpHash,
+      expiresAt
+    });
+  }
+
+  fallbackCustomerOtps.set(targetEmail, {
+    otpHash,
+    expiresAt,
+    userId: user._id
+  });
+
+  try {
+    await sendCustomerVerificationOtpEmail(targetEmail, otp, user.name);
+  } catch (err) {
+    console.error('Failed to send customer verification OTP via SMTP:', err);
+    if (env.NODE_ENV === 'production' && env.SMTP_HOST) {
+      throw new HttpError(500, `Email dispatch error: ${err.message}`);
+    }
+  }
+
+  res.json({
+    success: true,
+    message: `Verification code sent to ${targetEmail}`,
+    email: targetEmail,
+    devOtp: (!env.SMTP_HOST || !env.SMTP_USER || env.NODE_ENV !== 'production') ? otp : undefined
+  });
+}
+
+/**
+ * Verify 6-digit OTP and mark customer primary email as verified
+ */
+export async function verifyCustomerEmailOtp(req, res) {
+  const targetEmail = String(req.user?.email || req.body?.email || '').trim().toLowerCase();
+  const rawOtp = String(req.body?.otp || '').trim();
+
+  if (!targetEmail) {
+    throw new HttpError(400, 'Customer primary email address is required.');
+  }
+  if (!rawOtp || rawOtp.length !== 6) {
+    throw new HttpError(400, 'Valid 6-digit verification OTP is required.');
+  }
+
+  const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+
+  let isValid = false;
+  if (isMongoConnected()) {
+    const record = await EmailVerificationOtp.findOne({
+      email: targetEmail,
+      otpHash,
+      expiresAt: { $gt: new Date() }
+    });
+    if (record) {
+      isValid = true;
+      await EmailVerificationOtp.deleteMany({ email: targetEmail });
+    }
+  }
+
+  if (!isValid) {
+    const fallback = fallbackCustomerOtps.get(targetEmail);
+    if (fallback && fallback.otpHash === otpHash && fallback.expiresAt > new Date()) {
+      isValid = true;
+      fallbackCustomerOtps.delete(targetEmail);
+    }
+  }
+
+  if (!isValid) {
+    throw new HttpError(400, 'Invalid or expired OTP. Please request a new verification code.');
+  }
+
+  const verifiedDate = new Date();
+
+  // Update User
+  let updatedUser = null;
+  if (isMongoConnected()) {
+    updatedUser = await User.findOneAndUpdate(
+      { email: targetEmail },
+      { $set: { isEmailVerified: true, emailVerifiedAt: verifiedDate } },
+      { new: true }
+    );
+
+    // Update Customer collection
+    await Customer.findOneAndUpdate(
+      { $or: [{ email: targetEmail }, { loginEmail: targetEmail }] },
+      { $set: { isEmailVerified: true, emailVerifiedAt: verifiedDate } }
+    ).catch(() => {});
+  }
+
+  // Update local file fallback
+  try {
+    const fileCustomers = getCustomersFromFile();
+    const updatedCusts = fileCustomers.map((c) => {
+      if (c.email === targetEmail || c.loginEmail === targetEmail) {
+        return { ...c, isEmailVerified: true, emailVerifiedAt: verifiedDate.toISOString() };
+      }
+      return c;
+    });
+    saveCustomersToFile(updatedCusts);
+  } catch (e) {
+    console.warn('[verifyCustomerEmailOtp] Error updating file customers:', e.message);
+  }
+
+  await logActivity(req, {
+    action: 'CUSTOMER_EMAIL_VERIFIED',
+    category: 'auth',
+    resource: 'User',
+    resourceId: targetEmail,
+    details: `Customer primary email (${targetEmail}) successfully verified via OTP`,
+    changes: {
+      email: targetEmail,
+      isEmailVerified: true,
+      emailVerifiedAt: verifiedDate
+    }
+  });
+
+  await logNotification({
+    type: 'email_verified',
+    title: 'Primary Email Verified',
+    message: `Customer ${targetEmail} successfully verified their primary email address via OTP.`,
+    severity: 'success',
+    entityType: 'customer',
+    entityId: updatedUser?.customerId || targetEmail
+  });
+
+  res.json({
+    success: true,
+    message: 'Primary email verified successfully!',
+    isEmailVerified: true,
+    emailVerifiedAt: verifiedDate,
+    user: updatedUser ? updatedUser.toSafeJSON() : { email: targetEmail, isEmailVerified: true, emailVerifiedAt: verifiedDate }
   });
 }

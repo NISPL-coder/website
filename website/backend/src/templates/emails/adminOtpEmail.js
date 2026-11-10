@@ -73,7 +73,7 @@ ${BRAND.supportEmail} | ${BRAND.phone}
 `;
 
   return {
-    subject: 'Your NISPL verification code',
+    subject: 'NISPL admin portal verification OTP',
     text,
     html
   };

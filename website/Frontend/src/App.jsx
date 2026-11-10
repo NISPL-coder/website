@@ -107,7 +107,7 @@ function MainApp() {
 
   // Handle session cleanup on sign-out across all portals
   const handleSignOut = (portal = 'admin') => {
-    authApi.clearAuthSession();
+    authApi.logout();
     if (portal === 'customer') {
       window.location.href = '/customer-login';
     } else if (portal === 'partner') {

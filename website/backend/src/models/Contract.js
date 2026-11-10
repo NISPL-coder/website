@@ -58,6 +58,11 @@ const contractSchema = new mongoose.Schema(
       trim: true,
       default: ''
     },
+    customerId: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     accountId: {
       type: String,
       trim: true,
@@ -123,7 +128,9 @@ const contractSchema = new mongoose.Schema(
         'active',
         'inactive',
         'expiring',
-        'draft'
+        'draft',
+        'DEMO-Inactive',
+        'Converted'
       ],
       default: 'In Progress'
     },

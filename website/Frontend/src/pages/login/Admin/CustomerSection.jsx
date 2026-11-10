@@ -16,7 +16,8 @@ import {
   Check,
   Edit3,
   Trash2,
-  Printer
+  Printer,
+  Activity
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -34,6 +35,11 @@ import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { compareDate, compareNumber, compareText, formatStamp, isWithinDateRange } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
+import {
+  normalizeCustomerLifecycle,
+  customerLifecycleLabel,
+  customerLifecycleTone
+} from '../../../utils/customerLifecycle';
 
 // Rows saved before the address became structured hold one joined string, so
 // the city and state may only exist on the top level or not at all.
@@ -59,7 +65,7 @@ export default function CustomerSection({
       setSearchQuery(externalSearch);
     }
   }, [externalSearch]);
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'inactive' | 'demo' | 'inprogress' | 'active'
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -110,35 +116,33 @@ export default function CustomerSection({
   // Dynamic card stats and status counts computed directly from live customer records
   const dynamicCards = useMemo(() => {
     const list = Array.isArray(customers) ? customers : [];
-
-    const total = list.length;
-    const active = list.filter((c) => String(c.status || '').toLowerCase() === 'active').length;
-    const demo = list.filter((c) => {
-      const s = String(c.status || '').toLowerCase();
-      return s === 'demo' || s === 'trial';
-    }).length;
-    const inactive = list.filter((c) => {
-      const s = String(c.status || '').toLowerCase();
-      return s === 'inactive' || s === 'suspended' || s === 'paused';
-    }).length;
-
-    const mrrNum = list
-      .filter((c) => String(c.status || '').toLowerCase() === 'active')
-      .reduce((acc, c) => acc + (parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0), 0);
+    const counts = { total: list.length, active: 0, demo: 0, inprogress: 0, inactive: 0 };
+    let mrrNum = 0;
+    for (const c of list) {
+      const stage = normalizeCustomerLifecycle(c.status);
+      if (stage === 'Active') {
+        counts.active += 1;
+        mrrNum += parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0;
+      } else if (stage === 'Demo') {
+        counts.demo += 1;
+      } else if (stage === 'InProgress') {
+        counts.inprogress += 1;
+      } else {
+        counts.inactive += 1;
+      }
+    }
 
     const formattedMrr = `₹${mrrNum.toLocaleString('en-IN')}`;
 
     return {
-      total,
-      active,
-      demo,
-      inactive,
+      ...counts,
       mrr: mrrNum,
       formattedMrr,
       totalDesc: 'All customer records',
       activeDesc: `Monthly MRR: ${formattedMrr}`,
-      demoDesc: '14-Day sandbox trials',
-      inactiveDesc: 'Expired / pending renewals'
+      inprogressDesc: 'Paid, service activation pending',
+      demoDesc: 'Trials running, nothing purchased yet',
+      inactiveDesc: 'Registered without demo or purchase'
     };
   }, [customers]);
 
@@ -147,8 +151,17 @@ export default function CustomerSection({
     all: dynamicCards.total,
     active: dynamicCards.active,
     demo: dynamicCards.demo,
+    inprogress: dynamicCards.inprogress,
     inactive: dynamicCards.inactive
   }), [dynamicCards]);
+
+  const statusOptions = useMemo(() => [
+    { value: 'all', label: `All Statuses (${counts.all})` },
+    { value: 'inactive', label: `Inactive (${counts.inactive})` },
+    { value: 'demo', label: `Demo / Trials (${counts.demo})` },
+    { value: 'inprogress', label: `In Progress (${counts.inprogress})` },
+    { value: 'active', label: `Active Only (${counts.active})` }
+  ], [counts]);
 
   // Filtered customer listing
   const filteredCustomers = useMemo(() => {
@@ -170,14 +183,16 @@ export default function CustomerSection({
 
       const matchesSearch = !q || searchable.some((value) => value.includes(q));
 
-      const custStatus = String(c.status || '').toLowerCase();
+      const stage = normalizeCustomerLifecycle(c.status);
       let matchesStatus = true;
       if (statusFilter === 'active') {
-        matchesStatus = custStatus === 'active';
+        matchesStatus = stage === 'Active';
       } else if (statusFilter === 'demo') {
-        matchesStatus = custStatus === 'demo' || custStatus === 'trial';
+        matchesStatus = stage === 'Demo';
+      } else if (statusFilter === 'inprogress') {
+        matchesStatus = stage === 'InProgress';
       } else if (statusFilter === 'inactive') {
-        matchesStatus = custStatus === 'inactive' || custStatus === 'suspended' || custStatus === 'paused';
+        matchesStatus = stage === 'Inactive' || stage === 'DemoInactive';
       }
 
       const matchesDateRange = isWithinDateRange(c.createdAt || c.registered, dateFrom, dateTo);
@@ -623,34 +638,40 @@ export default function CustomerSection({
       sortFunction: compareText((row) => row.status),
       minWidth: '175px',
       cell: (cust) => {
-        const s = cust.status?.toLowerCase();
-        const hasTrial = cust.demoTrialUsed || s === 'demo' || cust.plan?.includes('Trial');
+        const stage = normalizeCustomerLifecycle(cust.status);
+        const hasTrial = cust.demoTrialUsed || stage === 'Demo' || stage === 'DemoInactive' || cust.plan?.includes('Trial');
+        const isDemoCompletedOrConverted = stage === 'Active' || stage === 'InProgress' || stage === 'DemoInactive' || cust.demoTrialUsed;
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              {s === 'active' && (
-                <span className="adm-status-pill active">
-                  <CheckCircle2 size={12} />
-                  <span>Active</span>
-                </span>
-              )}
-              {(s === 'demo' || s === 'trial') && (
-                <span className="adm-status-pill demo">
-                  <Clock size={12} />
-                  <span>Demo Trial</span>
-                </span>
-              )}
-              {(s === 'inactive' || s === 'suspended' || s === 'paused') && (
-                <span className="adm-status-pill inactive">
-                  <XCircle size={12} />
-                  <span>Inactive</span>
-                </span>
-              )}
+              <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
+                {stage === 'Active' && <CheckCircle2 size={12} />}
+                {stage === 'Demo' && <Clock size={12} />}
+                {stage === 'DemoInactive' && <XCircle size={12} />}
+                {stage === 'InProgress' && <Activity size={12} />}
+                {stage === 'Inactive' && <XCircle size={12} />}
+                <span>{customerLifecycleLabel(cust.status)}</span>
+              </span>
             </div>
 
-            {/* Trial Extension Control Badge */}
+            {/* Trial Extension / History Control Badge */}
             {hasTrial && (
-              <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                {isDemoCompletedOrConverted && (
+                  <span
+                    className="adm-status-pill demoinactive"
+                    style={{
+                      fontSize: '0.68rem',
+                      padding: '2px 7px',
+                      fontWeight: 600,
+                      borderRadius: '4px',
+                      lineHeight: 1.2
+                    }}
+                    title="Demo trial ended or converted upon product purchase"
+                  >
+                    DEMO-Inactive
+                  </span>
+                )}
                 {cust.demoExtensionAllowed ? (
                   <span
                     style={{
@@ -669,7 +690,7 @@ export default function CustomerSection({
                   >
                     +{cust.demoExtensionDays || 7}d Approved
                   </span>
-                ) : (
+                ) : !isDemoCompletedOrConverted ? (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -690,7 +711,7 @@ export default function CustomerSection({
                   >
                     + Allow Extension
                   </button>
-                )}
+                ) : null}
               </div>
             )}
           </div>
@@ -698,10 +719,10 @@ export default function CustomerSection({
       },
       searchType: 'select',
       searchOptions: [
-        { value: 'active', label: 'Active' },
-        { value: 'demo', label: 'Demo' },
-        { value: 'inactive', label: 'Inactive' },
-        { value: 'suspended', label: 'Suspended' },
+        { value: 'Inactive', label: 'Inactive' },
+        { value: 'Demo', label: 'Demo Trial' },
+        { value: 'InProgress', label: 'In Progress' },
+        { value: 'Active', label: 'Active' }
       ]
     },
     {
@@ -781,11 +802,9 @@ export default function CustomerSection({
       {/* 1. Card Header with Title on Left and Primary Action Button on Right */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
-          <h1 className="adm-section-title">
-            Customer Directory &amp; Accounts
-          </h1>
+          <h1 className="adm-section-title">Customer List</h1>
           <p className="adm-section-sub">
-            Manage all NISPL customer records, active clients, live demo trials, and inactive accounts.
+            View and manage all registered customer accounts.
           </p>
         </div>
 
@@ -809,7 +828,7 @@ export default function CustomerSection({
         </div>
       </div>
 
-      {/* 2. Customer Quick Stat Cards (Total, Active, Demo, Inactive with CountUp) */}
+      {/* 2. Customer Quick Stat Cards (Total, Active, In Progress, Demo, Inactive) */}
       <div className="adm-customer-summary-grid">
         <div
           className={`adm-cust-stat-card ${statusFilter === 'all' ? 'selected' : ''}`}
@@ -844,6 +863,20 @@ export default function CustomerSection({
               duration={1400}
             />
           </span>
+        </div>
+
+        <div
+          className={`adm-cust-stat-card ${statusFilter === 'inprogress' ? 'selected' : ''}`}
+          onClick={() => setStatusFilter('inprogress')}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label">In Progress</span>
+            <Activity size={18} className="adm-cust-stat-icon purple" />
+          </div>
+          <span className="adm-cust-stat-val" style={{ color: '#6366f1' }}>
+            <CountUp end={dynamicCards.inprogress} duration={1200} />
+          </span>
+          <span className="adm-cust-stat-desc">{dynamicCards.inprogressDesc}</span>
         </div>
 
         <div
@@ -914,23 +947,10 @@ export default function CustomerSection({
             <Select
               styles={compactSelectStyles}
               isSearchable={false}
-              options={[
-                { value: 'all', label: `All Statuses (${counts.all})` },
-                { value: 'active', label: `Active Only (${counts.active})` },
-                { value: 'demo', label: `Demo / Trials (${counts.demo})` },
-                { value: 'inactive', label: `Inactive (${counts.inactive})` }
-              ]}
-              value={{
-                value: statusFilter,
-                label:
-                  statusFilter === 'all'
-                    ? `All Statuses (${counts.all})`
-                    : statusFilter === 'active'
-                    ? `Active Only (${counts.active})`
-                    : statusFilter === 'demo'
-                    ? `Demo / Trials (${counts.demo})`
-                    : `Inactive (${counts.inactive})`
-              }}
+              options={statusOptions}
+              value={
+                statusOptions.find((option) => option.value === statusFilter) || statusOptions[0]
+              }
               onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
               classNamePrefix="react-select"
             />

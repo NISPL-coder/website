@@ -305,11 +305,9 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       {/* 1. Header with Title on Left and Export Action on Right */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
-          <h1 className="adm-section-title">
-            Customer Payment Records &amp; Transactions
-          </h1>
+          <h1 className="adm-section-title">Payment List</h1>
           <p className="adm-section-sub">
-            Real-time accounts receivable ledger showing settlement dates, received collections, and pending balances.
+            View and track all customer payments and transactions.
           </p>
         </div>
 

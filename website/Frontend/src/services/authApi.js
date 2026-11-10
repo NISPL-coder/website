@@ -19,6 +19,8 @@ const API_BASE_URL = `${BACKEND_URL}/api/auth`;
 
 const TOKEN_KEY = 'nispl_auth_token';
 const SESSION_KEY = 'nispl_customer_session';
+const POLICY_KEY = 'nispl_session_policy';
+export const ACTIVITY_KEY = 'nispl_last_activity';
 
 export const authApi = {
   /**
@@ -70,6 +72,53 @@ export const authApi = {
   },
 
   /**
+   * Request verification OTP to be sent to the logged-in customer's primary email address
+   */
+  async sendCustomerVerificationOtp() {
+    const token = this.getAuthToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE_URL}/customer/send-verification-otp`, {
+      method: 'POST',
+      headers
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Failed to dispatch verification OTP to your email.');
+    }
+    return data;
+  },
+
+  /**
+   * Verify 6-digit OTP code to verify customer's primary email
+   * @param {string} otp
+   */
+  async verifyCustomerEmailOtp(otp) {
+    const token = this.getAuthToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE_URL}/customer/verify-email-otp`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ otp: String(otp).trim() })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || 'Invalid or expired OTP code.');
+    }
+
+    if (data.user) {
+      this.updateCurrentUser(data.user);
+    } else {
+      this.updateCurrentUser({ isEmailVerified: true });
+    }
+
+    return data;
+  },
+
+  /**
    * Register a new customer
    * @param {Object} userData - { name, email, mobile, companyName, gstNo, password }
    */
@@ -88,7 +137,7 @@ export const authApi = {
     }
 
     if (data.accessToken && data.user) {
-      this.setAuthSession(data.accessToken, data.user);
+      this.setAuthSession(data.accessToken, data.user, data.session || null);
     }
 
     return data;
@@ -113,7 +162,7 @@ export const authApi = {
     }
 
     if (data.accessToken && data.user) {
-      this.setAuthSession(data.accessToken, data.user);
+      this.setAuthSession(data.accessToken, data.user, data.session || null);
     }
 
     return data;
@@ -188,10 +237,12 @@ export const authApi = {
   /**
    * Persist token and user in localStorage
    */
-  setAuthSession(token, user) {
+  setAuthSession(token, user, policy = null) {
     try {
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      if (policy) localStorage.setItem(POLICY_KEY, JSON.stringify(policy));
+      localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
     } catch (e) {
       console.error('Failed to store auth session:', e);
     }
@@ -214,6 +265,21 @@ export const authApi = {
       return session ? JSON.parse(session) : null;
     } catch {
       return null;
+    }
+  },
+
+  updateCurrentUser(userUpdates) {
+    try {
+      const current = this.getCurrentUser() || {};
+      const merged = { ...current, ...userUpdates };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(merged));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('nispl_auth_change'));
+      }
+      return merged;
+    } catch (e) {
+      console.error('Failed to update auth session:', e);
+      return userUpdates;
     }
   },
 
@@ -280,13 +346,50 @@ export const authApi = {
     return true;
   },
 
-  _handleRefreshedToken(res) {
+  getSessionPolicy() {
     try {
-      const refreshed = res?.headers?.get('x-refreshed-token');
-      if (refreshed) {
-        localStorage.setItem(TOKEN_KEY, refreshed);
+      const raw = localStorage.getItem(POLICY_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Lightweight liveness probe: false only when the server rejects the session.
+   * Network failures return true so offline users are not signed out.
+   */
+  async verifySession() {
+    const token = this.getAuthToken();
+    if (!token) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return res.ok;
+    } catch {
+      return true;
+    }
+  },
+
+  /**
+   * Sign out: clear local session first, then revoke the server-side session.
+   * keepalive lets the revocation survive the caller's page redirect.
+   */
+  async logout() {
+    const token = this.getAuthToken();
+    this.clearAuthSession();
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL}/logout`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          keepalive: true
+        });
+      } catch {
+        // Best-effort revocation; the local session is already gone.
       }
-    } catch {}
+    }
   },
 
   /**
@@ -302,11 +405,9 @@ export const authApi = {
             'Authorization': `Bearer ${token}`
           }
         });
-        this._handleRefreshedToken(res);
         const data = await res.json();
         if (res.ok && data.success && data.user) {
-          const freshToken = res.headers.get('x-refreshed-token') || token;
-          this.setAuthSession(freshToken, data.user);
+          this.setAuthSession(token, data.user);
           return data.user;
         }
       } catch (e) {
@@ -320,11 +421,9 @@ export const authApi = {
             'Authorization': `Bearer ${token}`
           }
         });
-        this._handleRefreshedToken(resAuth);
         const dataAuth = await resAuth.json();
         if (resAuth.ok && dataAuth.success && dataAuth.user) {
-          const freshToken = resAuth.headers.get('x-refreshed-token') || token;
-          this.setAuthSession(freshToken, dataAuth.user);
+          this.setAuthSession(token, dataAuth.user);
           return dataAuth.user;
         }
       } catch (e) {
@@ -355,14 +454,12 @@ export const authApi = {
       },
       body: JSON.stringify(updates)
     });
-    this._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to update profile.');
     }
     if (data.user) {
-      const freshToken = res.headers.get('x-refreshed-token') || token;
-      this.setAuthSession(freshToken, data.user);
+      this.setAuthSession(token, data.user);
     }
     return data;
   },
@@ -383,7 +480,6 @@ export const authApi = {
       },
       body: JSON.stringify({ currentPassword, newPassword })
     });
-    this._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to change password.');
@@ -406,7 +502,6 @@ export const authApi = {
       },
       body: JSON.stringify(updates)
     });
-    this._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to update profile.');
@@ -414,8 +509,7 @@ export const authApi = {
     // Refresh stored session user if it's the current user
     const current = this.getCurrentUser();
     if (current && (current.id === userId || current._id === userId)) {
-      const freshToken = res.headers.get('x-refreshed-token') || token;
-      this.setAuthSession(freshToken, data.user);
+      this.setAuthSession(token, data.user);
     }
     return data.user;
   },
@@ -424,6 +518,8 @@ export const authApi = {
     try {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(POLICY_KEY);
+      localStorage.removeItem(ACTIVITY_KEY);
     } catch {
       // ignore
     }

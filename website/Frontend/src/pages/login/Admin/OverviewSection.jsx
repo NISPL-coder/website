@@ -53,6 +53,19 @@ import {
   matchesStatusFilter,
   normalizeContractStatus
 } from './contractVocabulary';
+import {
+  normalizeCustomerLifecycle,
+  customerLifecycleLabel,
+  customerLifecycleTone
+} from '../../../utils/customerLifecycle';
+
+const CUSTOMER_STATUS_FILTERS = [
+  { value: 'all', label: 'All Statuses', countKey: 'total' },
+  { value: 'inactive', label: 'Inactive', countKey: 'inactive' },
+  { value: 'demo', label: 'Demo / Trials', countKey: 'demo' },
+  { value: 'inprogress', label: 'In Progress', countKey: 'inprogress' },
+  { value: 'active', label: 'Active Only', countKey: 'active' }
+];
 
 const CONTRACT_STATUS_FILTER_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
@@ -145,7 +158,7 @@ export default function OverviewSection({
 
   // Overview Customer List Filter and Search
   const [custSearch, setCustSearch] = useState('');
-  const [custStatusFilter, setCustStatusFilter] = useState('all'); // 'all' | 'active' | 'demo' | 'inactive'
+  const [custStatusFilter, setCustStatusFilter] = useState('all'); // 'all' | 'inactive' | 'demo' | 'inprogress' | 'active'
   const [custDateFrom, setCustDateFrom] = useState('');
   const [custDateTo, setCustDateTo] = useState('');
 
@@ -188,15 +201,25 @@ export default function OverviewSection({
   // Customer status breakdown counts for current filtered view
   const customerCounts = useMemo(() => {
     const list = activeOverviewData.filteredCustomers || [];
-    const total = list.length;
-    const active = list.filter((c) => c.status?.toLowerCase() === 'active').length;
-    const demo = list.filter((c) => c.status?.toLowerCase() === 'demo').length;
-    const inactive = list.filter(
-      (c) => c.status?.toLowerCase() === 'inactive' || c.status?.toLowerCase() === 'suspended'
-    ).length;
-
-    return { total, active, demo, inactive };
+    const counts = { total: list.length, active: 0, demo: 0, inprogress: 0, inactive: 0 };
+    for (const c of list) {
+      const stage = normalizeCustomerLifecycle(c.status);
+      if (stage === 'Active') counts.active += 1;
+      else if (stage === 'Demo') counts.demo += 1;
+      else if (stage === 'InProgress') counts.inprogress += 1;
+      else counts.inactive += 1;
+    }
+    return counts;
   }, [activeOverviewData]);
+
+  const customerStatusOptions = useMemo(
+    () =>
+      CUSTOMER_STATUS_FILTERS.map((f) => ({
+        value: f.value,
+        label: `${f.label} (${customerCounts[f.countKey]})`
+      })),
+    [customerCounts]
+  );
 
   // Filtered customer list for the Overview Customer Table
   const filteredOverviewCustomers = useMemo(() => {
@@ -211,11 +234,12 @@ export default function OverviewSection({
         (c.id || '').toLowerCase().includes(q) ||
         (c.plan && c.plan.toLowerCase().includes(q));
 
-      const status = (c.status || '').toLowerCase();
+      const stage = normalizeCustomerLifecycle(c.status);
       let matchesStatus = true;
-      if (custStatusFilter === 'active') matchesStatus = status === 'active';
-      else if (custStatusFilter === 'demo') matchesStatus = status === 'demo';
-      else if (custStatusFilter === 'inactive') matchesStatus = status === 'inactive' || status === 'suspended';
+      if (custStatusFilter === 'active') matchesStatus = stage === 'Active';
+      else if (custStatusFilter === 'demo') matchesStatus = stage === 'Demo';
+      else if (custStatusFilter === 'inprogress') matchesStatus = stage === 'InProgress';
+      else if (custStatusFilter === 'inactive') matchesStatus = stage === 'Inactive';
 
       const matchesDateRange = isWithinDateRange(
         c.registered || c.createdAt || c.lastSyncedAt,
@@ -530,28 +554,15 @@ export default function OverviewSection({
       sortFunction: compareText((row) => row.status),
       width: '140px',
       cell: (cust) => {
-        const s = cust.status?.toLowerCase();
+        const stage = normalizeCustomerLifecycle(cust.status);
         return (
-          <>
-            {s === 'demo' && (
-              <span className="adm-status-pill demo">
-                <Clock size={12} />
-                <span>Demo Trial</span>
-              </span>
-            )}
-            {(s === 'inactive' || s === 'suspended') && (
-              <span className="adm-status-pill inactive">
-                <XCircle size={12} />
-                <span>Inactive</span>
-              </span>
-            )}
-            {s === 'active' && (
-              <span className="adm-status-pill active">
-                <CheckCircle2 size={12} />
-                <span>Active</span>
-              </span>
-            )}
-          </>
+          <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
+            {stage === 'Active' && <CheckCircle2 size={12} />}
+            {stage === 'Demo' && <Clock size={12} />}
+            {stage === 'InProgress' && <Activity size={12} />}
+            {stage === 'Inactive' && <XCircle size={12} />}
+            <span>{customerLifecycleLabel(cust.status)}</span>
+          </span>
         );
       },
       searchType: 'select'
@@ -639,16 +650,17 @@ export default function OverviewSection({
     {
       id: 'status',
       name: 'Status',
-      selector: (row) => normalizeContractStatus(row.status),
+      selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
-      sortFunction: compareText((row) => normalizeContractStatus(row.status)),
-      width: '135px',
+      sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
+      width: '145px',
       cell: (c) => {
-        const tone = contractStatusTone(c.status);
+        const status = normalizeContractStatus(c.status, c);
+        const tone = contractStatusTone(status, c);
         return (
           <span className={`adm-status-pill ${tone}`}>
             {tone === 'active' && <CheckCircle2 size={12} />}
-            <span>{normalizeContractStatus(c.status)}</span>
+            <span>{status}</span>
           </span>
         );
       },
@@ -743,7 +755,7 @@ export default function OverviewSection({
         <div className="adm-card-header">
           <div className="adm-card-header-info">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 className="adm-section-title">Customer Accounts Directory</h2>
+              <h2 className="adm-section-title">Customer List</h2>
               <span className="adm-status-pill info">
                 <Users size={12} />
                 <span>
@@ -752,7 +764,7 @@ export default function OverviewSection({
               </span>
             </div>
             <p className="adm-section-sub">
-              Live enterprise client list, active cloud ERP deployments, and prospective demo trials.
+              View and manage all registered customer accounts.
             </p>
           </div>
 
@@ -806,23 +818,11 @@ export default function OverviewSection({
               <Select
                 styles={compactSelectStyles}
                 isSearchable={false}
-                options={[
-                  { value: 'all', label: `All Statuses (${customerCounts.total})` },
-                  { value: 'active', label: `Active Only (${customerCounts.active})` },
-                  { value: 'demo', label: `Demo / Trials (${customerCounts.demo})` },
-                  { value: 'inactive', label: `Inactive (${customerCounts.inactive})` }
-                ]}
-                value={{
-                  value: custStatusFilter,
-                  label:
-                    custStatusFilter === 'all'
-                      ? `All Statuses (${customerCounts.total})`
-                      : custStatusFilter === 'active'
-                      ? `Active Only (${customerCounts.active})`
-                      : custStatusFilter === 'demo'
-                      ? `Demo / Trials (${customerCounts.demo})`
-                      : `Inactive (${customerCounts.inactive})`
-                }}
+                options={customerStatusOptions}
+                value={
+                  customerStatusOptions.find((option) => option.value === custStatusFilter) ||
+                  customerStatusOptions[0]
+                }
                 onChange={(opt) => setCustStatusFilter(opt ? opt.value : 'all')}
                 classNamePrefix="react-select"
               />
@@ -851,9 +851,9 @@ export default function OverviewSection({
       <div className="adm-table-card">
         <div className="adm-card-header">
           <div className="adm-card-header-info">
-            <h2 className="adm-section-title">Recent Contract Commitments</h2>
+            <h2 className="adm-section-title">Contract List</h2>
             <p className="adm-section-sub">
-              Latest client SLAs signed across Eastern India enterprise accounts.
+              View and manage all customer contracts and subscriptions.
             </p>
           </div>
           <div className="adm-card-header-action">
@@ -1088,6 +1088,10 @@ export default function OverviewSection({
                 <CountUp end={activeOverviewData.kpi.activeCount} duration={1200} /> Active
               </strong>{' '}
               •{' '}
+              <strong style={{ color: '#6366f1' }}>
+                <CountUp end={activeOverviewData.kpi.inProgressCount || 0} duration={1200} /> In Progress
+              </strong>{' '}
+              •{' '}
               <strong style={{ color: '#d97706' }}>
                 <CountUp end={activeOverviewData.kpi.demoCount} duration={1200} /> Demo Trial
               </strong>{' '}
@@ -1107,9 +1111,9 @@ export default function OverviewSection({
               type="button"
               className="adm-finance-link blue-link"
               onClick={() => navigate('/admin/customer')}
-              title="Navigate to Customer Directory"
+              title="Navigate to Customer List"
             >
-              <span>Directory</span>
+              <span>Customer List</span>
               <ArrowRight size={14} />
             </button>
           </div>

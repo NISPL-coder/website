@@ -41,13 +41,6 @@ async function request(path, { method = 'GET', body } = {}) {
     throw new Error('Unable to connect to the payment service. Please ensure the backend server is running and try again.');
   }
 
-  const refreshed = res?.headers?.get('x-refreshed-token');
-  if (refreshed) {
-    try {
-      localStorage.setItem('nispl_auth_token', refreshed);
-    } catch {}
-  }
-
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok || !data.success) {

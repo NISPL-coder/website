@@ -16,6 +16,7 @@ import CartSection from '../login/customer/cart';
 import ReceiptSection from '../login/customer/receipt';
 import HelpSection from '../login/customer/help';
 import SupportTicketModal from './components/SupportTicketModal';
+import CustomerEmailOtpModal from '../../components/modals/CustomerEmailOtpModal';
 import { customerAuthService } from '../CustomerRegister/services/customerAuthService';
 import { authApi } from '../../services/authApi';
 import { cartApi } from '../../services/cartApi';
@@ -166,6 +167,39 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
   // The account's own ledger from /api/dashboard/me: KPIs, products, payments, reminder
   const [portal, setPortal] = useState(null);
+
+  // Email verification modal state
+  const [isEmailOtpModalOpen, setIsEmailOtpModalOpen] = useState(false);
+  const [hasDismissedOtpModal, setHasDismissedOtpModal] = useState(false);
+
+  const isEmailVerified = Boolean(customer?.isEmailVerified || portal?.account?.isEmailVerified);
+
+  // Automatically prompt customer to verify their primary email via OTP upon logging into their portal
+  useEffect(() => {
+    if (customer && !isEmailVerified && !hasDismissedOtpModal) {
+      setIsEmailOtpModalOpen(true);
+    }
+  }, [customer, isEmailVerified, hasDismissedOtpModal]);
+
+  const handleEmailVerified = (result) => {
+    setCustomer((prev) => ({
+      ...prev,
+      isEmailVerified: true,
+      emailVerifiedAt: result?.emailVerifiedAt || new Date().toISOString()
+    }));
+    setPortal((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        account: {
+          ...prev.account,
+          isEmailVerified: true,
+          emailVerifiedAt: result?.emailVerifiedAt || new Date().toISOString()
+        }
+      };
+    });
+    setIsEmailOtpModalOpen(false);
+  };
 
   const applyCartPayload = (cartData) => {
     if (!cartData) return;
@@ -471,6 +505,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               onNavigateTab={handleSelectNav}
               onPay={startPayment}
               onOpenSupport={() => setIsSupportModalOpen(true)}
+              onOpenVerifyEmail={() => setIsEmailOtpModalOpen(true)}
             />
           )}
 
@@ -480,6 +515,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               <ProductsSection
                 customer={customer}
                 account={portal?.account}
+                portalData={portal}
                 onAddToCart={handleAddToCart}
                 onGoToCart={() => handleSelectNav('cart')}
                 cartItemIds={cartItems.map((c) => c.id)}
@@ -536,6 +572,18 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
         isOpen={isSupportModalOpen}
         onClose={() => setIsSupportModalOpen(false)}
         customer={customer}
+      />
+
+      {/* Customer Primary Email Verification OTP Modal */}
+      <CustomerEmailOtpModal
+        isOpen={isEmailOtpModalOpen}
+        onClose={() => {
+          setIsEmailOtpModalOpen(false);
+          setHasDismissedOtpModal(true);
+        }}
+        customerEmail={customer?.email || portal?.account?.email || ''}
+        customerName={customer?.name || portal?.account?.name || ''}
+        onVerified={handleEmailVerified}
       />
     </>
   );

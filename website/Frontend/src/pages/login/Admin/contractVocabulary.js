@@ -7,7 +7,7 @@
 
 import { formatStamp } from './adminTableUtils';
 
-export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DISABLED'];
+export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -25,6 +25,9 @@ const STATUS_LOOKUP = {
   inprogress: 'In Progress',
   closed: 'Closed',
   demo: 'DEMO',
+  demoinactive: 'DEMO-Inactive',
+  'demo-inactive': 'DEMO-Inactive',
+  converted: 'DEMO-Inactive',
   disabled: 'DISABLED',
   // Previous vocabulary.
   active: 'In Progress',
@@ -45,13 +48,39 @@ const STATUS_TONE = {
   'Not Started': 'pending',
   Closed: 'inactive',
   DEMO: 'info',
+  'DEMO-Inactive': 'demoinactive',
   DISABLED: 'suspended'
 };
 
-export const normalizeContractStatus = (value) => {
-  const raw = String(value ?? '').trim();
+export const normalizeContractStatus = (value, contract = null) => {
+  const ctx = (value && typeof value === 'object') ? value : (contract || {});
+  const raw = String((typeof value === 'object' ? value.status : value) ?? '').trim();
   if (!raw) return '';
-  return STATUS_LOOKUP[squash(raw)] || raw;
+
+  const squashed = squash(raw);
+  if (squashed === 'demoinactive' || squashed === 'converted') {
+    return 'DEMO-Inactive';
+  }
+
+  const isDemo =
+    squashed === 'demo' ||
+    Boolean(ctx.isDemoTrial) ||
+    ctx.contractType === 'Trial' ||
+    ctx.productCategory === 'Trial';
+
+  if (isDemo) {
+    const isExpired = ctx.endDate || ctx.expiryDate
+      ? new Date(ctx.endDate || ctx.expiryDate).getTime() < Date.now()
+      : false;
+    const isConverted = Boolean(ctx.convertedToPaid) || squashed === 'converted';
+
+    if (isConverted || isExpired) {
+      return 'DEMO-Inactive';
+    }
+    return 'DEMO';
+  }
+
+  return STATUS_LOOKUP[squashed] || raw;
 };
 
 /** The type is free text on legacy rows, so only translate what is recognised. */
@@ -64,19 +93,21 @@ export const normalizeContractType = (value) => {
   return match || raw;
 };
 
-export const contractStatusTone = (value) => STATUS_TONE[normalizeContractStatus(value)] || 'inactive';
+export const contractStatusTone = (value, contract = null) =>
+  STATUS_TONE[normalizeContractStatus(value, contract)] || 'inactive';
 
-// The same five states for the places that paint a value rather than a pill.
+// The same states for the places that paint a value rather than a pill.
 const STATUS_COLOR = {
   'In Progress': '#059669',
   'Not Started': '#d97706',
   Closed: '#64748b',
   DEMO: '#6366f1',
+  'DEMO-Inactive': '#dc2626',
   DISABLED: '#e11d48'
 };
 
-export const contractStatusColor = (value) =>
-  STATUS_COLOR[normalizeContractStatus(value)] || '#64748b';
+export const contractStatusColor = (value, contract = null) =>
+  STATUS_COLOR[normalizeContractStatus(value, contract)] || '#64748b';
 
 /**
  * The commercial shape and its length as one line. A row that carries neither
@@ -158,11 +189,13 @@ export const formatContractStamp = formatStamp;
  */
 export const matchesStatusFilter = (contract, filter) => {
   if (!filter || filter === 'all') return true;
-  const status = normalizeContractStatus(contract?.status);
-  if (filter === 'inprogress') return status === 'In Progress';
-  if (filter === 'notstarted') return status === 'Not Started';
-  if (filter === 'closed') return status === 'Closed';
-  if (filter === 'demo') return status === 'DEMO';
-  if (filter === 'disabled') return status === 'DISABLED';
-  return true;
+  const status = normalizeContractStatus(contract?.status, contract);
+  const filterNorm = squash(filter);
+  if (filterNorm === 'inprogress') return status === 'In Progress';
+  if (filterNorm === 'notstarted') return status === 'Not Started';
+  if (filterNorm === 'closed') return status === 'Closed';
+  if (filterNorm === 'demo') return status === 'DEMO';
+  if (filterNorm === 'demoinactive') return status === 'DEMO-Inactive';
+  if (filterNorm === 'disabled') return status === 'DISABLED';
+  return squash(status) === filterNorm;
 };

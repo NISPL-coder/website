@@ -41,7 +41,7 @@ export const customerAuthService = {
    * Clear session on Sign Out
    */
   logout() {
-    authApi.clearAuthSession();
+    authApi.logout();
   }
 };
 

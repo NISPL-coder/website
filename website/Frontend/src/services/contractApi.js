@@ -4,7 +4,6 @@
  * and Sangam CRM Contracts synchronization endpoints.
  */
 
-import { authApi } from './authApi';
 import { withAuth, readApiError } from './apiAuth';
 
 const isLocalhost = Boolean(typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'));
@@ -23,7 +22,6 @@ export const contractApi = {
         method: 'GET',
         headers: withAuth({ Accept: 'application/json' })
       });
-      authApi._handleRefreshedToken(res);
       if (!res.ok) {
         throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
@@ -48,7 +46,6 @@ export const contractApi = {
       }),
       body: JSON.stringify(contractData)
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to create contract record.');
@@ -75,7 +72,6 @@ export const contractApi = {
       }),
       body: JSON.stringify({ contracts })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Bulk contracts import failed.');
@@ -105,7 +101,6 @@ export const contractApi = {
       }),
       body: JSON.stringify(contractData)
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to update contract record.');
@@ -127,7 +122,6 @@ export const contractApi = {
       method: 'DELETE',
       headers: withAuth({ Accept: 'application/json' })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to delete contract record.');
@@ -148,7 +142,6 @@ export const contractApi = {
         Accept: 'application/json'
       })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Sangam CRM contract synchronization retry failed.');

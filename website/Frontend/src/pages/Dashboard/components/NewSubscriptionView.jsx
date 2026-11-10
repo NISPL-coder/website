@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, ChevronDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { contractApi } from '../../../services/contractApi';
 import { productApi } from '../../../services/productApi';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { formatINR } from '../utils/pricingUtils';
 import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
+import { normalizeCustomerLifecycle } from '../../../utils/customerLifecycle';
 
 /** Customers choose by capacity, so the brand prefix is dropped from the label. */
 const stripProviderBrand = (name = '') =>
@@ -447,6 +449,7 @@ function PlanSelect({ plans, selectedId, onChange, loading, errorMessage }) {
 export default function NewSubscriptionView({
   customer,
   account,
+  portalData,
   onBack,
   onAddToCart,
   onGoToCart
@@ -458,6 +461,7 @@ export default function NewSubscriptionView({
   const isPhone = useIsPhone();
 
   const [customersList, setCustomersList] = useState([]);
+  const [contractsList, setContractsList] = useState([]);
 
   // Auto-select current customer from dropdown
   const [selectedCustomer, setSelectedCustomer] = useState(currentEmail);
@@ -468,6 +472,22 @@ export default function NewSubscriptionView({
       setSelectedCustomer(currentEmail);
     }
   }, [currentEmail]);
+
+  // Load contracts ledger to accurately check historical demo trials and orders
+  useEffect(() => {
+    let isMounted = true;
+    contractApi
+      .getContracts()
+      .then((list) => {
+        if (isMounted && Array.isArray(list)) {
+          setContractsList(list);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Auto-selected product: "Cloud Services" (Read only)
   const product = 'Cloud Services';
@@ -496,21 +516,155 @@ export default function NewSubscriptionView({
     };
   }, []);
 
+  // Identify currently selected customer record from customers list
+  const activeCustomer = useMemo(() => {
+    if (!selectedCustomer) return null;
+    const lower = String(selectedCustomer).trim().toLowerCase();
+    return (
+      customersList.find(
+        (c) =>
+          (c.email && c.email.toLowerCase() === lower) ||
+          (c.loginEmail && c.loginEmail.toLowerCase() === lower) ||
+          (c.customerId && String(c.customerId).toLowerCase() === lower)
+      ) || null
+    );
+  }, [selectedCustomer, customersList]);
+
+  const isCurrentCustomer = useMemo(() => {
+    if (!selectedCustomer) return false;
+    const lower = String(selectedCustomer).trim().toLowerCase();
+    return (
+      Boolean(currentEmail && lower === currentEmail.toLowerCase()) ||
+      Boolean(customer?.email && lower === customer.email.toLowerCase()) ||
+      Boolean(account?.email && lower === account.email.toLowerCase())
+    );
+  }, [selectedCustomer, currentEmail, customer, account]);
+
+  // Determine if this specific customer has already taken a demo trial once
+  const isCustomerDemoUsed = useMemo(() => {
+    // 1. Explicit flag on customer or portal account
+    if (activeCustomer?.demoTrialUsed) return true;
+    if (isCurrentCustomer && (account?.demoTrialUsed || customer?.demoTrialUsed || portalData?.account?.demoTrialUsed)) {
+      return true;
+    }
+
+    // 2. Customer lifecycle stage is Demo (legacy 'demo'/'trial' words normalize to it)
+    if (normalizeCustomerLifecycle(activeCustomer?.status) === 'Demo') return true;
+    if (
+      isCurrentCustomer &&
+      [account?.status, customer?.status, portalData?.account?.status].some(
+        (status) => normalizeCustomerLifecycle(status) === 'Demo'
+      )
+    ) {
+      return true;
+    }
+
+    // 3. Customer plan string mentions demo or trial
+    if (/demo|trial/i.test(activeCustomer?.plan || '')) return true;
+    if (isCurrentCustomer && (/demo|trial/i.test(account?.plan || '') || /demo|trial/i.test(customer?.plan || ''))) {
+      return true;
+    }
+
+    // 4. Portal data contains active or historical demo products
+    if (isCurrentCustomer && Array.isArray(portalData?.demoProducts) && portalData.demoProducts.length > 0) {
+      return true;
+    }
+
+    // 5. Check contracts ledger for any demo or trial contract belonging to this customer
+    if (!selectedCustomer) return false;
+    const lowerEmail = String(selectedCustomer).trim().toLowerCase();
+    const custCompany = (
+      activeCustomer?.company ||
+      (isCurrentCustomer ? (account?.company || customer?.company) : '') ||
+      ''
+    ).trim().toLowerCase();
+    const custName = (
+      activeCustomer?.name ||
+      (isCurrentCustomer ? (account?.name || customer?.name) : '') ||
+      ''
+    ).trim().toLowerCase();
+
+    const hasMatchingDemoContract = contractsList.some((ctr) => {
+      const ctrEmail = String(ctr.email || ctr.personEmail || ctr.createdBy?.email || '').trim().toLowerCase();
+      const ctrCompany = String(ctr.company || ctr.accountName || ctr.customer || '').trim().toLowerCase();
+
+      const matchesCustomer =
+        (ctrEmail && ctrEmail === lowerEmail) ||
+        (custCompany && ctrCompany && ctrCompany === custCompany) ||
+        (custName && ctrCompany && ctrCompany === custName);
+
+      if (!matchesCustomer) return false;
+
+      return Boolean(
+        ctr.isDemoTrial ||
+        ctr.trialUsed ||
+        ctr.contractType === 'Trial' ||
+        ctr.productCategory === 'Trial' ||
+        String(ctr.status).toUpperCase() === 'DEMO' ||
+        String(ctr.status).toUpperCase() === 'CONVERTED' ||
+        /demo|trial/i.test(ctr.name || ctr.service || '')
+      );
+    });
+
+    if (hasMatchingDemoContract) return true;
+
+    // 6. If customer has settled paid contracts or active paid products, initial demo is considered used
+    if (activeCustomer?.orderCount > 0 || (isCurrentCustomer && ((portalData?.kpi?.activeProducts ?? 0) > 0 || (portalData?.kpi?.totalPaid ?? 0) > 0))) {
+      return true;
+    }
+
+    return false;
+  }, [
+    activeCustomer,
+    isCurrentCustomer,
+    account,
+    customer,
+    portalData,
+    selectedCustomer,
+    contractsList
+  ]);
+
+  const demoExtensionAllowed = Boolean(
+    activeCustomer?.demoExtensionAllowed ||
+    (isCurrentCustomer && (account?.demoExtensionAllowed || portalData?.account?.demoExtensionAllowed))
+  );
+
+  const demoExtensionDays = Number(
+    activeCustomer?.demoExtensionDays ||
+    (isCurrentCustomer ? (account?.demoExtensionDays || portalData?.account?.demoExtensionDays) : 0) ||
+    7
+  );
+
+  // If customer already used demo and has no administrator extension authorized, hide the demo plan completely
+  const shouldHideDemo = Boolean(isCustomerDemoUsed && !demoExtensionAllowed);
+
+  // Filter out demo plans for customers who have already taken the demo once
+  const visiblePlans = useMemo(() => {
+    if (!shouldHideDemo) return plans;
+    return plans.filter((p) => !p.isDemoPlan);
+  }, [plans, shouldHideDemo]);
+
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const selectedPlan = useMemo(
-    () => plans.find((p) => p.id === selectedPlanId) || null,
-    [plans, selectedPlanId]
+    () => visiblePlans.find((p) => p.id === selectedPlanId) || null,
+    [visiblePlans, selectedPlanId]
   );
+
+  // Reset selected plan if it was a demo plan and the selected customer has already taken the demo
+  useEffect(() => {
+    if (shouldHideDemo && selectedPlan?.isDemoPlan) {
+      setSelectedPlanId('');
+      if (selectedDurationKey === 'demo_term') {
+        setSelectedDurationKey('');
+      }
+    }
+  }, [shouldHideDemo, selectedPlan, selectedDurationKey]);
 
   const unitPrice = selectedPlan ? selectedPlan.monthlyPrice : '';
   const description = selectedPlan ? selectedPlan.description : '';
   const [quantity, setQuantity] = useState(1);
 
-  // Single demo plan policy derived from customer account
-  const demoTrialUsed = Boolean(account?.demoTrialUsed);
-  const demoExtensionAllowed = Boolean(account?.demoExtensionAllowed);
-  const demoExtensionDays = Number(account?.demoExtensionDays || 7);
-  const isDemoBlocked = Boolean(selectedPlan?.isDemoPlan && demoTrialUsed && !demoExtensionAllowed);
+  const isDemoBlocked = Boolean(selectedPlan?.isDemoPlan && isCustomerDemoUsed && !demoExtensionAllowed);
 
   // No autofill - Plan Duration starts unselected
   const [selectedDurationKey, setSelectedDurationKey] = useState('');
@@ -606,7 +760,7 @@ export default function NewSubscriptionView({
 
     // Demo Trial activation branch: immediately activates the demo in DB for the customer for the demo period
     if (selectedPlan.isDemoPlan) {
-      if (demoTrialUsed && !demoExtensionAllowed) {
+      if (shouldHideDemo || (isCustomerDemoUsed && !demoExtensionAllowed)) {
         toast.error(
           'You have already used your free demo trial once. To extend your demo trial period, please contact administrator support.'
         );
@@ -850,7 +1004,7 @@ export default function NewSubscriptionView({
             </div>
           )}
 
-          {selectedPlan?.isDemoPlan && demoTrialUsed && demoExtensionAllowed && (
+          {selectedPlan?.isDemoPlan && isCustomerDemoUsed && demoExtensionAllowed && (
             <div
               style={{
                 background: '#ecfdf5',
@@ -878,21 +1032,21 @@ export default function NewSubscriptionView({
 
           {/* Row 3: Plan Name, Unit Price, Quantity */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : '2fr 1fr 1fr', gap: isMobile ? '16px' : '20px' }}>
-            {/* Plan Name (live catalog, no autofill) */}
+            {/* Plan Name (live catalog, filtered dynamically per customer) */}
             <div style={{ gridColumn: isMobile ? '1 / -1' : undefined }}>
               <label style={labelStyle}>
                 Plan Name <span style={starStyle}>*</span>
               </label>
               <PlanSelect
-                plans={plans}
+                plans={visiblePlans}
                 selectedId={selectedPlanId}
                 onChange={(plan) => setSelectedPlanId(plan.id)}
                 loading={loadingPlans}
                 errorMessage={plansError}
               />
-              {!loadingPlans && plans.length > 0 && (
+              {!loadingPlans && visiblePlans.length > 0 && (
                 <span style={{ display: 'block', marginTop: '5px', fontSize: '0.75rem', color: '#94a3b8' }}>
-                  {plans.length} published plans · billed per month, per configuration
+                  {visiblePlans.length} published plans · billed per month, per configuration
                 </span>
               )}
             </div>

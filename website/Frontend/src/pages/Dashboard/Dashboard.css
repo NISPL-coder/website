@@ -10849,11 +10849,20 @@
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
 }
 
-/* ── 2. Top 4 KPI Metric Cards (FlowMail Style) ─────────────────────────── */
+/* ── 2. Top KPI Metric Cards (FlowMail Style) ─────────────────────────── */
 .flowmail-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
+}
+
+.flowmail-kpi-card.is-clickable {
+  cursor: pointer;
+}
+
+.flowmail-kpi-card.is-clickable:hover {
+  border-color: #a5b4fc;
+  box-shadow: 0 12px 28px -4px rgba(99, 102, 241, 0.12), 0 4px 10px -2px rgba(99, 102, 241, 0.06);
 }
 
 .flowmail-kpi-card {
@@ -12176,6 +12185,12 @@
 }
 
 /* ── Responsive FlowMail Overrides ───────────────────────────────────────── */
+@media (max-width: 1440px) {
+  .flowmail-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+}
+
 @media (max-width: 1280px) {
   .flowmail-kpi-grid {
     grid-template-columns: repeat(2, 1fr);

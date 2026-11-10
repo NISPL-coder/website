@@ -213,6 +213,8 @@
 .gr-modal-overlay,
 .help-modal-overlay,
 .demo-modal-overlay,
+.demo-details-overlay,
+.customer-otp-overlay,
 .nis-search-backdrop,
 .about-lightbox-backdrop {
   z-index: 2147483000 !important;

@@ -3,6 +3,7 @@ import Contract, { getContractsFromFile, saveContractsToFile } from '../models/C
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { nextContractCode } from '../services/contractProvisioning.js';
+import { refreshCustomerLifecycle } from '../services/customerLifecycle.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import {
@@ -30,11 +31,34 @@ export const getContracts = async (req, res) => {
 
     const withContacts = await attachCustomerContacts(list);
 
-    const formatted = redactRecords(req.user, 'contract', withContacts.map((c) => ({
-      ...c,
-      id: c.contractId || c._id || c.id,
-      sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
-    })));
+    const now = Date.now();
+    const formatted = redactRecords(req.user, 'contract', withContacts.map((c) => {
+      const isDemo = Boolean(
+        c.isDemoTrial ||
+        c.contractType === 'Trial' ||
+        c.productCategory === 'Trial' ||
+        String(c.status).toUpperCase() === 'DEMO' ||
+        String(c.status).toUpperCase() === 'DEMO-INACTIVE' ||
+        String(c.status).toUpperCase() === 'CONVERTED'
+      );
+      const isExpired = c.endDate || c.expiryDate
+        ? new Date(c.endDate || c.expiryDate).getTime() < now
+        : false;
+      const isConverted = Boolean(c.convertedToPaid) ||
+        ['converted', 'demoinactive', 'demo-inactive'].includes(String(c.status || '').toLowerCase().replace(/[\s_-]/g, ''));
+
+      let effectiveStatus = c.status;
+      if (isDemo && (isExpired || isConverted)) {
+        effectiveStatus = 'DEMO-Inactive';
+      }
+
+      return {
+        ...c,
+        id: c.contractId || c._id || c.id,
+        status: effectiveStatus,
+        sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
+      };
+    }));
 
     return res.status(200).json({
       success: true,
@@ -62,6 +86,7 @@ export const createContract = async (req, res) => {
       company,
       accountName,
       customer,
+      customerId,
       accountId,
       email,
       service,
@@ -185,6 +210,7 @@ export const createContract = async (req, res) => {
         name: cleanName,
         company: effectiveCompany,
         customer: effectiveCustomer,
+        customerId: String(customerId || targetCustomer?.customerId || '').trim(),
         accountId: resolvedAccountId,
         email: effectiveEmail,
         service: service || `${effectiveContractType} (${effectiveSubPeriod})`,
@@ -220,6 +246,7 @@ export const createContract = async (req, res) => {
         name: cleanName,
         company: effectiveCompany,
         customer: effectiveCustomer,
+        customerId: String(customerId || targetCustomer?.customerId || '').trim(),
         accountId: resolvedAccountId,
         email: effectiveEmail,
         service: service || `${effectiveContractType} (${effectiveSubPeriod})`,
@@ -320,6 +347,14 @@ export const createContract = async (req, res) => {
 
     const [withContacts] = await attachCustomerContacts([savedContract]);
     const finalContract = withContacts || savedContract;
+
+    // Raising or starting a paid contract is provisioning: the account behind
+    // it moves out of InProgress once the service is live.
+    await refreshCustomerLifecycle({
+      customerId: finalContract.customerId || targetCustomer?.customerId,
+      email: finalContract.email,
+      company: finalContract.company
+    }).catch((err) => console.warn('[ContractController] Lifecycle note:', err.message));
 
     return res.status(201).json({
       success: true,
@@ -567,6 +602,12 @@ export const updateContract = async (req, res) => {
     const [withContacts] = await attachCustomerContacts([savedContract]);
     const finalContract = withContacts || savedContract;
 
+    await refreshCustomerLifecycle({
+      customerId: finalContract.customerId,
+      email: finalContract.email,
+      company: finalContract.company
+    }).catch((err) => console.warn('[ContractController] Lifecycle note:', err.message));
+
     return res.status(200).json({
       success: true,
       contract: {
@@ -591,6 +632,7 @@ export const deleteContract = async (req, res) => {
       ? { $or: [{ contractId: id }, { _id: id }] }
       : { contractId: id };
 
+    const removed = isMongoConnected() ? await Contract.findOne(query).lean() : getContractsFromFile().find((c) => c.contractId === id || c.id === id);
     if (isMongoConnected()) {
       await Contract.findOneAndDelete(query);
     }
@@ -599,6 +641,14 @@ export const deleteContract = async (req, res) => {
       (c) => c.contractId !== id && c.id !== id && c._id !== id
     );
     saveContractsToFile(fileList);
+
+    if (removed) {
+      await refreshCustomerLifecycle({
+        customerId: removed.customerId,
+        email: removed.email,
+        company: removed.company
+      }).catch((err) => console.warn('[ContractController] Lifecycle note:', err.message));
+    }
 
     await logNotification({
       type: 'contract_deleted',
@@ -882,6 +932,7 @@ export const importContracts = async (req, res) => {
       : { name: '', email: '', role: '' };
 
     const results = [];
+    const touchedAccounts = new Map();
     let succeededCount = 0;
     let failedCount = 0;
     let syncedCount = 0;
@@ -1013,6 +1064,12 @@ export const importContracts = async (req, res) => {
         };
         if (sangamResult.success) syncedCount += 1;
 
+        touchedAccounts.set(`${saved.email}|${saved.company}`, {
+          customerId: saved.customerId,
+          email: saved.email,
+          company: saved.company
+        });
+
         if (isMongoConnected()) {
           await Contract.findOneAndUpdate({ contractId: contractCode }, { $set: { sangamCrm } });
         } else {
@@ -1040,6 +1097,12 @@ export const importContracts = async (req, res) => {
         results.push({ row: i + 1, name: cleanName || 'Unknown', ok: false, error: rowErr.message });
         failedCount += 1;
       }
+    }
+
+    for (const identity of touchedAccounts.values()) {
+      await refreshCustomerLifecycle(identity).catch((err) =>
+        console.warn('[ContractController] Import lifecycle note:', err.message)
+      );
     }
 
     await logNotification({

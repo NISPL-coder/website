@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Check, Search, X } from 'lucide-react';
 import Select from 'react-select';
 import { compactSelectStyles } from './reactSelectStyles';
@@ -58,13 +58,19 @@ const STATUS_TONES = {
   overdue: '#dc2626'
 };
 
-export default function ReceiptSection({ receipts }) {
+export default function ReceiptSection({ receipts, externalSearch }) {
   const { visibleColumns } = usePermissions();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [viewing, setViewing] = useState(null);
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null) {
+      setSearchQuery(externalSearch);
+    }
+  }, [externalSearch]);
 
   const statusOptions = useMemo(() => {
     const counts = new Map();
@@ -299,9 +305,9 @@ export default function ReceiptSection({ receipts }) {
       {/* 1. Header with Title on Left and Export Action on Right */}
       <div className="adm-card-header">
         <div className="adm-card-header-info">
-          <h1 className="adm-section-title">Customer Payment Receipts</h1>
+          <h1 className="adm-section-title">Receipt List</h1>
           <p className="adm-section-sub">
-            Every payment on the ledger with its customer, product, duration and GST split.
+            View and download payment receipts for all transactions.
           </p>
         </div>
 

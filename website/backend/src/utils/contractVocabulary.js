@@ -8,7 +8,7 @@
  * spelling.
  */
 
-export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DISABLED'];
+export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -26,6 +26,9 @@ const STATUS_LOOKUP = {
   inprogress: 'In Progress',
   closed: 'Closed',
   demo: 'DEMO',
+  demoinactive: 'DEMO-Inactive',
+  'demo-inactive': 'DEMO-Inactive',
+  converted: 'DEMO-Inactive',
   disabled: 'DISABLED',
   // Previous vocabulary.
   active: 'In Progress',
@@ -51,10 +54,35 @@ const TYPE_LOOKUP = CONTRACT_TYPES.reduce(
 );
 
 /** 'NotStarted', 'active', 'INACTIVE' → the one spelling the console renders. */
-export const normalizeContractStatus = (value) => {
-  const raw = String(value ?? '').trim();
+export const normalizeContractStatus = (value, contract = null) => {
+  const ctx = (value && typeof value === 'object') ? value : (contract || {});
+  const raw = String((typeof value === 'object' ? value.status : value) ?? '').trim();
   if (!raw) return '';
-  return STATUS_LOOKUP[squash(raw)] || raw;
+
+  const squashed = squash(raw);
+  if (squashed === 'demoinactive' || squashed === 'converted') {
+    return 'DEMO-Inactive';
+  }
+
+  const isDemo =
+    squashed === 'demo' ||
+    Boolean(ctx.isDemoTrial) ||
+    ctx.contractType === 'Trial' ||
+    ctx.productCategory === 'Trial';
+
+  if (isDemo) {
+    const isExpired = ctx.endDate || ctx.expiryDate
+      ? new Date(ctx.endDate || ctx.expiryDate).getTime() < Date.now()
+      : false;
+    const isConverted = Boolean(ctx.convertedToPaid) || squashed === 'converted';
+
+    if (isConverted || isExpired) {
+      return 'DEMO-Inactive';
+    }
+    return 'DEMO';
+  }
+
+  return STATUS_LOOKUP[squashed] || raw;
 };
 
 /** '' when the word is unknown, so the caller decides the default. */

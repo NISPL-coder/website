@@ -113,8 +113,11 @@ const customerSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'demo', 'inactive', 'suspended'],
-      default: 'active',
+      // Canonical lifecycle first; the lowercase words stay readable only so
+      // rows written before the lifecycle migration can still be loaded and
+      // repaired. Every writer now stores the canonical spelling.
+      enum: ['Inactive', 'Demo', 'InProgress', 'Active', 'active', 'demo', 'inactive', 'suspended'],
+      default: 'Inactive',
       index: true
     },
     demoTrialUsed: {
@@ -128,6 +131,14 @@ const customerSchema = new mongoose.Schema(
     demoExtensionDays: {
       type: Number,
       default: 0
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false
+    },
+    emailVerifiedAt: {
+      type: Date,
+      default: null
     },
     registered: {
       type: String,

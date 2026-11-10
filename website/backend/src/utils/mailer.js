@@ -1,6 +1,10 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
-import { buildAdminOtpEmail, buildPasswordResetEmail } from '../templates/emails/index.js';
+import {
+  buildAdminOtpEmail,
+  buildPasswordResetEmail,
+  buildCustomerVerificationOtpEmail
+} from '../templates/emails/index.js';
 
 function getTransporter() {
   const isGmail = env.SMTP_HOST && env.SMTP_HOST.toLowerCase().includes('gmail');
@@ -60,6 +64,31 @@ export async function sendAdminOtpEmail(email, otp) {
   const { subject, text, html } = buildAdminOtpEmail({
     email,
     otp,
+    expiresInMinutes: 10
+  });
+
+  await transporter.sendMail({
+    from: env.MAIL_FROM,
+    to: email,
+    subject,
+    text,
+    html
+  });
+}
+
+export async function sendCustomerVerificationOtpEmail(email, otp, name = '') {
+  if (!env.SMTP_HOST || !env.SMTP_PASS) {
+    console.log(`\n==============================================`);
+    console.log(`[NISPL DEV MAIL] Customer Email Verification OTP for ${email}: ${otp}`);
+    console.log(`==============================================\n`);
+    return;
+  }
+
+  const transporter = getTransporter();
+  const { subject, text, html } = buildCustomerVerificationOtpEmail({
+    email,
+    otp,
+    name,
     expiresInMinutes: 10
   });
 

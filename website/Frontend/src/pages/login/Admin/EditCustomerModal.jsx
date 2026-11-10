@@ -4,8 +4,8 @@ import { createPortal } from 'react-dom';
 import { X, Check, Save, User, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
 
-const STATUS_OPTIONS = ['active', 'demo', 'inactive', 'suspended'];
 const RELATIONSHIP_OPTIONS = ['Customer', 'Partner', 'Prospect', 'Competitor', 'Integrator', 'Other'];
 const INDUSTRY_OPTIONS = [
   'Technology',
@@ -35,7 +35,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
     accountRelationship: 'Customer',
     plan: '',
     serverNode: '',
-    status: 'active',
+    status: 'Inactive',
     mrr: '',
     street: '',
     area: '',
@@ -63,7 +63,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
         accountRelationship: customer.accountRelationship || 'Customer',
         plan: customer.plan || '',
         serverNode: customer.serverNode || '',
-        status: customer.status || 'active',
+        status: customer.status || 'Inactive',
         mrr: customer.mrr || '',
         street: addr.street || '',
         area: addr.area || '',
@@ -145,7 +145,6 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       accountRelationship: formData.accountRelationship,
       plan: formData.plan,
       serverNode: formData.serverNode,
-      status: formData.status,
       mrr: formData.mrr,
       address: {
         street: formData.street,
@@ -180,7 +179,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
         },
         metadata: {
           plan: payload.plan,
-          status: payload.status,
+          status: customer.status,
           serverNode: payload.serverNode
         }
       });
@@ -518,16 +517,15 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
               </div>
 
               <div>
-                <label className="adm-form-label">Status</label>
-                <select
+                <label className="adm-form-label">Lifecycle Status</label>
+                <input
+                  type="text"
                   className="adm-form-input"
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                >
-                  {STATUS_OPTIONS.map((st) => (
-                    <option key={st} value={st}>{st.toUpperCase()}</option>
-                  ))}
-                </select>
+                  value={customerLifecycleLabel(formData.status)}
+                  readOnly
+                  title="Derived automatically from demo, purchase, payment and activation records"
+                  style={{ background: '#f8fafc', color: '#475569', cursor: 'default' }}
+                />
               </div>
             </div>
 

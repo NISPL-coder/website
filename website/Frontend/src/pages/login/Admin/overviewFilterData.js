@@ -51,6 +51,7 @@ function pendingOverview(period, fy) {
       totalPipelineCount: 0,
       activeCount: 0,
       demoCount: 0,
+      inProgressCount: 0,
       inactiveCount: 0,
       accountsAdded: 0
     },

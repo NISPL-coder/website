@@ -10,13 +10,26 @@ import {
   UserCheck,
   ChevronRight,
   CheckCircle2,
-  Inbox
+  Inbox,
+  Sparkles,
+  ShieldAlert,
+  ShieldCheck,
+  MailCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
 import { toPortalReceiptRow } from '../../Dashboard/utils/portalReceiptRows';
 import { formatINR } from '../../../utils/formatters';
+import { normalizeCustomerLifecycle, customerLifecycleLabel } from '../../../utils/customerLifecycle';
+import DemoProductDetailsModal from './components/DemoProductDetailsModal';
+
+const LIFECYCLE_BADGE = {
+  Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
+  Demo: { background: '#fffbeb', color: '#b45309', border: '#fde68a', icon: Sparkles },
+  InProgress: { background: '#eef2ff', color: '#4338ca', border: '#c7d2fe', icon: Clock },
+  Inactive: { background: '#f1f5f9', color: '#475569', border: '#e2e8f0', icon: Inbox }
+};
 
 function formatDate(value) {
   if (!value) return '—';
@@ -40,9 +53,29 @@ function statusTone(status) {
   return 'completed';
 }
 
-function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction }) {
+function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction, onClick, isClickable = false }) {
+  const handleClick = () => {
+    if (onClick) onClick();
+    else if (onAction) onAction();
+  };
+
   return (
-    <div className="flowmail-kpi-card">
+    <div
+      className={`flowmail-kpi-card ${isClickable ? 'is-clickable' : ''}`}
+      onClick={isClickable ? handleClick : undefined}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={
+        isClickable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
+            }
+          : undefined
+      }
+    >
       <div className="flowmail-kpi-top">
         <div className="flowmail-kpi-label-group">
           <Icon size={16} className="flowmail-kpi-icon" />
@@ -57,7 +90,15 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction }) {
       <div className="flowmail-kpi-foot">
         {note ? <span className="flowmail-kpi-note">{note}</span> : <span />}
         {actionLabel ? (
-          <button type="button" className="flowmail-kpi-link" onClick={onAction}>
+          <button
+            type="button"
+            className="flowmail-kpi-link"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onAction) onAction();
+              else if (onClick) onClick();
+            }}
+          >
             <span>{actionLabel}</span>
             <ChevronRight size={13} />
           </button>
@@ -67,12 +108,14 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction }) {
   );
 }
 
-export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onPay, onOpenSupport }) {
+export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onPay, onOpenSupport, onOpenVerifyEmail }) {
   const [view, setView] = useState(() => ({
     status: portalData ? 'ready' : 'loading',
     data: portalData || null,
     error: ''
   }));
+
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!portalData) {
@@ -120,10 +163,60 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const data = view.data;
   const account = data?.account || {};
   const kpi = data?.kpi || {};
+  const isEmailVerified = Boolean(customer?.isEmailVerified || account?.isEmailVerified);
+  const primaryEmail = customer?.email || account?.email || '';
   const payments = (data?.recentPayments && data.recentPayments.length > 0)
     ? data.recentPayments
     : (data?.payments || []);
   const products = data?.products || [];
+
+  const activeCount = kpi.activeProducts ?? products.filter(
+    (p) =>
+      !p.expired &&
+      ['in progress', 'active'].includes(String(p.status || '').toLowerCase()) &&
+      String(p.status).toUpperCase() !== 'DEMO' &&
+      !p.isDemoTrial
+  ).length;
+
+  const hasPurchasedPaidProduct =
+    activeCount > 0 ||
+    (kpi.totalPaid && kpi.totalPaid > 0) ||
+    Boolean(data?.hasConvertedDemo) ||
+    products.some((p) => p.convertedToPaid || String(p.status).toUpperCase() === 'CONVERTED');
+
+  const hasConvertedDemo =
+    Boolean(data?.hasConvertedDemo) ||
+    (hasPurchasedPaidProduct &&
+      products.some(
+        (p) =>
+          p.isDemoTrial ||
+          p.contractType === 'Trial' ||
+          p.category === 'Trial' ||
+          String(p.status).toUpperCase() === 'DEMO' ||
+          p.convertedToPaid ||
+          String(p.status).toUpperCase() === 'CONVERTED'
+      ));
+
+  // Rule: "once demo is issued and then purchased the products the demo will be convert.
+  // both demo and active product cannot be there."
+  // If activeCount > 0 or hasPurchasedPaidProduct, demoCount MUST be 0 and demoProducts empty.
+  const demoProducts = hasPurchasedPaidProduct
+    ? []
+    : Array.isArray(data?.demoProducts)
+    ? data.demoProducts
+    : products.filter(
+        (p) =>
+          (p.isDemoTrial ||
+            p.contractType === 'Trial' ||
+            p.category === 'Trial' ||
+            String(p.status).toUpperCase() === 'DEMO') &&
+          String(p.status).toUpperCase() !== 'CONVERTED' &&
+          !p.convertedToPaid &&
+          !p.expired
+      );
+
+  const demoCount = hasPurchasedPaidProduct ? 0 : (kpi.demoProducts ?? demoProducts.length);
+
   const reminder = data?.reminder || null;
   const reminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders
@@ -131,6 +224,10 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const greeting =
     account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
+
+  const lifecycleStage = normalizeCustomerLifecycle(account?.status || customer?.status);
+  const lifecycleBadge = LIFECYCLE_BADGE[lifecycleStage];
+  const LifecycleIcon = lifecycleBadge.icon;
 
   // The portal's account row is the billing identity printed on the invoice.
   const billing = {
@@ -159,12 +256,141 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       {/* ── 1. Welcome Banner ── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
-          <h2 className="flowmail-welcome-title">Hello {greeting}!</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <h2 className="flowmail-welcome-title">Hello {greeting}!</h2>
+            {data && (
+              <span
+                title="Account lifecycle status"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: lifecycleBadge.background,
+                  color: lifecycleBadge.color,
+                  border: `1px solid ${lifecycleBadge.border}`,
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600
+                }}
+              >
+                <LifecycleIcon size={13} />
+                <span>{customerLifecycleLabel(lifecycleStage)}</span>
+              </span>
+            )}
+            {isEmailVerified ? (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: '#ecfdf5',
+                  color: '#047857',
+                  border: '1px solid #a7f3d0',
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600
+                }}
+              >
+                <CheckCircle2 size={13} color="#059669" />
+                <span>Verified Email</span>
+              </span>
+            ) : (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: '#fffbeb',
+                  color: '#b45309',
+                  border: '1px solid #fde68a',
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600
+                }}
+              >
+                <ShieldAlert size={13} color="#d97706" />
+                <span>Email Unverified</span>
+              </span>
+            )}
+          </div>
           <p className="flowmail-welcome-sub">
             Manage your products, payments and stay updated with your account.
           </p>
         </div>
       </section>
+
+      {/* ── Primary Email Verification Alert Banner (if unverified) ── */}
+      {!isEmailVerified && (
+        <section
+          className="flowmail-card animate-fade-in"
+          style={{
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+            borderRadius: '12px',
+            padding: '14px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+            boxShadow: '0 1px 3px rgba(245, 158, 11, 0.08)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#fef3c7',
+                border: '1px solid #f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#d97706',
+                flexShrink: 0
+              }}
+            >
+              <ShieldAlert size={18} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#92400e' }}>
+                Primary Email Verification Required
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#b45309', marginTop: '2px' }}>
+                Please verify your primary email ({primaryEmail || 'your email'}) via OTP to secure your account.
+              </div>
+            </div>
+          </div>
+          {onOpenVerifyEmail && (
+            <button
+              type="button"
+              onClick={onOpenVerifyEmail}
+              style={{
+                background: '#d97706',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '7px 14px',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)',
+                transition: 'background 0.15s ease'
+              }}
+            >
+              <MailCheck size={15} />
+              <span>Verify Email Now</span>
+            </button>
+          )}
+        </section>
+      )}
 
       {view.status === 'loading' && (
         <section className="flowmail-state-card">
@@ -190,10 +416,24 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
             <KpiCard
               icon={Package}
               label="Active Products"
-              value={kpi.activeProducts ?? 0}
-              note={products.length ? `${products.length} on this account` : 'Nothing subscribed yet'}
+              value={activeCount}
+              note={activeCount > 0 ? `${activeCount} on this account` : 'Nothing subscribed yet'}
               actionLabel="View products"
               onAction={() => goTo('products')}
+            />
+            <KpiCard
+              icon={Sparkles}
+              label="Demo Product"
+              value={demoCount}
+              note={
+                demoCount > 0
+                  ? (demoProducts[0]?.name ? `${demoProducts[0].name}` : `${demoCount} on this account`)
+                  : (hasConvertedDemo ? 'Converted to paid plan' : 'No demo active')
+              }
+              actionLabel="View demo"
+              onAction={() => setIsDemoModalOpen(true)}
+              onClick={() => setIsDemoModalOpen(true)}
+              isClickable
             />
             <KpiCard
               icon={CreditCard}
@@ -384,10 +624,41 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                   </p>
                 ) : (
                   products.map((product) => {
+                    const isRawDemo = Boolean(
+                      product.isDemoTrial ||
+                      product.contractType === 'Trial' ||
+                      product.category === 'Trial' ||
+                      String(product.status).toUpperCase() === 'DEMO' ||
+                      String(product.status).toUpperCase() === 'DEMO-INACTIVE'
+                    );
+                    const isConverted =
+                      Boolean(product.convertedToPaid) ||
+                      String(product.status).toUpperCase() === 'CONVERTED' ||
+                      String(product.status).toUpperCase() === 'DEMO-INACTIVE' ||
+                      (hasPurchasedPaidProduct && isRawDemo);
+                    const isDemo = !isConverted && isRawDemo && !product.expired;
                     const metaParts = [
                       product.contractType || product.category || null,
-                      product.expiryDate ? `Valid till ${formatDate(product.expiryDate)}` : 'Validity not recorded'
+                      isConverted
+                        ? 'Converted to paid plan'
+                        : product.expiryDate
+                        ? `Valid till ${formatDate(product.expiryDate)}`
+                        : 'Validity not recorded'
                     ].filter(Boolean);
+                    const displayStatus = isConverted
+                      ? 'Converted'
+                      : product.expired
+                      ? 'Expired'
+                      : isDemo
+                      ? 'Demo Trial'
+                      : product.status || 'Active';
+                    const badgeTone = isConverted
+                      ? 'completed'
+                      : product.expired
+                      ? 'overdue'
+                      : isDemo
+                      ? 'due'
+                      : 'active';
                     return (
                       <div key={product.id || product.name} className="flowmail-product-row">
                         <span className="flowmail-product-icon">
@@ -397,8 +668,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                           <span className="flowmail-product-name">{product.name}</span>
                           <span className="flowmail-product-meta">{metaParts.join(' · ')}</span>
                         </div>
-                        <span className={`flowmail-status-badge ${product.expired ? 'overdue' : 'active'}`}>
-                          {product.expired ? 'Expired' : product.status || 'Active'}
+                        <span className={`flowmail-status-badge ${badgeTone}`}>
+                          {displayStatus}
                         </span>
                         <button
                           type="button"
@@ -445,6 +716,18 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
           </section>
         </>
       )}
+
+      {/* ── Demo Product Details Modal ── */}
+      <DemoProductDetailsModal
+        isOpen={isDemoModalOpen}
+        onClose={() => setIsDemoModalOpen(false)}
+        demoProducts={demoProducts}
+        customer={customer}
+        account={account}
+        hasConvertedDemo={hasConvertedDemo}
+        onNavigateTab={goTo}
+        onOpenSupport={onOpenSupport}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import { parseAmount, findCatalogueRow, resolveDisplayName } from './portalController.js';
+import { activateAccountAfterPayment } from '../services/contractProvisioning.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -756,6 +757,16 @@ export const createPayment = async (req, res) => {
         },
         metadata: newPaymentData
       });
+
+      // Money received settles the account: any open demo trial converts now,
+      // never on a portal read.
+      await activateAccountAfterPayment({
+        email: newPaymentData.email,
+        company: newPaymentData.company,
+        person: newPaymentData.customer,
+        customerId: newPaymentData.customerId,
+        contractId: newPaymentData.contractId
+      }).catch((err) => console.warn('[Payment] Demo conversion note:', err.message));
     }
 
     res.status(201).json({
@@ -834,6 +845,18 @@ export const updatePayment = async (req, res) => {
       p.paymentId === id || p.id === id || p.invoiceNumber === id ? { ...p, ...updates } : p
     );
     savePaymentsToFile(updatedList);
+
+    const settledRow =
+      updated || updatedList.find((p) => p.paymentId === id || p.id === id || p.invoiceNumber === id);
+    if (settledRow && ['Received', 'Cleared'].includes(settledRow.status)) {
+      await activateAccountAfterPayment({
+        email: settledRow.email,
+        company: settledRow.company,
+        person: settledRow.customer,
+        customerId: settledRow.customerId,
+        contractId: settledRow.contractId
+      }).catch((err) => console.warn('[Payment] Demo conversion note:', err.message));
+    }
 
     res.json({
       success: true,
@@ -1017,6 +1040,16 @@ export const recordManualPayment = async (req, res) => {
       },
       metadata: newPaymentData
     });
+
+    if (settled) {
+      await activateAccountAfterPayment({
+        email: newPaymentData.email,
+        company: newPaymentData.company,
+        person: newPaymentData.customer,
+        customerId: newPaymentData.customerId,
+        contractId: newPaymentData.contractId
+      }).catch((err) => console.warn('[Payment] Demo conversion note:', err.message));
+    }
 
     res.status(201).json({
       success: true,

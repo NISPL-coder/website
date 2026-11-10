@@ -174,7 +174,6 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         country: selectedCountry,
         postalCode: formState.postalCode || ''
       },
-      status: 'active',
       accountRelationship: 'Customer'
     };
 
@@ -243,7 +242,7 @@ export default function CreateCustomerPage({ customers, setCustomers }) {
         address: addressParts || cityLoc,
         country: selectedCountry,
         state: selectedState,
-        status: 'active',
+        status: 'Inactive',
         registered: new Date().toISOString().split('T')[0],
         sangamCrm: {
           status: 'failed',

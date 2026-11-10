@@ -4,7 +4,6 @@
  * and Sangam CRM synchronization endpoints.
  */
 
-import { authApi } from './authApi';
 import { withAuth, readApiError } from './apiAuth';
 
 const isLocalhost = Boolean(
@@ -29,7 +28,6 @@ export const customerApi = {
         method: 'GET',
         headers: withAuth({ Accept: 'application/json' })
       });
-      authApi._handleRefreshedToken(res);
       if (!res.ok) {
         throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
@@ -54,7 +52,6 @@ export const customerApi = {
         method: 'GET',
         headers: withAuth({ Accept: 'application/json' })
       });
-      authApi._handleRefreshedToken(res);
       if (!res.ok) {
         throw await readApiError(res, `Server returned HTTP ${res.status}`);
       }
@@ -83,7 +80,6 @@ export const customerApi = {
       }),
       body: JSON.stringify(customerData)
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to create customer record.');
@@ -109,7 +105,6 @@ export const customerApi = {
       }),
       body: JSON.stringify({ companies })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Bulk companies import failed.');
@@ -134,7 +129,6 @@ export const customerApi = {
       }),
       body: JSON.stringify({ contacts })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Bulk contacts import failed.');
@@ -160,7 +154,6 @@ export const customerApi = {
       }),
       body: JSON.stringify(customerData)
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to update customer record.');
@@ -182,7 +175,6 @@ export const customerApi = {
       method: 'DELETE',
       headers: withAuth({ Accept: 'application/json' })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to delete customer record.');
@@ -203,7 +195,6 @@ export const customerApi = {
         Accept: 'application/json'
       })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Sangam CRM synchronization retry failed.');
@@ -230,7 +221,6 @@ export const customerApi = {
       }),
       body: JSON.stringify({ additionalDays })
     });
-    authApi._handleRefreshedToken(res);
 
     if (!res.ok) {
       throw await readApiError(res, 'Failed to authorize demo extension.');

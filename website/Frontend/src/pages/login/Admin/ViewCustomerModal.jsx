@@ -21,6 +21,7 @@ import { customerApi } from '../../../services/customerApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { usePermissions } from './PermissionsContext';
 import { receiptsForCustomer } from './adminTableUtils';
+import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
 
 const inr = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
@@ -164,8 +165,8 @@ export default function ViewCustomerModal({
             </div>
             <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
               Contact Representative: <strong>{customer.name}</strong> • Account Status:{' '}
-              <span style={{ textTransform: 'capitalize', fontWeight: 600, color: '#0f172a' }}>
-                {customer.status}
+              <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                {customerLifecycleLabel(customer.status)}
               </span>
             </p>
           </div>

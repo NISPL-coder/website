@@ -35,7 +35,6 @@ export const staffApi = {
       method: 'GET',
       headers: getHeaders()
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to fetch staff accounts.');
@@ -52,7 +51,6 @@ export const staffApi = {
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to create staff member.');
@@ -69,7 +67,6 @@ export const staffApi = {
       headers: getHeaders(),
       body: JSON.stringify({ status })
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to update staff status.');
@@ -83,7 +80,6 @@ export const staffApi = {
    */
   async getColumnRegistry() {
     const res = await fetch(`${PERMISSIONS_BASE_URL}/columns`, { headers: getHeaders() });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to load the column registry.');
@@ -100,7 +96,6 @@ export const staffApi = {
       headers: getHeaders(),
       body: JSON.stringify(payload)
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to update staff access permissions.');
@@ -116,7 +111,6 @@ export const staffApi = {
       method: 'DELETE',
       headers: getHeaders()
     });
-    authApi._handleRefreshedToken(res);
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || data.error || 'Failed to delete staff member.');
