@@ -6,23 +6,15 @@ import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
-import { deriveCustomerLifecycle, refreshCustomerLifecycle } from '../services/customerLifecycle.js';
+import { deriveCustomerLifecycle, refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 /**
- * Helper to match a customer record against a contract record by any identity field
+ * Helper to match a customer record against a contract record by identity
  */
-const isCustomerMatch = (cust, ctr) => {
-  const custIds = [cust.email, cust.customerId, cust.company, cust.name]
-    .filter(Boolean)
-    .map((s) => String(s).toLowerCase().trim());
-  const ctrIds = [ctr.email, ctr.customerId, ctr.company, ctr.customer, ctr.accountName]
-    .filter(Boolean)
-    .map((s) => String(s).toLowerCase().trim());
-  return custIds.some((id) => ctrIds.some((cid) => cid === id || cid.includes(id) || id.includes(cid)));
-};
+const isCustomerMatch = (cust, ctr) => matchesCustomer(cust, ctr);
 
 /**
  * Helper to compute dynamic customer summary cards data
@@ -71,7 +63,7 @@ export const computeCustomerStats = (customerList = [], contractList = [], payme
       totalAccounts: 'All customer records',
       activeClients: `Monthly MRR: ₹${monthlyMrr.toLocaleString('en-IN')}`,
       demoTrials: 'Trials running, nothing purchased yet',
-      inProgressClients: 'Paid, service activation pending',
+      inProgressClients: 'Demo ended or purchase unpaid',
       inactivePaused: 'Registered without demo or purchase'
     }
   };
@@ -126,9 +118,6 @@ const attachOrderCounts = async (list) => {
     );
     const demoTrialUsed = Boolean(
       customer.demoTrialUsed ||
-      (customer.status || '').toLowerCase() === 'demo' ||
-      (customer.status || '').toLowerCase() === 'trial' ||
-      /demo|trial/i.test(customer.plan || '') ||
       hasDemoOrder
     );
     return { ...customer, orderCount: count, demoTrialUsed };

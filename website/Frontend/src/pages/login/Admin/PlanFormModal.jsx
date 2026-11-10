@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Save, Server, Users, Wallet, Clock } from 'lucide-react';
+import { X, Plus, Save, Server, Users, Wallet, Clock, UserCheck, Lock, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productApi } from '../../../services/productApi';
+import { customerApi } from '../../../services/customerApi';
 import { GST_RATE_DEFAULT, formatINR } from '../../Dashboard/utils/pricingUtils';
 
 const SERVER_TYPES = [
@@ -31,7 +32,11 @@ const EMPTY_FORM = {
   pricePerUser: '',
   serverType: 'shared',
   duration: DURATION_OPTIONS[0],
-  priceAmount: '0'
+  priceAmount: '0',
+  isCustomerSpecific: false,
+  targetCustomerEmail: '',
+  targetCustomerId: '',
+  targetCustomerName: ''
 };
 
 const initialForm = (plan, type) => {
@@ -49,7 +54,11 @@ const initialForm = (plan, type) => {
     name: plan.name || '',
     users: String(plan.users || 1),
     pricePerUser: plan.pricePerUser != null ? String(plan.pricePerUser) : '',
-    serverType: plan.serverType === 'dedicated' ? 'dedicated' : 'shared'
+    serverType: plan.serverType === 'dedicated' ? 'dedicated' : 'shared',
+    isCustomerSpecific: Boolean(plan.isCustomerSpecific || plan.targetCustomerEmail),
+    targetCustomerEmail: plan.targetCustomerEmail || '',
+    targetCustomerId: plan.targetCustomerId || '',
+    targetCustomerName: plan.targetCustomerName || ''
   };
 };
 
@@ -58,6 +67,22 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
   const [type, setType] = useState(() => (plan?.isDemoPlan ? 'demo' : defaultType));
   const [form, setForm] = useState(() => initialForm(plan, plan?.isDemoPlan ? 'demo' : defaultType));
   const [isSaving, setIsSaving] = useState(false);
+  const [customersList, setCustomersList] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    customerApi
+      .getCustomers()
+      .then((list) => {
+        if (isMounted && Array.isArray(list)) {
+          setCustomersList(list);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const isEdit = Boolean(plan);
   const amount = Number(form.priceAmount) || 0;
@@ -126,6 +151,10 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
           pricePerUser: breakdown.pricePerUser,
           serverType: form.serverType,
           isCustomPlan: true,
+          isCustomerSpecific: Boolean(form.isCustomerSpecific && form.targetCustomerEmail),
+          targetCustomerEmail: form.isCustomerSpecific ? (form.targetCustomerEmail || '').trim().toLowerCase() : '',
+          targetCustomerId: form.isCustomerSpecific ? (form.targetCustomerId || '').trim() : '',
+          targetCustomerName: form.isCustomerSpecific ? (form.targetCustomerName || '').trim() : '',
           provider: 'ctrls-cloud',
           category: 'Infrastructure',
           ipAddress: plan?.ipAddress || '',
@@ -134,7 +163,11 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
             breakdown.users > 1 ? 's' : ''
           } at ${formatINR(breakdown.pricePerUser)} per user per month (${
             form.serverType === 'dedicated' ? 'Dedicated' : 'Shared'
-          } Server).`,
+          } Server)${
+            form.isCustomerSpecific && form.targetCustomerEmail
+              ? ` [Private Custom Plan for ${form.targetCustomerName || form.targetCustomerEmail}]`
+              : ''
+          }.`,
           available: plan ? plan.available !== false && plan.status !== 'inactive' : true,
           specs: [],
           features: []
@@ -158,6 +191,10 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
     }
     if (breakdown.pricePerUser <= 0) {
       toast.error('Price per user per month must be above ₹0.');
+      return false;
+    }
+    if (form.isCustomerSpecific && !form.targetCustomerEmail) {
+      toast.error('Please select a specific customer for this custom plan.');
       return false;
     }
     return true;
@@ -565,6 +602,159 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Specific Customer Section */}
+                <div style={{ marginTop: '6px', paddingTop: '16px', borderTop: '1px dashed #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <label className="adm-form-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <UserCheck size={16} color="#4f46e5" />
+                      <span>Customer Visibility &amp; Custom Price Access</span>
+                    </label>
+                    <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                      Target specific customer
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                      gap: '10px',
+                      marginBottom: '12px'
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        border: !form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                        background: !form.isCustomerSpecific ? '#eef2ff' : '#ffffff'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="custom-plan-audience"
+                        checked={!form.isCustomerSpecific}
+                        onChange={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            isCustomerSpecific: false,
+                            targetCustomerEmail: '',
+                            targetCustomerId: '',
+                            targetCustomerName: ''
+                          }));
+                        }}
+                        style={{ accentColor: '#4f46e5' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#0f172a' }}>All Customers</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Standard custom plan visible to all</div>
+                      </div>
+                    </label>
+
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        border: form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                        background: form.isCustomerSpecific ? '#eef2ff' : '#ffffff'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="custom-plan-audience"
+                        checked={form.isCustomerSpecific}
+                        onChange={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            isCustomerSpecific: true
+                          }));
+                        }}
+                        style={{ accentColor: '#4f46e5' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#4338ca' }}>Specific Customer Only</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Private custom price only for one customer</div>
+                      </div>
+                    </label>
+                  </div>
+
+                  {form.isCustomerSpecific && (
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '10px',
+                        padding: '14px 16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px'
+                      }}
+                    >
+                      <label className="adm-form-label" style={{ marginBottom: '4px' }}>
+                        Select Target Customer <span className="adm-required-star">*</span>
+                      </label>
+                      <select
+                        className="adm-form-input"
+                        value={form.targetCustomerEmail}
+                        onChange={(e) => {
+                          const selectedEmail = e.target.value;
+                          const matched = customersList.find(
+                            (c) => (c.email || '').toLowerCase() === selectedEmail.toLowerCase()
+                          );
+                          setForm((prev) => ({
+                            ...prev,
+                            targetCustomerEmail: selectedEmail,
+                            targetCustomerId: matched?.customerId || matched?.id || '',
+                            targetCustomerName: matched?.company || matched?.name || matched?.clientName || ''
+                          }));
+                        }}
+                        required
+                      >
+                        <option value="">Select customer from registered accounts...</option>
+                        {customersList.map((c) => {
+                          const email = c.email || '';
+                          const name = c.company || c.name || c.clientName || 'Unnamed';
+                          const cid = c.customerId || c.id || '';
+                          return (
+                            <option key={email || cid} value={email}>
+                              {name} — {email} {cid ? `(${cid})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      {form.targetCustomerEmail && (
+                        <div
+                          style={{
+                            fontSize: '0.78rem',
+                            color: '#0369a1',
+                            background: '#e0f2fe',
+                            border: '1px solid #bae6fd',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <Lock size={14} style={{ flexShrink: 0 }} />
+                          <span>
+                            <strong>Private Custom Price:</strong> Only <strong>{form.targetCustomerName || form.targetCustomerEmail}</strong> ({form.targetCustomerEmail}) will be able to see and purchase this plan. It will remain hidden from all other customers.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </>
             )}

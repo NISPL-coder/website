@@ -30,7 +30,8 @@ export default function ProductDetailsModal({
   onClose,
   onAddToCart,
   onGoToCart,
-  isInCart
+  isInCart,
+  isReadOnly = false
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {

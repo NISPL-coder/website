@@ -174,6 +174,26 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
   const isEmailVerified = Boolean(customer?.isEmailVerified || portal?.account?.isEmailVerified);
 
+  // Active Demo Trial status check — When demo is taken, product purchases are locked until demo expires
+  const activeDemos = portal?.demoProducts || [];
+  const activeDemo =
+    activeDemos.find((d) => !d.expired && String(d.status).toUpperCase() !== 'DEMO-INACTIVE') ||
+    (portal?.products || []).find((p) =>
+      Boolean(p.isDemoTrial || p.contractType === 'Trial' || p.category === 'Trial' || String(p.status).toUpperCase() === 'DEMO') &&
+      !p.expired &&
+      String(p.status).toUpperCase() !== 'DEMO-INACTIVE'
+    ) ||
+    null;
+
+  const isDemoActive = Boolean(
+    activeDemo ||
+    portal?.account?.status === 'Demo' ||
+    customer?.status === 'Demo' ||
+    (portal?.kpi?.demoProducts > 0)
+  );
+
+  const demoExpiryDate = activeDemo?.expiryDate || activeDemo?.endDate || null;
+
   // Automatically prompt customer to verify their primary email via OTP upon logging into their portal
   useEffect(() => {
     if (customer && !isEmailVerified && !hasDismissedOtpModal) {
@@ -451,7 +471,9 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   // Without a scope the prioritized checkout is priced: cart, then open
   // invoices, then the nearest renewal. Overview passes an explicit scope
   // when a specific invoice or renewal is being paid.
-  const startPayment = (scope) => pay(scope || checkout);
+  const startPayment = (scope) => {
+    pay(scope || checkout);
+  };
 
   const navItems = useMemo(
     () => [
@@ -516,6 +538,9 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
                 customer={customer}
                 account={portal?.account}
                 portalData={portal}
+                isReadOnly={false}
+                isDemoActive={false}
+                demoExpiryDate={demoExpiryDate}
                 onAddToCart={handleAddToCart}
                 onGoToCart={() => handleSelectNav('cart')}
                 cartItemIds={cartItems.map((c) => c.id)}
@@ -530,6 +555,9 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
             <div className="flowmail-overview-container animate-fade-in">
               <CartSection
                 cartItems={cartItems}
+                isReadOnly={false}
+                isDemoActive={false}
+                demoExpiryDate={demoExpiryDate}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
                 onProceedToPayment={() => pay(checkout)}

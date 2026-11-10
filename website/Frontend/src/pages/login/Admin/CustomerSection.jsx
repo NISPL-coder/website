@@ -140,7 +140,7 @@ export default function CustomerSection({
       formattedMrr,
       totalDesc: 'All customer records',
       activeDesc: `Monthly MRR: ${formattedMrr}`,
-      inprogressDesc: 'Paid, service activation pending',
+      inprogressDesc: 'Demo ended or purchase unpaid',
       demoDesc: 'Trials running, nothing purchased yet',
       inactiveDesc: 'Registered without demo or purchase'
     };
@@ -639,85 +639,16 @@ export default function CustomerSection({
       minWidth: '190px',
       cell: (cust) => {
         const stage = normalizeCustomerLifecycle(cust.status);
-        const isDemoActive = stage === 'Demo';
-        const hasPaidProduct = stage === 'Active' || stage === 'InProgress';
-        const hadDemo = Boolean(cust.demoTrialUsed || cust.plan?.includes('Trial'));
-        // Show DEMO-Inactive below only when customer purchased a new product and status changed to active!
-        const showDemoInactiveBelow = !isDemoActive && hasPaidProduct && hadDemo;
-        const hasTrial = hadDemo || isDemoActive || stage === 'DemoInactive';
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
-                {stage === 'Active' && <CheckCircle2 size={12} />}
-                {stage === 'Demo' && <Clock size={12} />}
-                {stage === 'DemoInactive' && <XCircle size={12} />}
-                {stage === 'InProgress' && <Activity size={12} />}
-                {stage === 'Inactive' && <XCircle size={12} />}
-                <span>{customerLifecycleLabel(cust.status)}</span>
-              </span>
-            </div>
-
-            {/* Trial Extension / History Control Badge */}
-            {hasTrial && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                {showDemoInactiveBelow && (
-                  <span
-                    className="adm-status-pill demoinactive"
-                    style={{
-                      fontSize: '0.68rem',
-                      padding: '2px 7px',
-                      fontWeight: 600,
-                      borderRadius: '4px',
-                      lineHeight: 1.2
-                    }}
-                    title="Demo trial ended or converted upon product purchase"
-                  >
-                    DEMO-Inactive
-                  </span>
-                )}
-                {cust.demoExtensionAllowed ? (
-                  <span
-                    style={{
-                      fontSize: '0.68rem',
-                      background: '#ecfdf5',
-                      color: '#059669',
-                      border: '1px solid #a7f3d0',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                    title="Trial extension approved by administrator"
-                  >
-                    +{cust.demoExtensionDays || 7}d Approved
-                  </span>
-                ) : isDemoActive ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAuthorizeDemoExtension(cust);
-                    }}
-                    style={{
-                      background: '#fffbeb',
-                      color: '#b45309',
-                      border: '1px solid #fde68a',
-                      borderRadius: '4px',
-                      padding: '2px 8px',
-                      fontSize: '0.68rem',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                    title="Click to authorize demo extension days for this customer"
-                  >
-                    + Allow Extension
-                  </button>
-                ) : null}
-              </div>
-            )}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
+              {stage === 'Active' && <CheckCircle2 size={12} />}
+              {stage === 'Demo' && <Clock size={12} />}
+              {stage === 'DemoInactive' && <XCircle size={12} />}
+              {stage === 'InProgress' && <Activity size={12} />}
+              {stage === 'Inactive' && <XCircle size={12} />}
+              <span>{customerLifecycleLabel(cust.status)}</span>
+            </span>
           </div>
         );
       },

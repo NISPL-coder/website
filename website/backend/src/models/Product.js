@@ -120,6 +120,28 @@ const productSchema = new mongoose.Schema(
       default: false,
       index: true
     },
+    isCustomerSpecific: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    targetCustomerEmail: {
+      type: String,
+      default: '',
+      trim: true,
+      index: true
+    },
+    targetCustomerId: {
+      type: String,
+      default: '',
+      trim: true,
+      index: true
+    },
+    targetCustomerName: {
+      type: String,
+      default: '',
+      trim: true
+    },
     isDemoPlan: {
       type: Boolean,
       default: false,

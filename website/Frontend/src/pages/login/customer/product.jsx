@@ -28,7 +28,8 @@ import {
   Clock,
   Filter,
   Heart,
-  Star
+  Star,
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import tallyLogo from '../../../assets/partners/tally.png';
@@ -51,6 +52,9 @@ export default function ProductsSection({
   customer,
   account,
   portalData,
+  isReadOnly = false,
+  isDemoActive = false,
+  demoExpiryDate = null,
   onAddToCart,
   onGoToCart,
   cartItemIds = [],
@@ -59,6 +63,29 @@ export default function ProductsSection({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Active Demo Trial status check — When demo is active, products section is in read-only mode
+  const activeDemos = portalData?.demoProducts || [];
+  const activeDemo =
+    activeDemos.find((d) => !d.expired && String(d.status).toUpperCase() !== 'DEMO-INACTIVE') ||
+    (portalData?.products || []).find((p) =>
+      Boolean(p.isDemoTrial || p.contractType === 'Trial' || p.category === 'Trial' || String(p.status).toUpperCase() === 'DEMO') &&
+      !p.expired &&
+      String(p.status).toUpperCase() !== 'DEMO-INACTIVE'
+    ) ||
+    null;
+
+  const effectiveDemoActive = Boolean(
+    isDemoActive ||
+    activeDemo ||
+    customer?.status === 'Demo' ||
+    account?.status === 'Demo' ||
+    portalData?.account?.status === 'Demo' ||
+    ((portalData?.kpi?.demoProducts ?? 0) > 0)
+  );
+
+  const effectiveReadOnly = Boolean(isReadOnly);
+  const effectiveExpiryDate = demoExpiryDate || activeDemo?.expiryDate || activeDemo?.endDate || null;
 
   // /customer/product · /customer/product/tally · /customer/product/cloud
   const [, , , categorySegment] = location.pathname.split('/');
@@ -389,6 +416,9 @@ export default function ProductsSection({
     return (
       <SolutionCategorySelection
         onSelectCategory={handleSelectCategory}
+        isReadOnly={effectiveReadOnly}
+        isDemoActive={effectiveDemoActive}
+        demoExpiryDate={effectiveExpiryDate}
       />
     );
   }
@@ -402,9 +432,14 @@ export default function ProductsSection({
         customer={customer}
         account={account}
         portalData={portalData}
+        isReadOnly={effectiveReadOnly}
+        isDemoActive={effectiveDemoActive}
+        demoExpiryDate={effectiveExpiryDate}
         onBack={backToCategories}
         onAddToCart={handleAdd}
         onGoToCart={onGoToCart}
+        cartItemIds={cartItemIds}
+        entitlements={entitlements}
       />
     );
   }
@@ -418,6 +453,9 @@ export default function ProductsSection({
         onBack={backToCategories}
         onAddToCart={handleAdd}
         cartItemIds={cartItemIds}
+        isReadOnly={effectiveReadOnly}
+        isDemoActive={effectiveDemoActive}
+        demoExpiryDate={effectiveExpiryDate}
       />
     );
   }
@@ -790,6 +828,7 @@ export default function ProductsSection({
         onAddToCart={handleAdd}
         onGoToCart={onGoToCart}
         isInCart={detailProduct ? cartItemIds.includes(detailProduct.id) : false}
+        isReadOnly={effectiveReadOnly}
       />
     </div>
   );

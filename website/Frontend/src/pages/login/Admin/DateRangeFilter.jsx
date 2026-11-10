@@ -21,7 +21,7 @@ const formatDate = (value) => {
  * The popover keeps draft values until "Apply" is pressed and is rendered in
  * a portal so the table card's overflow clipping never cuts it off.
  */
-export default function DateRangeFilter({ from = '', to = '', onChange, label = 'Date Range' }) {
+export default function DateRangeFilter({ from = '', to = '', onChange, label = 'Date Range', compact = false }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState(null);
   const [draftFrom, setDraftFrom] = useState(from || '');
@@ -122,21 +122,21 @@ export default function DateRangeFilter({ from = '', to = '', onChange, label = 
 
   return (
     <div
-      className={`adm-date-range${isActive ? ' is-active' : ''}`}
+      className={`adm-date-range${isActive ? ' is-active' : ''}${compact ? ' is-compact' : ''}`}
       ref={containerRef}
     >
       <button
         type="button"
         ref={triggerRef}
-        className="adm-date-range-trigger"
+        className={`adm-date-range-trigger${compact ? ' is-compact' : ''}`}
         onClick={handleToggle}
         aria-haspopup="dialog"
         aria-expanded={open}
         title="Filter by date range"
       >
-        <CalendarDays size={15} className="adm-date-range-icon" />
+        <CalendarDays size={compact ? 13 : 15} className="adm-date-range-icon" />
         <span className="adm-date-range-label">{summary}</span>
-        {!isActive && <ChevronDown size={14} className="adm-date-range-caret" />}
+        {!isActive && <ChevronDown size={compact ? 12 : 14} className="adm-date-range-caret" />}
       </button>
 
       {isActive && (

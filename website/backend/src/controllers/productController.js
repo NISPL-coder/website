@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Product from '../models/Product.js';
+import Product, { getProductsFromFile, saveProductsToFile } from '../models/Product.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
 import { redactRecords } from '../utils/columnPermissions.js';
@@ -24,6 +24,11 @@ const deriveCustomPlan = (payload) => {
   const dedicated = payload.serverType === 'dedicated';
   const monthlyBase = Math.round(users * pricePerUser);
 
+  const targetEmail = String(payload.targetCustomerEmail || payload.customerEmail || '').trim().toLowerCase();
+  const targetId = String(payload.targetCustomerId || payload.customerId || '').trim();
+  const targetName = String(payload.targetCustomerName || payload.customerName || '').trim();
+  const isCustomerSpecific = Boolean(payload.isCustomerSpecific || targetEmail || targetId);
+
   return {
     fields: {
       users,
@@ -33,7 +38,11 @@ const deriveCustomPlan = (payload) => {
       frequency: '/ month',
       tier: payload.tier || `${users} User`,
       serverType: dedicated ? 'dedicated' : 'shared',
-      userBadge: dedicated ? 'Dedicated Server' : 'Shared Server'
+      userBadge: dedicated ? 'Dedicated Server' : 'Shared Server',
+      isCustomerSpecific,
+      targetCustomerEmail: targetEmail,
+      targetCustomerId: targetId,
+      targetCustomerName: targetName
     }
   };
 };
@@ -66,7 +75,11 @@ const deriveDemoPlan = (payload) => {
       userBadge: '',
       serverType: '',
       pricePerUser: 0,
-      isCustomPlan: false
+      isCustomPlan: false,
+      isCustomerSpecific: false,
+      targetCustomerEmail: '',
+      targetCustomerId: '',
+      targetCustomerName: ''
     }
   };
 };
@@ -76,7 +89,7 @@ const planFields = (payload) =>
 
 export const getProducts = async (req, res) => {
   try {
-    const { category, provider, status, available } = req.query;
+    const { category, provider, status, available, customerEmail, customerId } = req.query;
 
     const filter = {};
     if (category && category !== 'all') {
@@ -95,9 +108,62 @@ export const getProducts = async (req, res) => {
     let products = [];
     if (isMongoConnected()) {
       products = await Product.find(filter).sort({ users: 1, createdAt: -1 }).lean();
+    } else {
+      products = getProductsFromFile();
     }
 
-    const visible = redactRecords(req.user, 'product', products);
+    // Role and caller identification
+    const userRole = req.user?.role;
+    const isAdmin = Boolean(
+      userRole === 'admin' ||
+      userRole === 'manager' ||
+      userRole === 'support' ||
+      req.user?.isPrimaryAdmin
+    );
+
+    // Identify requesting customer email/ID either from authenticated user session or query params
+    const activeCustomerEmail = String(
+      (req.user && req.user.role === 'customer' ? req.user.email : null) ||
+      customerEmail ||
+      ''
+    ).trim().toLowerCase();
+
+    const activeCustomerId = String(
+      (req.user && req.user.role === 'customer' ? req.user.customerId : null) ||
+      customerId ||
+      ''
+    ).trim().toLowerCase();
+
+    // If request is from an admin without customer-specific query, return all plans so admin can manage them
+    // If request is from a customer (or scoped to a customer), filter out other customers' private custom plans
+    let scopedProducts = products;
+    if (!isAdmin || activeCustomerEmail || activeCustomerId) {
+      scopedProducts = products.filter((p) => {
+        // Non-custom plans and demo plans are general
+        if (!p.isCustomPlan) return true;
+
+        // Generic custom plans not tied to any customer
+        if (!p.isCustomerSpecific && !p.targetCustomerEmail && !p.targetCustomerId) {
+          return true;
+        }
+
+        // Customer-specific custom plan: only visible if matched!
+        const planTargetEmail = String(p.targetCustomerEmail || '').trim().toLowerCase();
+        const planTargetId = String(p.targetCustomerId || '').trim().toLowerCase();
+
+        if (activeCustomerEmail && planTargetEmail && planTargetEmail === activeCustomerEmail) {
+          return true;
+        }
+        if (activeCustomerId && planTargetId && planTargetId === activeCustomerId) {
+          return true;
+        }
+
+        // If no match, hide this custom plan from this customer
+        return false;
+      });
+    }
+
+    const visible = redactRecords(req.user, 'product', scopedProducts);
     res.json({
       success: true,
       count: visible.length,
@@ -132,6 +198,10 @@ export const createProduct = async (req, res) => {
     let saved = newProductData;
     if (isMongoConnected()) {
       saved = await Product.create(newProductData);
+    } else {
+      const list = getProductsFromFile();
+      list.unshift(newProductData);
+      saveProductsToFile(list);
     }
 
     const ipNote = newProductData.ipAddress ? ` with IP ${newProductData.ipAddress}` : '';
@@ -186,6 +256,14 @@ export const updateProduct = async (req, res) => {
         updates,
         { new: true }
       ).lean();
+    } else {
+      const list = getProductsFromFile();
+      const idx = list.findIndex((p) => p.productId === id || p.id === id);
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...updates };
+        saveProductsToFile(list);
+        updated = list[idx];
+      }
     }
 
     await logActivity(req, {
@@ -214,6 +292,10 @@ export const deleteProduct = async (req, res) => {
       await Product.findOneAndDelete({
         $or: [{ productId: id }, { id }, { _id: mongoose.isValidObjectId(id) ? id : null }]
       });
+    } else {
+      const list = getProductsFromFile();
+      const filtered = list.filter((p) => p.productId !== id && p.id !== id);
+      saveProductsToFile(filtered);
     }
 
     await logActivity(req, {

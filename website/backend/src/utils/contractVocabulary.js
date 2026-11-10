@@ -8,7 +8,7 @@
  * spelling.
  */
 
-export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
+export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -37,7 +37,7 @@ const STATUS_LOOKUP = {
   live: 'In Progress',
   draft: 'Not Started',
   pending: 'Not Started',
-  inactive: 'Closed',
+  inactive: 'Inactive',
   expired: 'Closed',
   completed: 'Closed',
   cancelled: 'Closed',

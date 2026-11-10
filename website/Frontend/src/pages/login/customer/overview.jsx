@@ -23,6 +23,7 @@ import { toPortalReceiptRow } from '../../Dashboard/utils/portalReceiptRows';
 import { formatINR } from '../../../utils/formatters';
 import { normalizeCustomerLifecycle, customerLifecycleLabel } from '../../../utils/customerLifecycle';
 import DemoProductDetailsModal from './components/DemoProductDetailsModal';
+import ActiveProductsModal from './components/ActiveProductsModal';
 
 const LIFECYCLE_BADGE = {
   Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
@@ -116,6 +117,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   }));
 
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!portalData) {
@@ -419,7 +421,9 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               value={activeCount}
               note={activeCount > 0 ? `${activeCount} on this account` : 'Nothing subscribed yet'}
               actionLabel="View products"
-              onAction={() => goTo('products')}
+              onAction={() => setIsProductsModalOpen(true)}
+              onClick={() => setIsProductsModalOpen(true)}
+              isClickable
             />
             <KpiCard
               icon={Sparkles}
@@ -727,6 +731,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         hasConvertedDemo={hasConvertedDemo}
         onNavigateTab={goTo}
         onOpenSupport={onOpenSupport}
+      />
+
+      {/* ── Active Products Inventory Modal (all API product rows) ── */}
+      <ActiveProductsModal
+        isOpen={isProductsModalOpen}
+        onClose={() => setIsProductsModalOpen(false)}
+        products={data?.products || []}
+        account={account}
+        onNavigateTab={goTo}
       />
     </div>
   );

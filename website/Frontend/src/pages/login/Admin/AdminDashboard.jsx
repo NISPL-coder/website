@@ -38,6 +38,8 @@ import CreateCustomerPage from './CreateCustomerPage';
 import CreateContractPage from './CreateContractPage';
 import CreatePaymentPage from './CreatePaymentPage';
 import CreateProductPage from './CreateProductPage';
+import CreateCustomPlanPage from './CreateCustomPlanPage';
+import CreateIpPage from './CreateIpPage';
 
 // Admin Tools: Profile Page, CSV Import & Sangam CRM Sync
 import ProfilePage from './ProfilePage';
@@ -687,6 +689,17 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setProducts={setProducts}
                   productType="cloud"
                 />
+              )}
+
+              {location.pathname === '/admin/product/cloud/custom-pricing/create' && (
+                <CreateCustomPlanPage
+                  products={products}
+                  setProducts={setProducts}
+                />
+              )}
+
+              {location.pathname === '/admin/ip-monitor/create' && (
+                <CreateIpPage />
               )}
             </>
           )}

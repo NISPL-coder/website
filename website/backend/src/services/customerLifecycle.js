@@ -44,15 +44,42 @@ const rupees = (value) => {
   return digits ? Number(digits[0]) : 0;
 };
 
-const identityValues = (row) =>
-  [row?.email, row?.customerId, row?.company, row?.customer, row?.accountName, row?.name]
-    .filter(Boolean)
-    .map((s) => String(s).toLowerCase().trim());
-
 export const matchesCustomer = (customer, record) => {
-  const custIds = identityValues(customer);
-  const recIds = identityValues(record);
-  return custIds.some((cid) => recIds.some((rid) => rid === cid || rid.includes(cid) || cid.includes(rid)));
+  if (!customer || !record) return false;
+
+  // 1. Email match (exact case-insensitive)
+  const custEmail = String(customer.email || customer.loginEmail || '').trim().toLowerCase();
+  const recEmail = String(record.email || record.customerEmail || '').trim().toLowerCase();
+  if (custEmail && recEmail && custEmail === recEmail) return true;
+
+  // 2. Customer ID match (exact case-insensitive)
+  const custId = String(customer.customerId || customer.id || customer._id || '').trim().toLowerCase();
+  const recCustId = String(record.customerId || '').trim().toLowerCase();
+  if (custId && recCustId && custId === recCustId) return true;
+
+  // 3. CRM account ID match (exact)
+  const custCrmId = String(customer.sangamCrm?.recordId || customer.accountId || '').trim();
+  const recCrmId = String(record.accountId || record.sangamCrm?.recordId || '').trim();
+  if (custCrmId && recCrmId && custCrmId === recCrmId) return true;
+
+  // 4. Company match (exact case-insensitive, must not be empty or generic)
+  const custCompany = String(customer.company || '').trim().toLowerCase();
+  const recCompany = String(record.company || record.accountName || '').trim().toLowerCase();
+  if (custCompany && recCompany && custCompany === recCompany) return true;
+
+  // 5. Name match: exact match only, never substring, and ignore generic words
+  const custName = String(customer.name || '').trim().toLowerCase();
+  const recCustomer = String(record.customer || record.name || '').trim().toLowerCase();
+  if (
+    custName &&
+    recCustomer &&
+    custName === recCustomer &&
+    !['demo', 'test', 'admin', 'user', 'customer', 'trial'].includes(custName)
+  ) {
+    return true;
+  }
+
+  return false;
 };
 
 const isDemoContract = (ctr) =>
@@ -87,14 +114,20 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
   const today = new Date().toISOString().split('T')[0];
   const own = (contracts || []).filter((ctr) => matchesCustomer(customer, ctr));
   const paid = own.filter((ctr) => !isDemoContract(ctr));
-
-  if (paid.some((ctr) => isLivePaid(ctr, today))) return 'Active';
-
   const settled = (payments || []).some((p) => isSettledPayment(p) && matchesCustomer(customer, p));
-  const awaitingStart = paid.some((ctr) => normalizeContractStatus(ctr.status) === 'Not Started');
-  const churned = paid.length > 0 && paid.every((ctr) => normalizeContractStatus(ctr.status) === 'Closed');
-  if ((settled && !churned) || awaitingStart) return 'InProgress';
 
+  // 1. If customer paid the purchased product -> Active section
+  const hasPaidPurchase = (settled || paid.some((ctr) => {
+    const end = String(ctr.endDate || ctr.expiryDate || '').trim();
+    const isClosed = ['Closed', 'DISABLED'].includes(normalizeContractStatus(ctr.status));
+    return !isClosed && (!end || end >= today);
+  })) && paid.length > 0;
+
+  if (hasPaidPurchase || (settled && paid.length > 0)) {
+    return 'Active';
+  }
+
+  // 2. If customer is in demo section -> Demo listing (active unexpired trial)
   const hasLiveDemo = own.some(
     (ctr) =>
       isDemoContract(ctr) &&
@@ -102,18 +135,22 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
       !['Closed', 'Converted', 'DEMO-Inactive'].includes(normalizeContractStatus(ctr.status, ctr)) &&
       (!ctr.endDate || String(ctr.endDate).split('T')[0] >= today)
   );
-  if (hasLiveDemo) return 'Demo';
+  if (hasLiveDemo && paid.length === 0 && !settled) {
+    return 'Demo';
+  }
 
-  const hasExpiredOrConvertedDemo = own.some(
+  // 3. If customer has not paid the amount / after demo ends customer not paid -> In Progress section
+  const hasUnpaidContract = paid.length > 0 && !settled;
+  const hasEndedDemoWithoutPayment = own.some(
     (ctr) =>
       isDemoContract(ctr) &&
       (ctr.convertedToPaid ||
        ['Converted', 'DEMO-Inactive'].includes(normalizeContractStatus(ctr.status, ctr)) ||
        (ctr.endDate && String(ctr.endDate).split('T')[0] < today))
-  );
+  ) || Boolean(customer?.demoTrialUsed);
 
-  if (hasExpiredOrConvertedDemo || Boolean(customer?.demoTrialUsed) || ['demoinactive', 'demo-inactive'].includes(stored)) {
-    return 'DemoInactive';
+  if (hasUnpaidContract || hasEndedDemoWithoutPayment || stored === 'inprogress') {
+    return 'InProgress';
   }
 
   return 'Inactive';

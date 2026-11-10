@@ -107,18 +107,41 @@ function buildBuckets(window, period, now) {
 const bucketIndexFor = (buckets, date) =>
   buckets.findIndex((bucket) => date && date >= bucket.start && date <= bucket.end);
 
+const receivedAmount = (p) => {
+  const rec = parseRupee(p.receivedAmount) || parseRupee(p.received);
+  if (rec > 0) return rec;
+  const status = (p.status || '').toLowerCase();
+  if (status === 'received' || status === 'cleared') {
+    return parseRupee(p.total || p.totalAmount || p.amount) || 0;
+  }
+  return 0;
+};
+
 const isReceived = (p) => {
   const status = (p.status || '').toLowerCase();
-  return status === 'received' || status === 'cleared';
+  return status === 'received' || status === 'cleared' || receivedAmount(p) > 0;
+};
+
+const pendingAmount = (p) => {
+  const explicit = parseRupee(p.pendingPayment || p.pending);
+  if (explicit > 0) return explicit;
+  const total = parseRupee(p.total || p.totalAmount || p.amount);
+  const rec = receivedAmount(p);
+  const diff = total - rec;
+  return diff > 0 ? diff : 0;
 };
 
 const isPending = (p) => {
   const status = (p.status || '').toLowerCase();
-  return status === 'pending' || status === 'overdue';
+  return (
+    status === 'pending' ||
+    status === 'overdue' ||
+    status === 'partially paid' ||
+    status === 'partial' ||
+    status === 'in progress' ||
+    pendingAmount(p) > 0
+  );
 };
-
-const receivedAmount = (p) => parseRupee(p.receivedAmount) || parseRupee(p.amount) || 0;
-const pendingAmount = (p) => parseRupee(p.pendingPayment) || parseRupee(p.amount) || 0;
 
 /**
  * What a payment was actually spent on. The line items freeze the catalogue
@@ -153,7 +176,18 @@ function changeFromPrevious(previous, current) {
 
 export const getDashboardOverview = async (req, res) => {
   try {
-    const { period = 'monthly', fy = '2026-2027' } = req.query;
+    const {
+      period = 'monthly',
+      fy = '2026-2027',
+      from,
+      to,
+      receivedFrom,
+      receivedTo,
+      dueFrom,
+      dueTo,
+      accountsFrom,
+      accountsTo
+    } = req.query;
 
     let customers = [];
     let contracts = [];
@@ -174,21 +208,39 @@ export const getDashboardOverview = async (req, res) => {
     const buckets = buildBuckets(window, period, now);
     const inWindow = (date) => date && date >= window.start && date <= window.end;
 
+    // Helper for specific or fallback date range
+    const inRange = (date, customFrom, customTo) => {
+      if (!date) return false;
+      const effectiveFrom = customFrom || from;
+      const effectiveTo = customTo || to;
+      if (!effectiveFrom && !effectiveTo) return inWindow(date);
+      if (effectiveFrom && date < new Date(effectiveFrom)) return false;
+      if (effectiveTo && date > new Date(effectiveTo + 'T23:59:59.999Z')) return false;
+      return true;
+    };
+
     // 1. Customer pipeline — the same authoritative lifecycle the customer
     // list and the portal read, derived from contracts and the payment ledger.
+    const targetAccounts = (accountsFrom || accountsTo)
+      ? customers.filter((c) => inRange(accountStartDate(c), accountsFrom, accountsTo))
+      : customers;
+
     const activeCustomers = [];
     const demoCustomers = [];
     const inProgressCustomers = [];
     const inactiveCustomers = [];
 
-    customers.forEach((c) => {
+    targetAccounts.forEach((c) => {
       const bucket = deriveCustomerLifecycle(c, contracts, payments);
       if (bucket === 'Active') activeCustomers.push(c);
       else if (bucket === 'Demo') demoCustomers.push(c);
       else if (bucket === 'InProgress') inProgressCustomers.push(c);
       else inactiveCustomers.push(c);
     });
-    const accountsAddedInWindow = customers.filter((c) => inWindow(accountStartDate(c))).length;
+
+    const accountsAddedInWindow = customers.filter((c) =>
+      inRange(accountStartDate(c), accountsFrom, accountsTo)
+    ).length;
 
     // 2. Recurring revenue: only what an account actually pays each month.
     // This is the run-rate as of today, so it does not move with the selected
@@ -205,9 +257,9 @@ export const getDashboardOverview = async (req, res) => {
     const totalARR = activeMRR * 12 + contractCommitments;
     const arrInCrores = parseFloat((totalARR / 10000000).toFixed(2));
 
-    // 3. Collections and dues inside the selected financial year
-    const receivedList = payments.filter((p) => isReceived(p) && inWindow(collectionDate(p)));
-    const pendingList = payments.filter((p) => isPending(p) && inWindow(billingDate(p)));
+    // 3. Collections and dues inside the selected date filters
+    const receivedList = payments.filter((p) => isReceived(p) && inRange(collectionDate(p), receivedFrom, receivedTo));
+    const pendingList = payments.filter((p) => isPending(p) && inRange(billingDate(p), dueFrom, dueTo));
 
     const receivedNumeric = receivedList.reduce((sum, p) => sum + receivedAmount(p), 0);
     const dueNumeric = pendingList.reduce((sum, p) => sum + pendingAmount(p), 0);
@@ -303,7 +355,7 @@ export const getDashboardOverview = async (req, res) => {
           activeMRRFormatted: formatRupee(activeMRR),
           contractCommitmentsFormatted: formatRupee(contractCommitments),
           contractsInProgress: inProgressContracts.length,
-          totalPipelineCount: customers.length,
+          totalPipelineCount: targetAccounts.length,
           activeCount: activeCustomers.length,
           demoCount: demoCustomers.length,
           inProgressCount: inProgressCustomers.length,

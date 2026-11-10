@@ -10,7 +10,8 @@ import {
   MessageSquare,
   FileText,
   X,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import tallyLogo from '../../../assets/partners/tally.png';
@@ -20,8 +21,12 @@ export default function TallyPrimePlansView({
   onBack,
   onAddToCart,
   cartItemIds = [],
-  onBrowseAllTally
+  onBrowseAllTally,
+  isReadOnly = false,
+  isDemoActive = false,
+  demoExpiryDate = null
 }) {
+  const isLocked = Boolean(isReadOnly);
   const [justAddedId, setJustAddedId] = useState(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -243,10 +248,16 @@ export default function TallyPrimePlansView({
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '18px' }}>
                 <button
                   type="button"
-                  className={inCart ? 'flowmail-btn-secondary' : 'flowmail-btn-primary'}
+                  className={inCart || isLocked ? 'flowmail-btn-secondary' : 'flowmail-btn-primary'}
                   onClick={() => handleSelectPlan(plan)}
                   disabled={inCart}
-                  style={{ width: '100%', justifyContent: 'center', padding: '11px 18px', fontSize: '0.9rem' }}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '11px 18px',
+                    fontSize: '0.9rem',
+                    cursor: inCart ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {isAdded ? (
                     <>

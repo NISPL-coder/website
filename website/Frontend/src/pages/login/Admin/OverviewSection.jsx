@@ -121,7 +121,11 @@ export default function OverviewSection({
   const navigate = useNavigate();
   const { visibleColumns } = usePermissions();
 
-  // Overview Filters: Period (Monthly, Quarterly, Yearly) & Financial Year
+  // Card-specific Date Range Filters (Card 1: Total Received & Dues, Card 2: Inactive Value, Card 4: Total Customers)
+  const [receivedRange, setReceivedRange] = useState({ from: '', to: '' });
+  const [dueRange, setDueRange] = useState({ from: '', to: '' });
+  const [accountsRange, setAccountsRange] = useState({ from: '', to: '' });
+
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [selectedFY, setSelectedFY] = useState('2026-2027');
   const [apiOverview, setApiOverview] = useState(null);
@@ -130,12 +134,17 @@ export default function OverviewSection({
   // Fetch dynamic overview metrics directly from backend API
   useEffect(() => {
     let isMounted = true;
-    // Drop the previous window's figures so nothing stale is shown as fact
-    // while the newly requested period is being measured.
-    setApiOverview(null);
-    setApiOverviewError(null);
     dashboardApi
-      .getOverview({ period: selectedPeriod, fy: selectedFY })
+      .getOverview({
+        period: selectedPeriod,
+        fy: selectedFY,
+        receivedFrom: receivedRange.from,
+        receivedTo: receivedRange.to,
+        dueFrom: dueRange.from,
+        dueTo: dueRange.to,
+        accountsFrom: accountsRange.from,
+        accountsTo: accountsRange.to
+      })
       .then((data) => {
         if (isMounted && data) {
           setApiOverview(data);
@@ -148,7 +157,17 @@ export default function OverviewSection({
     return () => {
       isMounted = false;
     };
-  }, [selectedPeriod, selectedFY, customers.length, contracts.length, payments.length]);
+  }, [
+    receivedRange.from,
+    receivedRange.to,
+    dueRange.from,
+    dueRange.to,
+    accountsRange.from,
+    accountsRange.to,
+    customers.length,
+    contracts.length,
+    payments.length
+  ]);
 
   // The figures come from the API; the live collections only ride along so the
   // tables on this page have rows to show.
@@ -436,6 +455,177 @@ export default function OverviewSection({
   }, [activeOverviewData]);
 
   const overviewWindowLabel = activeOverviewData.window?.label || selectedFY;
+
+  const parseRupee = (val) => {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const cleaned = String(val).replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : Math.round(num);
+  };
+
+  const isDateInRange = (dateVal, from, to) => {
+    if (!from && !to) return true;
+    if (!dateVal) return false;
+    const d = new Date(dateVal).getTime();
+    if (isNaN(d)) return true;
+    if (from && d < new Date(from).getTime()) return false;
+    if (to && d > new Date(to + 'T23:59:59.999Z').getTime()) return false;
+    return true;
+  };
+
+  // Card 1: Total Payment Received & Total Dues; Card 2: Inactive Value calculations
+  const paymentMetrics = useMemo(() => {
+    const list = Array.isArray(payments) ? payments : [];
+
+    // 1. Total Payment Received calculation
+    let receivedTotal = 0;
+    let clearedCount = 0;
+    let totalDues = 0;
+    list.forEach((p) => {
+      const pDate = p.paymentReceivedDate || p.date || p.createdAt || p.invoiceDate;
+      if (!isDateInRange(pDate, receivedRange.from, receivedRange.to)) return;
+
+      const total = parseRupee(p.total || p.totalAmount || p.amount || 0);
+      let rec = parseRupee(p.receivedAmount || p.received || 0);
+      const st = String(p.status || '').toLowerCase();
+      if ((st === 'received' || st === 'cleared') && rec === 0) rec = total;
+
+      if (st === 'received' || st === 'cleared' || rec > 0) {
+        receivedTotal += rec;
+        clearedCount += 1;
+      }
+
+      const explicitPending = parseRupee(p.pendingPayment || p.pending || 0);
+      const diff = Math.max(0, total - rec);
+      const pendingVal = explicitPending > 0 ? explicitPending : diff;
+      if (pendingVal > 0 || ['pending', 'overdue', 'partially paid', 'partial', 'in progress'].includes(st)) {
+        totalDues += pendingVal;
+      }
+    });
+
+    // 2. Inactive Value calculation (Pending / Due balance for Card 2)
+    let inactiveTotal = 0;
+    let pendingCount = 0;
+    list.forEach((p) => {
+      const pDate = p.expectedPaymentDate || p.date || p.createdAt || p.invoiceDate;
+      if (!isDateInRange(pDate, dueRange.from, dueRange.to)) return;
+
+      const total = parseRupee(p.total || p.totalAmount || p.amount || 0);
+      let rec = parseRupee(p.receivedAmount || p.received || 0);
+      const st = String(p.status || '').toLowerCase();
+      if ((st === 'received' || st === 'cleared') && rec === 0) rec = total;
+
+      const explicitPending = parseRupee(p.pendingPayment || p.pending || 0);
+      const diff = Math.max(0, total - rec);
+      const pendingVal = explicitPending > 0 ? explicitPending : diff;
+
+      if (pendingVal > 0 || ['pending', 'overdue', 'partially paid', 'partial', 'in progress'].includes(st)) {
+        inactiveTotal += pendingVal;
+        pendingCount += 1;
+      }
+    });
+
+    // Fallbacks to API data if no date filter is applied and API returned values
+    if (!receivedRange.from && !receivedRange.to && apiOverview?.kpi?.receivedNumeric != null) {
+      receivedTotal = apiOverview.kpi.receivedNumeric;
+      clearedCount = apiOverview.kpi.invoicesCleared || clearedCount;
+      if (totalDues === 0 && apiOverview?.kpi?.dueNumeric != null) {
+        totalDues = apiOverview.kpi.dueNumeric;
+      }
+    }
+    if (!dueRange.from && !dueRange.to && apiOverview?.kpi?.dueNumeric != null) {
+      inactiveTotal = apiOverview.kpi.dueNumeric;
+      pendingCount = apiOverview.kpi.invoicesPending || pendingCount;
+    }
+
+    const totalBilled = receivedTotal + totalDues;
+    const settledRatio = totalBilled > 0 ? ((receivedTotal / totalBilled) * 100).toFixed(1) : '100.0';
+
+    return {
+      receivedTotal,
+      clearedCount,
+      totalDues,
+      inactiveTotal,
+      pendingCount,
+      settledPercentage: `${settledRatio}% Settled`
+    };
+  }, [payments, receivedRange, dueRange, apiOverview]);
+
+  // Card 3: Annual Net Revenue (No Date Range)
+  const arrMetrics = useMemo(() => {
+    const custs = Array.isArray(customers) ? customers : [];
+    const ctrs = Array.isArray(contracts) ? contracts : [];
+
+    const activeCusts = custs.filter((c) => normalizeCustomerLifecycle(c.status) === 'Active');
+    const activeMRR = activeCusts.reduce((sum, c) => sum + parseRupee(c.mrr || 0), 0);
+
+    const inProgressCtrs = ctrs.filter((c) => {
+      const st = normalizeContractStatus(c.status, c);
+      return st === 'In Progress';
+    });
+
+    const commitments = inProgressCtrs.reduce(
+      (sum, c) => sum + parseRupee(c.totalContractValue || c.value || 0),
+      0
+    );
+
+    let totalARR = activeMRR * 12 + commitments;
+    let arrInCrores = parseFloat((totalARR / 10000000).toFixed(2));
+
+    if (apiOverview?.kpi?.arrValueNumeric != null) {
+      arrInCrores = apiOverview.kpi.arrValueNumeric;
+      totalARR = apiOverview.kpi.totalARR || totalARR;
+    }
+
+    return {
+      totalARR,
+      arrInCrores,
+      activeMRR,
+      commitments,
+      inProgressCount: inProgressCtrs.length
+    };
+  }, [customers, contracts, apiOverview]);
+
+  // Card 4: Total Accounts
+  const accountsMetrics = useMemo(() => {
+    const custs = Array.isArray(customers) ? customers : [];
+    const filtered = custs.filter((c) => {
+      const d = c.createdAt || c.registered || c.lastSyncedAt;
+      return isDateInRange(d, accountsRange.from, accountsRange.to);
+    });
+
+    let active = 0;
+    let inProgress = 0;
+    let demo = 0;
+    let inactive = 0;
+
+    filtered.forEach((c) => {
+      const stage = normalizeCustomerLifecycle(c.status);
+      if (stage === 'Active') active += 1;
+      else if (stage === 'InProgress') inProgress += 1;
+      else if (stage === 'Demo') demo += 1;
+      else inactive += 1;
+    });
+
+    let total = filtered.length;
+    if (!accountsRange.from && !accountsRange.to && apiOverview?.kpi?.totalPipelineCount != null) {
+      total = apiOverview.kpi.totalPipelineCount;
+      active = apiOverview.kpi.activeCount ?? active;
+      inProgress = apiOverview.kpi.inProgressCount ?? inProgress;
+      demo = apiOverview.kpi.demoCount ?? demo;
+      inactive = apiOverview.kpi.inactiveCount ?? inactive;
+    }
+
+    return {
+      total,
+      active,
+      inProgress,
+      demo,
+      inactive
+    };
+  }, [customers, accountsRange, apiOverview]);
+
   const receivedTrend = formatTrend(
     activeOverviewData.kpi.trendValue,
     activeOverviewData.kpi.trendDirection,
@@ -694,7 +884,7 @@ export default function OverviewSection({
   return (
     <div className="adm-overview-container animate-fade-in">
       {/* =========================================================================
-         1. TOP-RIGHT OVERVIEW FILTERS TOOLBAR (PERIOD + FINANCIAL YEAR)
+         1. TOP EXECUTIVE TELEMETRY HEADER
          ========================================================================= */}
       <div className="adm-overview-header-bar">
         <div className="adm-overview-header-info">
@@ -706,47 +896,6 @@ export default function OverviewSection({
           <p className="adm-overview-subheading">
             Consolidated enterprise revenue, subscription collections &amp; cloud infrastructure telemetry.
           </p>
-        </div>
-
-        {/* Filters positioned directly in the top-right highlighted section */}
-        <div className="adm-overview-filters-panel">
-          {/* Cadence Segmented Pills (Monthly, Quarterly, Yearly) */}
-          <div className="adm-cadence-pills">
-            {PERIOD_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                className={`adm-cadence-pill ${selectedPeriod === opt.id ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedPeriod(opt.id);
-                  const fyLabel = FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label || selectedFY;
-                  toast.success(`Overview filtered: ${opt.label} (${fyLabel})`, { id: 'filter-toast' });
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Financial Year Selector with React Select */}
-          <div style={{ minWidth: '190px' }}>
-            <Select
-              styles={compactSelectStyles}
-              isSearchable={false}
-              options={FINANCIAL_YEARS.map((fy) => ({ value: fy.id, label: fy.label }))}
-              value={{
-                value: selectedFY,
-                label: FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label || selectedFY
-              }}
-              onChange={(opt) => {
-                if (opt) {
-                  setSelectedFY(opt.value);
-                  toast.success(`Overview filtered for ${opt.label}`, { id: 'filter-toast' });
-                }
-              }}
-              classNamePrefix="react-select"
-            />
-          </div>
         </div>
       </div>
 
@@ -942,27 +1091,40 @@ export default function OverviewSection({
          (2X2 GRID — ONLY BOTTOM-RIGHT BUTTONS ARE CLICKABLE TO NAVIGATE)
          ========================================================================= */}
       <div className="adm-finance-grid">
-        {/* CARD 1: TOTAL PAYMENT RECEIVED */}
+        {/* CARD 1: TOTAL RECEIVED & TOTAL DUES (TWO PARTS) */}
         <div className="adm-finance-card payment-received">
           <div className="adm-finance-header">
             <div className="adm-finance-badge emerald">
               <CheckCircle2 size={16} />
-              <span>{activeOverviewData.kpi.settledPercentage}</span>
+              <span>{paymentMetrics.settledPercentage}</span>
             </div>
-            <span className={`adm-finance-trend ${receivedTrendClass}`}>
-              {receivedTrend &&
-                (receivedTrendDown ? <TrendingDown size={13} /> : <TrendingUp size={13} />)}
-              <span>{receivedTrend || `No ${activeOverviewData.kpi.trendSuffix} baseline`}</span>
-            </span>
+            <DateRangeFilter
+              from={receivedRange.from}
+              to={receivedRange.to}
+              onChange={(from, to) => setReceivedRange({ from, to })}
+              compact={true}
+              label="Date Range"
+            />
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Total Payment Received</span>
-            <div className="adm-finance-value emerald-val">
-              ₹<CountUp end={activeOverviewData.kpi.receivedNumeric} useIndianFormat={true} duration={1400} />
+            <div className="adm-dual-metric-row">
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Total Received</span>
+                <div className="adm-finance-value emerald-val compact-val">
+                  ₹<CountUp end={paymentMetrics.receivedTotal} useIndianFormat={true} duration={1400} />
+                </div>
+              </div>
+              <div className="adm-metric-divider" />
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Total Dues</span>
+                <div className="adm-finance-value amber-val compact-val">
+                  ₹<CountUp end={paymentMetrics.totalDues} useIndianFormat={true} duration={1400} />
+                </div>
+              </div>
             </div>
             <p className="adm-finance-caption">
-              {collectionMethodText} Recorded in {overviewWindowLabel}.
+              {collectionMethodText} Cleared collections &amp; total invoice obligations.
             </p>
           </div>
 
@@ -970,7 +1132,7 @@ export default function OverviewSection({
             <span className="adm-finance-status-tag">
               <span className="adm-dot emerald" />
               <span>
-                <CountUp end={activeOverviewData.kpi.invoicesCleared} duration={1200} /> invoices cleared &amp; dispatched
+                <CountUp end={paymentMetrics.clearedCount} duration={1200} /> cleared • <CountUp end={paymentMetrics.pendingCount} duration={1200} /> pending
               </span>
             </span>
             <button
@@ -985,23 +1147,29 @@ export default function OverviewSection({
           </div>
         </div>
 
-        {/* CARD 2: TOTAL PAYMENT DUE */}
+        {/* CARD 2: INACTIVE VALUE */}
         <div className="adm-finance-card payment-due">
           <div className="adm-finance-header">
             <div className="adm-finance-badge amber">
               <AlertCircle size={16} />
-              <span>Awaiting Clearance</span>
+              <span>Pending Balance</span>
             </div>
-            <span className="adm-finance-trend due-tag">{activeOverviewData.kpi.dueTag}</span>
+            <DateRangeFilter
+              from={dueRange.from}
+              to={dueRange.to}
+              onChange={(from, to) => setDueRange({ from, to })}
+              compact={true}
+              label="Date Range"
+            />
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Total Payment Due</span>
+            <span className="adm-finance-label">Inactive Value</span>
             <div className="adm-finance-value amber-val">
-              ₹<CountUp end={activeOverviewData.kpi.dueNumeric} useIndianFormat={true} duration={1400} />
+              ₹<CountUp end={paymentMetrics.inactiveTotal} useIndianFormat={true} duration={1400} />
             </div>
             <p className="adm-finance-caption">
-              Unsettled invoices and renewal invoices currently awaiting client accounts clearance.
+              Unsettled balances, overdue payments and partial payment differences.
             </p>
           </div>
 
@@ -1009,7 +1177,7 @@ export default function OverviewSection({
             <span className="adm-finance-status-tag">
               <span className="adm-dot amber" />
               <span>
-                <CountUp end={activeOverviewData.kpi.invoicesPending} duration={1200} /> invoices awaiting clearance
+                <CountUp end={paymentMetrics.pendingCount} duration={1200} /> invoices awaiting clearance
               </span>
             </span>
             <button
@@ -1024,7 +1192,7 @@ export default function OverviewSection({
           </div>
         </div>
 
-        {/* CARD 3: ACTIVE MRR & ARR */}
+        {/* CARD 3: ANNUAL NET REVENUE (NO DATE RANGE) */}
         <div className="adm-finance-card mrr-arr">
           <div className="adm-finance-header">
             <div className="adm-finance-badge purple">
@@ -1037,24 +1205,23 @@ export default function OverviewSection({
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Active Annual Value (ARR)</span>
+            <span className="adm-finance-label">Annual Net Revenue</span>
             <div className="adm-finance-value purple-val">
-              ₹<CountUp end={activeOverviewData.kpi.arrValueNumeric} decimals={2} duration={1400} /> Cr
+              ₹<CountUp end={arrMetrics.arrInCrores} decimals={2} duration={1400} /> Cr
             </div>
             <p className="adm-finance-caption">
               Monthly recurring of{' '}
               <strong>
-                ₹<CountUp end={activeOverviewData.kpi.activeMRRNumeric} useIndianFormat={true} duration={1400} />
+                ₹<CountUp end={arrMetrics.activeMRR} useIndianFormat={true} duration={1400} />
               </strong>{' '}
-              on active accounts plus {activeOverviewData.kpi.contractCommitmentsFormatted} of in-progress
-              contracts — the run-rate as of today.
+              on active accounts plus ₹{arrMetrics.commitments.toLocaleString('en-IN')} of in-progress contracts.
             </p>
           </div>
 
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot purple" />
-              <CountUp end={activeOverviewData.kpi.contractsInProgress} duration={1200} /> contracts in progress
+              <CountUp end={arrMetrics.inProgressCount} duration={1200} /> contracts in progress
             </span>
             <button
               type="button"
@@ -1068,38 +1235,42 @@ export default function OverviewSection({
           </div>
         </div>
 
-        {/* CARD 4: CUSTOMER PIPELINE SUMMARY */}
+        {/* CARD 4: TOTAL CUSTOMERS */}
         <div className="adm-finance-card customer-ratio">
           <div className="adm-finance-header">
             <div className="adm-finance-badge blue">
               <Users size={16} />
-              <span>Customer Accounts</span>
+              <span>Total Customers</span>
             </div>
-            <span className="adm-finance-trend neutral" style={{ color: '#0284c7' }}>
-              <span>{overviewWindowLabel}</span>
-            </span>
+            <DateRangeFilter
+              from={accountsRange.from}
+              to={accountsRange.to}
+              onChange={(from, to) => setAccountsRange({ from, to })}
+              compact={true}
+              label="Date Range"
+            />
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Total Accounts Pipeline</span>
+            <span className="adm-finance-label">Total Customers</span>
             <div className="adm-finance-value blue-val">
-              <CountUp end={activeOverviewData.kpi.totalPipelineCount} duration={1200} /> Accounts
+              <CountUp end={accountsMetrics.total} duration={1200} /> Customers
             </div>
             <p className="adm-finance-caption">
               <strong style={{ color: '#059669' }}>
-                <CountUp end={activeOverviewData.kpi.activeCount} duration={1200} /> Active
+                <CountUp end={accountsMetrics.active} duration={1200} /> Active
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#6366f1' }}>
-                <CountUp end={activeOverviewData.kpi.inProgressCount || 0} duration={1200} /> In Progress
+                <CountUp end={accountsMetrics.inProgress} duration={1200} /> In Progress
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#d97706' }}>
-                <CountUp end={activeOverviewData.kpi.demoCount} duration={1200} /> Demo Trial
+                <CountUp end={accountsMetrics.demo} duration={1200} /> Demo Trial
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#64748b' }}>
-                <CountUp end={activeOverviewData.kpi.inactiveCount} duration={1200} /> Inactive
+                <CountUp end={accountsMetrics.inactive} duration={1200} /> Inactive
               </strong>
             </p>
           </div>
@@ -1107,7 +1278,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot blue" />
-              <CountUp end={activeOverviewData.kpi.accountsAdded} duration={1200} /> created in {overviewWindowLabel}
+              <CountUp end={accountsMetrics.total} duration={1200} /> registered customers in range
             </span>
             <button
               type="button"

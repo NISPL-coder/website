@@ -9,7 +9,9 @@ import {
   Edit3,
   Printer,
   Trash2,
-  RotateCw
+  RotateCw,
+  Power,
+  CheckCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -54,6 +56,50 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [syncingIds, setSyncingIds] = useState({});
+  const [updatingStatusIds, setUpdatingStatusIds] = useState({});
+
+  const handleQuickStatusChange = async (contract, nextStatus) => {
+    const cId = getContractId(contract);
+    const currentStatus = normalizeContractStatus(contract.status, contract);
+    if (nextStatus === currentStatus) return;
+
+    setUpdatingStatusIds((prev) => ({ ...prev, [cId]: true }));
+    const toastId = toast.loading(`Updating status of "${contract.name || cId}" to ${nextStatus} & syncing Sangam CRM...`);
+
+    // Optimistic UI update
+    setContracts((prev) =>
+      prev.map((item) =>
+        getContractId(item) === cId ? { ...item, status: nextStatus } : item
+      )
+    );
+
+    try {
+      const res = await contractApi.updateContract(cId, { status: nextStatus });
+      const updated = res.contract || { ...contract, status: nextStatus };
+
+      setContracts((prev) =>
+        prev.map((item) =>
+          getContractId(item) === cId ? { ...item, ...updated, status: nextStatus } : item
+        )
+      );
+
+      toast.success(
+        `Contract status changed to "${nextStatus}" & synchronized to Sangam CRM!`,
+        { id: toastId }
+      );
+    } catch (err) {
+      console.error('Failed to update contract status:', err);
+      // Revert on failure
+      setContracts((prev) =>
+        prev.map((item) =>
+          getContractId(item) === cId ? { ...item, status: currentStatus } : item
+        )
+      );
+      toast.error(`Status update failed: ${err.message}`, { id: toastId });
+    } finally {
+      setUpdatingStatusIds((prev) => ({ ...prev, [cId]: false }));
+    }
+  };
 
   // Modals state
   const [viewingContract, setViewingContract] = useState(null);
@@ -208,15 +254,72 @@ export default function ContractSection({ contracts, setContracts, customers = [
       selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
       sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
-      minWidth: '165px',
-      width: '180px',
+      minWidth: '170px',
+      width: '185px',
       cell: (c) => {
         const status = normalizeContractStatus(c.status, c);
         const tone = contractStatusTone(status, c);
+        const cId = getContractId(c);
+        const isUpdating = !!updatingStatusIds[cId];
+
         return (
-          <span className={`adm-status-pill ${tone}`}>
-            {status || '—'}
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+            <span className={`adm-status-pill ${tone}`}>
+              {status || '—'}
+            </span>
+            {can('contract', 'edit') && status === 'In Progress' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickStatusChange(c, 'Inactive');
+                }}
+                disabled={isUpdating}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#dc2626',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: isUpdating ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  textDecoration: 'underline'
+                }}
+                title="Mark this contract as Inactive and update in Sangam CRM"
+              >
+                {isUpdating ? 'Updating...' : '+ Set Inactive'}
+              </button>
+            )}
+            {can('contract', 'edit') && status === 'Inactive' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickStatusChange(c, 'In Progress');
+                }}
+                disabled={isUpdating}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#059669',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: isUpdating ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  textDecoration: 'underline'
+                }}
+                title="Mark this contract as In Progress and update in Sangam CRM"
+              >
+                {isUpdating ? 'Updating...' : '+ Set In Progress'}
+              </button>
+            )}
+          </div>
         );
       },
       searchType: 'select'
@@ -353,6 +456,20 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 tone: 'purple',
                 hidden: !can('contract', 'edit'),
                 onClick: () => setEditingContract(c)
+              },
+              {
+                label: 'Set Inactive',
+                icon: Power,
+                tone: 'red',
+                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'In Progress',
+                onClick: () => handleQuickStatusChange(c, 'Inactive')
+              },
+              {
+                label: 'Set In Progress',
+                icon: CheckCircle2,
+                tone: 'green',
+                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'Inactive',
+                onClick: () => handleQuickStatusChange(c, 'In Progress')
               },
               {
                 label: 'Print (PDF)',

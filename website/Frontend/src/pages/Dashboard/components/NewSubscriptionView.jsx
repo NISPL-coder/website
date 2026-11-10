@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
 import { contractApi } from '../../../services/contractApi';
@@ -78,6 +78,10 @@ const buildPlans = (products = []) =>
         description: p.description || '',
         isDemoPlan: isDemo,
         isCustomPlan: isCustom,
+        isCustomerSpecific: Boolean(p.isCustomerSpecific),
+        targetCustomerEmail: p.targetCustomerEmail || '',
+        targetCustomerId: p.targetCustomerId || '',
+        targetCustomerName: p.targetCustomerName || '',
         duration: p.duration || (isDemo ? '7 Days' : ''),
         badge: isDemo ? 'Trial / Demo' : isCustom ? 'Custom Plan' : ''
       };
@@ -420,12 +424,26 @@ function PlanSelect({ plans, selectedId, onChange, loading, errorMessage }) {
                       <span style={{ fontSize: '0.68rem', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Demo</span>
                     )}
                     {plan.isCustomPlan && (
-                      <span style={{ fontSize: '0.68rem', background: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>Custom</span>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          background: plan.isCustomerSpecific ? '#dcfce7' : '#e0e7ff',
+                          color: plan.isCustomerSpecific ? '#15803d' : '#4338ca',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          fontWeight: 600,
+                          border: `1px solid ${plan.isCustomerSpecific ? '#bbf7d0' : '#c7d2fe'}`
+                        }}
+                      >
+                        {plan.isCustomerSpecific ? 'Special Custom Price' : 'Custom'}
+                      </span>
                     )}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
                     {plan.isDemoPlan
                       ? `Demo Trial Period: ${plan.duration || '7 Days'}`
+                      : plan.isCustomerSpecific
+                      ? `Exclusive custom pricing for ${plan.targetCustomerName || plan.targetCustomerEmail} · ${specLine(plan) || plan.serverConfiguration || 'Private tier'}`
                       : (specLine(plan) || plan.serverConfiguration || 'Configuration as quoted')}
                   </div>
                 </div>
@@ -450,6 +468,9 @@ export default function NewSubscriptionView({
   customer,
   account,
   portalData,
+  isReadOnly = false,
+  isDemoActive = false,
+  demoExpiryDate = null,
   onBack,
   onAddToCart,
   onGoToCart
@@ -635,20 +656,94 @@ export default function NewSubscriptionView({
     7
   );
 
-  // If customer already used demo and has no administrator extension authorized, hide the demo plan completely
-  const shouldHideDemo = Boolean(isCustomerDemoUsed && !demoExtensionAllowed);
+  // Active demo trial detection for read-only order locking
+  const activeDemos = portalData?.demoProducts || [];
+  const activeDemo =
+    activeDemos.find((d) => !d.expired && String(d.status).toUpperCase() !== 'DEMO-INACTIVE') ||
+    (portalData?.products || []).find((p) =>
+      Boolean(p.isDemoTrial || p.contractType === 'Trial' || p.category === 'Trial' || String(p.status).toUpperCase() === 'DEMO') &&
+      !p.expired &&
+      String(p.status).toUpperCase() !== 'DEMO-INACTIVE'
+    ) ||
+    contractsList.find((ctr) => {
+      const match = (
+        (ctr.customerId && (ctr.customerId === activeCustomer?.customerId || ctr.customerId === customer?.customerId)) ||
+        (ctr.clientEmail && ctr.clientEmail.toLowerCase() === selectedCustomer?.toLowerCase()) ||
+        (ctr.email && ctr.email.toLowerCase() === selectedCustomer?.toLowerCase())
+      );
+      if (!match) return false;
+      const isDemo = ctr.isDemoTrial || ctr.trialUsed || ctr.contractType === 'Trial' || ctr.productCategory === 'Trial' || String(ctr.status).toUpperCase() === 'DEMO';
+      if (!isDemo) return false;
+      if (String(ctr.status).toUpperCase() === 'DEMO-INACTIVE' || ctr.expired) return false;
+      return true;
+    }) ||
+    null;
 
-  // Filter out demo plans for customers who have already taken the demo once
+  const effectiveDemoActive = Boolean(
+    isDemoActive ||
+    activeDemo ||
+    activeCustomer?.status === 'Demo' ||
+    customer?.status === 'Demo' ||
+    account?.status === 'Demo' ||
+    portalData?.account?.status === 'Demo' ||
+    ((portalData?.kpi?.demoProducts ?? 0) > 0)
+  );
+
+  const effectiveReadOnly = Boolean(isReadOnly);
+  const effectiveExpiryDate = demoExpiryDate || activeDemo?.expiryDate || activeDemo?.endDate || null;
+
+  // If customer already used demo and has no administrator extension authorized, hide the demo plan completely
+  const shouldHideDemo = Boolean((isCustomerDemoUsed || effectiveDemoActive) && !demoExtensionAllowed);
+
+  // Filter out demo plans for customers who have already taken the demo once,
+  // and ensure customer-specific custom plans are ONLY visible to that particular customer!
   const visiblePlans = useMemo(() => {
-    if (!shouldHideDemo) return plans;
-    return plans.filter((p) => !p.isDemoPlan);
-  }, [plans, shouldHideDemo]);
+    const custEmail = (selectedCustomer || currentEmail || customer?.email || account?.email || '').trim().toLowerCase();
+    const custId = (activeCustomer?.customerId || customer?.customerId || '').trim().toLowerCase();
+
+    return plans.filter((p) => {
+      // 1. Hide demo plan if already used and no extension
+      if (shouldHideDemo && p.isDemoPlan) {
+        return false;
+      }
+
+      // 2. Custom plan target customer filtering:
+      // If a custom plan is assigned specifically to a customer, ONLY that particular customer can see it!
+      if (p.isCustomPlan && (p.isCustomerSpecific || p.targetCustomerEmail || p.targetCustomerId)) {
+        const planTargetEmail = (p.targetCustomerEmail || '').trim().toLowerCase();
+        const planTargetId = (p.targetCustomerId || '').trim().toLowerCase();
+
+        const matchesTarget =
+          (planTargetEmail && planTargetEmail === custEmail) ||
+          (planTargetId && planTargetId === custId);
+
+        return Boolean(matchesTarget);
+      }
+
+      return true;
+    });
+  }, [plans, shouldHideDemo, selectedCustomer, currentEmail, customer, account, activeCustomer]);
 
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const selectedPlan = useMemo(
     () => visiblePlans.find((p) => p.id === selectedPlanId) || null,
     [visiblePlans, selectedPlanId]
   );
+
+  // No autofill - Plan Duration starts unselected
+  const [selectedDurationKey, setSelectedDurationKey] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [startDate, setStartDate] = useState(getTodayDateString);
+
+  // Reset selected plan if it is not in the visible plans list for the currently selected customer
+  useEffect(() => {
+    if (selectedPlanId && !visiblePlans.some((p) => p.id === selectedPlanId)) {
+      setSelectedPlanId('');
+      if (selectedDurationKey === 'demo_term') {
+        setSelectedDurationKey('');
+      }
+    }
+  }, [visiblePlans, selectedPlanId, selectedDurationKey]);
 
   // Reset selected plan if it was a demo plan and the selected customer has already taken the demo
   useEffect(() => {
@@ -662,13 +757,8 @@ export default function NewSubscriptionView({
 
   const unitPrice = selectedPlan ? selectedPlan.monthlyPrice : '';
   const description = selectedPlan ? selectedPlan.description : '';
-  const [quantity, setQuantity] = useState(1);
 
   const isDemoBlocked = Boolean(selectedPlan?.isDemoPlan && isCustomerDemoUsed && !demoExtensionAllowed);
-
-  // No autofill - Plan Duration starts unselected
-  const [selectedDurationKey, setSelectedDurationKey] = useState('');
-  const [startDate, setStartDate] = useState(getTodayDateString);
 
   // When a demo plan is selected, auto-lock duration to demo term & set quantity to 1
   useEffect(() => {
@@ -1049,6 +1139,27 @@ export default function NewSubscriptionView({
                   {visiblePlans.length} published plans · billed per month, per configuration
                 </span>
               )}
+              {selectedPlan?.isCustomPlan && selectedPlan?.isCustomerSpecific && (
+                <div
+                  style={{
+                    marginTop: '8px',
+                    padding: '8px 12px',
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    color: '#166534',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Lock size={13} color="#15803d" />
+                  <span>
+                    <strong>Exclusive Custom Pricing:</strong> This special rate is exclusively configured for <strong>{selectedPlan.targetCustomerName || selectedPlan.targetCustomerEmail}</strong>.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Unit Price (Auto populated based on selected plan - Read only) */}
@@ -1308,7 +1419,7 @@ export default function NewSubscriptionView({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 1px 2px rgba(79, 70, 229, 0.2)'
+                boxShadow: plans.length === 0 || isDemoBlocked ? 'none' : '0 1px 2px rgba(79, 70, 229, 0.2)'
               }}
             >
               <span>

@@ -3,7 +3,7 @@ import Contract, { getContractsFromFile, saveContractsToFile } from '../models/C
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { nextContractCode } from '../services/contractProvisioning.js';
-import { refreshCustomerLifecycle } from '../services/customerLifecycle.js';
+import { refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import {

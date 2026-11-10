@@ -1,59 +1,55 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Network,
   Search,
   X,
   CheckCircle2,
   AlertTriangle,
-  WifiOff
+  WifiOff,
+  Plus,
+  Trash2,
+  Copy,
+  Server,
+  Layers,
+  Radio,
+  ExternalLink
 } from 'lucide-react';
 import Select from 'react-select';
+import toast from 'react-hot-toast';
 import { compactSelectStyles } from './reactSelectStyles';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { compareDate, compareText, isWithinDateRange } from './adminTableUtils';
-
-/**
- * Active / Inactive IP monitor.
- *
- * Reads the network operations feed for every Ness/hosting node NISPL serves.
- * The records currently come from the demo dataset below; once the Network Data
- * Collector lands on the backend this component reads from that API instead, so
- * the field names double as the API contract.
- */
-const DEMO_IP_RECORDS = [
-  { id: 'IP-001', ip: '103.208.72.14', serverNode: 'CtrlS-KOL-NODE-01', company: 'Tim Dog Pvt. Ltd.', region: 'Kolkata, IN', ipType: 'Dedicated', status: 'Active', lastSeen: '2026-11-10T09:42:00', uptimePercent: 99.98, notes: 'Primary egress for Tally Prime Cloud' },
-  { id: 'IP-002', ip: '103.208.72.15', serverNode: 'CtrlS-KOL-NODE-01', company: 'Demo Customer', region: 'Kolkata, IN', ipType: 'Dedicated', status: 'Active', lastSeen: '2026-11-10T09:40:00', uptimePercent: 99.91, notes: 'Trial sandbox node' },
-  { id: 'IP-003', ip: '103.208.72.22', serverNode: 'CtrlS-KOL-NODE-02', company: 'Sangam Traders', region: 'Kolkata, IN', ipType: 'Shared', status: 'Inactive', lastSeen: '2026-11-09T18:12:00', uptimePercent: 87.40, notes: 'Offline since yesterday evening' },
-  { id: 'IP-004', ip: '49.205.78.63', serverNode: 'AWS-MUM-NODE-04', company: 'Bengal Tools Ltd.', region: 'Mumbai, IN', ipType: 'Dedicated', status: 'Active', lastSeen: '2026-11-10T09:44:00', uptimePercent: 99.99, notes: 'Cloud VPS customer production IP' },
-  { id: 'IP-005', ip: '49.205.78.64', serverNode: 'AWS-MUM-NODE-04', company: 'Meridian Health LLP', region: 'Mumbai, IN', ipType: 'Shared', status: 'Active', lastSeen: '2026-11-10T09:43:00', uptimePercent: 99.82, notes: 'Tally audit build' },
-  { id: 'IP-006', ip: '139.5.116.90', serverNode: 'CtrlS-HYD-NODE-07', company: 'Decca Metal Works', region: 'Hyderabad, IN', ipType: 'Dedicated', status: 'Inactive', lastSeen: '2026-11-10T06:05:00', uptimePercent: 94.15, notes: 'Awaiting customer firewall whitelist approval' },
-  { id: 'IP-007', ip: '139.5.116.91', serverNode: 'CtrlS-HYD-NODE-07', company: 'Orchid Diagnostics', region: 'Hyderabad, IN', ipType: 'Shared', status: 'Active', lastSeen: '2026-11-10T09:38:00', uptimePercent: 99.87, notes: 'RDP Gateway pool' },
-  { id: 'IP-008', ip: '182.71.190.120', serverNode: 'AWS-MUM-NODE-09', company: 'Nova Apparel Pvt. Ltd.', region: 'Mumbai, IN', ipType: 'Dedicated', status: 'Active', lastSeen: '2026-11-10T09:41:00', uptimePercent: 99.95, notes: 'Nightly TDS sync on 23:00 IST' },
-  { id: 'IP-009', ip: '182.71.190.121', serverNode: 'AWS-MUM-NODE-09', company: 'Eastern Logistics', region: 'Mumbai, IN', ipType: 'Shared', status: 'Inactive', lastSeen: '2026-11-08T22:47:00', uptimePercent: 71.60, notes: 'Maintenance window pending fix approval' },
-  { id: 'IP-010', ip: '115.114.42.7', serverNode: 'CtrlS-KOL-NODE-01', company: 'Sourav Industries', region: 'Kolkata, IN', ipType: 'Static', status: 'Active', lastSeen: '2026-11-10T09:44:00', uptimePercent: 99.99, notes: 'Add-on storage replica' },
-  { id: 'IP-011', ip: '115.114.42.8', serverNode: 'CtrlS-KOL-NODE-02', company: 'Demo Customer', region: 'Kolkata, IN', ipType: 'Static', status: 'Active', lastSeen: '2026-11-10T09:42:00', uptimePercent: 99.93, notes: 'Trial extension granted — renewed sandbox' },
-  { id: 'IP-012', ip: '115.114.42.9', serverNode: 'CtrlS-HYD-NODE-07', company: 'Siliguri Transport Co.', region: 'Hyderabad, IN', ipType: 'Dedicated', status: 'Inactive', lastSeen: '2026-11-04T14:20:00', uptimePercent: 45.30, notes: 'Account suspended — non-payment' }
-];
-
-const prettyDateTime = (value) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-};
+import { ipApi } from '../../../services/ipApi';
 
 export default function IPMonitorSection({ externalSearch }) {
+  const navigate = useNavigate();
+  const [records, setRecords] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [serverFilter, setServerFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [copiedId, setCopiedId] = useState(null);
+
+  const fetchRecords = async () => {
+    setIsLoading(true);
+    try {
+      const data = await ipApi.getIps();
+      setRecords(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.warn('Failed to fetch IP records:', err?.message);
+      toast.error('Could not load IP records from server');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
   useEffect(() => {
     if (externalSearch !== undefined && externalSearch !== null) {
@@ -61,20 +57,33 @@ export default function IPMonitorSection({ externalSearch }) {
     }
   }, [externalSearch]);
 
-  const records = DEMO_IP_RECORDS;
+  const handleDelete = async (id, wanIp) => {
+    if (!window.confirm(`Are you sure you want to delete IP record for ${wanIp || 'this entry'}?`)) {
+      return;
+    }
+    try {
+      await ipApi.deleteIp(id);
+      toast.success('IP record deleted successfully');
+      setRecords((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete IP record');
+    }
+  };
+
+  const handleCopy = (text, id) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    toast.success(`Copied: ${text}`);
+    setTimeout(() => setCopiedId(null), 1800);
+  };
 
   const counts = useMemo(() => {
-    const active = records.filter((r) => r.status === 'Active').length;
-    const inactive = records.filter((r) => r.status === 'Inactive').length;
-    // Anything that has not pinged back for over 24h counts as attention-worthy.
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    const attention = records.filter(
-      (r) => r.status === 'Inactive' && new Date(r.lastSeen).getTime() < cutoff
-    ).length;
-    const avgUptime = records.length
-      ? records.reduce((sum, r) => sum + Number(r.uptimePercent || 0), 0) / records.length
-      : 0;
-    return { total: records.length, active, inactive, attention, avgUptime };
+    const active = records.filter((r) => String(r.status).toLowerCase() === 'active').length;
+    const inactive = records.filter((r) => String(r.status).toLowerCase() === 'inactive').length;
+    const dedicated = records.filter((r) => String(r.serverType).toLowerCase() === 'dedicated').length;
+    const shared = records.filter((r) => String(r.serverType).toLowerCase() === 'shared').length;
+    return { total: records.length, active, inactive, dedicated, shared };
   }, [records]);
 
   const filteredRecords = useMemo(() => {
@@ -83,23 +92,29 @@ export default function IPMonitorSection({ externalSearch }) {
       .filter((r) => {
         const matchesSearch =
           !q ||
-          r.ip.toLowerCase().includes(q) ||
-          r.serverNode.toLowerCase().includes(q) ||
-          (r.company || '').toLowerCase().includes(q) ||
-          (r.region || '').toLowerCase().includes(q) ||
-          (r.ipType || '').toLowerCase().includes(q);
+          (r.wanIp || '').toLowerCase().includes(q) ||
+          (r.lanIp || '').toLowerCase().includes(q) ||
+          (r.rdpPort || '').toLowerCase().includes(q) ||
+          (r.httpPort || '').toLowerCase().includes(q) ||
+          (r.vmId || '').toLowerCase().includes(q) ||
+          (r.status || '').toLowerCase().includes(q) ||
+          (r.serverType || '').toLowerCase().includes(q) ||
+          (r.notes || '').toLowerCase().includes(q);
 
         const matchesStatus =
           statusFilter === 'all' ||
-          (statusFilter === 'active' && r.status === 'Active') ||
-          (statusFilter === 'inactive' && r.status === 'Inactive');
+          String(r.status).toLowerCase() === statusFilter.toLowerCase();
 
-        const matchesDateRange = isWithinDateRange(r.lastSeen, dateFrom, dateTo);
+        const matchesServer =
+          serverFilter === 'all' ||
+          String(r.serverType).toLowerCase() === serverFilter.toLowerCase();
 
-        return matchesSearch && matchesStatus && matchesDateRange;
+        const matchesDateRange = isWithinDateRange(r.createdAt, dateFrom, dateTo);
+
+        return matchesSearch && matchesStatus && matchesServer && matchesDateRange;
       })
-      .sort((a, b) => new Date(b.lastSeen || 0).getTime() - new Date(a.lastSeen || 0).getTime());
-  }, [records, searchQuery, statusFilter, dateFrom, dateTo]);
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  }, [records, searchQuery, statusFilter, serverFilter, dateFrom, dateTo]);
 
   const statusOptions = [
     { value: 'all', label: `All Statuses (${counts.total})` },
@@ -107,143 +122,240 @@ export default function IPMonitorSection({ externalSearch }) {
     { value: 'inactive', label: `Inactive (${counts.inactive})` }
   ];
 
+  const serverOptions = [
+    { value: 'all', label: `All Servers (${counts.total})` },
+    { value: 'dedicated', label: `Dedicated (${counts.dedicated})` },
+    { value: 'shared', label: `Shared (${counts.shared})` }
+  ];
+
   const columns = [
     {
-      id: 'ip',
-      name: 'IP Address',
-      sortable: true,
-      minWidth: '170px',
-      sortFunction: compareText((row) => row.ip),
-      cell: (row) => (
-        <span
-          style={{
-            fontFamily: 'monospace',
-            fontWeight: 700,
-            fontSize: '0.87rem',
-            color: '#0f172a'
-          }}
-        >
-          {row.ip}
+      id: 'sNo',
+      name: 'S/No.',
+      width: '70px',
+      cell: (_row, index) => (
+        <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
+          {index + 1}
         </span>
       )
     },
     {
-      id: 'serverNode',
-      name: 'Server Node',
+      id: 'wanIp',
+      name: 'WAN IP',
       sortable: true,
-      minWidth: '180px',
+      minWidth: '150px',
+      sortFunction: compareText((row) => row.wanIp),
       cell: (row) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600, color: '#4f46e5' }}>
-            {row.serverNode}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <span
+            style={{
+              fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              color: '#0f172a'
+            }}
+          >
+            {row.wanIp}
           </span>
-          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{row.region}</span>
+          <button
+            type="button"
+            onClick={() => handleCopy(row.wanIp, `wan-${row.id}`)}
+            title="Copy WAN IP"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: copiedId === `wan-${row.id}` ? '#10b981' : '#94a3b8',
+              padding: '2px',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
+          >
+            <Copy size={13} />
+          </button>
         </div>
       )
     },
     {
-      id: 'company',
-      name: 'Assigned Customer',
+      id: 'lanIp',
+      name: 'LAN IP',
       sortable: true,
-      minWidth: '200px',
-      sortFunction: compareText((row) => row.company),
+      minWidth: '150px',
+      sortFunction: compareText((row) => row.lanIp),
       cell: (row) => (
-        <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
-          {row.company || '— Unassigned —'}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <span
+            style={{
+              fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+              fontWeight: 600,
+              fontSize: '0.86rem',
+              color: '#334155'
+            }}
+          >
+            {row.lanIp}
+          </span>
+          <button
+            type="button"
+            onClick={() => handleCopy(row.lanIp, `lan-${row.id}`)}
+            title="Copy LAN IP"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: copiedId === `lan-${row.id}` ? '#10b981' : '#94a3b8',
+              padding: '2px',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
+          >
+            <Copy size={13} />
+          </button>
+        </div>
+      )
+    },
+    {
+      id: 'rdpPort',
+      name: 'RDP PORT',
+      sortable: true,
+      minWidth: '110px',
+      cell: (row) => (
+        <span
+          style={{
+            fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+            fontSize: '0.84rem',
+            fontWeight: 600,
+            color: '#4f46e5',
+            background: '#eef2ff',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            border: '1px solid #e0e7ff'
+          }}
+        >
+          {row.rdpPort || '3389'}
         </span>
       )
     },
     {
-      id: 'ipType',
-      name: 'Allocation Type',
-      searchType: 'select',
-      searchOptions: [
-        { value: 'dedicated', label: 'Dedicated' },
-        { value: 'shared', label: 'Shared' },
-        { value: 'static', label: 'Static' }
-      ],
+      id: 'httpPort',
+      name: 'HTTP PORT',
       sortable: true,
-      minWidth: '140px',
+      minWidth: '110px',
       cell: (row) => (
         <span
           style={{
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            padding: '2px 10px',
-            borderRadius: '999px',
-            background: '#f1f5f9',
-            color: '#475569',
-            border: '1px solid #e2e8f0'
+            fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+            fontSize: '0.84rem',
+            fontWeight: 600,
+            color: '#0891b2',
+            background: '#ecfeff',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            border: '1px solid #cffafe'
           }}
         >
-          {row.ipType}
+          {row.httpPort || '80'}
+        </span>
+      )
+    },
+    {
+      id: 'vmId',
+      name: 'VM ID',
+      sortable: true,
+      minWidth: '130px',
+      sortFunction: compareText((row) => row.vmId),
+      cell: (row) => (
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: '0.84rem',
+            color: '#1e293b',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            padding: '3px 8px',
+            borderRadius: '6px'
+          }}
+        >
+          {row.vmId}
         </span>
       )
     },
     {
       id: 'status',
-      name: 'Status',
+      name: 'STATUS',
       searchType: 'select',
       searchOptions: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' }
+        { value: 'Active', label: 'Active' },
+        { value: 'Inactive', label: 'Inactive' }
       ],
       sortable: true,
-      minWidth: '130px',
-      cell: (row) => (
-        <span
-          className={`adm-status-pill ${row.status === 'Active' ? 'active' : 'suspended'}`}
-          style={{ fontSize: '0.72rem', padding: '3px 10px', fontWeight: 700 }}
-        >
-          {row.status}
-        </span>
-      )
-    },
-    {
-      id: 'lastSeen',
-      name: 'Last Pinged',
-      sortable: true,
-      minWidth: '160px',
-      sortFunction: compareDate((row) => row.lastSeen),
-      cell: (row) => (
-        <span style={{ fontSize: '0.8rem', color: '#475569', whiteSpace: 'nowrap' }}>
-          {prettyDateTime(row.lastSeen)}
-        </span>
-      )
-    },
-    {
-      id: 'uptime',
-      name: '30-day Uptime',
-      sortable: true,
-      minWidth: '130px',
+      minWidth: '120px',
       cell: (row) => {
-        const uptime = Number(row.uptimePercent || 0);
-        const tone = uptime >= 99 ? '#059669' : uptime >= 95 ? '#d97706' : '#dc2626';
+        const isActive = String(row.status).toLowerCase() === 'active';
         return (
           <span
-            style={{
-              fontWeight: 800,
-              fontSize: '0.84rem',
-              color: tone,
-              textAlign: 'right',
-              display: 'inline-block',
-              width: '100%'
-            }}
+            className={`adm-status-pill ${isActive ? 'active' : 'suspended'}`}
+            style={{ fontSize: '0.74rem', padding: '3px 12px', fontWeight: 700 }}
           >
-            {uptime.toFixed(2)}%
+            {isActive ? 'ACTIVE' : 'INACTIVE'}
           </span>
         );
       }
     },
     {
-      id: 'notes',
-      name: 'Network Notes',
+      id: 'serverType',
+      name: 'SERVER',
+      searchType: 'select',
+      searchOptions: [
+        { value: 'Dedicated', label: 'Dedicated' },
+        { value: 'Shared', label: 'Shared' }
+      ],
+      sortable: true,
+      minWidth: '130px',
+      cell: (row) => {
+        const isDedicated = String(row.serverType).toLowerCase() === 'dedicated';
+        return (
+          <span
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '999px',
+              background: isDedicated ? '#f5f3ff' : '#f0fdf4',
+              color: isDedicated ? '#6d28d9' : '#15803d',
+              border: `1px solid ${isDedicated ? '#ddd6fe' : '#bbf7d0'}`
+            }}
+          >
+            {isDedicated ? 'DEDICATED' : 'SHARED'}
+          </span>
+        );
+      }
+    },
+    {
+      id: 'actions',
+      name: 'Action',
+      minWidth: '90px',
       searchable: false,
-      minWidth: '240px',
       cell: (row) => (
-        <span style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
-          {row.notes || '—'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            className="adm-action-btn delete"
+            onClick={() => handleDelete(row.id, row.wanIp)}
+            title="Delete IP entry"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#ef4444',
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
       )
     }
   ];
@@ -255,60 +367,48 @@ export default function IPMonitorSection({ externalSearch }) {
         <div className="adm-card-header-info">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 className="adm-section-title">Active / Inactive IP</h1>
-            <span
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 800,
-                letterSpacing: '0.4px',
-                padding: '3px 9px',
-                borderRadius: '999px',
-                background: '#ede9fe',
-                color: '#6366f1',
-                border: '1px solid #ddd6fe'
-              }}
-            >
-              DEMO DATA
-            </span>
           </div>
           <p className="adm-section-sub">
-            Live liveness of every public IP NISPL serves across its hosting nodes.
+            Monitor and manage active and inactive network IPs, WAN/LAN bindings, RDP/HTTP ports, and VM IDs.
           </p>
         </div>
 
-        <div className="adm-card-header-action">
-          <span
+        <div className="adm-card-header-action" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            type="button"
+            className="adm-btn-primary"
+            onClick={() => navigate('/admin/ip-monitor/create')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '7px',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: '#475569',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '999px',
-              padding: '7px 14px'
+              gap: '8px',
+              padding: '8px 18px',
+              fontSize: '0.88rem',
+              fontWeight: 600
             }}
           >
-            <Network size={15} className="adm-cust-stat-icon purple" />
-            <span>Avg 30-day uptime: {counts.avgUptime.toFixed(2)}%</span>
-          </span>
+            <Plus size={16} />
+            <span>Create IP</span>
+          </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary KPI Cards */}
       <div className="adm-customer-summary-grid" style={{ margin: '0 24px 16px' }}>
         <div
-          className={`adm-cust-stat-card ${statusFilter === 'all' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('all')}
+          className={`adm-cust-stat-card ${statusFilter === 'all' && serverFilter === 'all' ? 'selected' : ''}`}
+          onClick={() => {
+            setStatusFilter('all');
+            setServerFilter('all');
+          }}
           role="button"
         >
           <div className="adm-cust-stat-top">
-            <span className="adm-cust-stat-label">Total Monitored IPs</span>
+            <span className="adm-cust-stat-label">Total Network IPs</span>
             <Network size={18} className="adm-cust-stat-icon purple" />
           </div>
           <span className="adm-cust-stat-val">{counts.total}</span>
-          <span className="adm-cust-stat-desc">Across {new Set(records.map((r) => r.serverNode)).size} server nodes</span>
+          <span className="adm-cust-stat-desc">All registered WAN/LAN pool</span>
         </div>
 
         <div
@@ -321,7 +421,7 @@ export default function IPMonitorSection({ externalSearch }) {
             <CheckCircle2 size={18} className="adm-cust-stat-icon emerald" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#059669' }}>{counts.active}</span>
-          <span className="adm-cust-stat-desc">Pinged back within the last scan cycle</span>
+          <span className="adm-cust-stat-desc">Operational active servers</span>
         </div>
 
         <div
@@ -334,16 +434,20 @@ export default function IPMonitorSection({ externalSearch }) {
             <WifiOff size={18} className="adm-cust-stat-icon red" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#dc2626' }}>{counts.inactive}</span>
-          <span className="adm-cust-stat-desc">No response on the latest sweep</span>
+          <span className="adm-cust-stat-desc">Inactive / standby allocations</span>
         </div>
 
-        <div className="adm-cust-stat-card" role="button">
+        <div
+          className={`adm-cust-stat-card ${serverFilter === 'dedicated' ? 'selected' : ''}`}
+          onClick={() => setServerFilter('dedicated')}
+          role="button"
+        >
           <div className="adm-cust-stat-top">
-            <span className="adm-cust-stat-label">Needs Attention</span>
-            <AlertTriangle size={18} className="adm-cust-stat-icon amber" />
+            <span className="adm-cust-stat-label">Dedicated Servers</span>
+            <Server size={18} className="adm-cust-stat-icon amber" />
           </div>
-          <span className="adm-cust-stat-val" style={{ color: '#d97706' }}>{counts.attention}</span>
-          <span className="adm-cust-stat-desc">Inactive for over 24 hours</span>
+          <span className="adm-cust-stat-val" style={{ color: '#6d28d9' }}>{counts.dedicated}</span>
+          <span className="adm-cust-stat-desc">Dedicated VM instances</span>
         </div>
       </div>
 
@@ -353,7 +457,7 @@ export default function IPMonitorSection({ externalSearch }) {
           <Search className="adm-search-icon" size={16} />
           <input
             type="text"
-            placeholder="Search by IP, node, customer, region..."
+            placeholder="Search by WAN, LAN, ports, VM ID..."
             className="adm-search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -390,20 +494,35 @@ export default function IPMonitorSection({ externalSearch }) {
               classNamePrefix="react-select"
             />
           </div>
+
+          <div className="adm-filter-select-wrap">
+            <Select
+              styles={compactSelectStyles}
+              isSearchable={false}
+              options={serverOptions}
+              value={serverOptions.find((option) => option.value === serverFilter) || serverOptions[0]}
+              onChange={(opt) => setServerFilter(opt ? opt.value : 'all')}
+              classNamePrefix="react-select"
+            />
+          </div>
         </div>
       </div>
 
-      {/* React Data Table with per-column filter row */}
+      {/* React Data Table */}
       <AdminDataTable
         columns={columns}
         data={filteredRecords}
         keyField="id"
-        defaultSortFieldId="lastSeen"
-        defaultSortAsc={false}
-        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={1100}
-        noDataMessage="No IP records matched"
-        noDataHint="Adjust the search term, status filter or date range."
+        defaultSortFieldId="wanIp"
+        defaultSortAsc={true}
+        resetPageToken={`${searchQuery}|${statusFilter}|${serverFilter}|${dateFrom}|${dateTo}`}
+        minWidth={980}
+        noDataMessage={isLoading ? 'Loading network IP records...' : 'No IP records registered'}
+        noDataHint={
+          isLoading
+            ? 'Fetching latest WAN/LAN configurations from server...'
+            : "Click '+ Create IP' to register a new network IP configuration."
+        }
         ariaLabel="Active and inactive IP addresses"
       />
     </div>

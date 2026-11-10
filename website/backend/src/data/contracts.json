@@ -1,5 +1,83 @@
 [
   {
+    "contractId": "CTR-2026-1002",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "demo trail company",
+    "customer": "demo trail",
+    "accountId": "dee4ecb0-f2c1-4009-82c1-b43974e77700",
+    "email": "demotrail@gmail.com",
+    "service": "Subscription (2 Months)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "2 Months",
+    "productCategory": "Software",
+    "totalContractValue": "₹1,180",
+    "value": "₹1,180 / 2 months",
+    "orderDate": "2026-11-10",
+    "startDate": "2026-11-10",
+    "endDate": "2027-01-10",
+    "expiryDate": "2027-01-10",
+    "status": "In Progress",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1002 (PAY-2026-1002).",
+    "productId": "PROD-1794053551621",
+    "salesPerson": "Sales Support Direct",
+    "paymentInvoiceNumber": "INV-2026-1002",
+    "createdBy": {
+      "name": "demo trail",
+      "email": "demotrail@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "21f1fcb5-8e57-4c4e-86b1-c9969fa0dadd",
+      "lastSyncedAt": "2026-11-10T12:48:43.143Z",
+      "syncError": null
+    },
+    "id": "CTR-2026-1002",
+    "createdAt": "2026-11-10T12:48:42.487Z"
+  },
+  {
+    "contractId": "CTR-DEMO-9793",
+    "id": "CTR-DEMO-9793",
+    "name": "Trail",
+    "service": "Trail",
+    "company": "demouser company",
+    "customer": "Demo user",
+    "accountName": "demouser company",
+    "email": "demouser@gmail.com",
+    "customerId": "CUST-7917",
+    "accountId": "d982c164-1519-4bf6-9862-6a22b93a9ad9",
+    "contractType": "Trial",
+    "subscriptionPeriod": "7 Days",
+    "productCategory": "Trial",
+    "isDemoTrial": true,
+    "trialUsed": true,
+    "extensionAllowed": false,
+    "extensionDays": 0,
+    "totalContractValue": "₹0",
+    "value": "₹0",
+    "startDate": "2026-11-10",
+    "endDate": "2026-11-17",
+    "expiryDate": "2026-11-17",
+    "status": "DEMO",
+    "slaTier": "Demo Trial 99.99%",
+    "description": "Active Trail trial for 7 Days (valid until 2026-11-17).",
+    "productId": "PROD-1794053582346",
+    "salesPerson": "Sales Support Direct",
+    "createdBy": {
+      "name": "Demo user",
+      "email": "demouser@gmail.com",
+      "role": "customer"
+    },
+    "createdAt": "2026-11-10T10:27:47.842Z",
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "7b1a1c7f-25f5-4dc3-a482-a0895f70054e",
+      "lastSyncedAt": "2026-11-10T10:27:48.860Z",
+      "syncError": null
+    }
+  },
+  {
     "contractId": "CTR-DEMO-4743",
     "id": "CTR-DEMO-4743",
     "name": "Trail",
@@ -21,7 +99,7 @@
     "startDate": "2026-11-10",
     "endDate": "2026-11-17",
     "expiryDate": "2026-11-17",
-    "status": "DEMO",
+    "status": "DEMO-Inactive",
     "slaTier": "Demo Trial 99.99%",
     "description": "Active Trail trial for 7 Days (valid until 2026-11-17).",
     "productId": "PROD-1794053582346",
@@ -37,7 +115,10 @@
       "recordId": "8fa36405-98ab-4fc9-9779-3fedde00fe6a",
       "lastSyncedAt": "2026-11-10T06:45:33.585Z",
       "syncError": null
-    }
+    },
+    "convertedToPaid": true,
+    "convertedAt": "2026-11-10T12:48:44.063Z",
+    "convertedToContractId": "CTR-2026-1002"
   },
   {
     "contractId": "CTR-DEMO-1521",

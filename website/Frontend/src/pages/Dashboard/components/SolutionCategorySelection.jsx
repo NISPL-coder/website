@@ -1,10 +1,15 @@
 import React from 'react';
-import { ArrowRight, Cloud, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Cloud, ShieldCheck, Lock, AlertCircle } from 'lucide-react';
 import tallyLogo from '../../../assets/partners/tally.png';
 
-export default function SolutionCategorySelection({ onSelectCategory }) {
+export default function SolutionCategorySelection({
+  onSelectCategory,
+  isReadOnly = false,
+  isDemoActive = false,
+  demoExpiryDate = null
+}) {
   return (
-    <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div className="flowmail-section-wrapper animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* ── Top Header Banner (FlowMail Style) ────────────────── */}
       <section className="flowmail-welcome-banner">
         <div className="flowmail-welcome-text">
@@ -73,7 +78,8 @@ export default function SolutionCategorySelection({ onSelectCategory }) {
               onSelectCategory('cloud');
             }
           }}
-          aria-label="Explore Cloud Hosting & Remote Business Solutions"
+          aria-label={isReadOnly ? 'Browse Cloud Hosting & Remote Business Solutions (Read-Only Mode)' : 'Explore Cloud Hosting & Remote Business Solutions'}
+          style={isReadOnly ? { position: 'relative' } : undefined}
         >
           {/* Decorative ambient background glow */}
           <div className="card-ambient-glow cloud-glow" />
@@ -95,8 +101,9 @@ export default function SolutionCategorySelection({ onSelectCategory }) {
 
           {/* Action Link */}
           <div className="solution-explore-row">
-            <span className="solution-explore-btn cloud-btn">
-              <span>Explore Cloud</span>
+            <span className={`solution-explore-btn cloud-btn ${isReadOnly ? 'readonly-btn' : ''}`}>
+              {isReadOnly && <Lock size={14} style={{ marginRight: '6px' }} />}
+              <span>{isReadOnly ? 'Browse Cloud' : 'Explore Cloud'}</span>
               <ArrowRight size={16} className="btn-arrow-icon" />
             </span>
           </div>

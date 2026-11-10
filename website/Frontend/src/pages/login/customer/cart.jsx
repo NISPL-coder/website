@@ -19,6 +19,9 @@ import { useIsMobile } from '../../../utils/useResponsive';
 
 export default function CartSection({
   cartItems = [],
+  isReadOnly = false,
+  isDemoActive = false,
+  demoExpiryDate = null,
   onUpdateQuantity,
   onRemoveItem,
   onProceedToPayment,
@@ -26,6 +29,7 @@ export default function CartSection({
   onBrowseProducts,
   onAddToCart
 }) {
+  const isLocked = Boolean(isReadOnly);
   const [justAddedAddonId, setJustAddedAddonId] = useState(null);
   const [addonsList, setAddonsList] = useState([]);
   const [showAddonsOnCheckout, setShowAddonsOnCheckout] = useState(true);
@@ -591,9 +595,16 @@ export default function CartSection({
                 className="flowmail-btn-primary"
                 onClick={onProceedToPayment}
                 disabled={isCheckingOut}
-                style={{ padding: '12px 28px', fontSize: '0.94rem' }}
+                style={{
+                  padding: '12px 28px',
+                  fontSize: '0.94rem'
+                }}
               >
-                <span>{isCheckingOut ? 'Opening Razorpay…' : 'Proceed to Checkout'}</span>
+                <span>
+                  {isCheckingOut
+                    ? 'Opening Razorpay…'
+                    : 'Proceed to Checkout'}
+                </span>
                 <span style={{ opacity: 0.85, fontWeight: '400' }}>| ₹{grandTotal.toLocaleString('en-IN')}</span>
                 <ArrowRight size={17} />
               </button>

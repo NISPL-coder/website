@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Power, Trash2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AdminDataTable from './AdminDataTable';
-import PlanFormModal from './PlanFormModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
 import { productApi } from '../../../services/productApi';
@@ -66,7 +65,6 @@ const numericCell = {
 export default function CustomPricingPage({ products, setProducts }) {
   const { can } = usePermissions();
   const navigate = useNavigate();
-  const [modal, setModal] = useState({ isOpen: false, plan: null, type: 'custom' });
 
   const backToProducts = () => navigate('/admin/product/cloud');
 
@@ -241,29 +239,40 @@ export default function CustomPricingPage({ products, setProducts }) {
   const customColumns = [
     planNameColumn,
     usersColumn,
-    {
-      id: 'serverType',
-      name: 'Server Type',
-      selector: (row) => (row.serverType === 'dedicated' ? 'Dedicated' : 'Shared'),
-      sortable: true,
-      sortFunction: compareText((row) => (row.serverType === 'dedicated' ? 'Dedicated' : 'Shared')),
-      minWidth: '150px',
-      cell: (plan) => (
-        <span
-          className="adm-product-badge"
-          style={{
-            background: '#eff6ff',
-            color: '#1d4ed8',
-            borderColor: '#bfdbfe',
-            fontWeight: 600,
-            fontSize: '0.74rem'
-          }}
-        >
-          {plan.serverType === 'dedicated' ? 'Dedicated' : 'Shared'}
-        </span>
-      )
-    },
     perUserColumn,
+    {
+      id: 'targetCustomer',
+      name: 'Customer Access',
+      sortable: true,
+      minWidth: '180px',
+      selector: (row) => row.targetCustomerName || row.targetCustomerEmail || 'All Customers',
+      cell: (plan) => {
+        const isSpecific = plan.isCustomerSpecific || Boolean(plan.targetCustomerEmail);
+        return isSpecific ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4338ca' }}>
+              {plan.targetCustomerName || plan.targetCustomerEmail}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              {plan.targetCustomerEmail}
+            </span>
+          </div>
+        ) : (
+          <span
+            style={{
+              fontSize: '0.74rem',
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              background: '#f1f5f9',
+              color: '#475569'
+            }}
+          >
+            All Customers
+          </span>
+        );
+      }
+    },
     {
       id: 'sixMonths',
       name: '6 Months Total',
@@ -292,7 +301,7 @@ export default function CustomPricingPage({ products, setProducts }) {
       cell: (plan) => <span style={numericCell}>{money(quote(plan).twoYears)}</span>
     },
     statusColumn,
-    actionsColumn((plan) => setModal({ isOpen: true, plan, type: 'custom' }))
+    actionsColumn((plan) => navigate('/admin/product/cloud/custom-pricing/create', { state: { plan } }))
   ];
 
   const demoColumns = [
@@ -352,7 +361,7 @@ export default function CustomPricingPage({ products, setProducts }) {
       }
     },
     statusColumn,
-    actionsColumn((plan) => setModal({ isOpen: true, plan, type: 'demo' }))
+    actionsColumn((plan) => navigate('/admin/product/cloud/custom-pricing/create', { state: { plan } }))
   ];
 
   return (
@@ -387,7 +396,7 @@ export default function CustomPricingPage({ products, setProducts }) {
                 <button
                   type="button"
                   className="adm-btn-primary"
-                  onClick={() => setModal({ isOpen: true, plan: null, type: 'custom' })}
+                  onClick={() => navigate('/admin/product/cloud/custom-pricing/create')}
                   title="Publish a custom per-user plan or a demo trial"
                 >
                   <Plus size={16} />
@@ -408,7 +417,7 @@ export default function CustomPricingPage({ products, setProducts }) {
             defaultSortFieldId="name"
             defaultSortAsc={true}
             resetPageToken={`custom|${customPlans.length}`}
-            minWidth={1350}
+            minWidth={1200}
             noDataMessage="No custom plans yet"
             noDataHint="Use Add Plan and pick Custom to quote a per-user rate for any user count."
             ariaLabel="Custom plans"
@@ -434,15 +443,6 @@ export default function CustomPricingPage({ products, setProducts }) {
           />
         </div>
       </div>
-
-      {modal.isOpen && (
-        <PlanFormModal
-          plan={modal.plan}
-          defaultType={modal.type}
-          onClose={() => setModal({ isOpen: false, plan: null, type: 'custom' })}
-          onSaved={handleSaved}
-        />
-      )}
     </>
   );
 }

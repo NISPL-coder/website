@@ -1926,6 +1926,31 @@ input:checked + .adm-slider:before {
   margin: 2px 0 8px 0;
 }
 
+.adm-dual-metric-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 4px 0 10px 0;
+}
+
+.adm-metric-part {
+  flex: 1;
+  min-width: 0;
+}
+
+.adm-metric-divider {
+  width: 1px;
+  align-self: stretch;
+  background: #e2e8f0;
+  margin: 4px 0;
+}
+
+.adm-finance-value.compact-val {
+  font-size: 1.70rem;
+  margin: 2px 0 4px 0;
+  word-break: break-word;
+}
+
 .adm-finance-value.emerald-val {
   color: #065f46;
 }
@@ -2732,6 +2757,32 @@ input:checked + .adm-slider:before {
   margin-bottom: 22px;
   padding-bottom: 12px;
   border-bottom: 1.5px solid #f8fafc;
+}
+
+/* ── Create Network IP page — softer typographic hierarchy (no heavy bold) ── */
+.adm-create-page-container.adm-create-ip-page .adm-create-title-group .adm-section-title,
+.adm-create-ip-page .adm-create-title-group .adm-section-title {
+  font-weight: 600;
+}
+
+.adm-create-ip-page .adm-form-section-title {
+  font-weight: 600;
+}
+
+.adm-create-page-container.adm-create-ip-page .adm-form-label {
+  font-weight: 500;
+}
+
+.adm-create-ip-page .adm-section-sub {
+  font-weight: 400;
+}
+
+.adm-form-hint {
+  font-size: 0.74rem;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-top: 2px;
+  line-height: 1.35;
 }
 
 .adm-form-section-icon {

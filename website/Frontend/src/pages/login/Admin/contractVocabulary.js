@@ -7,7 +7,7 @@
 
 import { formatStamp } from './adminTableUtils';
 
-export const CONTRACT_STATUSES = ['Not Started', 'In Progress', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
+export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -36,7 +36,7 @@ const STATUS_LOOKUP = {
   live: 'In Progress',
   draft: 'Not Started',
   pending: 'Not Started',
-  inactive: 'Closed',
+  inactive: 'Inactive',
   expired: 'Closed',
   completed: 'Closed',
   cancelled: 'Closed',
@@ -45,6 +45,7 @@ const STATUS_LOOKUP = {
 
 const STATUS_TONE = {
   'In Progress': 'active',
+  Inactive: 'inactive',
   'Not Started': 'pending',
   Closed: 'inactive',
   DEMO: 'info',
@@ -99,6 +100,7 @@ export const contractStatusTone = (value, contract = null) =>
 // The same states for the places that paint a value rather than a pill.
 const STATUS_COLOR = {
   'In Progress': '#059669',
+  Inactive: '#64748b',
   'Not Started': '#d97706',
   Closed: '#64748b',
   DEMO: '#6366f1',
