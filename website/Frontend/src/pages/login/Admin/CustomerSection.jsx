@@ -639,8 +639,12 @@ export default function CustomerSection({
       minWidth: '175px',
       cell: (cust) => {
         const stage = normalizeCustomerLifecycle(cust.status);
-        const hasTrial = cust.demoTrialUsed || stage === 'Demo' || stage === 'DemoInactive' || cust.plan?.includes('Trial');
-        const isDemoCompletedOrConverted = stage === 'Active' || stage === 'InProgress' || stage === 'DemoInactive' || cust.demoTrialUsed;
+        const isDemoActive = stage === 'Demo';
+        const hasPaidProduct = stage === 'Active' || stage === 'InProgress';
+        const hadDemo = Boolean(cust.demoTrialUsed || cust.plan?.includes('Trial'));
+        // Show DEMO-Inactive below only when customer purchased a new product and status changed to active!
+        const showDemoInactiveBelow = !isDemoActive && hasPaidProduct && hadDemo;
+        const hasTrial = hadDemo || isDemoActive || stage === 'DemoInactive';
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -657,7 +661,7 @@ export default function CustomerSection({
             {/* Trial Extension / History Control Badge */}
             {hasTrial && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                {isDemoCompletedOrConverted && (
+                {showDemoInactiveBelow && (
                   <span
                     className="adm-status-pill demoinactive"
                     style={{
@@ -690,7 +694,7 @@ export default function CustomerSection({
                   >
                     +{cust.demoExtensionDays || 7}d Approved
                   </span>
-                ) : !isDemoCompletedOrConverted ? (
+                ) : isDemoActive ? (
                   <button
                     type="button"
                     onClick={(e) => {
