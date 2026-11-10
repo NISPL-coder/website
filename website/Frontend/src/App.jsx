@@ -214,6 +214,7 @@ function MainApp() {
           <Route path="/admin/products" element={<Navigate to="/admin/product" replace />} />
           <Route path="/admin/receipt/create" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/receipt" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/admin/ip-monitor" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
           <Route path="/admin/import-csv" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/sangam-sync" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />

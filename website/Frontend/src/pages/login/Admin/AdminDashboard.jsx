@@ -13,7 +13,8 @@ import {
   Landmark,
   UserCheck,
   Activity,
-  Bell
+  Bell,
+  Network
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -30,6 +31,7 @@ import ReceiptSection from './ReceiptSection';
 import UserAccessSection from './UserAccessSection';
 import ActivityLogsSection from './ActivityLogsSection';
 import NotificationsSection from './NotificationsSection';
+import IPMonitorSection from './IPMonitorSection';
 
 // Dedicated Separate Create Pages (Replacing Modals with /create URLs)
 import CreateCustomerPage from './CreateCustomerPage';
@@ -76,6 +78,7 @@ const ADMIN_PAGES = [
   { path: '/admin/product', title: 'Products & Solutions', subtitle: 'Cloud VPS, Tally on Cloud and custom packages', keywords: 'product products server cloud tally vps hosting packages' },
   { path: '/admin/product/addons', title: 'Product Add-ons', subtitle: 'Manage add-ons and customer checkout toggles', keywords: 'addon addons add-on add-ons extra backup storage ram ip' },
   { path: '/admin/receipt', title: 'Receipts & Proofs', subtitle: 'Payment receipts, tax invoices and download proofs', keywords: 'receipt receipts invoice invoices tax slip proof download' },
+  { path: '/admin/ip-monitor', title: 'Active / Inactive IP Monitor', subtitle: 'Liveness of served public IPs across hosting nodes', keywords: 'ip inactive active network monitor node ping address uptime' },
   { path: '/admin/import-csv', title: 'Import CSV Data', subtitle: 'Batch import customers, contracts and records', keywords: 'import csv upload bulk excel spreadsheet' },
   { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
   { path: '/admin/user-access', title: 'User Access & Permissions', subtitle: 'Manage admin, manager and support staff roles', keywords: 'user access permission permissions role roles team staff grant' },
@@ -123,6 +126,7 @@ const NAV_MODULE = {
   'sangam-sync': 'sangam_sync',
   'user-access': 'user_access',
   'activity-logs': 'activity_logs',
+  'ip-monitor': null, // demo module — every admin portal sees it for now
   profile: null
 };
 
@@ -200,6 +204,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
+    if (path.includes('/admin/ip-monitor')) return 'ip-monitor';
     if (path.includes('/admin/profile')) return 'profile';
     if (path.includes('/admin/product')) return 'product';
     if (path.includes('/admin/receipt')) return 'receipt';
@@ -541,6 +546,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (can('receipt')) {
       items.push({ id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/admin/receipt', title: 'Payment Receipts' });
     }
+    items.push({ id: 'ip-monitor', label: 'Active/Inactive IP', icon: Network, path: '/admin/ip-monitor', title: 'Active & Inactive IP Monitor' });
 
     const canImportCsv = can('import_csv') || can('data_tools');
     const canSangamSync = can('sangam_sync') || can('data_tools');
@@ -763,6 +769,8 @@ function AdminDashboardShell({ userSession, onSignOut }) {
               {activeNav === 'sangam-sync' && (
                 <SangamSyncPage customers={customers} setCustomers={setCustomers} />
               )}
+
+              {activeNav === 'ip-monitor' && <IPMonitorSection externalSearch={sectionSearch} />}
 
               {activeNav === 'profile' && (
                 <ProfilePage
