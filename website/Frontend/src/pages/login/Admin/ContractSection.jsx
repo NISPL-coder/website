@@ -208,7 +208,8 @@ export default function ContractSection({ contracts, setContracts, customers = [
       selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
       sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
-      width: '145px',
+      minWidth: '165px',
+      width: '180px',
       cell: (c) => {
         const status = normalizeContractStatus(c.status, c);
         const tone = contractStatusTone(status, c);

@@ -552,7 +552,8 @@ export default function OverviewSection({
       selector: (row) => row.status,
       sortable: true,
       sortFunction: compareText((row) => row.status),
-      width: '140px',
+      minWidth: '160px',
+      width: '170px',
       cell: (cust) => {
         const stage = normalizeCustomerLifecycle(cust.status);
         return (
@@ -653,7 +654,8 @@ export default function OverviewSection({
       selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
       sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
-      width: '145px',
+      minWidth: '165px',
+      width: '180px',
       cell: (c) => {
         const status = normalizeContractStatus(c.status, c);
         const tone = contractStatusTone(status, c);

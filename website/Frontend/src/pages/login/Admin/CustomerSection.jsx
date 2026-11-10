@@ -636,7 +636,7 @@ export default function CustomerSection({
       selector: (row) => row.status,
       sortable: true,
       sortFunction: compareText((row) => row.status),
-      minWidth: '175px',
+      minWidth: '190px',
       cell: (cust) => {
         const stage = normalizeCustomerLifecycle(cust.status);
         const isDemoActive = stage === 'Demo';
