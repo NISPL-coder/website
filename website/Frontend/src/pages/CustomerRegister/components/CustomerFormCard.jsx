@@ -104,7 +104,7 @@ export default function CustomerFormCard({
           <div className="ebolt-field-group ebolt-col-span-2">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className="ebolt-field-lbl" htmlFor="reg-logo" style={{ marginBottom: 0 }}>
-                <span>Company logo</span>
+                <span>Image</span>
                 <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.74rem', marginLeft: '4px' }}>(Optional)</span>
               </label>
               {formData.companyLogo && (
