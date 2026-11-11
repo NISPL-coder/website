@@ -160,20 +160,20 @@ function durationInMonths(label, recordedMonths) {
 export function toReceiptPdfRow(receipt) {
   return {
     id: receipt.invoiceNumber || receipt.id,
-    service: receipt.service || receipt.productName,
-    date: receipt.date,
-    expiryDate: receipt.contract?.endDate || '',
-    paymentMode: receipt.paymentMode,
+    service: receipt.service || receipt.productName || receipt.planName || 'Cloud Services',
+    date: receipt.date || receipt.paymentDate || '',
+    expiryDate: receipt.contract?.endDate || receipt.expiryDate || receipt.dueDate || receipt.endDate || '',
+    paymentMode: receipt.paymentMode || receipt.method || receipt.paymentMethod || 'Online',
     // The instrument details an offline payment was reconciled with, printed on
     // the invoice beside the payment mode.
-    referenceNumber: receipt.referenceNumber || '',
+    referenceNumber: receipt.referenceNumber || receipt.transactionId || receipt.paymentId || '',
     bankName: receipt.bankName || '',
     baseAmount: receipt.baseAmount,
     cgst: receipt.cgst,
     sgst: receipt.sgst,
-    totalAmount: receipt.amount,
+    totalAmount: receipt.amount || receipt.totalAmount,
     status: receipt.status,
-    sacCode: receipt.product?.category || ''
+    sacCode: receipt.sacCode || receipt.product?.category || '998313'
   };
 }
 
