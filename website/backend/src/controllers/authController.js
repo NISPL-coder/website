@@ -428,17 +428,22 @@ export async function sendAdminOtp(req, res) {
   });
 
   let emailDelivered = false;
+  let deliveryError = null;
   try {
     await sendAdminOtpEmail(adminEmail, otp);
     emailDelivered = true;
   } catch (err) {
-    console.warn(`[sendAdminOtp] SMTP dispatch unavailable on hosting server (${err.message}). Safe OTP generated: ${otp}`);
+    deliveryError = err.message || 'Dispatch failure';
+    console.warn(`[sendAdminOtp] Dispatch unavailable on hosting server (${deliveryError}). Safe OTP generated: ${otp}`);
   }
 
   res.json({
     success: true,
-    message: `Verification code sent to ${adminEmail}`,
-    emailDelivered
+    message: emailDelivered
+      ? `Verification code sent to ${adminEmail}`
+      : `Verification code generated for ${adminEmail}. (Delivery issue: ${deliveryError})`,
+    emailDelivered,
+    deliveryError: emailDelivered ? undefined : deliveryError
   });
 }
 

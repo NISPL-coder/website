@@ -64,6 +64,7 @@ async function sendViaHttpApi(mailOptions) {
       if (res.status === 401 && String(errData.message || '').includes('authorised_ips')) {
         console.error(`\n[NISPL Brevo Security Warning] Brevo IP blocking is active!`);
         console.error(`Please open https://app.brevo.com/security/authorised_ips and click 'Deactivate blocking' to allow Render and other servers to dispatch emails.\n`);
+        throw new Error(`Brevo IP Blocked (401): Please open https://app.brevo.com/security/authorised_ips and click 'Deactivate blocking'`);
       }
       throw new Error(`Brevo HTTP API error (${res.status}): ${errData.message || res.statusText}`);
     }
@@ -156,13 +157,17 @@ async function sendMailWithResilience(mailOptions) {
     env.GMAIL_WEBHOOK_URL || process.env.GMAIL_WEBHOOK_URL
   );
 
+  let lastHttpError = null;
   if (hasHttpApi) {
     try {
       const httpResult = await sendViaHttpApi(mailOptions);
       if (httpResult) return httpResult;
     } catch (httpErr) {
+      lastHttpError = httpErr.message;
       console.warn(`[NISPL Mailer] HTTPS email API failed: ${httpErr.message}. Falling back to SMTP...`);
     }
+  } else {
+    console.warn(`[NISPL Mailer] No HTTPS email API key found in hosting environment. BREVO_API_KEY is not configured.`);
   }
 
   // 2. SMTP dispatch with strict timeout
@@ -171,7 +176,7 @@ async function sendMailWithResilience(mailOptions) {
   const sendWithTimeout = (transporter, timeoutMs = 5000) => {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        reject(new Error(`SMTP Connection timeout after ${timeoutMs}ms`));
+        reject(new Error(`SMTP Connection timeout after ${timeoutMs}ms (Render blocks ports 465/587)`));
       }, timeoutMs);
 
       transporter.sendMail(mailOptions)
@@ -198,8 +203,11 @@ async function sendMailWithResilience(mailOptions) {
       cachedTransporter = fallbackTransporter;
       return res;
     } catch (fallbackErr) {
-      console.error(`[NISPL Mailer] Fallback SMTP dispatch also failed: ${fallbackErr.message}`);
-      throw fallbackErr;
+      const finalMsg = lastHttpError 
+        ? `${lastHttpError} (and SMTP blocked on Render)`
+        : (!hasHttpApi ? `BREVO_API_KEY is missing on Render, and SMTP ports 465/587 are blocked by Render firewall.` : fallbackErr.message);
+      console.error(`[NISPL Mailer] Dispatch failed: ${finalMsg}`);
+      throw new Error(finalMsg);
     }
   }
 }
