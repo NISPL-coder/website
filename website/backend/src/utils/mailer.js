@@ -9,6 +9,70 @@ import {
 let cachedTransporter = null;
 
 /**
+ * Send email over HTTPS (Port 443) via Brevo or Resend REST APIs.
+ * This completely bypasses Render/cloud host firewall blocks on SMTP ports (25, 465, 587).
+ */
+async function sendViaHttpApi(mailOptions) {
+  const brevoKey = process.env.BREVO_API_KEY;
+  const resendKey = process.env.RESEND_API_KEY;
+
+  if (brevoKey) {
+    const senderEmail = env.SMTP_USER && env.SMTP_USER.includes('@')
+      ? env.SMTP_USER
+      : (env.ADMIN_EMAIL || 'nispldeveloper@gmail.com');
+
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': brevoKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { name: 'NISPL Security', email: senderEmail },
+        to: [{ email: mailOptions.to }],
+        subject: mailOptions.subject,
+        htmlContent: mailOptions.html,
+        textContent: mailOptions.text
+      }),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(`Brevo HTTP API error (${res.status}): ${errData.message || res.statusText}`);
+    }
+    return await res.json();
+  }
+
+  if (resendKey) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: env.MAIL_FROM || 'NISPL <onboarding@resend.dev>',
+        to: [mailOptions.to],
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+        text: mailOptions.text
+      }),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(`Resend HTTP API error (${res.status}): ${errData.message || res.statusText}`);
+    }
+    return await res.json();
+  }
+
+  return null;
+}
+
+/**
  * Build an optimized, pooled Nodemailer transporter with strict timeouts
  * and IPv4 enforcement to prevent IPv6 DNS hangs on cloud hosting (Render/Docker).
  */
@@ -55,10 +119,21 @@ function getTransporter() {
 }
 
 /**
- * Send email with a strict timeout race and automatic fallback from port 465 to 587.
+ * Send email with priority HTTPS API, strict timeout race, and SMTP port fallback.
  * Ensures the HTTP request is NEVER held open for more than 5.5 seconds.
  */
 async function sendMailWithResilience(mailOptions) {
+  // 1. Try HTTPS API first if configured (Port 443 is never blocked by Render)
+  if (process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) {
+    try {
+      const httpResult = await sendViaHttpApi(mailOptions);
+      if (httpResult) return httpResult;
+    } catch (httpErr) {
+      console.warn(`[NISPL Mailer] HTTPS email API failed: ${httpErr.message}. Falling back to SMTP...`);
+    }
+  }
+
+  // 2. SMTP dispatch with strict timeout
   const primaryTransporter = getTransporter();
 
   const sendWithTimeout = (transporter, timeoutMs = 5000) => {
@@ -83,10 +158,8 @@ async function sendMailWithResilience(mailOptions) {
     return await sendWithTimeout(primaryTransporter, 5000);
   } catch (primaryErr) {
     console.warn(`[NISPL Mailer] Primary SMTP dispatch failed (${primaryErr.message}). Attempting fallback port 587...`);
-    // Invalidate cached transporter on failure
     cachedTransporter = null;
     
-    // Attempt fallback via port 587 (TLS)
     try {
       const fallbackTransporter = createTransporter(587, false);
       const res = await sendWithTimeout(fallbackTransporter, 4500);
@@ -121,12 +194,11 @@ export async function sendPasswordResetEmail(email, resetUrl) {
 }
 
 export async function sendAdminOtpEmail(email, otp) {
-  // Always log in server console for instant observability on Render/hosting logs
   console.log(`\n===============================================================`);
   console.log(`[NISPL ADMIN OTP] Verification Code for ${email}: ${otp}`);
   console.log(`===============================================================\n`);
 
-  if (!env.SMTP_HOST || !env.SMTP_PASS) {
+  if (!process.env.BREVO_API_KEY && !process.env.RESEND_API_KEY && (!env.SMTP_HOST || !env.SMTP_PASS)) {
     return;
   }
 
@@ -146,12 +218,11 @@ export async function sendAdminOtpEmail(email, otp) {
 }
 
 export async function sendCustomerVerificationOtpEmail(email, otp, name = '') {
-  // Always log in server console for instant observability on Render/hosting logs
   console.log(`\n===============================================================`);
   console.log(`[NISPL CUSTOMER OTP] Verification Code for ${email}: ${otp}`);
   console.log(`===============================================================\n`);
 
-  if (!env.SMTP_HOST || !env.SMTP_PASS) {
+  if (!process.env.BREVO_API_KEY && !process.env.RESEND_API_KEY && (!env.SMTP_HOST || !env.SMTP_PASS)) {
     return;
   }
 
