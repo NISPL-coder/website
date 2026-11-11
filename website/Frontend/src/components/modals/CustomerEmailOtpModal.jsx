@@ -18,7 +18,6 @@ export default function CustomerEmailOtpModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [resendTimer, setResendTimer] = useState(60);
-  const [devOtpHint, setDevOtpHint] = useState('');
   const [hasAutoSent, setHasAutoSent] = useState(false);
 
   const inputRefs = useRef([]);
@@ -77,10 +76,6 @@ export default function CustomerEmailOtpModal({
         if (onVerified) onVerified(res);
         if (onClose) onClose();
         return;
-      }
-
-      if (res && res.devOtp) {
-        setDevOtpHint(res.devOtp);
       }
 
       setResendTimer(60);

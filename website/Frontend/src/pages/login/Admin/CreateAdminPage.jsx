@@ -141,7 +141,6 @@ export default function CreateAdminPage() {
     setIsSendingOtp(true);
     setVerificationError('');
     setOtpSentMessage('');
-    setDevOtpHint('');
 
     try {
       const response = await authApi.sendAdminOtp();
