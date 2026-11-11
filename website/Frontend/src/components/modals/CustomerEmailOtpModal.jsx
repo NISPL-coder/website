@@ -204,13 +204,7 @@ export default function CustomerEmailOtpModal({
           </div>
         </div>
 
-        {/* Development Helper Badge */}
-        {devOtpHint && (
-          <div className="customer-otp-dev-hint">
-            <span className="dev-tag">DEV MODE OTP</span>
-            <span className="dev-code">{devOtpHint}</span>
-          </div>
-        )}
+
 
         {/* Status Alerts */}
         {errorMessage && (

@@ -15,7 +15,28 @@ let cachedTransporter = null;
 async function sendViaHttpApi(mailOptions) {
   const brevoKey = process.env.BREVO_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
+  const gmailWebhook = process.env.GMAIL_WEBHOOK_URL;
 
+  // 1. Google Apps Script Webhook (Native Gmail via HTTPS Port 443)
+  if (gmailWebhook) {
+    const res = await fetch(gmailWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+        text: mailOptions.text
+      }),
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!res.ok) {
+      throw new Error(`Gmail Webhook returned HTTP ${res.status}`);
+    }
+    return await res.json().catch(() => ({ success: true }));
+  }
+
+  // 2. Brevo REST API (HTTPS Port 443)
   if (brevoKey) {
     const senderEmail = env.SMTP_USER && env.SMTP_USER.includes('@')
       ? env.SMTP_USER
@@ -45,6 +66,7 @@ async function sendViaHttpApi(mailOptions) {
     return await res.json();
   }
 
+  // 3. Resend REST API (HTTPS Port 443)
   if (resendKey) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

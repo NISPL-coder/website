@@ -56,7 +56,6 @@ export default function CreateAdminPage() {
   const [otp, setOtp] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpSentMessage, setOtpSentMessage] = useState('');
-  const [devOtpHint, setDevOtpHint] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState('');
@@ -149,9 +148,6 @@ export default function CreateAdminPage() {
       setIsSendingOtp(false);
       setOtpSentMessage(response.message || `Verification OTP sent to ${adminEmail}`);
       setResendTimer(60);
-      if (response.devOtp) {
-        setDevOtpHint(response.devOtp);
-      }
     } catch (err) {
       setIsSendingOtp(false);
       setVerificationError(err.message || 'Failed to send OTP. Please try again.');
@@ -455,17 +451,7 @@ export default function CreateAdminPage() {
                 </div>
               )}
 
-              {devOtpHint && (
-                <div
-                  className="admin-dev-otp-box animate-fade-in"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => setOtp(devOtpHint)}
-                  title="Click to auto-fill OTP code"
-                >
-                  <Sparkles size={14} />
-                  <span>Verification Code: <b>{devOtpHint}</b> <small style={{ marginLeft: 6, opacity: 0.8 }}>(Click to auto-fill)</small></span>
-                </div>
-              )}
+
 
               <form onSubmit={handleVerifyAndCreate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 

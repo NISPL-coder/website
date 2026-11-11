@@ -437,10 +437,7 @@ export async function sendAdminOtp(req, res) {
 
   res.json({
     success: true,
-    message: emailDelivered
-      ? `Verification code sent to ${adminEmail}`
-      : `Verification code generated for ${adminEmail}. Check Render logs or enter code below.`,
-    devOtp: (!emailDelivered || env.NODE_ENV !== 'production' || !env.SMTP_HOST || !env.SMTP_USER) ? otp : undefined,
+    message: `Verification code sent to ${adminEmail}`,
     emailDelivered
   });
 }
@@ -578,11 +575,8 @@ export async function sendCustomerVerificationOtp(req, res) {
 
   res.json({
     success: true,
-    message: emailDelivered
-      ? `Verification code sent to ${targetEmail}`
-      : `Verification code generated for ${targetEmail}. Check Render logs or enter code below.`,
+    message: `Verification code sent to ${targetEmail}`,
     email: targetEmail,
-    devOtp: (!emailDelivered || env.NODE_ENV !== 'production' || !env.SMTP_HOST || !env.SMTP_USER) ? otp : undefined,
     emailDelivered
   });
 }
