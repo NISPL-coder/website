@@ -1,4 +1,5 @@
 import { authApi } from './authApi';
+import { notifyDataChanged } from '../utils/dataBus';
 
 const isLocalhost = Boolean(
   typeof window !== 'undefined' && (
@@ -109,6 +110,7 @@ export const dashboardApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Failed to activate demo trial.');
     }
+    notifyDataChanged('portal');
 
     return data;
   }

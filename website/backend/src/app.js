@@ -21,6 +21,7 @@ import productRoutes from './routes/productRoutes.js';
 import addonRoutes from './routes/addonRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
 import ipRoutes from './routes/ipRoutes.js';
+import salesPersonRoutes from './routes/salesPersonRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
@@ -138,6 +139,8 @@ app.use('/api/v1/permissions', permissionRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/v1/ip-monitor', ipRoutes);
 app.use('/api/ip-monitor', ipRoutes);
+app.use('/api/v1/sales-persons', salesPersonRoutes);
+app.use('/api/sales-persons', salesPersonRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

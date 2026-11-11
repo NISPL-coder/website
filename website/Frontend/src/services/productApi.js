@@ -1,4 +1,5 @@
 import { authApi } from './authApi';
+import { notifyDataChanged } from '../utils/dataBus';
 
 const isLocalhost = Boolean(
   typeof window !== 'undefined' && (
@@ -56,6 +57,7 @@ export const productApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || data.message || 'Failed to create product.');
     }
+    notifyDataChanged('products');
     return data.data;
   },
 
@@ -72,6 +74,7 @@ export const productApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || data.message || 'Failed to update product.');
     }
+    notifyDataChanged('products');
     return data.data;
   },
 
@@ -94,6 +97,7 @@ export const productApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || data.message || 'Failed to delete product.');
     }
+    notifyDataChanged('products');
     return true;
   }
 };

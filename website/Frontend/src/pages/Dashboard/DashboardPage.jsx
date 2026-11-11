@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import {
@@ -24,6 +24,7 @@ import { dashboardApi } from '../../services/dashboardApi';
 import { formatINR } from './utils/pricingUtils';
 import { toPortalReceiptRows } from './utils/portalReceiptRows';
 import { useRazorpayCheckout } from '../../utils/useRazorpayCheckout';
+import { onDataChanged } from '../../utils/dataBus';
 import './Dashboard.css';
 
 const NAV_TO_PATH = {
@@ -221,13 +222,13 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     setIsEmailOtpModalOpen(false);
   };
 
-  const applyCartPayload = (cartData) => {
+  const applyCartPayload = useCallback((cartData) => {
     if (!cartData) return;
     if (Array.isArray(cartData.items)) setCartItems(cartData.items);
     if (cartData.summary) setCartSummary(cartData.summary);
-  };
+  }, []);
 
-  const syncPortal = async () => {
+  const syncPortal = useCallback(async () => {
     try {
       const data = await dashboardApi.getMyOverview();
       setPortal(data);
@@ -238,7 +239,49 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
       console.warn('Account ledger API fallback:', err?.message);
       return null;
     }
-  };
+  }, []);
+
+  // Re-read the whole account (ledger, cart, profile) after any data change.
+  // Service mutations broadcast `nispl_data_changed`, so a payment the finance
+  // desk books, a demo activation or a profile update shows up here without
+  // the account holder reloading the browser tab.
+  const refreshPortalData = useCallback(async (resources = ['*']) => {
+    const wants = (resource) => resources.includes('*') || resources.includes(resource);
+    const tasks = [];
+
+    if (wants('portal') || wants('payments') || wants('contracts')) {
+      tasks.push(syncPortal());
+    }
+    if (wants('cart')) {
+      tasks.push(cartApi.getCart().then(applyCartPayload).catch((err) => {
+        console.warn('Cart re-sync fallback:', err);
+      }));
+    }
+    if (wants('account')) {
+      tasks.push(authApi.getMe().then((freshUser) => {
+        if (freshUser) setCustomer(freshUser);
+      }).catch((err) => {
+        console.warn('Profile re-sync fallback:', err?.message);
+      }));
+    }
+
+    await Promise.allSettled(tasks);
+  }, [syncPortal, applyCartPayload]);
+
+  useEffect(() => {
+    let timer;
+
+    const handleDataChanged = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => refreshPortalData(['*']), 300);
+    };
+
+    const unsubscribe = onDataChanged(handleDataChanged);
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
+  }, [refreshPortalData]);
 
   // Load active customer session and sync initial cart from backend API
   useEffect(() => {
@@ -264,7 +307,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     syncInitialCart();
     syncPortal();
-  }, []);
+  }, [applyCartPayload, syncPortal]);
 
   // A payment the finance desk books in from a cheque or bank transfer is not
   // pushed into this session, so the ledger is re-read when the account holder
@@ -276,7 +319,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     document.addEventListener('visibilitychange', refreshLedger);
     return () => document.removeEventListener('visibilitychange', refreshLedger);
-  }, []);
+  }, [syncPortal]);
 
   const handleSelectNav = (navId) => {
     setActiveNav(navId);

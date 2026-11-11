@@ -5,6 +5,7 @@
  */
 
 import { withAuth, readApiError } from './apiAuth';
+import { notifyDataChanged } from '../utils/dataBus';
 
 const isLocalhost = Boolean(typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]'));
 const BACKEND_URL = isLocalhost ? 'http://localhost:4000' : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
@@ -54,6 +55,7 @@ export const contractApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to create contract record.');
     }
+    notifyDataChanged('contracts');
 
     return data;
   },
@@ -80,6 +82,7 @@ export const contractApi = {
     if (!data.success) {
       throw new Error(data.error || 'Bulk contracts import failed.');
     }
+    notifyDataChanged('contracts');
     return data;
   },
 
@@ -109,6 +112,7 @@ export const contractApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to update contract record.');
     }
+    notifyDataChanged('contracts');
 
     return data;
   },
@@ -130,6 +134,7 @@ export const contractApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to delete contract record.');
     }
+    notifyDataChanged('contracts');
 
     return data;
   },
@@ -150,6 +155,7 @@ export const contractApi = {
     if (!data.success) {
       throw new Error(data.error || data.message || 'Sangam CRM contract synchronization retry failed.');
     }
+    notifyDataChanged('contracts');
 
     return data;
   },

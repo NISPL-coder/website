@@ -5,6 +5,12 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Windows/external-tool edits can be missed by OS file events; polling makes
+    // HMR push every code change to the open browser without a manual reload.
+    watch: {
+      usePolling: true,
+      interval: 300
+    },
     proxy: {
       '/api/google-places': {
         target: 'https://maps.googleapis.com/maps/api/place',

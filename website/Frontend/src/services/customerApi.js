@@ -5,6 +5,7 @@
  */
 
 import { withAuth, readApiError } from './apiAuth';
+import { notifyDataChanged } from '../utils/dataBus';
 
 const isLocalhost = Boolean(
   typeof window !== "undefined" && (
@@ -88,6 +89,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to create customer record.');
     }
+    notifyDataChanged('customers');
 
     return data;
   },
@@ -113,6 +115,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || 'Bulk companies import failed.');
     }
+    notifyDataChanged('customers');
     return data;
   },
 
@@ -137,6 +140,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || 'Bulk contacts import failed.');
     }
+    notifyDataChanged('customers');
     return data;
   },
 
@@ -162,6 +166,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to update customer record.');
     }
+    notifyDataChanged('customers');
 
     return data;
   },
@@ -183,6 +188,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || 'Failed to delete customer record.');
     }
+    notifyDataChanged('customers');
 
     return data;
   },
@@ -203,6 +209,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || data.message || 'Sangam CRM synchronization retry failed.');
     }
+    notifyDataChanged('customers');
 
     return data;
   },
@@ -229,6 +236,7 @@ export const customerApi = {
     if (!data.success) {
       throw new Error(data.error || data.message || 'Failed to authorize demo extension.');
     }
+    notifyDataChanged('customers');
 
     return data;
   },

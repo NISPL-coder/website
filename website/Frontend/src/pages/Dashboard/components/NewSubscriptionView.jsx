@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Select from 'react-select';
 import { ArrowLeft, Check, ChevronDown, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
 import { contractApi } from '../../../services/contractApi';
 import { productApi } from '../../../services/productApi';
 import { dashboardApi } from '../../../services/dashboardApi';
+import { salesPersonApi } from '../../../services/salesPersonApi';
 import { formatINR } from '../utils/pricingUtils';
 import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 import { normalizeCustomerLifecycle } from '../../../utils/customerLifecycle';
@@ -510,6 +512,26 @@ export default function NewSubscriptionView({
     };
   }, []);
 
+  // Customer options for React Select with search
+  const customerSelectOptions = useMemo(() => {
+    const opts = [];
+    if (currentEmail) {
+      opts.push({
+        value: currentEmail,
+        label: `${currentEmail} ${currentName ? `(${currentName})` : ''}`
+      });
+    }
+    customersList
+      .filter((c) => c.email && c.email.toLowerCase() !== currentEmail.toLowerCase())
+      .forEach((c) => {
+        opts.push({
+          value: c.email,
+          label: `${c.email} (${c.company || c.name || 'Customer'})`
+        });
+      });
+    return opts;
+  }, [currentEmail, currentName, customersList]);
+
   // Auto-selected product: "Cloud Services" (Read only)
   const product = 'Cloud Services';
 
@@ -797,7 +819,31 @@ export default function NewSubscriptionView({
   // Sales Person state: starts empty, error starts FALSE (no warning by default)
   const [salesPerson, setSalesPerson] = useState('');
   const [showSalesError, setShowSalesError] = useState(false);
+  const [salesPersonOptions, setSalesPersonOptions] = useState(SALES_PERSON_OPTIONS);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch active sales persons dynamically from backend
+  useEffect(() => {
+    let isMounted = true;
+    salesPersonApi
+      .getActive()
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          const dynamicOpts = [
+            { value: '', label: 'Select from dropdown' },
+            ...data.map((sp) => ({
+              value: sp.name,
+              label: sp.designation ? `${sp.name} (${sp.designation})` : sp.name
+            }))
+          ];
+          setSalesPersonOptions(dynamicOpts);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Load registered customer list for dropdown options
   useEffect(() => {
@@ -1010,32 +1056,63 @@ export default function NewSubscriptionView({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '18px' : '22px' }}>
           {/* Row 1: Select Customer & Product */}
           <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: isMobile ? '16px' : '20px' }}>
-            {/* Select Customer (No autofill) */}
+            {/* Select Customer (React Select with search) */}
             <div>
               <label style={labelStyle}>
                 Select Customer <span style={starStyle}>*</span>
               </label>
-              <div style={selectWrapStyle}>
-                <select
-                  value={selectedCustomer}
-                  onChange={(e) => setSelectedCustomer(e.target.value)}
-                  style={inputStyle}
-                  required
-                >
-                  <option value="">Select from dropdown</option>
-                  <option value={currentEmail}>
-                    {currentEmail} {currentName ? `(${currentName})` : ''}
-                  </option>
-                  {customersList
-                    .filter((c) => c.email && c.email.toLowerCase() !== currentEmail.toLowerCase())
-                    .map((c) => (
-                      <option key={c.customerId || c.email} value={c.email}>
-                        {c.email} ({c.company || c.name || 'Customer'})
-                      </option>
-                    ))}
-                </select>
-                <ChevronDown size={16} style={chevronStyle} />
-              </div>
+              <Select
+                value={
+                  customerSelectOptions.find((opt) => opt.value === selectedCustomer) || null
+                }
+                onChange={(opt) => setSelectedCustomer(opt ? opt.value : '')}
+                options={customerSelectOptions}
+                placeholder="Enter or select customer"
+                isSearchable={true}
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    height: '44px',
+                    minHeight: '44px',
+                    borderRadius: '8px',
+                    borderColor: state.isFocused ? '#4f46e5' : '#cbd5e1',
+                    borderWidth: '1.5px',
+                    boxShadow: state.isFocused ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
+                    fontSize: '0.92rem',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: state.isFocused ? '#4f46e5' : '#94a3b8'
+                    }
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    padding: '0 12px'
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: '#94a3b8',
+                    fontSize: '0.90rem'
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: '#0f172a',
+                    fontSize: '0.92rem',
+                    fontWeight: 500
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    fontSize: '0.88rem',
+                    padding: '9px 12px',
+                    backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f1f5f9' : 'transparent',
+                    color: state.isSelected ? '#ffffff' : '#0f172a',
+                    cursor: 'pointer'
+                  }),
+                  menuPortal: (base) => ({ ...base, zIndex: 999999 })
+                }}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                classNamePrefix="react-select"
+              />
             </div>
 
             {/* Product (Auto select: "Cloud Services" - Read only) */}
@@ -1253,40 +1330,64 @@ export default function NewSubscriptionView({
               gap: isMobile ? '16px' : '20px'
             }}
           >
-            {/* Plan Duration / Term (No autofill) */}
+            {/* Plan Duration / Term (React Select with search) */}
             <div>
               <label style={labelStyle}>
                 Plan Duration <span style={starStyle}>*</span>
               </label>
-              <div style={selectWrapStyle}>
-                <select
-                  value={selectedDurationKey}
-                  onChange={(e) => setSelectedDurationKey(e.target.value)}
-                  style={{
-                    ...inputStyle,
+              <Select
+                value={
+                  selectedPlan?.isDemoPlan
+                    ? { value: 'demo_term', label: `${selectedPlan.duration || '7 Days'} (Demo Trial)` }
+                    : SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
+                }
+                onChange={(opt) => setSelectedDurationKey(opt ? opt.value : '')}
+                options={SUBSCRIPTION_DURATIONS}
+                isDisabled={Boolean(selectedPlan?.isDemoPlan)}
+                placeholder="Select Duration"
+                isSearchable={true}
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    height: '44px',
+                    minHeight: '44px',
+                    borderRadius: '8px',
+                    borderColor: state.isFocused ? '#4f46e5' : '#cbd5e1',
+                    borderWidth: '1.5px',
+                    boxShadow: state.isFocused ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
+                    fontSize: '0.92rem',
+                    fontWeight: 400,
                     cursor: selectedPlan?.isDemoPlan ? 'not-allowed' : 'pointer',
-                    background: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
-                  }}
-                  disabled={Boolean(selectedPlan?.isDemoPlan)}
-                  required
-                >
-                  {selectedPlan?.isDemoPlan ? (
-                    <option value="demo_term">
-                      {selectedPlan.duration || '7 Days'} (Demo Trial)
-                    </option>
-                  ) : (
-                    <>
-                      <option value="">Select from dropdown</option>
-                      {SUBSCRIPTION_DURATIONS.map((dur) => (
-                        <option key={dur.value} value={dur.value}>
-                          {dur.label}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
-                <ChevronDown size={16} style={chevronStyle} />
-              </div>
+                    backgroundColor: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    padding: '0 12px'
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: '#94a3b8',
+                    fontSize: '0.90rem'
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: '#0f172a',
+                    fontSize: '0.92rem',
+                    fontWeight: 500
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    fontSize: '0.88rem',
+                    padding: '9px 12px',
+                    backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f1f5f9' : 'transparent',
+                    color: state.isSelected ? '#ffffff' : '#0f172a',
+                    cursor: 'pointer'
+                  }),
+                  menuPortal: (base) => ({ ...base, zIndex: 999999 })
+                }}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                classNamePrefix="react-select"
+              />
             </div>
 
             {/* Start Date (Editable) */}
@@ -1348,32 +1449,67 @@ export default function NewSubscriptionView({
               />
             </div>
 
-            {/* Sales Person (No warning by default, starts on Select from dropdown) */}
+            {/* Sales Person (React Select with search) */}
             <div>
               <label style={labelStyle}>
                 Sales Person <span style={starStyle}>*</span>
               </label>
-              <div style={selectWrapStyle}>
-                <select
-                  value={salesPerson}
-                  onChange={(e) => {
-                    setSalesPerson(e.target.value);
-                    if (e.target.value) setShowSalesError(false);
-                  }}
-                  style={{
-                    ...inputStyle,
-                    borderColor: showSalesError && !salesPerson ? '#ef4444' : '#cbd5e1'
-                  }}
-                  required
-                >
-                  {SALES_PERSON_OPTIONS.map((sp) => (
-                    <option key={sp.value} value={sp.value}>
-                      {sp.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={16} style={chevronStyle} />
-              </div>
+              <Select
+                value={
+                  salesPersonOptions.find((sp) => sp.value === salesPerson) || null
+                }
+                onChange={(opt) => {
+                  const val = opt ? opt.value : '';
+                  setSalesPerson(val);
+                  if (val) setShowSalesError(false);
+                }}
+                options={salesPersonOptions.filter((sp) => sp.value !== '')}
+                placeholder="Select Sales Person"
+                isSearchable={true}
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    height: '44px',
+                    minHeight: '44px',
+                    borderRadius: '8px',
+                    borderColor: showSalesError && !salesPerson ? '#ef4444' : state.isFocused ? '#4f46e5' : '#cbd5e1',
+                    borderWidth: '1.5px',
+                    boxShadow: state.isFocused ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
+                    fontSize: '0.92rem',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: state.isFocused ? '#4f46e5' : '#94a3b8'
+                    }
+                  }),
+                  valueContainer: (base) => ({
+                    ...base,
+                    padding: '0 12px'
+                  }),
+                  placeholder: (base) => ({
+                    ...base,
+                    color: '#94a3b8',
+                    fontSize: '0.90rem'
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: '#0f172a',
+                    fontSize: '0.92rem',
+                    fontWeight: 500
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    fontSize: '0.88rem',
+                    padding: '9px 12px',
+                    backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f1f5f9' : 'transparent',
+                    color: state.isSelected ? '#ffffff' : '#0f172a',
+                    cursor: 'pointer'
+                  }),
+                  menuPortal: (base) => ({ ...base, zIndex: 999999 })
+                }}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                classNamePrefix="react-select"
+              />
               {showSalesError && !salesPerson && (
                 <span
                   style={{

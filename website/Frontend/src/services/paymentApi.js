@@ -1,4 +1,5 @@
 import { authApi } from './authApi';
+import { notifyDataChanged } from '../utils/dataBus';
 
 const isLocalhost = Boolean(
   typeof window !== 'undefined' && (
@@ -62,6 +63,7 @@ export const paymentApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Failed to record payment');
     }
+    notifyDataChanged('payments');
     return data.data;
   },
 
@@ -76,6 +78,7 @@ export const paymentApi = {
       const fieldNote = data.field ? ` (${data.field})` : '';
       throw new Error(`${data.error || 'Failed to record the offline payment'}${fieldNote}`);
     }
+    notifyDataChanged('payments');
     return data.data;
   },
 
@@ -113,6 +116,7 @@ export const paymentApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Failed to update payment');
     }
+    notifyDataChanged('payments');
     return data.data;
   },
 
@@ -125,6 +129,7 @@ export const paymentApi = {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Failed to delete payment');
     }
+    notifyDataChanged('payments');
     return true;
   }
 };

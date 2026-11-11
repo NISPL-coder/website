@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -32,6 +32,7 @@ import UserAccessSection from './UserAccessSection';
 import ActivityLogsSection from './ActivityLogsSection';
 import NotificationsSection from './NotificationsSection';
 import IPMonitorSection from './IPMonitorSection';
+import SalesPersonSection from './SalesPersonSection';
 
 // Dedicated Separate Create Pages (Replacing Modals with /create URLs)
 import CreateCustomerPage from './CreateCustomerPage';
@@ -64,6 +65,7 @@ import { productApi } from '../../../services/productApi';
 import { dashboardApi } from '../../../services/dashboardApi';
 import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
 import { normalizeContractStatus } from './contractVocabulary';
+import { onDataChanged } from '../../../utils/dataBus';
 
 const formatINR = (val) => {
   const num = Number(val);
@@ -80,6 +82,7 @@ const ADMIN_PAGES = [
   { path: '/admin/product', title: 'Products & Solutions', subtitle: 'Cloud VPS, Tally on Cloud and custom packages', keywords: 'product products server cloud tally vps hosting packages' },
   { path: '/admin/product/addons', title: 'Product Add-ons', subtitle: 'Manage add-ons and customer checkout toggles', keywords: 'addon addons add-on add-ons extra backup storage ram ip' },
   { path: '/admin/receipt', title: 'Receipts & Proofs', subtitle: 'Payment receipts, tax invoices and download proofs', keywords: 'receipt receipts invoice invoices tax slip proof download' },
+  { path: '/admin/sales-person', title: 'Sales Person Allocation', subtitle: 'Manage sales representatives and customer allocation', keywords: 'sales person representative team rep agent dynamic allocation' },
   { path: '/admin/ip-monitor', title: 'Active / Inactive IP Monitor', subtitle: 'Liveness of served public IPs across hosting nodes', keywords: 'ip inactive active network monitor node ping address uptime' },
   { path: '/admin/import-csv', title: 'Import CSV Data', subtitle: 'Batch import customers, contracts and records', keywords: 'import csv upload bulk excel spreadsheet' },
   { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
@@ -124,6 +127,7 @@ const NAV_MODULE = {
   'manual-payment': 'manual_payment',
   product: 'product',
   receipt: 'receipt',
+  'sales-person': null,
   'import-csv': 'import_csv',
   'sangam-sync': 'sangam_sync',
   'user-access': 'user_access',
@@ -206,6 +210,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
+    if (path.includes('/admin/sales-person')) return 'sales-person';
     if (path.includes('/admin/ip-monitor')) return 'ip-monitor';
     if (path.includes('/admin/profile')) return 'profile';
     if (path.includes('/admin/product')) return 'product';
@@ -423,42 +428,76 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   }, [contracts]);
 
   // Load live customers & contracts with Sangam CRM synchronization status from backend
-  useEffect(() => {
-    let isMounted = true;
-    if (can('customer', 'view')) {
-      customerApi.getCustomers().then((data) => {
-        if (isMounted && data && Array.isArray(data)) {
+  // refreshAdminData re-reads the requested datasets ('customers' | 'contracts' |
+  // 'payments' | 'products' | '*') from the server. It runs on mount and is also
+  // re-run whenever a service mutation broadcasts `nispl_data_changed`, so every
+  // open table stays current without a manual browser reload.
+  const refreshAdminData = useCallback(async (resources = ['*']) => {
+    const wants = (resource) => resources.includes('*') || resources.includes(resource);
+    const tasks = [];
+
+    if (wants('customers') && can('customer', 'view')) {
+      tasks.push(customerApi.getCustomers().then((data) => {
+        if (data && Array.isArray(data)) {
           setCustomers(data);
           if (data.stats) {
             setCustomerStats(data.stats);
           }
         }
-      });
+      }));
     }
-    if (can('contract', 'view')) {
-      contractApi.getContracts().then((data) => {
-        if (isMounted && data && Array.isArray(data)) {
+    if (wants('contracts') && can('contract', 'view')) {
+      tasks.push(contractApi.getContracts().then((data) => {
+        if (data && Array.isArray(data)) {
           setContracts(data);
         }
-      });
+      }));
     }
-    if (can('payment', 'view')) {
-      paymentApi.getPayments().then((data) => {
-        if (isMounted && data && Array.isArray(data) && data.length) {
+    if (wants('payments') && can('payment', 'view')) {
+      tasks.push(paymentApi.getPayments().then((data) => {
+        if (data && Array.isArray(data) && data.length) {
           setPayments(data);
         }
-      });
+      }));
     }
     // Load live product catalog from database
-    productApi.getProducts().then((data) => {
-      if (isMounted && data && Array.isArray(data) && data.length) {
-        setProducts(data);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
+    if (wants('products')) {
+      tasks.push(productApi.getProducts().then((data) => {
+        if (data && Array.isArray(data) && data.length) {
+          setProducts(data);
+        }
+      }));
+    }
+
+    await Promise.allSettled(tasks);
   }, [can]);
+
+  useEffect(() => {
+    refreshAdminData();
+  }, [refreshAdminData]);
+
+  // Mutations anywhere in the app (create/edit/delete/import) broadcast through
+  // the data bus; debounce bursts (CSV imports, chained updates) into one refetch.
+  useEffect(() => {
+    let timer;
+    const pending = new Set();
+
+    const handleDataChanged = (event) => {
+      (Array.isArray(event.detail) ? event.detail : ['*']).forEach((resource) => pending.add(resource));
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const resources = pending.has('*') ? ['*'] : [...pending];
+        pending.clear();
+        refreshAdminData(resources);
+      }, 300);
+    };
+
+    const unsubscribe = onDataChanged(handleDataChanged);
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
+  }, [refreshAdminData]);
 
   // The receipt list is the payment ledger read back with its customer,
   // subscription and product joined, so it reloads whenever money lands.
@@ -549,6 +588,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
       items.push({ id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/admin/receipt', title: 'Payment Receipts' });
     }
     items.push({ id: 'ip-monitor', label: 'Active/Inactive IP', icon: Network, path: '/admin/ip-monitor', title: 'Active & Inactive IP Monitor' });
+    items.push({ id: 'sales-person', label: 'Sales Person', icon: UserCheck, path: '/admin/sales-person', title: 'Sales Person Allocation & Management' });
 
     const canImportCsv = can('import_csv') || can('data_tools');
     const canSangamSync = can('sangam_sync') || can('data_tools');
@@ -595,19 +635,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const [liveCustomers, liveContracts] = await Promise.all([
-        can('customer', 'view') ? customerApi.getCustomers() : null,
-        can('contract', 'view') ? contractApi.getContracts() : null
-      ]);
-      if (liveCustomers && Array.isArray(liveCustomers)) {
-        setCustomers(liveCustomers);
-        if (liveCustomers.stats) {
-          setCustomerStats(liveCustomers.stats);
-        }
-      }
-      if (liveContracts && Array.isArray(liveContracts)) {
-        setContracts(liveContracts);
-      }
+      await refreshAdminData(['*']);
       setNotifRefreshKey((prev) => prev + 1);
       toast.success('Live administrative records & Sangam CRM telemetry synchronized!', {
         style: {
@@ -784,6 +812,8 @@ function AdminDashboardShell({ userSession, onSignOut }) {
               )}
 
               {activeNav === 'ip-monitor' && <IPMonitorSection externalSearch={sectionSearch} />}
+
+              {activeNav === 'sales-person' && <SalesPersonSection externalSearch={sectionSearch} />}
 
               {activeNav === 'profile' && (
                 <ProfilePage
