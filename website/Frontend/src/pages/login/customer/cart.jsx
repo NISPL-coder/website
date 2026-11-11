@@ -35,6 +35,8 @@ export default function CartSection({
   const [showAddonsOnCheckout, setShowAddonsOnCheckout] = useState(true);
   const [activeAddonIndex, setActiveAddonIndex] = useState(0);
   const [isAddonHovered, setIsAddonHovered] = useState(false);
+  const [paymentType, setPaymentType] = useState('full'); // 'full' | 'part'
+  const [partAmount, setPartAmount] = useState('');
   const isMobile = useIsMobile();
 
   const displayAddons = useMemo(() => addonsList, [addonsList]);
@@ -117,6 +119,31 @@ export default function CartSection({
         id: `addon-${addon.id}`
       });
       setTimeout(() => setJustAddedAddonId(null), 1500);
+    }
+  };
+
+  const handleProceed = () => {
+    if (paymentType === 'part') {
+      const amt = Math.round(Number(partAmount) || 0);
+      if (!amt || amt <= 0) {
+        toast.error('Please enter a valid part payment amount.');
+        return;
+      }
+      if (amt >= grandTotal) {
+        toast.error(`Part payment must be less than the total (₹${grandTotal.toLocaleString('en-IN')}). Switch to Full Payment to pay in full.`);
+        return;
+      }
+      onProceedToPayment?.({
+        paymentType: 'part',
+        payAmount: amt,
+        remainingDue: grandTotal - amt
+      });
+    } else {
+      onProceedToPayment?.({
+        paymentType: 'full',
+        payAmount: grandTotal,
+        remainingDue: 0
+      });
     }
   };
 
@@ -366,16 +393,166 @@ export default function CartSection({
                   </span>
                 </div>
 
+                {/* Option for Full Payment or Part Payment (Customer Side) */}
+                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.80rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Payment Option
+                    </span>
+                    {paymentType === 'part' && (
+                      <span style={{ fontSize: '0.72rem', color: '#6366f1', fontWeight: '700', background: '#eef2ff', padding: '1px 6px', borderRadius: '4px' }}>
+                        Partial Payment
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {/* Option 1: Full Payment */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentType('full')}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        border: paymentType === 'full' ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                        background: paymentType === 'full' ? '#eef2ff' : '#ffffff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '2px',
+                        transition: 'all 0.15s ease',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%' }}>
+                        <input
+                          type="radio"
+                          name="cartPaymentType"
+                          checked={paymentType === 'full'}
+                          onChange={() => setPaymentType('full')}
+                          style={{ accentColor: '#6366f1', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.84rem', fontWeight: paymentType === 'full' ? '700' : '600', color: paymentType === 'full' ? '#4338ca' : '#1e293b' }}>
+                          Full Payment
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', paddingLeft: '18px' }}>
+                        100% (₹{grandTotal.toLocaleString('en-IN')})
+                      </span>
+                    </button>
+
+                    {/* Option 2: Part Payment */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentType('part');
+                        if (!partAmount) {
+                          setPartAmount(String(Math.max(1, Math.round(grandTotal * 0.5))));
+                        }
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        border: paymentType === 'part' ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                        background: paymentType === 'part' ? '#eef2ff' : '#ffffff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '2px',
+                        transition: 'all 0.15s ease',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%' }}>
+                        <input
+                          type="radio"
+                          name="cartPaymentType"
+                          checked={paymentType === 'part'}
+                          onChange={() => {
+                            setPaymentType('part');
+                            if (!partAmount) {
+                              setPartAmount(String(Math.max(1, Math.round(grandTotal * 0.5))));
+                            }
+                          }}
+                          style={{ accentColor: '#6366f1', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.84rem', fontWeight: paymentType === 'part' ? '700' : '600', color: paymentType === 'part' ? '#4338ca' : '#1e293b' }}>
+                          Part Payment
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', paddingLeft: '18px' }}>
+                        Custom amount
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Part Payment Custom Amount Input */}
+                  {paymentType === 'part' && (
+                    <div style={{
+                      marginTop: '4px',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px'
+                    }}>
+                      <label style={{ fontSize: '0.76rem', fontWeight: '600', color: '#475569' }}>
+                        Enter Amount to Pay Now (₹):
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', color: '#64748b', fontSize: '0.9rem' }}>
+                          ₹
+                        </span>
+                        <input
+                          type="number"
+                          min="1"
+                          max={grandTotal - 1}
+                          value={partAmount}
+                          onChange={(e) => setPartAmount(e.target.value)}
+                          placeholder={`Amount (max ₹${(grandTotal - 1).toLocaleString('en-IN')})`}
+                          style={{
+                            width: '100%',
+                            padding: '7px 10px 7px 24px',
+                            borderRadius: '8px',
+                            border: '1px solid #94a3b8',
+                            fontSize: '0.92rem',
+                            fontWeight: '700',
+                            color: '#0f172a',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#64748b' }}>
+                        <span>Remaining Balance:</span>
+                        <strong style={{ color: '#d97706' }}>
+                          ₹{Math.max(0, grandTotal - (Number(partAmount) || 0)).toLocaleString('en-IN')} (Due later)
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Primary Proceed Button */}
                 <button
                   type="button"
                   className="flowmail-btn-primary"
-                  onClick={onProceedToPayment}
+                  onClick={handleProceed}
                   disabled={isCheckingOut}
                   style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '13px 20px', fontSize: '0.94rem' }}
                 >
                   <Lock size={15} />
-                  <span>{isCheckingOut ? 'Opening Razorpay…' : 'Proceed to Payment'}</span>
+                  <span>
+                    {isCheckingOut
+                      ? 'Opening Razorpay…'
+                      : paymentType === 'part'
+                      ? `Proceed to Pay ₹${(Number(partAmount) || 0).toLocaleString('en-IN')}`
+                      : 'Proceed to Payment'}
+                  </span>
                   <ArrowRight size={16} />
                 </button>
 
@@ -568,7 +745,7 @@ export default function CartSection({
           </div>
 
           {/* ── 3. Sticky Bottom Checkout Bar (Frosted Glass) ──────── */}
-          <div
+          {/* <div
             className="cart-sticky-checkout-bar"
             style={{
               background: 'rgba(255, 255, 255, 0.94)',
@@ -593,7 +770,7 @@ export default function CartSection({
               <button
                 type="button"
                 className="flowmail-btn-primary"
-                onClick={onProceedToPayment}
+                onClick={handleProceed}
                 disabled={isCheckingOut}
                 style={{
                   padding: '12px 28px',
@@ -603,13 +780,17 @@ export default function CartSection({
                 <span>
                   {isCheckingOut
                     ? 'Opening Razorpay…'
+                    : paymentType === 'part'
+                    ? `Proceed with Part Payment`
                     : 'Proceed to Checkout'}
                 </span>
-                <span style={{ opacity: 0.85, fontWeight: '400' }}>| ₹{grandTotal.toLocaleString('en-IN')}</span>
+                <span style={{ opacity: 0.85, fontWeight: '400' }}>
+                  | ₹{(paymentType === 'part' ? (Number(partAmount) || 0) : grandTotal).toLocaleString('en-IN')}
+                </span>
                 <ArrowRight size={17} />
               </button>
             </div>
-          </div>
+          </div> */}
         </>
       ) : (
         /* ── Empty State ────────────────────────────────────────── */

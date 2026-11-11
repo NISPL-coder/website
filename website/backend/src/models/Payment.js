@@ -184,7 +184,7 @@ const paymentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Received', 'Cleared', 'Pending', 'Overdue'],
+      enum: ['Received', 'Cleared', 'Pending', 'Overdue', 'Partially Paid', 'Partial'],
       default: 'Received',
       index: true
     },

@@ -518,6 +518,21 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     pay(scope || checkout);
   };
 
+  const handleProceedFromCart = (options) => {
+    if (options?.paymentType === 'part' && options.payAmount > 0) {
+      pay({
+        ...checkout,
+        amount: options.payAmount,
+        partPayment: true,
+        payAmount: options.payAmount,
+        totalAmount: checkout?.amount,
+        remainingDue: options.remainingDue
+      });
+    } else {
+      pay({ ...checkout, paymentType: 'full', partPayment: false });
+    }
+  };
+
   const navItems = useMemo(
     () => [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/customer/overview' },
@@ -603,7 +618,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
                 demoExpiryDate={demoExpiryDate}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
-                onProceedToPayment={() => pay(checkout)}
+                onProceedToPayment={handleProceedFromCart}
                 isCheckingOut={isPaying}
                 onBrowseProducts={() => handleSelectNav('products')}
                 onAddToCart={handleAddToCart}

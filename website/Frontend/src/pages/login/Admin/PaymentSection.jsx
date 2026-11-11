@@ -260,8 +260,12 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       width: '135px',
       cell: (p) => {
         const isSettled = p.status === 'Received' || p.status === 'Cleared';
+        const isPartial = p.status === 'Partially Paid' || p.status === 'Partial';
         return (
-          <span className={`adm-status-pill ${isSettled ? 'active' : p.status === 'Overdue' ? 'demo' : 'pending'}`}>
+          <span
+            className={`adm-status-pill ${isSettled ? 'active' : p.status === 'Overdue' ? 'demo' : 'pending'}`}
+            style={isPartial ? { background: '#fef3c7', color: '#b45309', borderColor: '#fde68a' } : undefined}
+          >
             {isSettled && <CheckCircle2 size={12} />}
             {!isSettled && <Clock size={12} />}
             <span style={{ textTransform: 'capitalize' }}>{p.status}</span>
@@ -272,6 +276,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       searchOptions: [
         { value: 'Received', label: 'Received' },
         { value: 'Cleared', label: 'Cleared' },
+        { value: 'Partially Paid', label: 'Partially Paid' },
         { value: 'Pending', label: 'Pending' },
         { value: 'Overdue', label: 'Overdue' },
       ]

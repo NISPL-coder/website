@@ -13,7 +13,7 @@ import { hasPermission } from '../middleware/permission.js';
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 const PAID_STATUSES = new Set(['received', 'cleared', 'paid']);
-const DUE_STATUSES = new Set(['pending', 'overdue', 'unpaid']);
+const DUE_STATUSES = new Set(['pending', 'overdue', 'unpaid', 'partially paid', 'partial']);
 
 // Money is stored as display text ("₹1,00,000", "₹6500 / 1 year"), so totals are
 // taken from the numeric head of the string rather than trusting how a row was typed.
@@ -244,10 +244,11 @@ export const mapPayment = async (payment) => {
   const amount = parseAmount(payment.amount);
   const received = parseAmount(payment.receivedAmount);
   const isPaid = PAID_STATUSES.has(status.toLowerCase());
-  const isDue = DUE_STATUSES.has(status.toLowerCase());
-  const pending = isDue
-    ? parseAmount(payment.pendingPayment) || Math.max(amount - received, 0)
-    : 0;
+  const explicitPending = parseAmount(payment.pendingPayment);
+  const isDue = DUE_STATUSES.has(status.toLowerCase()) || explicitPending > 0;
+  const pending = explicitPending > 0
+    ? explicitPending
+    : (isDue ? Math.max(amount - received, 0) : 0);
 
   return {
     id: payment.paymentId || payment.id || String(payment._id),
@@ -1132,6 +1133,9 @@ const createAccountPayment = async ({
   customer,
   method,
   total,
+  received = null,
+  pending = null,
+  partPayment = false,
   label,
   lines = [],
   contractId = '',
@@ -1143,7 +1147,14 @@ const createAccountPayment = async ({
   const year = new Date().getFullYear();
   const invoiceNumber = await nextReference('invoiceNumber', `INV-${year}-`);
   const paymentId = await nextReference('paymentId', `PAY-${year}-`);
-  const amountText = inr(total);
+  const totalAmount = Number(total) || 0;
+  const receivedAmt = received !== null && received !== undefined ? Number(received) || 0 : totalAmount;
+  const pendingAmt = pending !== null && pending !== undefined ? Math.max(0, Number(pending) || 0) : Math.max(0, totalAmount - receivedAmt);
+  const amountText = inr(totalAmount);
+  const receivedText = inr(receivedAmt);
+  const pendingText = inr(pendingAmt);
+  const isPartial = Boolean(partPayment || pendingAmt > 0);
+  const status = isPartial ? 'Partially Paid' : 'Received';
   const accountName = customer?.company || user.company || customer?.name || user.name || user.email || '';
   const splitKnown = subtotal !== null && gst !== null;
 
@@ -1155,12 +1166,12 @@ const createAccountPayment = async ({
     email: user.email || customer?.email || '',
     customerId: user.customerId || customer?.customerId || '',
     amount: amountText,
-    receivedAmount: amountText,
-    pendingPayment: '₹0',
+    receivedAmount: receivedText,
+    pendingPayment: pendingText,
     paymentMethod: method,
     invoiceDate: todayIso(),
     paymentReceivedDate: todayIso(),
-    status: 'Received',
+    status,
     solutionCategory: label,
     contractId,
     items: lines,
@@ -1280,7 +1291,7 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   // 2. Every open invoice on the account in one transaction.
   if (settleAll) {
     const rows = await Payment.find({
-      $and: [scope, { status: { $regex: '^(pending|overdue|unpaid)$', $options: 'i' } }]
+      $and: [scope, { status: { $regex: '^(pending|overdue|unpaid|partially paid|partial)$', $options: 'i' } }]
     });
     const open = rows.filter(isOpenRow);
 
@@ -1377,10 +1388,24 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   // named sales person on the cart is the one credited for the payment.
   const salesPerson = cart.items.map((item) => item.salesPerson).find(Boolean) || '';
 
+  const partPayment = Boolean(body.partPayment);
+  let chargeAmount = total;
+  let receivedAmount = total;
+  let pendingAmount = 0;
+
+  if (partPayment && Number(body.payAmount) > 0) {
+    const requestedPay = Math.round(Number(body.payAmount));
+    if (requestedPay < total && requestedPay > 0) {
+      chargeAmount = requestedPay;
+      receivedAmount = requestedPay;
+      pendingAmount = total - requestedPay;
+    }
+  }
+
   return {
     mode: 'cart',
     label: lines.length === 1 ? lines[0].name : `${lines[0].name} + ${lines.length - 1} more`,
-    amount: total,
+    amount: chargeAmount,
     alreadySettled: false,
     snapshot: {
       cartId: String(cart._id),
@@ -1388,6 +1413,10 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
       subtotal,
       gst,
       total,
+      chargeAmount,
+      receivedAmount,
+      pendingAmount,
+      partPayment: Boolean(partPayment && pendingAmount > 0),
       salesPerson,
       gstBasis: `GST added at ${GST_RATE * 100}% on the quoted subtotal`
     }
@@ -1485,6 +1514,9 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
     customer,
     method,
     total: snapshot.total,
+    received: snapshot.receivedAmount !== undefined ? snapshot.receivedAmount : snapshot.total,
+    pending: snapshot.pendingAmount !== undefined ? snapshot.pendingAmount : 0,
+    partPayment: Boolean(snapshot.partPayment),
     label,
     lines: snapshot.lines,
     salesPerson: snapshot.salesPerson || '',
@@ -1528,6 +1560,8 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
         subtotal: snapshot.subtotal,
         gst: snapshot.gst,
         total: snapshot.total,
+        receivedAmount: snapshot.receivedAmount !== undefined ? snapshot.receivedAmount : snapshot.total,
+        pendingAmount: snapshot.pendingAmount !== undefined ? snapshot.pendingAmount : 0,
         lines: snapshot.lines
       }
     }
