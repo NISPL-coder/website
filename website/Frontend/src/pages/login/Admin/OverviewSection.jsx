@@ -23,7 +23,16 @@ import {
   ArrowRight,
   Zap,
   Calendar,
-  Filter
+  Filter,
+  Eye,
+  EyeOff,
+  Edit3,
+  Printer,
+  Trash2,
+  RotateCw,
+  Power,
+  Copy,
+  Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -46,18 +55,28 @@ import ViewContractModal from './ViewContractModal';
 import EditContractModal from './EditContractModal';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { generateContractPdf } from './utils/generateContractPdf';
-import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { compareDate, compareNumber, compareText, formatStamp, isWithinDateRange } from './adminTableUtils';
 import {
   CONTRACT_STATUSES,
+  normalizeContractStatus,
+  normalizeContractType,
   contractStatusTone,
-  matchesStatusFilter,
-  normalizeContractStatus
+  contractPersonEmail,
+  contractPersonMobile,
+  contractActorName,
+  formatContractStamp,
+  matchesStatusFilter
 } from './contractVocabulary';
 import {
   normalizeCustomerLifecycle,
   customerLifecycleLabel,
   customerLifecycleTone
 } from '../../../utils/customerLifecycle';
+
+function addressPart(cust, key) {
+  const fromAddress = cust.address && typeof cust.address === 'object' ? cust.address[key] : '';
+  return String(fromAddress || cust[key] || '').trim();
+}
 
 const CUSTOMER_STATUS_FILTERS = [
   { value: 'all', label: 'All Statuses', countKey: 'total' },
@@ -119,7 +138,7 @@ export default function OverviewSection({
   setIsAddContractModalOpen
 }) {
   const navigate = useNavigate();
-  const { visibleColumns } = usePermissions();
+  const { can, visibleColumns } = usePermissions();
 
   // Card-specific Date Range Filters (Card 1: Total Received & Dues, Card 2: Inactive Value, Card 4: Total Customers)
   const [receivedRange, setReceivedRange] = useState({ from: '', to: '' });
@@ -193,12 +212,16 @@ export default function OverviewSection({
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
   const [syncingIds, setSyncingIds] = useState({});
+  const [showPasswords, setShowPasswords] = useState({});
+  const [copiedKey, setCopiedKey] = useState(null);
 
   // Contract modals state
   const [viewingContract, setViewingContract] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
   const [deletingContract, setDeletingContract] = useState(null);
   const [isDeletingContract, setIsDeletingContract] = useState(false);
+  const [updatingContractStatusIds, setUpdatingContractStatusIds] = useState({});
+  const [syncingContractIds, setSyncingContractIds] = useState({});
 
   // Active chart hover data state
   const [hoveredSalesPoint, setHoveredSalesPoint] = useState(null);
@@ -240,6 +263,58 @@ export default function OverviewSection({
     [customerCounts]
   );
 
+  const contractStatusFilterOptions = useMemo(() => {
+    const list = activeOverviewData.filteredContracts || contracts || [];
+    const counts = CONTRACT_STATUSES.reduce((map, status) => {
+      const next = { ...map };
+      next[status] = list.filter((c) => normalizeContractStatus(c.status, c) === status).length;
+      return next;
+    }, {});
+
+    return [
+      { value: 'all', label: `All Statuses (${list.length})` },
+      ...CONTRACT_STATUSES.map((status) => ({
+        value: status.toLowerCase().replace(/[\s_-]+/g, ''),
+        label: `${status} (${counts[status] || 0})`
+      }))
+    ];
+  }, [activeOverviewData, contracts]);
+
+  const copyToClipboard = (text, key, label = 'Text') => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    toast.success(`Copied ${label} to clipboard!`);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleAuthorizeDemoExtension = async (cust) => {
+    const daysStr = window.prompt(
+      `Authorize demo trial extension for ${cust.name || cust.company} (${cust.email}):\nEnter additional trial days:`,
+      '7'
+    );
+    if (!daysStr) return;
+    const days = parseInt(daysStr, 10);
+    if (isNaN(days) || days <= 0) {
+      toast.error('Please enter a valid positive number of days.');
+      return;
+    }
+
+    const toastId = toast.loading(`Authorizing ${days} extra trial days for ${cust.email}...`);
+    try {
+      const { customerApi } = await import('../../../services/customerApi');
+      const res = await customerApi.authorizeDemoExtension(cust.id || cust.customerId, days);
+      if (res.success && res.customer) {
+        handleCustomerUpdated(res.customer);
+        toast.success(`Demo trial extension of ${days} days approved!`, { id: toastId });
+      } else {
+        toast.error(res.message || 'Failed to authorize demo extension', { id: toastId });
+      }
+    } catch (err) {
+      toast.error(`Error: ${err.message}`, { id: toastId });
+    }
+  };
+
   // Filtered customer list for the Overview Customer Table
   const filteredOverviewCustomers = useMemo(() => {
     const list = activeOverviewData.filteredCustomers || [];
@@ -250,8 +325,12 @@ export default function OverviewSection({
         (c.name || '').toLowerCase().includes(q) ||
         (c.company || '').toLowerCase().includes(q) ||
         (c.email || '').toLowerCase().includes(q) ||
+        (c.loginEmail || '').toLowerCase().includes(q) ||
         (c.id || '').toLowerCase().includes(q) ||
-        (c.plan && c.plan.toLowerCase().includes(q));
+        (c.designation || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        addressPart(c, 'city').toLowerCase().includes(q) ||
+        addressPart(c, 'state').toLowerCase().includes(q);
 
       const stage = normalizeCustomerLifecycle(c.status);
       let matchesStatus = true;
@@ -280,12 +359,23 @@ export default function OverviewSection({
     const list = activeOverviewData.filteredContracts || [];
     return list.filter((c) => {
       const q = contSearch.toLowerCase();
+      const code = (c.id || c.contractId || '').toLowerCase();
+      const name = (c.name || '').toLowerCase();
+      const company = (c.company || '').toLowerCase();
+      const email = contractPersonEmail(c, customers).toLowerCase();
+      const mobile = contractPersonMobile(c, customers).toLowerCase();
+      const type = normalizeContractType(c.contractType).toLowerCase();
+      const amount = String(c.totalContractValue || c.value || '').toLowerCase();
+
       const matchesSearch =
         !q ||
-        (c.id || c.contractId || '').toLowerCase().includes(q) ||
-        (c.name || '').toLowerCase().includes(q) ||
-        (c.company || c.customer || '').toLowerCase().includes(q) ||
-        (c.service || '').toLowerCase().includes(q);
+        code.includes(q) ||
+        name.includes(q) ||
+        company.includes(q) ||
+        email.includes(q) ||
+        mobile.includes(q) ||
+        type.includes(q) ||
+        amount.includes(q);
 
       const matchesStatus = matchesStatusFilter(c, contStatusFilter);
 
@@ -302,7 +392,7 @@ export default function OverviewSection({
       if (dateB !== dateA) return dateB - dateA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
-  }, [activeOverviewData, contSearch, contStatusFilter, contDateFrom, contDateTo]);
+  }, [activeOverviewData, contSearch, contStatusFilter, contDateFrom, contDateTo, customers]);
 
   // Customer modal handlers
   const handleCustomerUpdated = (updated) => {
@@ -321,6 +411,7 @@ export default function OverviewSection({
       const { customerApi } = await import('../../../services/customerApi');
       await customerApi.deleteCustomer(cId);
       setCustomers((prev) => prev.filter((c) => c.id !== cId && c.customerId !== cId));
+      toast.success(`Customer deleted successfully.`);
       setDeletingCustomer(null);
     } catch (err) {
       toast.error(`Delete failed: ${err.message}`);
@@ -359,6 +450,82 @@ export default function OverviewSection({
     setContracts((prev) => prev.map((item) => (item.id === cId || item.contractId === cId ? updated : item)));
   };
 
+  const handleQuickContractStatusChange = async (contract, nextStatus) => {
+    const cId = getContractId(contract);
+    const currentStatus = normalizeContractStatus(contract.status, contract);
+    if (nextStatus === currentStatus) return;
+
+    setUpdatingContractStatusIds((prev) => ({ ...prev, [cId]: true }));
+    const toastId = toast.loading(`Updating status of "${contract.name || cId}" to ${nextStatus} & syncing Sangam CRM...`);
+
+    // Optimistic UI update
+    setContracts((prev) =>
+      prev.map((item) =>
+        getContractId(item) === cId ? { ...item, status: nextStatus } : item
+      )
+    );
+
+    try {
+      const { contractApi } = await import('../../../services/contractApi');
+      const res = await contractApi.updateContract(cId, { status: nextStatus });
+      const updated = res.contract || { ...contract, status: nextStatus };
+
+      setContracts((prev) =>
+        prev.map((item) =>
+          getContractId(item) === cId ? { ...item, ...updated, status: nextStatus } : item
+        )
+      );
+
+      toast.success(
+        `Contract status changed to "${nextStatus}" & synchronized to Sangam CRM!`,
+        { id: toastId }
+      );
+    } catch (err) {
+      console.error('Failed to update contract status:', err);
+      // Revert on failure
+      setContracts((prev) =>
+        prev.map((item) =>
+          getContractId(item) === cId ? { ...item, status: currentStatus } : item
+        )
+      );
+      toast.error(`Status update failed: ${err.message}`, { id: toastId });
+    } finally {
+      setUpdatingContractStatusIds((prev) => ({ ...prev, [cId]: false }));
+    }
+  };
+
+  const handleRetryContractSync = async (e, contract) => {
+    if (e) e.stopPropagation();
+    const cId = getContractId(contract);
+    setSyncingContractIds((prev) => ({ ...prev, [cId]: true }));
+    toast.loading(`Synchronizing "${contract.name || cId}" to Sangam CRM Contracts...`, {
+      id: `sync-${cId}`
+    });
+
+    try {
+      const { contractApi } = await import('../../../services/contractApi');
+      const res = await contractApi.retrySangamSync(cId);
+      if (res.success && res.sangamCrm) {
+        setContracts((prev) =>
+          prev.map((item) =>
+            (item.id === cId || item.contractId === cId)
+              ? { ...item, sangamCrm: res.sangamCrm }
+              : item
+          )
+        );
+        toast.success(`Synchronized to Sangam CRM! Record ID: ${res.sangamCrm.recordId}`, {
+          id: `sync-${cId}`
+        });
+      } else {
+        toast.error(`Sync notice: ${res.message || 'Retry failed'}`, { id: `sync-${cId}` });
+      }
+    } catch (err) {
+      toast.error(`Sync error: ${err.message}`, { id: `sync-${cId}` });
+    } finally {
+      setSyncingContractIds((prev) => ({ ...prev, [cId]: false }));
+    }
+  };
+
   const handleConfirmDeleteContract = async () => {
     if (!deletingContract) return;
     setIsDeletingContract(true);
@@ -367,6 +534,7 @@ export default function OverviewSection({
       const { contractApi } = await import('../../../services/contractApi');
       await contractApi.deleteContract(cId);
       setContracts((prev) => prev.filter((item) => (item.id || item.contractId) !== cId));
+      toast.success(`Contract deleted successfully.`);
       setDeletingContract(null);
     } catch (err) {
       toast.error(`Delete failed: ${err.message}`);
@@ -665,76 +833,331 @@ export default function OverviewSection({
       )
     },
     {
+      id: 'name',
+      name: 'Customer Name',
+      selector: (row) => row.name,
+      sortable: true,
+      sortFunction: compareText((row) => row.name),
+      minWidth: '170px',
+      grow: 1,
+      cell: (cust) => (
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>{cust.name || '—'}</span>
+      )
+    },
+    {
+      id: 'designation',
+      name: 'Designation',
+      selector: (row) => row.designation,
+      sortable: true,
+      sortFunction: compareText((row) => row.designation),
+      minWidth: '130px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>{cust.designation || '—'}</span>
+      )
+    },
+    {
       id: 'company',
-      name: 'Organization & Client',
+      name: 'Company Name',
       selector: (row) => row.company,
       sortable: true,
       sortFunction: compareText((row) => row.company),
       minWidth: '190px',
       grow: 1.1,
-      cell: (cust) => (
-        <div>
-          <div style={{ fontWeight: 600, color: '#0f172a' }}>{cust.company}</div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{cust.name}</div>
-        </div>
-      )
+      cell: (cust) => <span style={{ color: '#1e293b' }}>{cust.company || '—'}</span>
     },
     {
       id: 'email',
-      name: 'Contact Details',
-      selector: (row) => row.email,
+      name: 'Email(s)',
+      selector: (row) => row.email || row.loginEmail,
       sortable: true,
-      sortFunction: compareText((row) => row.email),
+      sortFunction: compareText((row) => row.email || row.loginEmail),
       minWidth: '220px',
-      grow: 1,
+      cell: (cust) => {
+        const email = cust.email || cust.loginEmail || '—';
+        const additional = Array.isArray(cust.additionalEmails) ? cust.additionalEmails.filter(Boolean) : [];
+        const isCopied = copiedKey === `email-${cust.id}`;
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 600 }}>{email}</span>
+              {additional.length > 0 && (
+                <span
+                  style={{
+                    fontSize: '0.64rem',
+                    background: '#ede9fe',
+                    color: '#6d28d9',
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    fontWeight: 700
+                  }}
+                  title="Primary Login Email"
+                >
+                  Primary
+                </span>
+              )}
+              {email !== '—' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(email, `email-${cust.id}`, 'Primary Email');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isCopied ? '#16a34a' : '#94a3b8',
+                    padding: '2px',
+                    display: 'inline-flex',
+                    alignItems: 'center'
+                  }}
+                  title={isCopied ? 'Copied' : 'Copy Primary Email'}
+                >
+                  {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                </button>
+              )}
+            </div>
+            {additional.map((extraEm, idx) => {
+              const isExtraCopied = copiedKey === `email-${cust.id}-extra-${idx}`;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.74rem',
+                    color: '#64748b'
+                  }}
+                >
+                  <span style={{ color: '#a5b4fc', fontSize: '0.8rem' }}>↳</span>
+                  <span>{extraEm}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(extraEm, `email-${cust.id}-extra-${idx}`, 'Secondary Email');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isExtraCopied ? '#16a34a' : '#94a3b8',
+                      padding: '1px 2px',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                    title={isExtraCopied ? 'Copied' : 'Copy Secondary Email'}
+                  >
+                    {isExtraCopied ? <Check size={10} color="#16a34a" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'password',
+      name: 'Password',
+      selector: (row) => row.password || row.portalPassword || '',
+      sortable: false,
+      minWidth: '175px',
+      cell: (cust) => {
+        const pw = cust.password || cust.portalPassword || '••••••••';
+        const isVisible = showPasswords[cust.id];
+        const isCopied = copiedKey === `pw-${cust.id}`;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                fontWeight: 600,
+                fontSize: '0.78rem',
+                background: '#fef3c7',
+                color: '#92400e',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                border: '1px solid #fde68a',
+                letterSpacing: isVisible ? '0.02em' : '0.12em'
+              }}
+            >
+              {isVisible ? pw : '••••••••'}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPasswords((prev) => ({ ...prev, [cust.id]: !prev[cust.id] }));
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#64748b',
+                padding: '2px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+              title={isVisible ? 'Hide Password' : 'Show Password'}
+            >
+              {isVisible ? <EyeOff size={13} /> : <Eye size={13} />}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(pw, `pw-${cust.id}`, 'Password');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: isCopied ? '#16a34a' : '#94a3b8',
+                padding: '2px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+              title={isCopied ? 'Copied' : 'Copy Password'}
+            >
+              {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+            </button>
+          </div>
+        );
+      }
+    },
+    {
+      id: 'phone',
+      name: 'Phone No.(s)',
+      selector: (row) => row.phone,
+      sortable: true,
+      sortFunction: compareText((row) => row.phone),
+      minWidth: '160px',
+      cell: (cust) => {
+        const primaryPhone = cust.phone || '—';
+        const additionalPhones = [
+          ...(Array.isArray(cust.additionalPhones) ? cust.additionalPhones : []),
+          ...(cust.alternatePhone && !cust.additionalPhones?.includes(cust.alternatePhone) ? [cust.alternatePhone] : [])
+        ].filter(Boolean);
+        const isCopied = copiedKey === `phone-${cust.id}`;
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '4px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#1e293b', fontWeight: 600 }}>
+                {primaryPhone}
+              </span>
+              {additionalPhones.length > 0 && (
+                <span
+                  style={{
+                    fontSize: '0.64rem',
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    fontWeight: 700
+                  }}
+                  title="Primary Phone"
+                >
+                  Primary
+                </span>
+              )}
+              {primaryPhone !== '—' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToClipboard(primaryPhone, `phone-${cust.id}`, 'Primary Phone');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: isCopied ? '#16a34a' : '#94a3b8',
+                    padding: '2px',
+                    display: 'inline-flex',
+                    alignItems: 'center'
+                  }}
+                  title={isCopied ? 'Copied' : 'Copy Primary Phone'}
+                >
+                  {isCopied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                </button>
+              )}
+            </div>
+            {additionalPhones.map((extraPh, idx) => {
+              const isExtraCopied = copiedKey === `phone-${cust.id}-extra-${idx}`;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.74rem',
+                    color: '#64748b',
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>↳</span>
+                  <span>{extraPh}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(extraPh, `phone-${cust.id}-extra-${idx}`, 'Secondary Phone');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isExtraCopied ? '#16a34a' : '#94a3b8',
+                      padding: '1px 2px',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                    title={isExtraCopied ? 'Copied' : 'Copy Secondary Phone'}
+                  >
+                    {isExtraCopied ? <Check size={10} color="#16a34a" /> : <Copy size={10} />}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'orders',
+      name: 'Orders',
+      selector: (row) => row.orderCount || 0,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.orderCount || 0),
+      width: '90px',
+      center: true,
       cell: (cust) => (
-        <div>
-          <div style={{ fontSize: '0.8rem', color: '#334155' }}>{cust.email}</div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{cust.phone}</div>
-        </div>
+        <span style={{ fontWeight: 700, color: cust.orderCount ? '#0f172a' : '#94a3b8' }}>
+          {cust.orderCount || 0}
+        </span>
       )
     },
     {
-      id: 'plan',
-      name: 'Subscribed Plan',
-      selector: (row) => row.plan,
+      id: 'city',
+      name: 'City',
+      selector: (row) => addressPart(row, 'city'),
       sortable: true,
-      sortFunction: compareText((row) => row.plan),
-      minWidth: '155px',
-      cell: (cust) =>
-        cust.plan ? (
-          <span className="adm-status-pill info">{cust.plan}</span>
-        ) : (
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Not recorded</span>
-        )
+      sortFunction: compareText((row) => addressPart(row, 'city')),
+      minWidth: '120px',
+      cell: (cust) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{addressPart(cust, 'city') || '—'}</span>
     },
     {
-      id: 'serverNode',
-      name: 'Server Node',
-      selector: (row) => row.serverNode,
+      id: 'state',
+      name: 'State',
+      selector: (row) => addressPart(row, 'state'),
       sortable: true,
-      sortFunction: compareText((row) => row.serverNode),
-      minWidth: '165px',
-      cell: (cust) =>
-        cust.serverNode ? (
-          <span style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{cust.serverNode}</span>
-        ) : (
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Not recorded</span>
-        )
-    },
-    {
-      id: 'mrr',
-      name: 'Monthly MRR',
-      selector: (row) => row.mrr,
-      sortable: true,
-      sortFunction: compareNumber((row) => row.mrr),
-      width: '130px',
-      cell: (cust) =>
-        cust.mrr ? (
-          <span style={{ fontWeight: 700, color: '#0f172a' }}>{cust.mrr}</span>
-        ) : (
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Not recorded</span>
-        )
+      sortFunction: compareText((row) => addressPart(row, 'state')),
+      minWidth: '130px',
+      cell: (cust) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{addressPart(cust, 'state') || '—'}</span>
     },
     {
       id: 'status',
@@ -742,101 +1165,129 @@ export default function OverviewSection({
       selector: (row) => row.status,
       sortable: true,
       sortFunction: compareText((row) => row.status),
-      minWidth: '160px',
-      width: '170px',
+      minWidth: '190px',
       cell: (cust) => {
         const stage = normalizeCustomerLifecycle(cust.status);
         return (
-          <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
-            {stage === 'Active' && <CheckCircle2 size={12} />}
-            {stage === 'Demo' && <Clock size={12} />}
-            {stage === 'InProgress' && <Activity size={12} />}
-            {stage === 'Inactive' && <XCircle size={12} />}
-            <span>{customerLifecycleLabel(cust.status)}</span>
-          </span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
+              {stage === 'Active' && <CheckCircle2 size={12} />}
+              {stage === 'Demo' && <Clock size={12} />}
+              {stage === 'DemoInactive' && <XCircle size={12} />}
+              {stage === 'InProgress' && <Activity size={12} />}
+              {stage === 'Inactive' && <XCircle size={12} />}
+              <span>{customerLifecycleLabel(cust.status)}</span>
+            </span>
+          </div>
         );
       },
-      searchType: 'select'
+      searchType: 'select',
+      searchOptions: [
+        { value: 'Inactive', label: 'Inactive' },
+        { value: 'Demo', label: 'Demo Trial' },
+        { value: 'InProgress', label: 'In Progress' },
+        { value: 'Active', label: 'Active' }
+      ]
+    },
+    {
+      id: 'createdAt',
+      name: 'Created At',
+      selector: (row) => row.createdAt || row.registered,
+      sortable: true,
+      sortFunction: compareDate((row) => row.createdAt || row.registered),
+      width: '165px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>
+          {formatStamp(cust.createdAt || cust.registered)}
+        </span>
+      )
+    },
+    {
+      id: 'updatedAt',
+      name: 'Updated At',
+      selector: (row) => row.updatedAt || '',
+      sortable: true,
+      sortFunction: compareDate((row) => row.updatedAt || ''),
+      width: '165px',
+      cell: (cust) => (
+        <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatStamp(cust.updatedAt)}</span>
+      )
     },
     {
       id: 'actions',
-      name: 'Quick Action',
+      name: 'Actions',
       center: true,
       width: '120px',
       button: true,
       allowOverflow: true,
       ignoreRowClick: true,
-      cell: (cust) => (
-        <RowActionMenu
-          module="customer"
-          onView={() => setSelectedCustomer(cust)}
-          onEdit={() => setEditingCustomer(cust)}
-          onPrint={() => {
-            generateCustomerPdf(cust);
-            toast.success(`PDF generated for ${cust.company || cust.name}`);
-          }}
-          onDelete={() => setDeletingCustomer(cust)}
-        />
-      )
+      cell: (cust) => {
+        const crmStatus = String(cust.sangamCrm?.status || '').toLowerCase();
+        const isSyncing = syncingIds[cust.id || cust.customerId];
+        return (
+          <RowActionMenu
+            module="customer"
+            items={[
+              { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
+              can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
+              can('customer', 'edit') && {
+                label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
+                icon: Clock,
+                tone: 'amber',
+                onClick: () => handleAuthorizeDemoExtension(cust)
+              },
+              {
+                label: 'Print (PDF)',
+                icon: Printer,
+                tone: 'green',
+                onClick: () => {
+                  generateCustomerPdf(cust);
+                  toast.success(`PDF generated for ${cust.company || cust.name}`);
+                }
+              },
+              can('customer', 'edit') &&
+                (!crmStatus || crmStatus === 'failed' || crmStatus === 'pending') && {
+                  label: isSyncing ? 'Syncing...' : 'Sync to Sangam CRM',
+                  icon: RotateCw,
+                  tone: 'indigo',
+                  disabled: isSyncing,
+                  onClick: (e) => handleRetrySync(e, cust)
+                },
+              can('customer', 'delete') && {
+                label: 'Delete Customer',
+                icon: Trash2,
+                tone: 'red',
+                onClick: () => setDeletingCustomer(cust)
+              }
+            ].filter(Boolean)}
+          />
+        );
+      }
     }
   ];
 
-  const recentContractColumns = [
+  const overviewContractColumns = [
     {
-      id: 'id',
-      name: 'Contract No',
-      selector: (row) => row.id,
+      id: 'name',
+      name: 'Contract Name/ID',
+      selector: (row) => row.name,
       sortable: true,
-      sortFunction: compareText((row) => row.id),
-      width: '140px',
-      cell: (c) => <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{c.id}</span>
+      sortFunction: compareText((row) => row.name),
+      minWidth: '220px',
+      grow: 1.2,
+      wrap: true,
+      cell: (c) => <div className="adm-primary-text">{c.name || '—'}</div>
     },
     {
       id: 'company',
-      name: 'Customer / Company',
+      name: 'Company Name',
       selector: (row) => row.company,
       sortable: true,
       sortFunction: compareText((row) => row.company),
-      minWidth: '185px',
-      grow: 1.1,
-      cell: (c) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{c.company}</div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.customer}</div>
-        </div>
-      )
-    },
-    {
-      id: 'service',
-      name: 'Service SLA',
-      selector: (row) => row.service,
-      sortable: true,
-      sortFunction: compareText((row) => row.service),
-      minWidth: '210px',
+      minWidth: '180px',
       grow: 1,
-      cell: (c) => <span style={{ color: '#334155' }}>{c.service}</span>
-    },
-    {
-      id: 'value',
-      name: 'Annual Value',
-      selector: (row) => row.value,
-      sortable: true,
-      sortFunction: compareNumber((row) => row.value),
-      width: '145px',
-      cell: (c) => (
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>{c.value}</span>
-      )
-    },
-    {
-      id: 'expiryDate',
-      name: 'Expiry Date',
-      selector: (row) => row.expiryDate,
-      sortable: true,
-      sortFunction: compareDate((row) => row.expiryDate),
-      width: '130px',
-      cell: (c) => (
-        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{c.expiryDate}</span>
-      )
+      wrap: true,
+      cell: (c) => <div className="adm-primary-text">{c.company || '—'}</div>
     },
     {
       id: 'status',
@@ -844,42 +1295,255 @@ export default function OverviewSection({
       selector: (row) => normalizeContractStatus(row.status, row),
       sortable: true,
       sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
-      minWidth: '165px',
-      width: '180px',
+      minWidth: '170px',
+      width: '185px',
       cell: (c) => {
         const status = normalizeContractStatus(c.status, c);
         const tone = contractStatusTone(status, c);
+        const cId = getContractId(c);
+        const isUpdating = !!updatingContractStatusIds[cId];
+
         return (
-          <span className={`adm-status-pill ${tone}`}>
-            {tone === 'active' && <CheckCircle2 size={12} />}
-            <span>{status}</span>
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
+            <span className={`adm-status-pill ${tone}`}>
+              {status || '—'}
+            </span>
+            {can('contract', 'edit') && status === 'In Progress' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickContractStatusChange(c, 'Inactive');
+                }}
+                disabled={isUpdating}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#dc2626',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: isUpdating ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  textDecoration: 'underline'
+                }}
+                title="Mark this contract as Inactive and update in Sangam CRM"
+              >
+                {isUpdating ? 'Updating...' : '+ Set Inactive'}
+              </button>
+            )}
+            {can('contract', 'edit') && status === 'Inactive' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickContractStatusChange(c, 'In Progress');
+                }}
+                disabled={isUpdating}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#059669',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: isUpdating ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  textDecoration: 'underline'
+                }}
+                title="Mark this contract as In Progress and update in Sangam CRM"
+              >
+                {isUpdating ? 'Updating...' : '+ Set In Progress'}
+              </button>
+            )}
+          </div>
         );
       },
       searchType: 'select'
     },
     {
+      id: 'personEmail',
+      name: 'Person Email',
+      selector: (row) => contractPersonEmail(row, customers),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonEmail(row, customers)),
+      minWidth: '200px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonEmail(c, customers) || '—'}</span>
+    },
+    {
+      id: 'personMobile',
+      name: 'Person Mobile',
+      selector: (row) => contractPersonMobile(row, customers),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonMobile(row, customers)),
+      width: '140px',
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{contractPersonMobile(c, customers) || '—'}</span>
+    },
+    {
+      id: 'contractType',
+      name: 'Contract Type',
+      selector: (row) => normalizeContractType(row.contractType),
+      sortable: true,
+      sortFunction: compareText((row) => normalizeContractType(row.contractType)),
+      minWidth: '170px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => (
+        <span style={{ fontSize: '0.82rem', color: '#334155', fontWeight: 600 }}>
+          {normalizeContractType(c.contractType) || '—'}
+        </span>
+      )
+    },
+    {
+      id: 'value',
+      name: 'Total Contract Value',
+      selector: (row) => row.totalContractValue || row.value,
+      sortable: true,
+      sortFunction: compareNumber((row) => row.totalContractValue || row.value),
+      width: '150px',
+      cell: (c) => (
+        <span className="adm-mrr-text" style={{ fontSize: '0.92rem' }}>
+          {c.totalContractValue || c.value || '—'}
+        </span>
+      )
+    },
+    {
+      id: 'startDate',
+      name: 'Start Date',
+      selector: (row) => row.startDate,
+      sortable: true,
+      sortFunction: compareText((row) => row.startDate),
+      width: '130px',
+      cell: (c) => <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.startDate || '—'}</span>
+    },
+    {
+      id: 'endDate',
+      name: 'End Date',
+      selector: (row) => row.endDate || row.expiryDate,
+      sortable: true,
+      sortFunction: compareText((row) => row.endDate || row.expiryDate),
+      width: '130px',
+      cell: (c) => (
+        <span style={{ fontSize: '0.82rem', color: '#475569' }}>{c.endDate || c.expiryDate || '—'}</span>
+      )
+    },
+    {
+      id: 'updatedAt',
+      name: 'Updated At',
+      selector: (row) => row.updatedAt || '',
+      sortable: true,
+      sortFunction: compareDate((row) => row.updatedAt || ''),
+      width: '165px',
+      cell: (c) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatContractStamp(c.updatedAt)}</span>
+    },
+    {
+      id: 'updatedBy',
+      name: 'Updated By',
+      selector: (row) => contractActorName(row.updatedBy),
+      sortable: true,
+      sortFunction: compareText((row) => contractActorName(row.updatedBy)),
+      minWidth: '160px',
+      grow: 0.9,
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.8rem', color: '#475569' }}>{contractActorName(c.updatedBy) || '—'}</span>
+    },
+    {
+      id: 'createdAt',
+      name: 'Created At',
+      selector: (row) => row.createdAt || '',
+      sortable: true,
+      sortFunction: compareDate((row) => row.createdAt || ''),
+      width: '165px',
+      cell: (c) => <span style={{ fontSize: '0.78rem', color: '#475569' }}>{formatContractStamp(c.createdAt)}</span>
+    },
+    {
+      id: 'createdBy',
+      name: 'Created By',
+      selector: (row) => contractActorName(row.createdBy),
+      sortable: true,
+      sortFunction: compareText((row) => contractActorName(row.createdBy)),
+      minWidth: '160px',
+      grow: 0.9,
+      wrap: true,
+      cell: (c) => <span style={{ fontSize: '0.8rem', color: '#475569' }}>{contractActorName(c.createdBy) || '—'}</span>
+    },
+    {
       id: 'actions',
-      name: 'Action',
+      name: 'Actions',
       center: true,
       width: '120px',
       button: true,
       allowOverflow: true,
       ignoreRowClick: true,
-      cell: (c) => (
-        <RowActionMenu
-          module="contract"
-          onView={() => setViewingContract(c)}
-          onEdit={() => setEditingContract(c)}
-          onPrint={() => {
-            generateContractPdf(c);
-            toast.success(`PDF generated for ${c.company || c.customer}`);
-          }}
-          onDelete={() => setDeletingContract(c)}
-        />
-      )
+      cell: (c) => {
+        const cId = getContractId(c);
+        const isSyncing = !!syncingContractIds[cId];
+        const crmStatus = c.sangamCrm?.status || 'pending';
+
+        return (
+          <RowActionMenu
+            module="contract"
+            items={[
+              { label: 'View', icon: Eye, tone: 'blue', onClick: () => setViewingContract(c) },
+              {
+                label: 'Edit',
+                icon: Edit3,
+                tone: 'purple',
+                hidden: !can('contract', 'edit'),
+                onClick: () => setEditingContract(c)
+              },
+              {
+                label: 'Set Inactive',
+                icon: Power,
+                tone: 'red',
+                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'In Progress',
+                onClick: () => handleQuickContractStatusChange(c, 'Inactive')
+              },
+              {
+                label: 'Set In Progress',
+                icon: CheckCircle2,
+                tone: 'green',
+                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'Inactive',
+                onClick: () => handleQuickContractStatusChange(c, 'In Progress')
+              },
+              {
+                label: 'Print (PDF)',
+                icon: Printer,
+                tone: 'green',
+                onClick: () => {
+                  generateContractPdf(c);
+                  toast.success(`PDF generated for ${c.name}`);
+                }
+              },
+              {
+                label: isSyncing ? 'Syncing...' : 'Retry CRM Sync',
+                icon: RotateCw,
+                tone: 'orange',
+                hidden: crmStatus === 'synced' || !can('contract', 'edit'),
+                onClick: (e) => handleRetryContractSync(e, c)
+              },
+              {
+                label: 'Delete',
+                icon: Trash2,
+                tone: 'red',
+                danger: true,
+                divider: true,
+                hidden: !can('contract', 'delete'),
+                onClick: () => setDeletingContract(c)
+              }
+            ]}
+          />
+        );
+      }
     }
   ];
+  const recentContractColumns = overviewContractColumns;
 
   return (
     <div className="adm-overview-container animate-fade-in">
@@ -982,14 +1646,14 @@ export default function OverviewSection({
         </div>
 
         <AdminDataTable
-          columns={visibleColumns('overview', overviewCustomerColumns)}
+          columns={visibleColumns('customer', overviewCustomerColumns)}
           data={filteredOverviewCustomers}
           keyField="id"
-          defaultSortFieldId="registered"
+          defaultSortFieldId="createdAt"
           defaultSortAsc={false}
           resetPageToken={`${custSearch}|${custStatusFilter}|${custDateFrom}|${custDateTo}`}
-          minWidth={1350}
-          noDataMessage="No customer accounts match this filter"
+          minWidth={2100}
+          noDataMessage="No customer records found"
           noDataHint="Try adjusting the status filters or search text."
           ariaLabel="Overview customer accounts"
           scrollHeight="600px"
@@ -1056,11 +1720,11 @@ export default function OverviewSection({
               <Select
                 styles={compactSelectStyles}
                 isSearchable={false}
-                options={CONTRACT_STATUS_FILTER_OPTIONS}
+                options={contractStatusFilterOptions}
                 value={
-                  CONTRACT_STATUS_FILTER_OPTIONS.find(
+                  contractStatusFilterOptions.find(
                     (option) => option.value === contStatusFilter
-                  ) || CONTRACT_STATUS_FILTER_OPTIONS[0]
+                  ) || contractStatusFilterOptions[0]
                 }
                 onChange={(opt) => setContStatusFilter(opt ? opt.value : 'all')}
                 classNamePrefix="react-select"
@@ -1070,18 +1734,16 @@ export default function OverviewSection({
         </div>
 
         <AdminDataTable
-          columns={visibleColumns('overview', recentContractColumns)}
-          data={filteredOverviewContracts.slice(0, 5)}
+          columns={visibleColumns('contract', overviewContractColumns)}
+          data={filteredOverviewContracts}
           keyField="id"
           defaultSortFieldId="startDate"
           defaultSortAsc={false}
-          pagination={false}
-          minWidth={1150}
-          scrollHeight="clamp(220px, 32vh, 320px)"
+          minWidth={2200}
           resetPageToken={`${contSearch}|${contStatusFilter}|${contDateFrom}|${contDateTo}`}
-          noDataMessage="No recent contracts found"
+          noDataMessage="No contract agreements found"
           noDataHint="Contracts you create will appear here."
-          ariaLabel="Recent contract commitments"
+          ariaLabel="Customer contracts"
           scrollHeight="600px"
         />
       </div>
