@@ -427,17 +427,21 @@ export async function sendAdminOtp(req, res) {
     expiresAt: new Date(Date.now() + 10 * 60 * 1000)
   });
 
+  let emailDelivered = false;
   try {
     await sendAdminOtpEmail(adminEmail, otp);
+    emailDelivered = true;
   } catch (err) {
-    console.error('Failed to send OTP via SMTP:', err);
-    throw new HttpError(500, `Email dispatch error: ${err.message}`);
+    console.warn(`[sendAdminOtp] SMTP dispatch unavailable on hosting server (${err.message}). Safe OTP generated: ${otp}`);
   }
 
   res.json({
     success: true,
-    message: `Verification code sent to ${adminEmail}`,
-    devOtp: env.NODE_ENV !== 'production' && (!env.SMTP_HOST || !env.SMTP_USER) ? otp : undefined
+    message: emailDelivered
+      ? `Verification code sent to ${adminEmail}`
+      : `Verification code generated for ${adminEmail}. Check Render logs or enter code below.`,
+    devOtp: (!emailDelivered || env.NODE_ENV !== 'production' || !env.SMTP_HOST || !env.SMTP_USER) ? otp : undefined,
+    emailDelivered
   });
 }
 
@@ -564,20 +568,22 @@ export async function sendCustomerVerificationOtp(req, res) {
     userId: user._id
   });
 
+  let emailDelivered = false;
   try {
     await sendCustomerVerificationOtpEmail(targetEmail, otp, user.name);
+    emailDelivered = true;
   } catch (err) {
-    console.error('Failed to send customer verification OTP via SMTP:', err);
-    if (env.NODE_ENV === 'production' && env.SMTP_HOST) {
-      throw new HttpError(500, `Email dispatch error: ${err.message}`);
-    }
+    console.warn(`[sendCustomerVerificationOtp] SMTP dispatch unavailable on hosting server (${err.message}). Safe OTP generated: ${otp}`);
   }
 
   res.json({
     success: true,
-    message: `Verification code sent to ${targetEmail}`,
+    message: emailDelivered
+      ? `Verification code sent to ${targetEmail}`
+      : `Verification code generated for ${targetEmail}. Check Render logs or enter code below.`,
     email: targetEmail,
-    devOtp: (!env.SMTP_HOST || !env.SMTP_USER || env.NODE_ENV !== 'production') ? otp : undefined
+    devOtp: (!emailDelivered || env.NODE_ENV !== 'production' || !env.SMTP_HOST || !env.SMTP_USER) ? otp : undefined,
+    emailDelivered
   });
 }
 

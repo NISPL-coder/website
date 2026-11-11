@@ -15,7 +15,7 @@ class SangamCrmService {
     this.crmUrl = env.SANGAM_CRM_URL || 'https://nistally.sangamcrm.com/';
     this.apiBase = env.SANGAM_CRM_API_BASE || 'https://nistally.sangamcrm.com/api/v1/';
     this.token = env.SANGAM_CRM_TOKEN || 'A8GquckzjoSIUfwGAtXcjxOBlWo2i0t6';
-    this.timeoutMs = 15000;
+    this.timeoutMs = 5000;
   }
 
   isSyncEnabled() {

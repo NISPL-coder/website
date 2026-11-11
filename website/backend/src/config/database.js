@@ -11,7 +11,13 @@ try {
 
 export async function connectDatabase() {
   mongoose.set('strictQuery', true);
-  await mongoose.connect(env.MONGODB_URI);
+  await mongoose.connect(env.MONGODB_URI, {
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    family: 4
+  });
   console.log(`MongoDB connected: ${mongoose.connection.name}`);
 }
 

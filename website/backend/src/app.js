@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import compression from 'compression';
 import { env } from './config/env.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -49,6 +50,7 @@ const isOriginAllowed = (origin) => {
 
 const app = express();
 app.set('trust proxy', 1);
+app.use(compression());
 app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginOpenerPolicy: false
@@ -59,6 +61,7 @@ app.use(cors({
     return callback(null, false);
   },
   credentials: true,
+  maxAge: 86400,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',

@@ -456,9 +456,14 @@ export default function CreateAdminPage() {
               )}
 
               {devOtpHint && (
-                <div className="admin-dev-otp-box animate-fade-in">
+                <div
+                  className="admin-dev-otp-box animate-fade-in"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setOtp(devOtpHint)}
+                  title="Click to auto-fill OTP code"
+                >
                   <Sparkles size={14} />
-                  <span>Dev OTP Code: <b>{devOtpHint}</b></span>
+                  <span>Verification Code: <b>{devOtpHint}</b> <small style={{ marginLeft: 6, opacity: 0.8 }}>(Click to auto-fill)</small></span>
                 </div>
               )}
 

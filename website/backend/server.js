@@ -10,6 +10,20 @@ const server = http.createServer(app);
 const startServer = () => {
   server.listen(env.PORT, '0.0.0.0', () => {
     console.log(`NISPL API listening on port ${env.PORT}`);
+
+    // Keep-alive self-ping for cloud hosting (e.g. Render) to prevent cold start spin-downs
+    const hostingUrl = process.env.RENDER_EXTERNAL_URL || 'https://website-ebxt.onrender.com';
+    if (process.env.NODE_ENV === 'production' || process.env.RENDER_EXTERNAL_URL) {
+      const pingInterval = 10 * 60 * 1000; // 10 minutes
+      setInterval(async () => {
+        try {
+          const pingUrl = `${hostingUrl.replace(/\/+$/, '')}/health`;
+          await fetch(pingUrl, { signal: AbortSignal.timeout(5000) });
+        } catch {
+          // Ignore background keep-alive ping errors
+        }
+      }, pingInterval);
+    }
   });
 };
 
