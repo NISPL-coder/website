@@ -263,6 +263,7 @@ export const getDashboardOverview = async (req, res) => {
 
     const receivedNumeric = receivedList.reduce((sum, p) => sum + receivedAmount(p), 0);
     const dueNumeric = pendingList.reduce((sum, p) => sum + pendingAmount(p), 0);
+    const dueReceivedNumeric = pendingList.reduce((sum, p) => sum + receivedAmount(p), 0);
 
     const totalBilled = receivedNumeric + dueNumeric;
     const settledRatio = totalBilled > 0 ? (receivedNumeric / totalBilled) * 100 : 0;
@@ -347,6 +348,7 @@ export const getDashboardOverview = async (req, res) => {
           collectionMethods,
           dueNumeric,
           dueFormatted: formatRupee(dueNumeric),
+          dueReceivedNumeric,
           invoicesPending: pendingList.length,
           dueTag: dueNumeric > 0 ? 'Action Required' : 'Nothing Outstanding',
           arrValueNumeric: arrInCrores,
