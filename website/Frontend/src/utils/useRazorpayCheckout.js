@@ -11,10 +11,6 @@ const scopePayload = (checkout) => {
   if (checkout.invoiceNumber) payload.invoiceNumber = checkout.invoiceNumber;
   else if (checkout.mode === 'dues') payload.settleAll = true;
   else if (checkout.mode === 'renewal' && checkout.contractId) payload.contractId = checkout.contractId;
-  if (checkout.partPayment && checkout.payAmount) {
-    payload.partPayment = true;
-    payload.payAmount = checkout.payAmount;
-  }
   return payload;
 };
 

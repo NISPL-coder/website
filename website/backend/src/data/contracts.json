@@ -1,5 +1,42 @@
 [
   {
+    "contractId": "CTR-2026-1001",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "NIS",
+    "customer": "Sudipto",
+    "accountId": "e443f75e-5857-4bcd-8e84-698eaedfcd3e",
+    "email": "sudipto@gmail.com",
+    "service": "Subscription (2 Months)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "2 Months",
+    "productCategory": "Software",
+    "totalContractValue": "₹1,180",
+    "value": "₹1,180 / 2 months",
+    "orderDate": "2026-11-11",
+    "startDate": "2026-11-11",
+    "endDate": "2027-01-11",
+    "expiryDate": "2027-01-11",
+    "status": "In Progress",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1002 (PAY-2026-1002).",
+    "productId": "PROD-1794395811456",
+    "salesPerson": "Nilmoni Ghosal",
+    "paymentInvoiceNumber": "INV-2026-1002",
+    "createdBy": {
+      "name": "Sudipto",
+      "email": "sudipto@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "64b6261f-7766-4511-8163-ece5430948e2",
+      "lastSyncedAt": "2026-11-11T12:19:16.013Z",
+      "syncError": null
+    },
+    "id": "CTR-2026-1001",
+    "createdAt": "2026-11-11T12:19:15.282Z"
+  },
+  {
     "contractId": "CTR-2026-1002",
     "name": "Enterprise Cloud Server — 1 User",
     "company": "demo trail company",

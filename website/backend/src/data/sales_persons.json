@@ -1,0 +1,32 @@
+[
+  {
+    "id": "SP-101",
+    "name": "Nilmoni Ghosal",
+    "email": "nilmoni@netinfotechsystem.com",
+    "phone": "9830012341",
+    "designation": "Senior Sales Executive",
+    "status": "Active",
+    "assignedCustomers": [],
+    "notes": "Handles East Region & Enterprise accounts"
+  },
+  {
+    "id": "SP-102",
+    "name": "Sourav Mukherjee",
+    "email": "sourav@netinfotechsystem.com",
+    "phone": "9830012342",
+    "designation": "Cloud Solutions Manager",
+    "status": "Active",
+    "assignedCustomers": [],
+    "notes": "Handles Cloud Hosting & Corporate accounts"
+  },
+  {
+    "id": "SP-103",
+    "name": "Sales Support Direct",
+    "email": "sales@netinfotechsystem.com",
+    "phone": "9830012340",
+    "designation": "Inbound Sales Desk",
+    "status": "Active",
+    "assignedCustomers": [],
+    "notes": "Default inbound portal desk"
+  }
+]
