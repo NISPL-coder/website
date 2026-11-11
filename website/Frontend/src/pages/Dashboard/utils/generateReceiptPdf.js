@@ -1,7 +1,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { NISPL_HEADER_LOGO_BASE64, NISPL_FOOTER_BANNER_BASE64 } from './receiptAssets';
 
-// Helper to format numeric values to Indian currency style (e.g. 10,000.00)
+/**
+ * Format numeric value in standard Indian currency style (e.g. 10,000.00)
+ */
 function formatMoney(num) {
   const n = Number(num) || 0;
   return n.toLocaleString('en-IN', {
@@ -10,50 +13,33 @@ function formatMoney(num) {
   });
 }
 
-// Helper to convert number to Indian currency words
-function numberToWords(num) {
-  const a = [
-    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
-  ];
-  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-  const n = Math.floor(Number(num) || 0);
-  if (n === 0) return 'Zero Rupees Only';
-
-  function convertGroup(val) {
-    let str = '';
-    if (val >= 100) {
-      str += a[Math.floor(val / 100)] + ' Hundred ';
-      val %= 100;
-    }
-    if (val >= 20) {
-      str += b[Math.floor(val / 10)] + ' ' + a[val % 10];
-    } else if (val > 0) {
-      str += a[val];
-    }
-    return str.trim();
+/**
+ * Format dates into DD/MM/YYYY
+ */
+function formatDate(val) {
+  if (!val || val === 'N/A' || val === '-') return '—';
+  const d = new Date(val);
+  if (!Number.isNaN(d.getTime())) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   }
-
-  let words = '';
-  const crore = Math.floor(n / 10000000);
-  let rem = n % 10000000;
-  const lakh = Math.floor(rem / 100000);
-  rem %= 100000;
-  const thousand = Math.floor(rem / 1000);
-  rem %= 1000;
-  const hundreds = rem;
-
-  if (crore) words += convertGroup(crore) + ' Crore ';
-  if (lakh) words += convertGroup(lakh) + ' Lakh ';
-  if (thousand) words += convertGroup(thousand) + ' Thousand ';
-  if (hundreds) words += convertGroup(hundreds) + ' ';
-
-  return words.trim() + ' Rupees Only';
+  return String(val);
 }
 
 /**
- * Generate and download professional GST Payment Receipt PDF
+ * Parse numeric values safely
+ */
+function toNumber(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const parsed = parseFloat(String(value ?? '').replace(/[^\d.]/g, ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/**
+ * Generate official Net Infotech System Pvt. Ltd. PDF Receipt / Quotation
+ * matching the corporate layout exactly, without any watermark.
  */
 export function generateReceiptPdf(rec, customer) {
   if (!rec) return;
@@ -64,155 +50,42 @@ export function generateReceiptPdf(rec, customer) {
     format: 'a4'
   });
 
-  const primaryColor = [29, 78, 216];    // #1d4ed8
-  const darkTextColor = [15, 23, 42];     // #0f172a
-  const bodyTextColor = [51, 65, 85];     // #334155
-  const mutedTextColor = [100, 116, 139]; // #64748b
-  const borderColor = [226, 232, 240];    // #e2e8f0
+  const marginX = 10;
+  const contentWidth = 190;
 
-  // 1. Top Decorative Brand Bar
-  doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, 210, 5, 'F');
+  // 1. Resolve Document Type & Title
+  const isQuotation = Boolean(rec.isQuotation || rec.documentType === 'quotation');
+  const docTitle = rec.documentTitle || (isQuotation ? 'Quotation' : 'Tax Invoice & Receipt');
 
-  // 2. Company Info (Left)
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.setTextColor(...darkTextColor);
-  doc.text('NET INFOTECH SYSTEM PVT. LTD.', 14, 16);
+  // 2. Resolve Customer Details
+  const companyName = customer?.companyName || customer?.company || customer?.name || 'Customer Account';
+  const contactName = customer?.name || customer?.contactPerson || '—';
+  const email = customer?.email || '—';
+  const phone = customer?.phone || customer?.mobile || customer?.contact || '—';
+  const gstin = customer?.gstNo || customer?.gstin || 'Not Provided';
+  
+  const addressParts = [];
+  if (customer?.address || customer?.street) addressParts.push(customer.address || customer.street);
+  if (customer?.city) addressParts.push(customer.city);
+  if (customer?.state) addressParts.push(customer.state);
+  if (customer?.pincode) addressParts.push(`PIN: ${customer.pincode}`);
+  const addressLine = addressParts.length > 0 ? addressParts.join(', ') : 'Kolkata, West Bengal, India';
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Certified Tally 3-Star Partner & Enterprise Cloud Provider', 14, 21);
-  doc.text('Webel Tower 1, IT Park, BN Block, Sector V, Salt Lake City', 14, 25);
-  doc.text('Kolkata, West Bengal - 700091 | Support: +91-9330113000', 14, 29);
-  doc.text('Email: billing@netinfotechsystem.com | Web: www.nispl.in', 14, 33);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...darkTextColor);
-  doc.text('GSTIN: 19AAACN8491A1Z8  |  PAN: AAACN8491A', 14, 38);
+  // 3. Resolve Receipt / Quotation Metadata
+  const docDate = formatDate(rec.date || new Date());
+  const expiryDate = formatDate(rec.expiryDate);
+  const docNumber = rec.id || rec.invoiceNumber || 'INV-2026-0001';
 
-  // 3. Invoice Header Badge (Right)
-  doc.setFillColor(239, 246, 255);
-  doc.roundedRect(120, 10, 76, 31, 2, 2, 'F');
-  doc.setDrawColor(191, 219, 254);
-  doc.roundedRect(120, 10, 76, 31, 2, 2, 'S');
+  const statusStr = String(rec.status || 'paid').trim().toLowerCase();
+  const isSettled = ['received', 'cleared', 'paid', 'active'].includes(statusStr);
+  const statusLabel = isSettled ? 'PAID & VERIFIED' : (rec.status || 'RECORDED').toUpperCase();
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(...primaryColor);
-  doc.text('GST TAX INVOICE & RECEIPT', 124, 16);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Receipt No:', 124, 22);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...darkTextColor);
-  doc.text(`${rec.id || 'INV-2026-0001'}`, 150, 22);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Date of Issue:', 124, 27);
-  doc.setTextColor(...darkTextColor);
-  doc.text(`${rec.date || '—'}`, 150, 27);
-
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Valid Till / Term:', 124, 32);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(5, 150, 105); // green
-  const expiryBadgeText =
-    rec.expiryDate && rec.expiryDate !== 'N/A' && rec.expiryDate !== '-'
-      ? rec.expiryDate
-      : 'Active Subscription';
-  doc.text(expiryBadgeText, 150, 32);
-
-  // Divider Line
-  doc.setDrawColor(...borderColor);
-  doc.setLineWidth(0.3);
-  doc.line(14, 44, 196, 44);
-
-  // 4. Billed To (Customer Details) Box
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(14, 48, 182, 32, 2, 2, 'F');
-  doc.setDrawColor(...borderColor);
-  doc.roundedRect(14, 48, 182, 32, 2, 2, 'S');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...mutedTextColor);
-  doc.text('BILLED TO (CUSTOMER DETAILS)', 18, 54);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(...darkTextColor);
-  doc.text(
-    customer?.companyName || customer?.company || customer?.name || 'Customer Account',
-    18,
-    60,
-    { maxWidth: 90 }
-  );
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...bodyTextColor);
-  doc.text(`Contact Person: ${customer?.name || customer?.contactPerson || '—'}`, 18, 65, { maxWidth: 90 });
-  doc.text(`Email: ${customer?.email || '—'}`, 18, 70, { maxWidth: 90 });
-  doc.text(`Customer ID: ${customer?.customerId || customer?.id || '—'}`, 18, 75);
-
-  // Right column inside Billed To box
-  const billedRightLabelX = 114;
-  const billedRightValX = 142;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...mutedTextColor);
-  doc.text('GSTIN / UIN:', billedRightLabelX, 60);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...darkTextColor);
-  doc.text(`${customer?.gstNo || customer?.gstin || 'Not on record'}`, billedRightValX, 60);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Payment Mode:', billedRightLabelX, 65);
-  doc.setTextColor(...darkTextColor);
-  doc.text(
-    `${rec.paymentMode || 'Online'}${rec.bankName ? ` (${rec.bankName})` : ''}`,
-    billedRightValX,
-    65,
-    { maxWidth: 52 }
-  );
-
-  const ledgerStatus = String(rec.status || '').trim();
-  const isSettled = ['received', 'cleared', 'paid'].includes(ledgerStatus.toLowerCase());
-
-  doc.setTextColor(...mutedTextColor);
-  doc.text('Payment Status:', billedRightLabelX, 70);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...(isSettled ? [5, 150, 105] : [217, 119, 6]));
-  doc.text(isSettled ? 'PAID & VERIFIED' : (ledgerStatus || 'RECORDED').toUpperCase(), billedRightValX, 70);
-
-  const bankReference = String(rec.referenceNumber || rec.transactionId || '').trim();
-  if (bankReference) {
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...mutedTextColor);
-    doc.text('Reference ID:', billedRightLabelX, 75);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...darkTextColor);
-    doc.text(bankReference, billedRightValX, 75, { maxWidth: 52 });
-  }
-
-  // 5. Line Items Table (jspdf-autotable)
-  const toNumber = (value) => {
-    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-    const parsed = parseFloat(String(value ?? '').replace(/[^\d.]/g, ''));
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
-
-  let totalNum = toNumber(rec.totalAmount);
+  // 4. Financial Calculations
+  let totalNum = toNumber(rec.totalAmount || rec.amount);
   let baseNum = toNumber(rec.baseAmount);
   let cgstNum = toNumber(rec.cgst);
   let sgstNum = toNumber(rec.sgst);
 
-  // Auto-calculate base & tax breakdown if gross total was stored
   if (baseNum === 0 && totalNum > 0) {
     baseNum = Math.round((totalNum / 1.18) * 100) / 100;
   }
@@ -225,201 +98,245 @@ export function generateReceiptPdf(rec, customer) {
     totalNum = baseNum + cgstNum + sgstNum;
   }
 
-  const validPeriodText =
-    rec.expiryDate && rec.expiryDate !== 'N/A' && rec.expiryDate !== '-'
-      ? `${rec.date} to ${rec.expiryDate}`
-      : rec.date
-      ? `${rec.date} (Active)`
-      : 'Active';
+  // 5. Document Title (Centered & Underlined)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text(docTitle, 105, 57, { align: 'center' });
+  const titleW = doc.getTextWidth(docTitle);
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(105 - titleW / 2, 58, 105 + titleW / 2, 58);
+
+  // 6. Left: BILL TO Badge & Details
+  doc.setFillColor(204, 204, 204);
+  doc.rect(marginX, 62, 70, 4.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text('BILL TO:', marginX + 1.5, 65.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text(companyName, marginX, 70.5, { maxWidth: 95 });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(20, 20, 20);
+  doc.text(`Addr: ${addressLine}`, marginX, 74.5, { maxWidth: 95 });
+  doc.text(`GSTIN: ${gstin} | Contact: ${contactName}`, marginX, 81.5, { maxWidth: 95 });
+  doc.text(`Email: ${email} | Phone: ${phone}`, marginX, 85, { maxWidth: 95 });
+
+  // 7. Right: Metadata Column
+  const rightLabelX = 130;
+  const rightValueX = 160;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`${isQuotation ? 'Quotation' : 'Receipt'} Date :`, rightLabelX, 68);
+  doc.setFont('helvetica', 'bold');
+  doc.text(docDate, rightValueX, 68);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text('Valid Until :', rightLabelX, 73);
+  doc.setFont('helvetica', 'bold');
+  doc.text(expiryDate, rightValueX, 73);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`${isQuotation ? 'Quotation' : 'Receipt'} No :`, rightLabelX, 78);
+  doc.setFont('helvetica', 'bold');
+  doc.text(docNumber, rightValueX, 78);
+
+  doc.setFont('helvetica', 'normal');
+  doc.text('Payment Status :', rightLabelX, 83);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...(isSettled ? [5, 150, 105] : [217, 119, 6]));
+  doc.text(statusLabel, rightValueX, 83);
+
+  // 8. Proposal / Subject Line
+  const serviceName = rec.service || rec.productName || rec.planName || 'Cloud Services, Hosting & Implementation Services';
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Proposal for ${serviceName}`, marginX, 90.5, { maxWidth: contentWidth });
+
+  // 9. Main Line Items Table
+  const defaultBullets = [
+    '• Enterprise Cloud Platform & High Availability Hosting',
+    '• Automated daily snapshot backup & disaster recovery',
+    '• Managed Firewall, DDoS mitigation & IP Access Control',
+    '• 24x7 Priority Technical Support & Performance Monitoring'
+  ].join('\n');
+
+  const itemDescription = rec.description
+    ? `${serviceName}\n${rec.description}`
+    : `${serviceName}\n${defaultBullets}`;
+
+  const qty = String(rec.quantity || '1');
+  const uom = rec.uom || (rec.planDuration ? 'Term' : 'User');
+  const taxDetailStr = `Rs. ${formatMoney(cgstNum + sgstNum)}\nCGST @9%:\n${formatMoney(cgstNum)}\nSGST @9%:\n${formatMoney(sgstNum)}`;
 
   autoTable(doc, {
-    startY: 85,
-    margin: { left: 14, right: 14 },
-    head: [['#', 'Service Description', 'SAC Code', 'Valid Period', 'Rate (INR)', 'Taxable Amount (INR)']],
+    startY: 93,
+    margin: { left: marginX, right: marginX, top: 58, bottom: 70 },
+    head: [['Sr.\nNo', 'Description', 'Price', 'Qty', 'UOM', 'Sub-Total', 'Tax', 'Total']],
     body: [
       [
         '1',
-        rec.service || 'Cloud Services Hosting & Infrastructure',
-        rec.sacCode || '998313',
-        validPeriodText,
-        formatMoney(baseNum),
-        formatMoney(baseNum)
-      ]
+        itemDescription,
+        `Rs. ${formatMoney(baseNum)}`,
+        qty,
+        uom,
+        `Rs. ${formatMoney(baseNum)}`,
+        taxDetailStr,
+        `Rs. ${formatMoney(totalNum)}`
+      ],
+      ['', '', '', '', '', '', 'Sub Total', `Rs. ${formatMoney(baseNum)}`],
+      ['', '', '', '', '', '', 'Total Tax', `Rs. ${formatMoney(cgstNum + sgstNum)}`],
+      ['', '', '', '', '', '', 'Grand Total', `Rs. ${formatMoney(totalNum)}`]
     ],
     headStyles: {
-      fillColor: [241, 245, 249],
-      textColor: [15, 23, 42],
-      fontSize: 8,
+      fillColor: [204, 204, 204],
+      textColor: [0, 0, 0],
+      fontSize: 7.5,
       fontStyle: 'bold',
-      halign: 'left',
-      valign: 'middle'
-    },
-    styles: {
-      font: 'helvetica',
-      fontSize: 8,
-      textColor: [30, 41, 59],
-      cellPadding: { top: 3.5, bottom: 3.5, left: 2.5, right: 2.5 },
+      halign: 'center',
       valign: 'middle',
-      overflow: 'linebreak'
+      lineWidth: 0.15,
+      lineColor: [180, 180, 180]
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: [0, 0, 0],
+      valign: 'top',
+      lineWidth: 0.15,
+      lineColor: [200, 200, 200]
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
       1: { cellWidth: 64, halign: 'left' },
-      2: { cellWidth: 20, halign: 'center' },
-      3: { cellWidth: 36, halign: 'center' },
-      4: { cellWidth: 26, halign: 'right' },
-      5: { cellWidth: 26, halign: 'right' }
+      2: { cellWidth: 20, halign: 'right' },
+      3: { cellWidth: 10, halign: 'center' },
+      4: { cellWidth: 14, halign: 'center' },
+      5: { cellWidth: 24, halign: 'right' },
+      6: { cellWidth: 24, halign: 'right' },
+      7: { cellWidth: 24, halign: 'right' }
     },
-    theme: 'grid',
-    tableLineColor: [226, 232, 240],
-    tableLineWidth: 0.2
+    didParseCell: (data) => {
+      // Highlight summary rows at bottom
+      if (data.row.index >= 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+        if (data.column.index === 6) {
+          data.cell.styles.halign = 'right';
+        }
+      }
+    },
+    theme: 'grid'
   });
 
-  const finalY = doc.lastAutoTable.finalY || 115;
-  const boxY = finalY + 6;
-  const boxH = 46;
+  let currentY = doc.lastAutoTable.finalY + 4;
 
-  // 6. Left Note Box (Amount in Words & GST Declarations)
-  const noteBoxX = 14;
-  const noteBoxW = 94;
-  doc.setFillColor(248, 250, 252);
-  doc.roundedRect(noteBoxX, boxY, noteBoxW, boxH, 2, 2, 'F');
-  doc.setDrawColor(...borderColor);
-  doc.roundedRect(noteBoxX, boxY, noteBoxW, boxH, 2, 2, 'S');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkTextColor);
-  doc.text('AMOUNT IN WORDS:', noteBoxX + 4, boxY + 7);
-
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...bodyTextColor);
-  doc.text(numberToWords(totalNum), noteBoxX + 4, boxY + 13, { maxWidth: noteBoxW - 8 });
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkTextColor);
-  doc.text('TAX CREDIT DECLARATION:', noteBoxX + 4, boxY + 26);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...mutedTextColor);
-  doc.text(
-    'This supply is covered under Forward Charge. Input tax credit is available to recipient as per GST Act rules.',
-    noteBoxX + 4,
-    boxY + 31,
-    { maxWidth: noteBoxW - 8 }
-  );
-
-  // 7. Right Calculations Box (Summary & Totals)
-  const calcBoxX = 112;
-  const calcBoxW = 84;
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(calcBoxX, boxY, calcBoxW, boxH, 2, 2, 'F');
-  doc.setDrawColor(...borderColor);
-  doc.roundedRect(calcBoxX, boxY, calcBoxW, boxH, 2, 2, 'S');
-
-  const rightAlignX = calcBoxX + calcBoxW - 5;
-  const leftLabelX = calcBoxX + 5;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...mutedTextColor);
-
-  // Base
-  doc.text('Taxable Base Amount:', leftLabelX, boxY + 7);
-  doc.setTextColor(...darkTextColor);
-  doc.text(`Rs. ${formatMoney(baseNum)}`, rightAlignX, boxY + 7, { align: 'right' });
-
-  // CGST / SGST / GST Split
-  if (cgstNum > 0 || sgstNum > 0) {
-    doc.setTextColor(...mutedTextColor);
-    doc.text('CGST @ 9%:', leftLabelX, boxY + 14);
-    doc.setTextColor(...darkTextColor);
-    doc.text(`Rs. ${formatMoney(cgstNum)}`, rightAlignX, boxY + 14, { align: 'right' });
-
-    doc.setTextColor(...mutedTextColor);
-    doc.text('SGST @ 9%:', leftLabelX, boxY + 21);
-    doc.setTextColor(...darkTextColor);
-    doc.text(`Rs. ${formatMoney(sgstNum)}`, rightAlignX, boxY + 21, { align: 'right' });
-
-    doc.setTextColor(...mutedTextColor);
-    doc.text('Total GST (18%):', leftLabelX, boxY + 28);
-    doc.setTextColor(...darkTextColor);
-    doc.text(`Rs. ${formatMoney(cgstNum + sgstNum)}`, rightAlignX, boxY + 28, { align: 'right' });
-  } else {
-    doc.setTextColor(...mutedTextColor);
-    doc.text('GST (18%):', leftLabelX, boxY + 14);
-    doc.setTextColor(...darkTextColor);
-    doc.text('Included in gross amount', rightAlignX, boxY + 14, { align: 'right' });
+  // Check if remaining space is enough for Terms, Bank Details, and Signatory
+  // Footer starts at Y = 230, so content must finish before 226
+  if (currentY + 68 > 226) {
+    doc.addPage();
+    currentY = 58;
   }
 
-  // Grand Total Divider Line
-  doc.setDrawColor(...primaryColor);
-  doc.setLineWidth(0.4);
-  doc.line(leftLabelX, boxY + 33, rightAlignX, boxY + 33);
-
-  // Grand Total Paid
+  // 10. Term and Description Section
+  doc.setFillColor(204, 204, 204);
+  doc.rect(marginX, currentY, contentWidth, 4.5, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...primaryColor);
-  doc.text('TOTAL PAID (INR):', leftLabelX, boxY + 40);
-  doc.text(`Rs. ${formatMoney(totalNum)}`, rightAlignX, boxY + 40, { align: 'right' });
+  doc.setFontSize(7.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text('Term and Description', 105, currentY + 3.2, { align: 'center' });
 
-  // 8. Terms & Signatory Section
-  const signY = boxY + boxH + 12;
+  currentY += 6.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  const terms = [
+    '- Payment terms: 100% advance against order.',
+    '- Net Infotech System Pvt Ltd. follows the privacy policy published on their official website (Click here to read the policy).',
+    '- As an Enterprise Cloud & IT Infrastructure provider, we will sign up the non-disclosure agreement.',
+    '- You always own your data and you are always free to export and download your data.',
+    '- Service provisioning and access credentials are delivered within committed SLA upon payment confirmation.',
+    '- This supply is covered under Forward Charge. Input Tax Credit (ITC) is available to the recipient as per GST Act rules.',
+    '- To accomplish the setup within the decided timeframe, we need your timely input, configuration details, and feedback.'
+  ];
+  terms.forEach((t) => {
+    doc.text(t, marginX + 1, currentY);
+    currentY += 3.2;
+  });
 
-  // Terms & Conditions (Left)
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkTextColor);
-  doc.text('Terms & Conditions:', 14, signY);
+  currentY += 1.5;
+
+  // 11. Bank Details Section
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: marginX, right: marginX, top: 58, bottom: 70 },
+    head: [
+      [
+        {
+          content: 'BANK DETAILS',
+          colSpan: 2,
+          styles: { halign: 'center', fillColor: [204, 204, 204], textColor: [0, 0, 0], fontStyle: 'bold' }
+        }
+      ]
+    ],
+    body: [
+      ['Name - Net Infotech System Pvt Ltd', 'BANK NAME - Kotak Mahindra Bank'],
+      ['BRANCH - Salt Lake, Kolkata', 'BRANCH ADDRESS - SALT LAKE CITY'],
+      ['A/C NO - 3148101134', 'A/C TYPE - Current Account'],
+      ['IFS CODE - KKBK0000326', 'MICR CODE - 700485018']
+    ],
+    bodyStyles: {
+      fontSize: 6.5,
+      fontStyle: 'bold',
+      textColor: [0, 0, 0],
+      cellPadding: 1.2,
+      lineWidth: 0.15,
+      lineColor: [180, 180, 180]
+    },
+    theme: 'grid'
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 12. Signatory Section
+  const salesRepName = rec.salesPerson || rec.preparedBy || 'Debasish Chakraborty';
+  const salesRepRole = rec.salesPersonRole || 'Senior Enterprise Consultant | Inbound Desk';
+  const salesRepEmail = rec.salesPersonEmail || 'debasish@netinfotechsystem.com';
+  const salesRepPhone = rec.salesPersonPhone || '+91-9330113000';
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
-  doc.setTextColor(...mutedTextColor);
-  doc.text('1. Subscription license is activated upon payment confirmation.', 14, signY + 5);
-  doc.text('2. Computer-generated electronic tax invoice per Section 31 of CGST Act.', 14, signY + 9);
-  doc.text('3. Input Tax Credit (ITC) subject to applicable return filing rules.', 14, signY + 13);
-
-  // Official Seal & Signatory Box (Right)
+  doc.setTextColor(0, 0, 0);
+  doc.text('Prepared By,', marginX + 1, currentY);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkTextColor);
-  doc.text('For NET INFOTECH SYSTEM PVT. LTD.', 122, signY);
+  doc.text(salesRepName, marginX + 1, currentY + 3.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(salesRepRole, marginX + 1, currentY + 7);
+  doc.text(`${salesRepEmail} | ${salesRepPhone}`, marginX + 1, currentY + 10.5);
 
-  doc.setFillColor(240, 253, 244);
-  doc.setDrawColor(187, 247, 208);
-  doc.roundedRect(122, signY + 4, 74, 15, 2, 2, 'FD');
-
-  doc.setTextColor(5, 150, 105);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.text('DIGITALLY SIGNED & VERIFIED', 126, signY + 10);
-
+  doc.text('NET INFOTECH SYSTEM PVT LTD', marginX + contentWidth, currentY + 3.5, { align: 'right' });
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(21, 128, 61);
-  doc.text('Authorized Finance Controller | Electronic Tax Invoice', 126, signY + 15);
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Authorized Signatory / Finance Desk', marginX + contentWidth, currentY + 7, { align: 'right' });
 
-  // 9. Bottom Document Footer Bar
-  doc.setFillColor(248, 250, 252);
-  doc.rect(0, 287, 210, 10, 'F');
-  doc.setDrawColor(...borderColor);
-  doc.setLineWidth(0.3);
-  doc.line(0, 287, 210, 287);
+  // 13. Stamp Header and Footer Banner on EVERY page (Zero Watermark)
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    // Header Logo (Top)
+    doc.addImage(NISPL_HEADER_LOGO_BASE64, 'PNG', marginX, 5, contentWidth, 49.65);
+    // Footer Banner (Bottom)
+    doc.addImage(NISPL_FOOTER_BANNER_BASE64, 'PNG', marginX, 297 - 66.65, contentWidth, 66.65);
+  }
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...mutedTextColor);
-  doc.text(
-    'Net Infotech System Pvt. Ltd. | CIN: U72200WB2010PTC148921 | Sector V, Salt Lake, Kolkata Cloud NOC Cluster',
-    105,
-    293,
-    { align: 'center' }
-  );
-
-  // Trigger browser download
-  doc.save(`Receipt_${rec.id || 'INV'}.pdf`);
+  // 14. Trigger Browser Download
+  doc.save(`${isQuotation ? 'Quotation' : 'Receipt'}_${docNumber}.pdf`);
 }

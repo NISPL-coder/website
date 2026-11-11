@@ -149,12 +149,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
             Download certified GST tax invoices, review transaction history, and verify software license renewals.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="flowmail-trend-pill positive" style={{ padding: '6px 14px', fontSize: '0.82rem' }}>
-            <ShieldCheck size={14} />
-            <span>18% GST Compliant &amp; Certified</span>
-          </span>
-        </div>
+       
       </section>
 
       {/* ── 2. Top 4 Metric KPI Cards (Guaranteed within Page Boundary) ── */}
