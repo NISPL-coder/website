@@ -674,6 +674,7 @@ export default function OverviewSection({
 
     // 2. Inactive Value calculation (Pending / Due balance for Card 2)
     let inactiveTotal = 0;
+    let inactiveReceivedTotal = 0;
     let pendingCount = 0;
     list.forEach((p) => {
       const pDate = p.expectedPaymentDate || p.date || p.createdAt || p.invoiceDate;
@@ -690,6 +691,7 @@ export default function OverviewSection({
 
       if (pendingVal > 0 || ['pending', 'overdue', 'partially paid', 'partial', 'in progress'].includes(st)) {
         inactiveTotal += pendingVal;
+        inactiveReceivedTotal += rec;
         pendingCount += 1;
       }
     });
@@ -704,6 +706,9 @@ export default function OverviewSection({
     }
     if (!dueRange.from && !dueRange.to && apiOverview?.kpi?.dueNumeric != null) {
       inactiveTotal = apiOverview.kpi.dueNumeric;
+      if (apiOverview?.kpi?.dueReceivedNumeric != null) {
+        inactiveReceivedTotal = apiOverview.kpi.dueReceivedNumeric;
+      }
       pendingCount = apiOverview.kpi.invoicesPending || pendingCount;
     }
 
@@ -715,6 +720,7 @@ export default function OverviewSection({
       clearedCount,
       totalDues,
       inactiveTotal,
+      inactiveReceivedTotal,
       pendingCount,
       settledPercentage: `${settledRatio}% Settled`
     };
@@ -1826,9 +1832,20 @@ export default function OverviewSection({
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Inactive Value</span>
-            <div className="adm-finance-value amber-val">
-              ₹<CountUp end={paymentMetrics.inactiveTotal} useIndianFormat={true} duration={1400} />
+            <div className="adm-dual-metric-row">
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Total Receive</span>
+                <div className="adm-finance-value emerald-val compact-val">
+                  ₹<CountUp end={paymentMetrics.inactiveReceivedTotal} useIndianFormat={true} duration={1400} />
+                </div>
+              </div>
+              <div className="adm-metric-divider" />
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Inactive Value</span>
+                <div className="adm-finance-value amber-val compact-val">
+                  ₹<CountUp end={paymentMetrics.inactiveTotal} useIndianFormat={true} duration={1400} />
+                </div>
+              </div>
             </div>
             <p className="adm-finance-caption">
               Unsettled balances, overdue payments and partial payment differences.
