@@ -150,7 +150,13 @@ function getTransporter() {
  */
 async function sendMailWithResilience(mailOptions) {
   // 1. Try HTTPS API first if configured (Port 443 is never blocked by Render)
-  if (process.env.BREVO_API_KEY || process.env.RESEND_API_KEY) {
+  const hasHttpApi = Boolean(
+    env.BREVO_API_KEY || process.env.BREVO_API_KEY ||
+    env.RESEND_API_KEY || process.env.RESEND_API_KEY ||
+    env.GMAIL_WEBHOOK_URL || process.env.GMAIL_WEBHOOK_URL
+  );
+
+  if (hasHttpApi) {
     try {
       const httpResult = await sendViaHttpApi(mailOptions);
       if (httpResult) return httpResult;
