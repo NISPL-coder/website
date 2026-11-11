@@ -515,7 +515,7 @@ export default function CustomerRegisterPage() {
   };
 
   // Step 2 Submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationError('');
 
@@ -809,7 +809,7 @@ export default function CustomerRegisterPage() {
                   <div className="ebolt-field-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <label className="ebolt-field-lbl" htmlFor="reg-logo">
-                        <span>Company logo</span>
+                        <span>Image</span>
                       </label>
                       {customerDetails.companyLogo && (
                         <button
