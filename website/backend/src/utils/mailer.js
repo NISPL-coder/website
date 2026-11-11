@@ -13,9 +13,9 @@ let cachedTransporter = null;
  * This completely bypasses Render/cloud host firewall blocks on SMTP ports (25, 465, 587).
  */
 async function sendViaHttpApi(mailOptions) {
-  const brevoKey = process.env.BREVO_API_KEY;
-  const resendKey = process.env.RESEND_API_KEY;
-  const gmailWebhook = process.env.GMAIL_WEBHOOK_URL;
+  const brevoKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
+  const resendKey = env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+  const gmailWebhook = env.GMAIL_WEBHOOK_URL || process.env.GMAIL_WEBHOOK_URL;
 
   // 1. Google Apps Script Webhook (Native Gmail via HTTPS Port 443)
   if (gmailWebhook) {
@@ -36,7 +36,7 @@ async function sendViaHttpApi(mailOptions) {
     return await res.json().catch(() => ({ success: true }));
   }
 
-  // 2. Brevo REST API (HTTPS Port 443)
+  // 2. Brevo REST API (HTTPS Port 443 - Bypasses Render SMTP port blocking)
   if (brevoKey) {
     const senderEmail = env.SMTP_USER && env.SMTP_USER.includes('@')
       ? env.SMTP_USER
@@ -56,11 +56,15 @@ async function sendViaHttpApi(mailOptions) {
         htmlContent: mailOptions.html,
         textContent: mailOptions.text
       }),
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(6000)
     });
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
+      if (res.status === 401 && String(errData.message || '').includes('authorised_ips')) {
+        console.error(`\n[NISPL Brevo Security Warning] Brevo IP blocking is active!`);
+        console.error(`Please open https://app.brevo.com/security/authorised_ips and click 'Deactivate blocking' to allow Render and other servers to dispatch emails.\n`);
+      }
       throw new Error(`Brevo HTTP API error (${res.status}): ${errData.message || res.statusText}`);
     }
     return await res.json();
