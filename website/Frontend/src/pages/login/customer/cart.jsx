@@ -566,50 +566,6 @@ export default function CartSection({
               )}
             </div>
           </div>
-
-          {/* ── 3. Sticky Bottom Checkout Bar (Frosted Glass) ──────── */}
-          <div
-            className="cart-sticky-checkout-bar"
-            style={{
-              background: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(12px)',
-              borderTop: '1px solid rgba(226, 232, 240, 0.9)',
-              boxShadow: '0 -8px 25px rgba(15, 23, 42, 0.06)'
-            }}
-          >
-            <div className="sticky-checkout-left">
-              <div className="sticky-checkout-pricing">
-                <span className="sticky-checkout-total-label" style={{ color: '#64748b' }}>Grand Total:</span>
-                <span className="sticky-checkout-total-amt" style={{ color: '#0f172a', fontWeight: '800' }}>
-                  ₹{grandTotal.toLocaleString('en-IN')}
-                </span>
-                <span className="flowmail-trend-pill positive" style={{ fontSize: '0.74rem' }}>
-                  Incl. all taxes &amp; GST
-                </span>
-              </div>
-            </div>
-
-            <div className="sticky-checkout-right">
-              <button
-                type="button"
-                className="flowmail-btn-primary"
-                onClick={onProceedToPayment}
-                disabled={isCheckingOut}
-                style={{
-                  padding: '12px 28px',
-                  fontSize: '0.94rem'
-                }}
-              >
-                <span>
-                  {isCheckingOut
-                    ? 'Opening Razorpay…'
-                    : 'Proceed to Checkout'}
-                </span>
-                <span style={{ opacity: 0.85, fontWeight: '400' }}>| ₹{grandTotal.toLocaleString('en-IN')}</span>
-                <ArrowRight size={17} />
-              </button>
-            </div>
-          </div>
         </>
       ) : (
         /* ── Empty State ────────────────────────────────────────── */

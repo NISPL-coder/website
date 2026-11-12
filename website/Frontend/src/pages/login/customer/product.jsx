@@ -88,9 +88,10 @@ export default function ProductsSection({
   const effectiveExpiryDate = demoExpiryDate || activeDemo?.expiryDate || activeDemo?.endDate || null;
 
   // /customer/product · /customer/product/tally · /customer/product/cloud
+  // Default to cloud/create-order directly so the intermediate selection hub is removed
   const [, , , categorySegment] = location.pathname.split('/');
   const selectedCategory =
-    categorySegment === 'tally' || categorySegment === 'cloud' ? categorySegment : null;
+    categorySegment === 'tally' ? 'tally' : 'cloud';
 
   const productPath = (category = null) =>
     category ? `/customer/product/${category}` : '/customer/product';
@@ -215,7 +216,7 @@ export default function ProductsSection({
     navigate(productPath(catId));
   };
 
-  const backToCategories = () => navigate(productPath());
+  const backToCategories = () => navigate('/customer/overview');
 
   const handleResetFilters = () => {
     setActiveSubCategory('all');
@@ -410,23 +411,10 @@ export default function ProductsSection({
   };
 
   /* ─────────────────────────────────────────────────────────────────────────
-     VIEW 1: INITIAL TWO LARGE HORIZONTAL CARDS SCREEN
+     VIEW: CLOUD SOLUTIONS FLOW (DIRECT CREATE ORDER VIEW)
+     Bypasses intermediate hub: Clicking Products opens Create Order immediately.
   ───────────────────────────────────────────────────────────────────────── */
-  if (!selectedCategory) {
-    return (
-      <SolutionCategorySelection
-        onSelectCategory={handleSelectCategory}
-        isReadOnly={effectiveReadOnly}
-        isDemoActive={effectiveDemoActive}
-        demoExpiryDate={effectiveExpiryDate}
-      />
-    );
-  }
-
-  /* ─────────────────────────────────────────────────────────────────────────
-     VIEW 2: CLOUD SOLUTIONS FLOW (NEW SUBSCRIPTION VIEW)
-  ───────────────────────────────────────────────────────────────────────── */
-  if (selectedCategory === 'cloud') {
+  if (selectedCategory === 'cloud' || !selectedCategory) {
     return (
       <NewSubscriptionView
         customer={customer}

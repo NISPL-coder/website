@@ -29,7 +29,7 @@ import './Dashboard.css';
 
 const NAV_TO_PATH = {
   overview: '/customer/overview',
-  products: '/customer/product',
+  products: '/customer/product/cloud',
   cart: '/customer/cart',
   receipt: '/customer/receipt',
   help: '/customer/help',
@@ -521,7 +521,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   const navItems = useMemo(
     () => [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/customer/overview' },
-      { id: 'products', label: 'Products', icon: Package, path: '/customer/product' },
+      { id: 'products', label: 'Products', icon: Package, path: '/customer/product/cloud' },
       { id: 'cart', label: 'Cart', icon: ShoppingCart, path: '/customer/cart', badge: cartItems.length },
       { id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/customer/receipt' },
       { id: 'help', label: 'Help Center', icon: LifeBuoy, path: '/customer/help', group: 'Support' }

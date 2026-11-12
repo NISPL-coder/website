@@ -173,10 +173,10 @@ function MainApp() {
           
           {/* Customer Portal Routes with Sidebar & Header (Protected) */}
           <Route path="/customer/overview" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
-          <Route path="/customer/product" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
+          <Route path="/customer/product" element={<Navigate to="/customer/product/cloud" replace />} />
           <Route path="/customer/product/tally" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/product/cloud" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
-          <Route path="/customer/products" element={<Navigate to="/customer/product" replace />} />
+          <Route path="/customer/products" element={<Navigate to="/customer/product/cloud" replace />} />
           <Route path="/customer/cart" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/receipt" element={<ProtectedRoute allowedRoles={['customer']} redirectTo="/customer-login"><Dashboard onSignOut={() => handleSignOut('customer')} /></ProtectedRoute>} />
           <Route path="/customer/payment" element={<Navigate to="/customer/overview" replace />} />
