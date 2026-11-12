@@ -166,7 +166,10 @@ export async function registerCustomer(req, res) {
     gstNo,
     plan,
     address,
-    city
+    city,
+    companyLogo,
+    image,
+    avatar
   } = req.body;
 
   const cleanName = String(name || '').trim();
@@ -175,6 +178,7 @@ export async function registerCustomer(req, res) {
   const cleanPhone = String(phone || mobile || '').trim();
   const cleanGst = String(gstNo || '').trim().toUpperCase();
   const cleanPlan = String(plan || '').trim();
+  const cleanLogo = String(companyLogo || image || avatar || '').trim();
 
   if (!cleanName) throw new HttpError(400, 'Customer name is required.');
   if (!cleanEmail) throw new HttpError(400, 'Customer email is required.');
@@ -201,6 +205,9 @@ export async function registerCustomer(req, res) {
     name: cleanName,
     email: cleanEmail,
     phone: cleanPhone,
+    company: cleanCompany,
+    companyLogo: cleanLogo,
+    avatar: cleanLogo,
     password,
     portalPassword: password,
     role: 'customer',
@@ -219,6 +226,8 @@ export async function registerCustomer(req, res) {
     portalPassword: password,
     phone: cleanPhone,
     gstNo: cleanGst,
+    companyLogo: cleanLogo,
+    avatar: cleanLogo,
     // Registration alone proves nothing was taken or bought; the lifecycle
     // moves only on demo activation, settled payment and provisioning.
     status: 'Inactive',

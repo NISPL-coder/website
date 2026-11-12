@@ -28,10 +28,11 @@ export const registerSchema = body => {
   const phone = String(body.phone ?? body.mobile ?? '').trim();
   const gstNo = String(body.gstNo ?? '').trim().toUpperCase();
   const plan = String(body.plan ?? '').trim();
+  const companyLogo = String(body.companyLogo ?? body.image ?? body.avatar ?? '').trim();
   if (name.length < 2) return { valid: false, message: 'Name must contain at least 2 characters.' };
   if (!emailOk(email)) return { valid: false, message: 'A valid email address is required.' };
   if (password.length < 10) return { valid: false, message: 'Password must contain at least 10 characters.' };
-  return { valid: true, value: { name, email, password, company, phone, gstNo, plan } };
+  return { valid: true, value: { name, email, password, company, phone, gstNo, plan, companyLogo } };
 };
 
 export const forgotSchema = body => {

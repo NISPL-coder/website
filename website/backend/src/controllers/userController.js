@@ -65,7 +65,9 @@ export async function updateOwnProfile(req, res) {
     company,
     gstNo,
     designation,
-    address
+    address,
+    avatar,
+    companyLogo
   } = req.body;
 
   if (name !== undefined) {
@@ -129,6 +131,13 @@ export async function updateOwnProfile(req, res) {
   if (company !== undefined) user.company = String(company).trim();
   if (gstNo !== undefined) user.gstNo = String(gstNo).trim().toUpperCase();
   if (designation !== undefined) user.designation = String(designation).trim();
+  if (avatar !== undefined) {
+    user.avatar = String(avatar).trim();
+    user.companyLogo = String(avatar).trim();
+  } else if (companyLogo !== undefined) {
+    user.avatar = String(companyLogo).trim();
+    user.companyLogo = String(companyLogo).trim();
+  }
 
   await user.save();
 
@@ -140,6 +149,10 @@ export async function updateOwnProfile(req, res) {
   const customerUpdates = {};
   if (user.name) customerUpdates.name = user.name;
   if (user.phone) customerUpdates.phone = user.phone;
+  if (user.avatar) {
+    customerUpdates.avatar = user.avatar;
+    customerUpdates.companyLogo = user.companyLogo;
+  }
   if (cleanAdditionalEmails !== undefined) customerUpdates.additionalEmails = cleanAdditionalEmails;
   if (cleanAdditionalPhones !== undefined) {
     customerUpdates.additionalPhones = cleanAdditionalPhones;

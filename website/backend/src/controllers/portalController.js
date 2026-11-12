@@ -1019,6 +1019,8 @@ export const getCustomerOverview = async (req, res) => {
           serverNode: customer?.serverNode || null,
           gstNo: customer?.gstNo || null,
           registered: customer?.registered || null,
+          avatar: customer?.avatar || customer?.companyLogo || user?.avatar || user?.companyLogo || '',
+          companyLogo: customer?.companyLogo || customer?.avatar || user?.companyLogo || user?.avatar || '',
           demoTrialUsed: Boolean(customer?.demoTrialUsed || hasConvertedDemo),
           demoExtensionAllowed: Boolean(customer?.demoExtensionAllowed),
           demoExtensionDays: Number(customer?.demoExtensionDays || 0),

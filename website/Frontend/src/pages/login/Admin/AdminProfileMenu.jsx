@@ -61,6 +61,11 @@ export default function AdminProfileMenu({
 
   const effectiveUser = user || authApi.getCurrentUser() || { name, email, role };
   const completion = getProfileCompletion(effectiveUser);
+  const avatarUrl =
+    effectiveUser?.avatar ||
+    effectiveUser?.companyLogo ||
+    user?.avatar ||
+    user?.companyLogo;
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -95,50 +100,19 @@ export default function AdminProfileMenu({
         aria-haspopup="menu"
         title={`Profile ${completion.percentage}% completed — click to manage`}
       >
-        {/* Avatar with Small Circular Progress Ring Badge */}
-        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-          <span className="adm-profile-avatar">{getInitials(name)}</span>
-          <div
-            className="adm-profile-circle-badge"
-            style={{
-              position: 'absolute',
-              bottom: '-3px',
-              right: '-5px',
-              background: '#ffffff',
-              borderRadius: '999px',
-              padding: '1px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 3
+        {/* Avatar */}
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={name}
+            className="adm-profile-avatar-img"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
             }}
-            title={`Profile is ${completion.percentage}% completed`}
-          >
-            <ProfileCompletionCircle
-              percentage={completion.percentage}
-              size={21}
-              strokeWidth={2.4}
-              showPercentageInside={false}
-            />
-            <span
-              style={{
-                position: 'absolute',
-                fontSize: '0.50rem',
-                fontWeight: 800,
-                color:
-                  completion.percentage === 100
-                    ? '#059669'
-                    : completion.percentage >= 60
-                    ? '#4f46e5'
-                    : '#d97706',
-                lineHeight: 1
-              }}
-            >
-              {completion.percentage}%
-            </span>
-          </div>
-        </div>
+          />
+        ) : (
+          <span className="adm-profile-avatar">{getInitials(name)}</span>
+        )}
 
         <span className="adm-profile-meta">
           <span className="adm-profile-name">{name}</span>
@@ -147,13 +121,47 @@ export default function AdminProfileMenu({
             <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
           </div>
         </span>
+
+        {/* Small Circle: Profile Completion Percentage (Highlighted on Right) */}
+        <div
+          className="adm-profile-completion-circle-box"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: '4px',
+            marginRight: '2px',
+            flexShrink: 0
+          }}
+          title={`Profile is ${completion.percentage}% completed`}
+        >
+          <ProfileCompletionCircle
+            percentage={completion.percentage}
+            size={28}
+            strokeWidth={2.6}
+            showPercentageInside={true}
+          />
+        </div>
+
         <ChevronDown size={14} className={`adm-profile-chevron ${isOpen ? 'rotate' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="adm-profile-dropdown" role="menu">
           <div className="adm-profile-dropdown-header">
-            <span className="adm-profile-avatar">{getInitials(name)}</span>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={name}
+                className="adm-profile-avatar-img"
+                style={{ width: '38px', height: '38px', borderRadius: '11px' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <span className="adm-profile-avatar">{getInitials(name)}</span>
+            )}
             <span className="adm-profile-meta">
               <span className="adm-profile-name">{name}</span>
               <span className="adm-profile-email">{email}</span>

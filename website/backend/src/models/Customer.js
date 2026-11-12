@@ -140,6 +140,14 @@ const customerSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    avatar: {
+      type: String,
+      default: ''
+    },
+    companyLogo: {
+      type: String,
+      default: ''
+    },
     registered: {
       type: String,
       default: () => new Date().toISOString().split('T')[0]

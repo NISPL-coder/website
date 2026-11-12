@@ -229,7 +229,27 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
       </div>
 
       <div className="adm-profile-hero" style={{ marginTop: '14px' }}>
-        <span className="adm-profile-hero-avatar">{initialsOf(name)}</span>
+        {(profile?.avatar || profile?.companyLogo) ? (
+          <img
+            src={profile?.avatar || profile?.companyLogo}
+            alt={name}
+            style={{
+              width: '58px',
+              height: '58px',
+              borderRadius: '14px',
+              objectFit: 'cover',
+              border: '2px solid #e2e8f0',
+              background: '#ffffff',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <span className="adm-profile-hero-avatar">{initialsOf(name)}</span>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="adm-profile-hero-name">{name}</h2>
           <p className="adm-profile-hero-email">{email}</p>
