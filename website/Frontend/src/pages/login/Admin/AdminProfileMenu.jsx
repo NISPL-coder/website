@@ -122,26 +122,28 @@ export default function AdminProfileMenu({
           </div>
         </span>
 
-        {/* Small Circle: Profile Completion Percentage (Highlighted on Right) */}
-        <div
-          className="adm-profile-completion-circle-box"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: '4px',
-            marginRight: '2px',
-            flexShrink: 0
-          }}
-          title={`Profile is ${completion.percentage}% completed`}
-        >
-          <ProfileCompletionCircle
-            percentage={completion.percentage}
-            size={28}
-            strokeWidth={2.6}
-            showPercentageInside={true}
-          />
-        </div>
+        {/* Small Circle: Profile Completion Percentage (Hidden when 100% complete) */}
+        {completion.percentage < 100 && (
+          <div
+            className="adm-profile-completion-circle-box"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: '4px',
+              marginRight: '2px',
+              flexShrink: 0
+            }}
+            title={`Profile is ${completion.percentage}% completed`}
+          >
+            <ProfileCompletionCircle
+              percentage={completion.percentage}
+              size={28}
+              strokeWidth={2.6}
+              showPercentageInside={true}
+            />
+          </div>
+        )}
 
         <ChevronDown size={14} className={`adm-profile-chevron ${isOpen ? 'rotate' : ''}`} />
       </button>
