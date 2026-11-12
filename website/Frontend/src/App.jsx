@@ -6,6 +6,7 @@ import { INITIAL_TRANSACTIONS, INITIAL_PRODUCTS } from './data/mockData';
 import NetworkBackground from './components/background/NetworkBackground';
 import SEOManager from './components/SEO/SEOManager';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import FixedFooter from './components/FixedFooter/FixedFooter';
 import { authApi } from './services/authApi';
 import './App.css';
 
@@ -270,6 +271,9 @@ function MainApp() {
 
       {/* Global First-Visit Cookie & Privacy Consent */}
       <CookieConsent />
+
+      {/* Universal Fixed Footer Bar across all pages */}
+      <FixedFooter />
     </div>
   );
 }

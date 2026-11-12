@@ -527,7 +527,7 @@
   height: calc(100vh - var(--pnd-header-height));
   overflow-y: auto;
   box-shadow: 1px 0 3px rgba(15, 23, 42, 0.02);
-  z-index: 40;
+  z-index: 100;
 }
 
 .pnd-sidebar-nav-container {

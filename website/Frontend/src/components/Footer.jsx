@@ -145,7 +145,16 @@ export default function Footer() {
             © {new Date().getFullYear()} <b>Net Infotech System Pvt. Ltd.</b> All rights reserved.
           </p>
           <p className="footer-copyright-highlight">
-            25+ Years of Excellence.
+            25+ Years of Excellence. • Co-powered by{' '}
+            <a
+              href="https://www.ctrls.com/datacenter-kolkata"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-ctrls-link"
+              title="CtrlS Datacenter Kolkata"
+            >
+              CtrlS
+            </a>
           </p>
           <div className="legal-links">
             <Link to="/">Home</Link>
