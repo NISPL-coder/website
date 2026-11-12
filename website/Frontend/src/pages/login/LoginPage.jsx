@@ -1,27 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
+import onboardingVideo from '../../assets/Net Infotech System (NISPL) _ Tally 3-Star Partner, Cloud Hosting, IT Infrastructure & Cybersecurity.mp4';
 import PartnerDashboard from './partner/PartnerDashboard';
 import AdminDashboard from './Admin/AdminDashboard';
 import { authApi } from '../../services/authApi';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ArrowLeft, 
-  CheckCircle2, 
-  AlertCircle, 
-  ShieldCheck, 
-  Users, 
-  Cloud, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  Users,
+  Cloud,
   ChevronDown,
-  X, 
-  LogOut, 
+  X,
+  LogOut,
   Sparkles,
   Shield,
-  Handshake
+  Handshake,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Star,
+  Zap
 } from 'lucide-react';
 import './LoginPage.css';
 
@@ -31,22 +38,45 @@ export default function LoginPage({ lockedPortal }) {
   const location = useLocation();
   const urlPortal = searchParams.get('portal');
 
+  // Video playback controls (for customer portal)
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play().catch(() => { });
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
   // Portal selection is locked/uneditable if selected from navbar (?portal=admin/customer/partner) or via lockedPortal prop or /customer-login route
   const isPortalLocked = Boolean(
-    lockedPortal || 
-    urlPortal === 'admin' || 
-    urlPortal === 'partner' || 
-    urlPortal === 'customer' || 
-    location.pathname === '/customer-login' || 
+    lockedPortal ||
+    urlPortal === 'admin' ||
+    urlPortal === 'partner' ||
+    urlPortal === 'customer' ||
+    location.pathname === '/customer-login' ||
+    location.pathname === '/customer_login' ||
     searchParams.get('locked') === 'true'
   );
 
   // Determine active portal: 'admin' | 'partner' | 'customer'
   const getInitialPortal = () => {
     if (lockedPortal) return lockedPortal;
-    if (location.pathname === '/customer-login') return 'customer';
-    if (urlPortal === 'partner') return 'partner';
+    if (location.pathname === '/customer-login' || location.pathname === '/customer_login' || location.pathname === '/customer/login') return 'customer';
     if (urlPortal === 'customer') return 'customer';
+    if (urlPortal === 'partner') return 'partner';
     if (urlPortal === 'admin') return 'admin';
     return 'admin';
   };
@@ -56,7 +86,7 @@ export default function LoginPage({ lockedPortal }) {
   useEffect(() => {
     if (lockedPortal) {
       setActivePortal(lockedPortal);
-    } else if (location.pathname === '/customer-login') {
+    } else if (location.pathname === '/customer-login' || location.pathname === '/customer_login' || location.pathname === '/customer/login') {
       setActivePortal('customer');
     } else if (urlPortal && ['admin', 'partner', 'customer'].includes(urlPortal)) {
       setActivePortal(urlPortal);
@@ -65,17 +95,25 @@ export default function LoginPage({ lockedPortal }) {
 
   // If already authenticated with a valid token, redirect to active portal dashboard
   useEffect(() => {
-    if (authApi.isAuthenticated()) {
-      const user = authApi.getCurrentUser();
-      const currentRole = user?.role;
-      if (currentRole === 'customer' && (activePortal === 'customer' || location.pathname === '/customer-login')) {
-        navigate('/customer/overview', { replace: true });
-      } else if (['admin', 'manager', 'support'].includes(currentRole) && activePortal === 'admin') {
-        navigate('/admin/overview', { replace: true });
-      } else if (currentRole === 'partner' && activePortal === 'partner') {
-        navigate('/partner-dashboard', { replace: true });
+    const checkAuthAndRedirect = () => {
+      if (authApi.isAuthenticated()) {
+        const user = authApi.getCurrentUser();
+        const currentRole = user?.role;
+        if (currentRole === 'customer' && (activePortal === 'customer' || location.pathname.includes('customer'))) {
+          navigate('/customer/overview', { replace: true });
+        } else if (['admin', 'manager', 'support'].includes(currentRole) && activePortal === 'admin') {
+          navigate('/admin/overview', { replace: true });
+        } else if (currentRole === 'partner' && activePortal === 'partner') {
+          navigate('/partner-dashboard', { replace: true });
+        }
       }
-    }
+    };
+
+    checkAuthAndRedirect();
+    window.addEventListener('nispl_auth_change', checkAuthAndRedirect);
+    return () => {
+      window.removeEventListener('nispl_auth_change', checkAuthAndRedirect);
+    };
   }, [activePortal, location.pathname, navigate]);
 
   const handleSelectPortal = (portalKey) => {
@@ -94,7 +132,7 @@ export default function LoginPage({ lockedPortal }) {
   const [adminExists, setAdminExists] = useState(() => {
     try {
       const cached = localStorage.getItem('nispl_admin_exists');
-      return cached !== null ? cached === 'true' : true; // Default to true (hidden) to prevent flash
+      return cached !== null ? cached === 'true' : true;
     } catch {
       return true;
     }
@@ -123,50 +161,38 @@ export default function LoginPage({ lockedPortal }) {
     return () => { isMounted = false; };
   }, []);
 
-  // Form Fields State: ONLY Email & Password
+  // Form Fields State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isShaking, setIsShaking] = useState(false);
+  const [socialNote, setSocialNote] = useState('');
 
   // Modals state
   const [activeSession, setActiveSession] = useState(null);
   const [isForgotOpen, setIsForgotOpen] = useState(() => searchParams.get('forgot') === 'true');
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const [isSendingReset, setIsSendingReset] = useState(false);
   const [resetError, setResetError] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [devResetUrl, setDevResetUrl] = useState('');
 
-  // Social sign-in notice (providers are not connected to the backend yet)
-  const [socialNote, setSocialNote] = useState('');
-
-  useEffect(() => {
-    if (!socialNote) return undefined;
-    const timer = setTimeout(() => setSocialNote(''), 6000);
-    return () => clearTimeout(timer);
-  }, [socialNote]);
-
+  // Social sign-in placeholder handler
   const handleSocialSignIn = (provider) => {
-    setSocialNote(
-      `${provider} sign-in is not enabled for this workspace yet. Please continue with your email and password.`
-    );
+    setSocialNote(`${provider} authentication is coming soon. Please sign in with your email.`);
+    setTimeout(() => setSocialNote(''), 4500);
   };
 
+  // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!email.trim()) {
-      setErrorMessage('Please enter your email or account ID.');
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-      return;
-    }
-    if (!password) {
-      setErrorMessage('Please enter your password.');
+    if (!email.trim() || !password) {
+      setErrorMessage('Please enter both email and password.');
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 500);
       return;
@@ -176,398 +202,544 @@ export default function LoginPage({ lockedPortal }) {
 
     try {
       const response = await authApi.login({
-        identifier: email.trim(),
         email: email.trim(),
         password,
         portal: activePortal
       });
 
-      setIsLoading(false);
+      const token = response?.accessToken || response?.token || authApi.getAuthToken();
+      if (response && (token || authApi.isAuthenticated())) {
+        const user = response.user || authApi.getCurrentUser() || {};
+        const userRole = user.role || response.role;
 
-      const userRole = response?.user?.role || response?.role;
+        // Verify role-portal access
+        if (activePortal === 'customer' && userRole && userRole !== 'customer') {
+          throw new Error('This account does not have Customer Portal access. Please use Admin or Partner Login.');
+        }
 
-      if (userRole === 'customer') {
-        navigate('/customer/overview');
+        if (activePortal === 'admin' && userRole && !['admin', 'manager', 'support'].includes(userRole)) {
+          throw new Error('This account does not have Admin Portal access. Please use the Customer Login.');
+        }
+
+        if (activePortal === 'partner' && userRole && userRole !== 'partner') {
+          throw new Error('This account does not have Partner Portal access.');
+        }
+
+        // Navigate immediately to appropriate overview
+        if (activePortal === 'customer' || userRole === 'customer') {
+          navigate('/customer/overview', { replace: true });
+        } else if (activePortal === 'partner' || userRole === 'partner') {
+          navigate('/partner-dashboard', { replace: true });
+        } else {
+          navigate('/admin/overview', { replace: true });
+        }
         return;
       }
-
-      if (['admin', 'manager', 'support'].includes(userRole)) {
-        navigate('/admin/overview');
-        return;
-      }
-
-      if (userRole === 'partner') {
-        navigate('/partner-dashboard');
-        return;
-      }
-
-      setActiveSession({
-        portal: activePortal === 'admin' ? 'NISPL Admin Login' : 'Partners Login',
-        user: response.user.email || email,
-        name: response.user.name,
-        role: response.user.tier || 'Authorized User',
-        clearance: activePortal === 'admin' ? 'Tier-1 Root Security Clearance' : 'Certified Partner Tier-Gold',
-        location: activePortal === 'admin' ? 'Kolkata Primary Cloud NOC Node' : 'Eastern India Channel Hub'
-      });
     } catch (err) {
+      console.error('Login error:', err);
+      const msg = err.message || 'Login failed. Please check your credentials.';
+
+      if (err.activeSession || err.statusCode === 409) {
+        setActiveSession({
+          token: err.token,
+          user: err.user,
+          device: err.device || 'Active Device'
+        });
+      } else {
+        setErrorMessage(msg);
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
+      }
+    } finally {
       setIsLoading(false);
-      setErrorMessage(err.message || 'Authentication failed. Please verify your credentials.');
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
     }
   };
 
+  // Terminate Active Session
+  const handleTerminateOtherSession = async () => {
+    if (!activeSession) return;
+    try {
+      setIsLoading(true);
+      await authApi.terminateOtherSession(activeSession.token);
+      setActiveSession(null);
+      if (activePortal === 'customer') {
+        navigate('/customer/overview', { replace: true });
+      } else if (activePortal === 'partner') {
+        navigate('/partner-dashboard', { replace: true });
+      } else {
+        navigate('/admin/overview', { replace: true });
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Could not terminate other session.');
+      setActiveSession(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Send Password Reset
   const handleSendReset = async (e) => {
     e.preventDefault();
-    setResetError('');
     if (!resetEmail.trim()) {
       setResetError('Please enter your email address.');
       return;
     }
-    setIsSendingReset(true);
+
     try {
-      const response = await authApi.forgotPassword(resetEmail.trim());
-      setIsSendingReset(false);
+      setIsSendingReset(true);
+      setResetError('');
+      const res = await authApi.forgotPassword(resetEmail.trim());
       setResetSent(true);
-      if (response.devResetUrl) {
-        setDevResetUrl(response.devResetUrl);
+      if (res && res.resetUrl) {
+        setDevResetUrl(res.resetUrl);
       }
     } catch (err) {
+      setResetError(err.message || 'Failed to send reset link.');
+    } finally {
       setIsSendingReset(false);
-      setResetError(err.message || 'Failed to dispatch reset instructions. Please verify your email.');
     }
   };
 
-  // If authenticated, render full Header + Sidebar Enterprise Dashboard
-  if (activeSession) {
-    if (activePortal === 'partner') {
-      return (
-        <PartnerDashboard 
-          userSession={activeSession} 
-          onSignOut={() => {
-            authApi.clearAuthSession();
-            setActiveSession(null);
-            setPassword('');
-            setErrorMessage('');
-          }} 
-        />
-      );
-    }
-    if (activePortal === 'admin') {
-      return (
-        <AdminDashboard 
-          userSession={activeSession} 
-          onSignOut={() => {
-            authApi.clearAuthSession();
-            setActiveSession(null);
-            setPassword('');
-            setErrorMessage('');
-          }} 
-        />
-      );
-    }
-  }
+  // Determine if we should display the Customer-specific 2-column video interface
+  const isCustomerPortal = (
+    activePortal === 'customer' ||
+    location.pathname === '/customer-login' ||
+    location.pathname === '/customer_login' ||
+    location.pathname === '/customer/login'
+  );
 
   return (
     <div className="ebolt-login-viewport">
-      {/* Top Bar: Official Brand Logo & Back Link */}
-      <header className="ebolt-top-nav">
-        <Link to="/" className="ebolt-brand-link" title="Net Infotech System Pvt. Ltd.">
-          <img 
-            src={logoImg} 
-            alt="Net Infotech System Pvt. Ltd." 
-            className="ebolt-brand-logo-img" 
-            height="48"
-          />
-        </Link>
+      {/* Ethereal Sky Concentric Rings Background Decoration */}
+      <div className="ebolt-sky-rings" aria-hidden="true">
+        <div className="ebolt-ring ring-1" />
+        <div className="ebolt-ring ring-2" />
+        <div className="ebolt-ring ring-3" />
+      </div>
 
-        <Link to="/" className="ebolt-home-pill-btn">
-          <ArrowLeft size={14} />
-          <span>Back to Home</span>
-        </Link>
-      </header>
+      {/* Top Bar: Brand Logo & Back to Home Pill */}
+      
 
-      {/* Main Centered Frosted Glass Card */}
+      {/* Main Container */}
       <main className="ebolt-login-wrapper">
-        <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
-          
-          {/* Top Floating Action Icon Badge: ->] */}
-          <div className="ebolt-badge-icon-box" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
-          </div>
 
-          {/* Heading and Description */}
-          <h1 className="ebolt-card-title">Sign in with email</h1>
-          <p className="ebolt-card-subtitle">
-            {activePortal === 'customer' || location.pathname === '/customer-login'
-              ? 'Access your cloud instances, remote Tally licenses & support.'
-              : activePortal === 'partner'
+        {/* ====================================================================
+            CONDITION 1: CUSTOMER PORTAL ONLY -> SPLIT 2-COLUMN VIDEO INTERFACE
+           ==================================================================== */}
+        {isCustomerPortal ? (
+          <div className="ebolt-customer-split-card animate-fade-in">
+
+            {/* LEFT COLUMN: Customer Login Section */}
+            <div className="ebolt-login-col">
+              <div className="ebolt-login-col-inner">
+
+                {/* Top Badge & Switcher */}
+                <div className="ebolt-portal-badge-wrap">
+                  <span className="ebolt-portal-pill-badge">
+                    <Cloud size={13} />
+                    <span>Customer Portal</span>
+                  </span>
+
+                  {!isPortalLocked && (
+                    <button
+                      type="button"
+                      className="ebolt-switch-portal-link"
+                      onClick={() => handleSelectPortal('admin')}
+                    >
+                      Admin Login &rarr;
+                    </button>
+                  )}
+                </div>
+
+                {/* Heading & Subtitle */}
+                <h1 className="ebolt-split-title">Login to Your Account</h1>
+                <p className="ebolt-split-subtitle">
+                  Access your cloud instances, remote Tally licenses & support.
+                </p>
+
+                {/* Error Notice */}
+                {errorMessage && (
+                  <div className="ebolt-alert-error is-stacked" role="alert">
+                    <div className="ebolt-alert-error-row">
+                      <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{errorMessage}</span>
+                    </div>
+                    {errorMessage.includes('Admin Portal') && (
+                      <button
+                        type="button"
+                        className="ebolt-error-action-btn"
+                        onClick={() => {
+                          setErrorMessage('');
+                          handleSelectPortal('admin');
+                          navigate('/login?portal=admin');
+                        }}
+                      >
+                        Go to Admin Portal &rarr;
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Customer Login Form */}
+                <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
+
+                  {/* Email / Username */}
+                  <div className="ebolt-input-wrap">
+                    <Mail size={16} className="ebolt-input-icon" />
+                    <input
+                      type="email"
+                      className="ebolt-input"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="username"
+                      required
+                    />
+                  </div>
+
+                  {/* Password with Eye Toggle */}
+                  <div className="ebolt-input-wrap">
+                    <Lock size={16} className="ebolt-input-icon" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="ebolt-input"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="ebolt-eye-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+
+                  {/* Remember Me & Forgot Password Row */}
+                  <div className="ebolt-options-row">
+                    <label className="ebolt-checkbox-label">
+                      <input
+                        type="checkbox"
+                        className="ebolt-checkbox-input"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Remember Me</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      className="ebolt-forgot-btn"
+                      onClick={() => {
+                        setIsForgotOpen(true);
+                        setResetEmail(email);
+                        setResetError('');
+                        setResetSent(false);
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
+                  {/* Vibrant High-Energy Gradient CTA */}
+                  <button
+                    type="submit"
+                    className="ebolt-gradient-cta"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <span className="ebolt-spinner" />
+                    ) : (
+                      <>
+                        <span>Login to Your Account</span>
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+
+                  {socialNote && (
+                    <p className="ebolt-social-note" role="status">{socialNote}</p>
+                  )}
+
+                  {/* Registration Link */}
+                  <div className="ebolt-create-account-box animate-fade-in">
+                    <span className="ebolt-create-account-text">Not a member yet? </span>
+                    <Link to="/customer-register" className="ebolt-create-account-link">
+                      Register Now
+                    </Link>
+                  </div>
+                </form>
+
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Video Showcase with Ambient Highlighting */}
+            <div className="ebolt-showcase-col">
+              <div className="ebolt-showcase-container">
+                {/* Ambient Multi-spectrum Glowing Auras */}
+                <div className="ebolt-ambient-glow glow-warm" />
+                <div className="ebolt-ambient-glow glow-cyan" />
+                <div className="ebolt-ambient-glow glow-purple" />
+
+                {/* Showcase Device Frame */}
+                <div className="ebolt-showcase-frame">
+                  {/* Chrome Top Bar */}
+                  <div className="ebolt-frame-header">
+                    <div className="ebolt-window-dots">
+                      <span className="wdot dot-close" />
+                      <span className="wdot dot-min" />
+                      <span className="wdot dot-max" />
+                    </div>
+                    <div className="ebolt-frame-address-bar">
+                      <span className="address-text">Demo Preview</span>
+                    </div>
+                  </div>
+
+                  {/* Video Player Display */}
+                  <div className="ebolt-video-screen">
+                    <video
+                      ref={videoRef}
+                      src={onboardingVideo}
+                      autoPlay
+                      loop
+                      muted={isMuted}
+                      playsInline
+                      className="ebolt-video-element"
+                    />
+                    <div className="ebolt-video-overlay-gradient" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        ) : (
+          /* ====================================================================
+              CONDITION 2: ADMIN & PARTNER PORTALS -> ORIGINAL CLEAN SINGLE CARD
+             ==================================================================== */
+          <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
+
+            {/* Top Floating Action Icon Badge: ->] */}
+            <div className="ebolt-badge-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+
+            {/* Heading and Description */}
+            <h1 className="ebolt-card-title">Sign in with email</h1>
+            <p className="ebolt-card-subtitle">
+              {activePortal === 'partner'
                 ? 'Access your partner deal desk, payouts and enablement.'
                 : 'Access the NISPL operations console.'}
-          </p>
+            </p>
 
-          {/* Error Notice */}
-          {errorMessage && (
-            <div className="ebolt-alert-error is-stacked" role="alert">
-              <div className="ebolt-alert-error-row">
-                <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>{errorMessage}</span>
-              </div>
-              {errorMessage.includes('Customer Portal') && (
-                <button
-                  type="button"
-                  className="ebolt-error-action-btn"
-                  onClick={() => {
-                    setErrorMessage('');
-                    handleSelectPortal('customer');
-                    navigate('/customer-login');
-                  }}
-                >
-                  Go to Customer Portal &rarr;
-                </button>
-              )}
-              {errorMessage.includes('Admin Portal') && (
-                <button
-                  type="button"
-                  className="ebolt-error-action-btn"
-                  onClick={() => {
-                    setErrorMessage('');
-                    handleSelectPortal('admin');
-                    navigate('/login?portal=admin');
-                  }}
-                >
-                  Go to Admin Portal &rarr;
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Main Form: ONLY Selection Dropdown, Email, and Password */}
-          <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
-            
-            {/* Selection Dropdown for the 3 Login Sections */}
-            <div className={`ebolt-input-wrap ebolt-select-wrap ${isPortalLocked ? 'is-locked-wrap' : ''}`}>
-              <div className="ebolt-input-icon">
-                {activePortal === 'admin' ? (
-                  <ShieldCheck size={16} />
-                ) : activePortal === 'partner' ? (
-                  <Users size={16} />
-                ) : (
-                  <Cloud size={16} />
+            {/* Error Notice */}
+            {errorMessage && (
+              <div className="ebolt-alert-error is-stacked" role="alert">
+                <div className="ebolt-alert-error-row">
+                  <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>{errorMessage}</span>
+                </div>
+                {errorMessage.includes('Customer Portal') && (
+                  <button
+                    type="button"
+                    className="ebolt-error-action-btn"
+                    onClick={() => {
+                      setErrorMessage('');
+                      handleSelectPortal('customer');
+                      navigate('/customer-login');
+                    }}
+                  >
+                    Go to Customer Portal &rarr;
+                  </button>
                 )}
               </div>
-              <select 
-                className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
-                value={activePortal}
-                onChange={(e) => handleSelectPortal(e.target.value)}
-                disabled={isPortalLocked}
-                title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : activePortal === 'customer' ? 'Customer' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
-                aria-label="Select Login Portal"
-              >
-                <option value="admin">NISPL Admin Login</option>
-                <option value="partner">Partners Login</option>
-                <option value="customer">Customer Login</option>
-              </select>
-              {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
-            </div>
+            )}
 
-            {/* Email Input */}
-            <div className="ebolt-input-wrap">
-              <Mail size={16} className="ebolt-input-icon" />
-              <input 
-                type="email"
-                className="ebolt-input"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="username"
-                required
-              />
-            </div>
+            {/* Form: Portal Selector Dropdown, Email, and Password */}
+            <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
 
-            {/* Password Input */}
-            <div className="ebolt-input-wrap">
-              <Lock size={16} className="ebolt-input-icon" />
-              <input 
-                type={showPassword ? 'text' : 'password'}
-                className="ebolt-input"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
-              <button 
-                type="button" 
-                className="ebolt-eye-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              {/* Dropdown Selector */}
+              <div className={`ebolt-input-wrap ebolt-select-wrap ${isPortalLocked ? 'is-locked-wrap' : ''}`}>
+                <div className="ebolt-input-icon">
+                  {activePortal === 'admin' ? (
+                    <ShieldCheck size={16} />
+                  ) : activePortal === 'partner' ? (
+                    <Users size={16} />
+                  ) : (
+                    <Cloud size={16} />
+                  )}
+                </div>
+                <select
+                  className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
+                  value={activePortal}
+                  onChange={(e) => handleSelectPortal(e.target.value)}
+                  disabled={isPortalLocked}
+                  title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
+                  aria-label="Select Login Portal"
+                >
+                  <option value="admin">NISPL Admin Login</option>
+                  <option value="partner">Partners Login</option>
+                  <option value="customer">Customer Login</option>
+                </select>
+                {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
+              </div>
+
+              {/* Email Input */}
+              <div className="ebolt-input-wrap">
+                <Mail size={16} className="ebolt-input-icon" />
+                <input
+                  type="email"
+                  className="ebolt-input"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  required
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="ebolt-input-wrap">
+                <Lock size={16} className="ebolt-input-icon" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="ebolt-input"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="ebolt-eye-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
+              {/* Forgot Password Right Link */}
+              <div className="ebolt-forgot-row">
+                <button
+                  type="button"
+                  className="ebolt-forgot-btn"
+                  onClick={() => {
+                    setIsForgotOpen(true);
+                    setResetEmail(email);
+                    setResetError('');
+                    setResetSent(false);
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="ebolt-submit-btn"
+                disabled={isLoading}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {isLoading ? (
+                  <span className="ebolt-spinner" />
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
               </button>
-            </div>
 
-            {/* Forgot Password Right Link */}
-            <div className="ebolt-forgot-row">
-              <button 
-                type="button" 
-                className="ebolt-forgot-btn"
-                onClick={() => {
-                  setIsForgotOpen(true);
-                  setResetSent(false);
-                }}
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Dark Primary Action Button */}
-            <button 
-              type="submit" 
-              className="ebolt-submit-btn"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="ebolt-spinner" />
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight size={16} />
-                </>
+              {/* Create Admin Option */}
+              {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
+                <div className="ebolt-create-account-box animate-fade-in">
+                  <span className="ebolt-create-account-text">Are you a new administrator? </span>
+                  <Link to="/admin/create" className="ebolt-create-account-link">
+                    Create Admin
+                  </Link>
+                </div>
               )}
-            </button>
-            {socialNote && (
-              <p className="ebolt-social-note" role="status">{socialNote}</p>
-            )}
+            </form>
 
-            {/* Create Admin Option (Shown for Admin Login ONLY when no admin has been created yet) */}
-            {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
-              <div className="ebolt-create-account-box animate-fade-in">
-                <span className="ebolt-create-account-text">Are you a new administrator? </span>
-                <Link to="/admin/create" className="ebolt-create-account-link">
-                  Create Admin
-                </Link>
-              </div>
-            )}
+          </div>
+        )}
 
-            {/* Create an Account Option (Shown ONLY for Customer Login) */}
-            {activePortal === 'customer' && (
-              <div className="ebolt-create-account-box animate-fade-in">
-                <span className="ebolt-create-account-text">Don't have an account? </span>
-                <Link to="/customer-register" className="ebolt-create-account-link">
-                  Create an account
-                </Link>
-              </div>
-            )}
-          </form>
-
-        </div>
       </main>
 
-      {/* =====================================================================
-          AUTHENTICATED MODAL (Matches sleek aesthetic)
-          ===================================================================== */}
+      {/* Active Session Notice Modal */}
       {activeSession && (
-        <div className="ebolt-modal-backdrop" onClick={() => setActiveSession(null)}>
-          <div className="ebolt-dialog-card animate-fade-in" onClick={(e) => e.stopPropagation()}>
+        <div className="ebolt-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="ebolt-dialog-card animate-fade-in">
             <div className="ebolt-dialog-header">
-              <div className="ebolt-dialog-check">
-                <CheckCircle2 size={20} />
+              <div className="ebolt-dialog-header-text">
+                <AlertCircle size={18} color="#e11d48" />
+                <h3 className="ebolt-dialog-title">Active Session Detected</h3>
               </div>
-              <div>
-                <h3 className="ebolt-dialog-title">Authenticated Successfully</h3>
-                <span className="ebolt-dialog-sub">{activeSession.portal} Gateway</span>
-              </div>
-              <button 
-                type="button" 
-                className="ebolt-dialog-close" 
+              <button
+                className="ebolt-dialog-close"
                 onClick={() => setActiveSession(null)}
-                aria-label="Close"
+                aria-label="Close dialog"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="ebolt-dialog-body">
-              <div className="ebolt-session-user-box">
-                <span className="ebolt-user-icon">
-                  {activePortal === 'admin' ? <Shield size={20} /> : activePortal === 'partner' ? <Handshake size={20} /> : <Cloud size={20} />}
-                </span>
-                <div>
-                  <span className="ebolt-user-email">{activeSession.user}</span>
-                  <span className="ebolt-user-role">{activeSession.role}</span>
-                </div>
-              </div>
+              <p style={{ color: '#475569', fontSize: '0.88rem', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                Your account is currently active on another device. Signing in here will safely sign out that session.
+              </p>
 
-              <div className="ebolt-session-specs">
-                <div className="spec-row">
-                  <span className="s-lbl">Security Level:</span>
-                  <span className="s-val text-blue">{activeSession.clearance}</span>
-                </div>
-                <div className="spec-row">
-                  <span className="s-lbl">Node:</span>
-                  <span className="s-val">{activeSession.location}</span>
-                </div>
-                <div className="spec-row">
-                  <span className="s-lbl">Encryption:</span>
-                  <span className="s-val text-green">256-Bit TLS 1.3 Active</span>
-                </div>
+              <div className="ebolt-dialog-footer">
+                <button
+                  type="button"
+                  className="ebolt-btn-outline"
+                  onClick={() => setActiveSession(null)}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="ebolt-btn-solid"
+                  onClick={handleTerminateOtherSession}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Signing In...' : 'Continue Sign In'}
+                </button>
               </div>
-
-              <div className="ebolt-dialog-note">
-                <Sparkles size={15} />
-                <span>Zero-Trust Enterprise Identity Verified. Ready for workspace redirection.</span>
-              </div>
-            </div>
-
-            <div className="ebolt-dialog-footer">
-              <button 
-                type="button" 
-                className="ebolt-btn-outline"
-                onClick={() => setActiveSession(null)}
-              >
-                <LogOut size={14} />
-                <span>Sign Out</span>
-              </button>
-              <button 
-                type="button" 
-                className="ebolt-btn-solid"
-                onClick={() => {
-                  alert(`Launching ${activeSession.portal} live cloud instance...`);
-                  setActiveSession(null);
-                }}
-              >
-                <span>Launch Workspace</span>
-                <ArrowRight size={14} />
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* =====================================================================
-          FORGOT PASSWORD MODAL
-          ===================================================================== */}
+      {/* Forgot Password Modal */}
       {isForgotOpen && (
-        <div className="ebolt-modal-backdrop" onClick={() => setIsForgotOpen(false)}>
-          <div className="ebolt-dialog-card animate-fade-in" onClick={(e) => e.stopPropagation()}>
+        <div className="ebolt-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="ebolt-dialog-card animate-fade-in">
             <div className="ebolt-dialog-header">
-              <div>
-                <h3 className="ebolt-dialog-title">Reset password</h3>
-                <span className="ebolt-dialog-sub">Enter your email to receive recovery instructions</span>
+              <div className="ebolt-dialog-header-text">
+                <Mail size={18} color="#0284c7" />
+                <h3 className="ebolt-dialog-title">Reset Password</h3>
               </div>
-              <button 
-                type="button" 
-                className="ebolt-dialog-close" 
+              <button
+                className="ebolt-dialog-close"
                 onClick={() => {
                   setIsForgotOpen(false);
                   setResetError('');
+                  setResetSent(false);
+                  setDevResetUrl('');
                 }}
-                aria-label="Close"
+                aria-label="Close dialog"
               >
                 <X size={18} />
               </button>
@@ -575,17 +747,21 @@ export default function LoginPage({ lockedPortal }) {
 
             <div className="ebolt-dialog-body">
               {resetSent ? (
-                <div className="reset-sent-state">
-                  <CheckCircle2 size={38} className="text-green" style={{ margin: '0 auto 12px' }} />
-                  <h4>Check your inbox</h4>
-                  <p>If an account is associated with <b>{resetEmail}</b>, password recovery instructions have been dispatched.</p>
-                  
+                <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <CheckCircle2 size={42} color="#16a34a" style={{ margin: '0 auto 12px auto' }} />
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 6px 0' }}>
+                    Reset Link Dispatched
+                  </h4>
+                  <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                    We have sent a secure password reset link to <strong>{resetEmail}</strong>.
+                  </p>
+
                   {devResetUrl && (
-                    <div style={{ margin: '16px 0', padding: '12px 14px', background: '#f0fdf4', borderRadius: '8px', border: '1px dashed #22c55e', fontSize: '0.82rem', textAlign: 'left' }}>
-                      <span style={{ fontWeight: 600, color: '#15803d' }}>Local Dev Reset Link:</span>
-                      <div style={{ marginTop: '6px' }}>
-                        <Link 
-                          to={devResetUrl.replace(/^https?:\/\/[^/]+/, '')} 
+                    <div style={{ marginTop: '16px', padding: '10px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', fontSize: '0.78rem', color: '#166534', textAlign: 'left' }}>
+                      <span style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Development Notice:</span>
+                      <div>
+                        <Link
+                          to={devResetUrl.replace(/^https?:\/\/[^/]+/, '')}
                           onClick={() => setIsForgotOpen(false)}
                           style={{ color: '#0284c7', textDecoration: 'underline', wordBreak: 'break-all', fontWeight: 500 }}
                         >
@@ -595,10 +771,10 @@ export default function LoginPage({ lockedPortal }) {
                     </div>
                   )}
 
-                  <button 
-                    type="button" 
-                    className="ebolt-submit-btn" 
-                    style={{ marginTop: '16px' }}
+                  <button
+                    type="button"
+                    className="ebolt-btn-solid"
+                    style={{ width: '100%', marginTop: '16px' }}
                     onClick={() => {
                       setIsForgotOpen(false);
                       setResetSent(false);
@@ -620,7 +796,7 @@ export default function LoginPage({ lockedPortal }) {
 
                   <div className="ebolt-input-wrap">
                     <Mail size={16} className="ebolt-input-icon" />
-                    <input 
+                    <input
                       type="email"
                       className="ebolt-input"
                       placeholder="Enter registered email address"
@@ -636,8 +812,8 @@ export default function LoginPage({ lockedPortal }) {
                   </div>
 
                   <div className="ebolt-dialog-footer" style={{ padding: 0, marginTop: '20px' }}>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="ebolt-btn-outline"
                       onClick={() => {
                         setIsForgotOpen(false);
@@ -647,8 +823,8 @@ export default function LoginPage({ lockedPortal }) {
                     >
                       Cancel
                     </button>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className="ebolt-btn-solid"
                       disabled={isSendingReset || !resetEmail.trim()}
                     >
@@ -670,12 +846,10 @@ export default function LoginPage({ lockedPortal }) {
   );
 }
 
-/* ==========================================================================
-   Social provider marks (inline SVG so they render without extra assets)
-   ========================================================================== */
+/* Inline SVG Social Icons */
 function GoogleIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
       <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
       <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
@@ -684,20 +858,9 @@ function GoogleIcon() {
   );
 }
 
-function MicrosoftIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true" focusable="false">
-      <rect x="1" y="1" width="9" height="9" fill="#F25022" />
-      <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
-      <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
-      <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
-    </svg>
-  );
-}
-
 function AppleIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
       <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
     </svg>
   );

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from 'react-dom';
 import DataTable from 'react-data-table-component';
 import { ArrowUp, SearchX, Loader2, X } from 'lucide-react';
-import { useIsMobile } from '../../../utils/useResponsive';
+import { useIsNarrow, useIsPhone } from '../../../utils/useResponsive';
 import './AdminDataTable.css';
 
 const TOOLTIP_MAX_WIDTH = 384;
@@ -23,6 +23,9 @@ const HARD_CAP_PX = 760;
 // inheriting a 1750px canvas the customer can never reach.
 const NARROW_FLOOR_PX = 96;
 const NARROW_CAP_PX = 190;
+// Tablets keep a wider squeeze cap: there is more room to divide up, so the
+// columns stay readable while the table still fits the drawer-less viewport.
+const TABLET_CAP_PX = 260;
 // Values longer than this are prose/JSON meant to wrap, so they keep the authored width.
 const WRAPPING_TEXT_LIMIT = 90;
 const MEASURE_FONT = '600 14.4px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -165,7 +168,8 @@ export default function AdminDataTable({
   const [positionTick, setPositionTick] = useState(0);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
-  const isNarrow = useIsMobile();
+  const isNarrow = useIsNarrow();
+  const isPhone = useIsPhone();
   const hoverTimerRef = useRef(null);
   const hoveredRowKeyRef = useRef(null);
   const tableWrapRef = useRef(null);
@@ -451,14 +455,15 @@ export default function AdminDataTable({
     }
 
     if (isNarrow) {
+      const cap = isPhone ? NARROW_CAP_PX : TABLET_CAP_PX;
       Object.keys(widths).forEach((id) => {
         if (authored.has(id)) return;
-        widths[id] = Math.min(Math.max(widths[id], NARROW_FLOOR_PX), NARROW_CAP_PX);
+        widths[id] = Math.min(Math.max(widths[id], NARROW_FLOOR_PX), cap);
       });
     }
 
     return widths;
-  }, [tableColumns, data, healKey, widthBumps, isNarrow]);
+  }, [tableColumns, data, healKey, widthBumps, isNarrow, isPhone]);
 
   // Content widths first, then any leftover space is shared by the `grow` weights
   // so the table still fills the card instead of leaving a gap on the right.

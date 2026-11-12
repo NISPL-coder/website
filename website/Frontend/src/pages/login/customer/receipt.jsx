@@ -22,7 +22,7 @@ import {
 import { CountUp } from '../../Dashboard/utils/useCountUp';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
 import { isSettledStatus, receiptTotals } from '../../Dashboard/utils/portalReceiptRows';
-import { useIsMobile } from '../../../utils/useResponsive';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 export default function ReceiptSection({ receipts = [], customer, account, externalSearch = '' }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +31,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
   const [currentPage, setCurrentPage] = useState(1);
   const [downloadingId, setDownloadingId] = useState(null);
   const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
   const rowsPerPage = 5;
 
   // The account record is the billing identity on the invoice, so the PDF uses
@@ -334,7 +335,71 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
           </div>
         ) : (
           <>
-            {/* ── Table Container with BOTH Horizontal & Vertical Scroll ── */}
+            {/* Phone: stacked invoice cards instead of a sideways-scrolling table */}
+            {isPhone && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '440px', overflowY: 'auto', width: '100%' }}>
+                {paginatedReceipts.map((rec) => (
+                  <div key={rec.id} style={{ border: '1px solid #eef2f7', borderRadius: '14px', padding: '14px 16px', background: '#ffffff' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                      <span className="flowmail-receipt-id-badge" style={{ fontSize: '0.72rem' }}>{rec.id}</span>
+                      <span className={`flowmail-trend-pill ${statusPill(rec.status)}`} style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                        {isSettledStatus(rec.status) ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+                        <span>{rec.status || 'Paid'}</span>
+                      </span>
+                    </div>
+
+                    <div style={{ color: '#0f172a', fontWeight: '600', fontSize: '0.9rem' }}>{rec.service}</div>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '10px' }}>
+                      {rec.sacCode ? `SAC: ${rec.sacCode}  •  ` : ''}GST: {rec.taxAmount}
+                    </span>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 14px', fontSize: '0.8rem', color: '#475569', marginBottom: '12px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <Calendar size={12} color="#94a3b8" />
+                        <span>{rec.date}</span>
+                      </span>
+                      <span className="flowmail-trend-pill positive" style={{ fontSize: '0.7rem', padding: '2px 7px' }}>
+                        <Clock size={10} />
+                        <span>{rec.expiryDate || 'Active'}</span>
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '10px', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: '#475569', fontWeight: 600, fontSize: '0.82rem' }}>{rec.paymentMode}</div>
+                        {rec.referenceNumber ? (
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>
+                            Ref {rec.referenceNumber}{rec.bankName ? ` · ${rec.bankName}` : ''}
+                          </span>
+                        ) : (
+                          rec.bookedOffline && (
+                            <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>
+                              Booked by {rec.recordedBy || 'NISPL finance desk'}
+                            </span>
+                          )
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                        <span style={{ color: '#0f172a', fontWeight: '700', fontSize: '0.95rem', whiteSpace: 'nowrap' }}>{rec.totalAmount}</span>
+                        <button
+                          type="button"
+                          className="flowmail-btn-secondary"
+                          style={{ padding: '10px 16px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px', borderRadius: '10px' }}
+                          onClick={() => handleDownloadPdf(rec)}
+                          disabled={downloadingId === rec.id}
+                          title={`Download official GST Tax Invoice PDF for ${rec.id}`}
+                        >
+                          <Download size={13} />
+                          <span>{downloadingId === rec.id ? 'Generating...' : 'PDF'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Desktop: the full sortable table */}
+            {!isPhone && (
             <div
               className="cliento-table-responsive flowmail-table-scroll"
               style={{
@@ -476,6 +541,7 @@ export default function ReceiptSection({ receipts = [], customer, account, exter
                 </tbody>
               </table>
             </div>
+            )}
 
             {/* ── FlowMail Table Footer: Pagination & Information ─────── */}
             <div

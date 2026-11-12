@@ -29,6 +29,10 @@ export function useMediaQuery(query) {
 /** Layouts that stack from the waist down. */
 export const useIsMobile = () => useMediaQuery(`(max-width: ${BREAKPOINT_TABLET}px)`);
 
+/** Tablet band: the console sidebar is already a drawer and data tables squeeze. */
+export const BREAKPOINT_NARROW = 1024;
+export const useIsNarrow = () => useMediaQuery(`(max-width: ${BREAKPOINT_NARROW}px)`);
+
 /** One column, larger tap targets, no side-by-side panels. */
 export const useIsPhone = () => useMediaQuery(`(max-width: ${BREAKPOINT_PHONE}px)`);
 

@@ -7,11 +7,26 @@ export default function FixedFooter() {
   const location = useLocation();
   const pathname = location.pathname || '';
 
+  // Exclude footer completely from all types of login and registration pages
+  const isLoginPage = [
+    '/login',
+    '/customer-login',
+    '/customer_login',
+    '/customer/login',
+    '/reset-password',
+    '/customer-register',
+    '/customer_register'
+  ].some((p) => pathname === p || pathname.startsWith(p));
+
+  if (isLoginPage) {
+    return null;
+  }
+
   // Detect whether current view has a desktop navigation rail
   let sidebarType = '';
   if (pathname.startsWith('/admin')) {
     sidebarType = 'admin';
-  } else if (pathname.startsWith('/dashboard')) {
+  } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/customer')) {
     sidebarType = 'customer';
   } else if (pathname.startsWith('/partner')) {
     sidebarType = 'partner';

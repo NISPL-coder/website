@@ -1621,7 +1621,7 @@ export function PartnerSubscriptionsView({ onBack }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pnd-filter-control"
-              style={{ width: '220px', height: '36px' }}
+              style={{ width: 'min(220px, 100%)', height: '36px' }}
             />
             <button type="button" className="pnd-cal-action-btn secondary" style={{ height: '36px', borderRadius: '10px' }} onClick={() => setFilterStatus(filterStatus === 'All' ? 'Expiring Soon' : 'All')}>
               {filterStatus === 'All' ? 'Show Expiring' : 'Show All'}
@@ -1762,7 +1762,7 @@ export function PartnerCustomersView({ onBack }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pnd-filter-control"
-            style={{ width: '260px', height: '36px' }}
+            style={{ width: 'min(260px, 100%)', height: '36px' }}
           />
         </div>
 

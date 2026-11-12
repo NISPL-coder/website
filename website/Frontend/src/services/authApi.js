@@ -137,6 +137,7 @@ export const authApi = {
     }
 
     if (data.accessToken && data.user) {
+      data.token = data.accessToken;
       this.setAuthSession(data.accessToken, data.user, data.session || null);
     }
 
@@ -162,6 +163,7 @@ export const authApi = {
     }
 
     if (data.accessToken && data.user) {
+      data.token = data.accessToken;
       this.setAuthSession(data.accessToken, data.user, data.session || null);
     }
 

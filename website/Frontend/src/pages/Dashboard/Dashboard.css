@@ -12988,3 +12988,50 @@
     transform: none;
   }
 }
+
+/* ==========================================================================
+   PORTAL MOBILE POLISH — final-pass tightening for phones.
+   These rules come last so they win over the theme-harmonization !important
+   blocks above; they only affect narrow screens.
+   ========================================================================== */
+@media (max-width: 768px) {
+  .flowmail-receipt-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cliento-overview-wrapper {
+    padding: 16px 14px 36px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .flowmail-overview-container {
+    padding: 12px !important;
+  }
+
+  .flowmail-card {
+    padding: 16px 14px;
+  }
+
+  .flowmail-receipt-kpi-grid {
+    gap: 10px !important;
+  }
+
+  .flowmail-plan-quick-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flowmail-section-wrapper {
+    gap: 16px;
+  }
+
+  .cart-two-col-layout {
+    gap: 16px !important;
+  }
+
+  .solution-title {
+    font-size: 1.35rem !important;
+  }
+}

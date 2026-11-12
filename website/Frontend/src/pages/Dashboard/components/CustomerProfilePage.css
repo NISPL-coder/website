@@ -252,3 +252,41 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
+/* ── Mobile refinements ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .cust-section-box {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .cust-section-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .cust-section-head .cust-btn-add {
+    align-self: flex-start;
+  }
+
+  .cust-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Badge + remove button wrap under the field instead of squeezing it */
+  .cust-input-row {
+    flex-wrap: wrap;
+  }
+
+  .cust-input-row .cust-input-field {
+    flex: 1 1 160px;
+    min-width: 160px;
+  }
+
+  .cust-save-btn,
+  .cust-change-pw-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

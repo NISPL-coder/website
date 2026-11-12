@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi } from '../../../services/cartApi';
-import { useIsMobile } from '../../../utils/useResponsive';
+import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 
 export default function CartSection({
   cartItems = [],
@@ -36,6 +36,7 @@ export default function CartSection({
   const [activeAddonIndex, setActiveAddonIndex] = useState(0);
   const [isAddonHovered, setIsAddonHovered] = useState(false);
   const isMobile = useIsMobile();
+  const isPhone = useIsPhone();
 
   const displayAddons = useMemo(() => addonsList, [addonsList]);
 
@@ -162,7 +163,8 @@ export default function CartSection({
             {/* ── Left Column: Items Table ─────────────────────────── */}
             <div className="cart-col-main" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div className="flowmail-card" style={{ padding: '0', overflow: 'hidden' }}>
-                {/* Table Header Bar */}
+                {/* Table Header Bar — desktop only; phone rows are self-labelled */}
+                {!isPhone && (
                 <div className="flowmail-cart-head" style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(0, 2.2fr) 110px 110px 110px',
@@ -180,6 +182,7 @@ export default function CartSection({
                   <div style={{ textAlign: 'center' }}>Qty</div>
                   <div style={{ textAlign: 'right' }}>Total</div>
                 </div>
+                )}
 
                 {/* Items List */}
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -194,11 +197,12 @@ export default function CartSection({
                       <div
                         key={item.id || idx}
                         style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'minmax(0, 2.2fr) 110px 110px 110px',
-                          padding: '20px 24px',
+                          display: isPhone ? 'flex' : 'grid',
+                          flexDirection: isPhone ? 'column' : undefined,
+                          gridTemplateColumns: isPhone ? undefined : 'minmax(0, 2.2fr) 110px 110px 110px',
+                          padding: isPhone ? '16px' : '20px 24px',
                           borderBottom: idx === cartItems.length - 1 ? 'none' : '1px solid #f1f5f9',
-                          alignItems: 'center',
+                          alignItems: isPhone ? 'stretch' : 'center',
                           gap: '12px',
                           transition: 'background 0.15s ease'
                         }}
@@ -234,7 +238,7 @@ export default function CartSection({
                         </div>
 
                         {/* QTY Stepper */}
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: isPhone ? 'flex-start' : 'center' }}>
                           <div style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -288,7 +292,7 @@ export default function CartSection({
                         </div>
 
                         {/* Total Column & Remove */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isPhone ? 'space-between' : 'flex-end', gap: '14px' }}>
                           <span style={{ fontSize: '0.96rem', fontWeight: '700', color: '#0f172a' }}>
                             ₹{lineTotal.toLocaleString('en-IN')}
                           </span>

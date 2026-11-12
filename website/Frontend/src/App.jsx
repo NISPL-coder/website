@@ -106,6 +106,17 @@ function MainApp() {
     '/help'
   ].some((path) => location.pathname.startsWith(path));
 
+  // Check if current route is a login or auth page (to exclude footer)
+  const isLoginPage = [
+    '/login',
+    '/customer-login',
+    '/customer_login',
+    '/customer/login',
+    '/reset-password',
+    '/customer-register',
+    '/customer_register'
+  ].some((path) => location.pathname === path || location.pathname.startsWith(path));
+
   // Handle session cleanup on sign-out across all portals
   const handleSignOut = (portal = 'admin') => {
     authApi.logout();
@@ -272,8 +283,8 @@ function MainApp() {
       {/* Global First-Visit Cookie & Privacy Consent */}
       <CookieConsent />
 
-      {/* Universal Fixed Footer Bar across all pages */}
-      <FixedFooter />
+      {/* Universal Fixed Footer Bar across all pages (excluded on login pages) */}
+      {!isLoginPage && <FixedFooter />}
     </div>
   );
 }
