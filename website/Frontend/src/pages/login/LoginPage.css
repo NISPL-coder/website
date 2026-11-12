@@ -388,8 +388,8 @@
   -webkit-backdrop-filter: none;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: 420px minmax(560px, 1fr);
-  gap: 52px;
+  grid-template-columns: 440px minmax(560px, 1fr);
+  gap: 40px;
   align-items: stretch;
   position: relative;
   z-index: 10;
@@ -397,17 +397,25 @@
   max-height: 100%;
 }
 
-/* Left Column: Customer Login Section */
+/* Left Column: Customer Login Section in Solid White Box */
 .ebolt-customer-split-card .ebolt-login-col {
   width: 100%;
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 24px 60px -16px rgba(15, 42, 71, 0.20),
+    0 8px 20px -8px rgba(15, 42, 71, 0.08);
+  padding: 26px 28px;
+  box-sizing: border-box;
 }
 
 .ebolt-customer-split-card .ebolt-login-col-inner {
   width: 100%;
-  max-width: 420px;
+  max-width: 100%;
   margin: 0 auto;
   height: 100%;
   display: flex;
@@ -460,12 +468,10 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #f0f9ff;
   color: #0284c7;
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  border: 1px solid #bae6fd;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.08);
 }
 
 .ebolt-switch-portal-link {
@@ -485,6 +491,7 @@
 }
 
 .ebolt-split-title {
+  text-align: center;
   font-family: 'Inter', sans-serif;
   font-size: 1.85rem;
   font-weight: 700;
@@ -560,14 +567,12 @@
 
 /* Form Controls Inside Customer Split Card */
 .ebolt-customer-split-card .ebolt-input {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
   color: #0f172a;
   height: 44px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .ebolt-customer-split-card .ebolt-input::placeholder {
@@ -577,7 +582,7 @@
 .ebolt-customer-split-card .ebolt-input:focus {
   background: #ffffff;
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.16);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 
 .ebolt-customer-split-card .ebolt-input-icon {
@@ -1144,6 +1149,9 @@
 
   .ebolt-customer-split-card .ebolt-login-col {
     width: 100%;
+    max-width: 440px;
+    height: auto !important;
+    padding: 28px 24px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
