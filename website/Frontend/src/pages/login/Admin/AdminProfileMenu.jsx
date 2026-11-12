@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, User } from 'lucide-react';
+import { ChevronDown, LogOut, User, CheckCircle2 } from 'lucide-react';
+import { authApi } from '../../../services/authApi';
+import { getProfileCompletion } from '../../../utils/profileCompletion';
+import ProfileCompletionCircle from '../../../components/common/ProfileCompletionCircle';
 import './AdminTools.css';
 
 function getInitials(name) {
@@ -49,11 +52,15 @@ export default function AdminProfileMenu({
   role,
   isPrimaryAdmin = false,
   profilePath = '/admin/profile',
-  onSignOut
+  onSignOut,
+  user = null
 }) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const wrapRef = useRef(null);
+
+  const effectiveUser = user || authApi.getCurrentUser() || { name, email, role };
+  const completion = getProfileCompletion(effectiveUser);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -86,13 +93,59 @@ export default function AdminProfileMenu({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        title="Account profile & session"
+        title={`Profile ${completion.percentage}% completed — click to manage`}
       >
-        <span className="adm-profile-avatar">{getInitials(name)}</span>
+        {/* Avatar with Small Circular Progress Ring Badge */}
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+          <span className="adm-profile-avatar">{getInitials(name)}</span>
+          <div
+            className="adm-profile-circle-badge"
+            style={{
+              position: 'absolute',
+              bottom: '-3px',
+              right: '-5px',
+              background: '#ffffff',
+              borderRadius: '999px',
+              padding: '1px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 3
+            }}
+            title={`Profile is ${completion.percentage}% completed`}
+          >
+            <ProfileCompletionCircle
+              percentage={completion.percentage}
+              size={21}
+              strokeWidth={2.4}
+              showPercentageInside={false}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                fontSize: '0.50rem',
+                fontWeight: 800,
+                color:
+                  completion.percentage === 100
+                    ? '#059669'
+                    : completion.percentage >= 60
+                    ? '#4f46e5'
+                    : '#d97706',
+                lineHeight: 1
+              }}
+            >
+              {completion.percentage}%
+            </span>
+          </div>
+        </div>
+
         <span className="adm-profile-meta">
           <span className="adm-profile-name">{name}</span>
           {email && <span className="adm-profile-email">{email}</span>}
-          <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+            <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
+          </div>
         </span>
         <ChevronDown size={14} className={`adm-profile-chevron ${isOpen ? 'rotate' : ''}`} />
       </button>
@@ -108,6 +161,89 @@ export default function AdminProfileMenu({
                 <RoleBadge role={role} isPrimaryAdmin={isPrimaryAdmin} />
               </span>
             </span>
+          </div>
+
+          {/* Profile Completion Overview Card */}
+          <div
+            style={{
+              margin: '8px 12px 10px',
+              padding: '10px 12px',
+              background: '#f8fafc',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}
+          >
+            <ProfileCompletionCircle
+              percentage={completion.percentage}
+              size={40}
+              strokeWidth={3.5}
+              showPercentageInside={true}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '2px'
+                }}
+              >
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                  Profile Completion
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color:
+                      completion.percentage === 100
+                        ? '#059669'
+                        : completion.percentage >= 60
+                        ? '#4f46e5'
+                        : '#d97706'
+                  }}
+                >
+                  {completion.percentage}%
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: '0.68rem',
+                  color: '#64748b',
+                  margin: 0,
+                  lineHeight: 1.3
+                }}
+              >
+                {completion.percentage === 100
+                  ? 'All details verified & completed'
+                  : `${completion.completedCount} of ${completion.totalCount} details verified`}
+              </p>
+              {completion.percentage < 100 && profilePath && (
+                <button
+                  type="button"
+                  onClick={() => handleNavigate(profilePath)}
+                  style={{
+                    marginTop: '5px',
+                    padding: 0,
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    color: '#4f46e5',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                >
+                  <span>Complete your profile</span>
+                  <span>&rarr;</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {profilePath && (

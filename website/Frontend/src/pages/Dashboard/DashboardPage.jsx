@@ -558,7 +558,8 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
           name: customer?.name || portal?.account?.name || portal?.account?.company || 'NISPL Customer',
           email: customer?.email || portal?.account?.email || '',
           role: customer?.role || 'customer',
-          profilePath: '/customer/profile'
+          profilePath: '/customer/profile',
+          user: { ...portal?.account, ...customer }
         }}
         onSignOut={handleSignOut}
       >

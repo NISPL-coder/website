@@ -43,19 +43,17 @@ const INITIAL_SALES_PERSONS = [
 export const getSalesPersonsFromFile = () => {
   try {
     if (!fs.existsSync(SALES_FILE_PATH)) {
-      saveSalesPersonsToFile(INITIAL_SALES_PERSONS);
-      return INITIAL_SALES_PERSONS;
+      return [];
     }
     const data = fs.readFileSync(SALES_FILE_PATH, 'utf-8');
     const parsed = JSON.parse(data || '[]');
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      saveSalesPersonsToFile(INITIAL_SALES_PERSONS);
-      return INITIAL_SALES_PERSONS;
+    if (!Array.isArray(parsed)) {
+      return [];
     }
     return parsed;
   } catch (err) {
     console.error('[getSalesPersonsFromFile] Error reading JSON file:', err);
-    return INITIAL_SALES_PERSONS;
+    return [];
   }
 };
 

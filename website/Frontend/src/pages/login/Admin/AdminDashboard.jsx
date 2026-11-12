@@ -673,7 +673,9 @@ function AdminDashboardShell({ userSession, onSignOut }) {
           name: adminName,
           email: adminEmail,
           role: adminRole || 'admin',
-          isPrimaryAdmin: adminIsPrimaryAdmin
+          isPrimaryAdmin: adminIsPrimaryAdmin,
+          profilePath: '/admin/profile',
+          user: currentUser
         }}
         onSignOut={onSignOut}
         refreshKey={notifRefreshKey}

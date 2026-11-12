@@ -116,11 +116,7 @@ export const SUBSCRIPTION_DURATIONS = [
 ];
 
 const SALES_PERSON_OPTIONS = [
-  { value: '', label: 'Select from dropdown' },
-  { value: 'Nilmoni Ghosal', label: 'Nilmoni Ghosal' },
-  { value: 'Sourav Mukherjee', label: 'Sourav Mukherjee' },
-  { value: 'Sales Support Direct', label: 'Sales Support Direct' },
-  { value: 'Online Customer Portal', label: 'Online Customer Portal' }
+  { value: '', label: 'Select from dropdown' }
 ];
 
 // Helper: Get today's date formatted as YYYY-MM-DD for HTML5 date input
@@ -828,7 +824,7 @@ export default function NewSubscriptionView({
     salesPersonApi
       .getActive()
       .then((data) => {
-        if (isMounted && Array.isArray(data) && data.length > 0) {
+        if (isMounted && Array.isArray(data)) {
           const dynamicOpts = [
             { value: '', label: 'Select from dropdown' },
             ...data.map((sp) => ({

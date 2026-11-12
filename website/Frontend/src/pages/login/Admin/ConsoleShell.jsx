@@ -415,6 +415,7 @@ export default function ConsoleShell({
               isPrimaryAdmin={profile.isPrimaryAdmin}
               profilePath={profile.profilePath}
               onSignOut={onSignOut}
+              user={profile.user}
             />
           </div>
         </div>

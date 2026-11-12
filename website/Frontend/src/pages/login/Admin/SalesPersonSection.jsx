@@ -294,18 +294,33 @@ export default function SalesPersonSection({ externalSearch = '' }) {
   const [deletingPerson, setDeletingPerson] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Live dynamic stats derived straight from current salesPersons array
+  const liveStats = useMemo(() => {
+    const total = salesPersons.length;
+    const active = salesPersons.filter(
+      (sp) => String(sp.status || '').toLowerCase() === 'active'
+    ).length;
+    const inactive = total - active;
+    return { total, active, inactive };
+  }, [salesPersons]);
+
   const fetchSalesPersons = async () => {
     setIsLoading(true);
     try {
       const res = await salesPersonApi.getAll();
-      if (res.data) {
-        setSalesPersons(res.data);
-      }
-      if (res.stats) {
-        setStats(res.stats);
+      if (res && res.success !== false) {
+        setSalesPersons(Array.isArray(res.data) ? res.data : []);
+        if (res.stats) {
+          setStats(res.stats);
+        }
+      } else {
+        setSalesPersons([]);
+        setStats({ total: 0, active: 0, inactive: 0 });
       }
     } catch (err) {
       console.warn('Failed to fetch sales persons:', err?.message);
+      setSalesPersons([]);
+      setStats({ total: 0, active: 0, inactive: 0 });
       toast.error('Could not load sales persons');
     } finally {
       setIsLoading(false);
@@ -348,14 +363,9 @@ export default function SalesPersonSection({ externalSearch = '' }) {
       await salesPersonApi.update(id, { status: nextStatus });
       setSalesPersons((prev) =>
         prev.map((p) =>
-          p.id === id || p.salesPersonId === id ? { ...p, status: nextStatus } : p
+          p.id === id || p.salesPersonId === id || p._id === id ? { ...p, status: nextStatus } : p
         )
       );
-      setStats((prev) => ({
-        ...prev,
-        active: nextStatus === 'Active' ? prev.active + 1 : prev.active - 1,
-        inactive: nextStatus === 'Inactive' ? prev.inactive + 1 : prev.inactive - 1
-      }));
       toast.success(`${person.name} is now ${nextStatus}`, { id: toastId });
     } catch (err) {
       toast.error(err.message || 'Failed to update status', { id: toastId });
@@ -369,10 +379,10 @@ export default function SalesPersonSection({ externalSearch = '' }) {
     const toastId = toast.loading(`Deleting ${deletingPerson.name}...`);
     try {
       await salesPersonApi.delete(id);
-      setSalesPersons((prev) => prev.filter((p) => p.id !== id && p.salesPersonId !== id));
+      setSalesPersons((prev) => prev.filter((p) => p.id !== id && p.salesPersonId !== id && p._id !== id));
       toast.success(`Deleted ${deletingPerson.name}`, { id: toastId });
       setDeletingPerson(null);
-      fetchSalesPersons();
+      await fetchSalesPersons();
     } catch (err) {
       toast.error(err.message || 'Failed to delete sales person', { id: toastId });
     } finally {
@@ -709,7 +719,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
             <span className="adm-cust-stat-label">Total Sales Team</span>
             <Users size={18} className="adm-cust-stat-icon purple" />
           </div>
-          <span className="adm-cust-stat-val">{stats.total}</span>
+          <span className="adm-cust-stat-val">{liveStats.total}</span>
           <span className="adm-cust-stat-desc">All registered representatives</span>
         </div>
 
@@ -723,7 +733,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
             <CheckCircle2 size={18} className="adm-cust-stat-icon emerald" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#059669' }}>
-            {stats.active}
+            {liveStats.active}
           </span>
           <span className="adm-cust-stat-desc">Live in customer portal dropdown</span>
         </div>
@@ -738,7 +748,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
             <XCircle size={18} className="adm-cust-stat-icon red" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#dc2626' }}>
-            {stats.inactive}
+            {liveStats.inactive}
           </span>
           <span className="adm-cust-stat-desc">Hidden from portal dropdown</span>
         </div>

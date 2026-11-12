@@ -60,13 +60,8 @@ export const salesPersonApi = {
       const json = await res.json();
       return json.data || [];
     } catch (err) {
-      console.warn('[salesPersonApi.getActive] Fallback:', err.message);
-      // Fallback defaults so the dropdown never breaks
-      return [
-        { id: 'SP-101', name: 'Nilmoni Ghosal', designation: 'Senior Sales Executive' },
-        { id: 'SP-102', name: 'Sourav Mukherjee', designation: 'Cloud Solutions Manager' },
-        { id: 'SP-103', name: 'Sales Support Direct', designation: 'Inbound Sales Desk' }
-      ];
+      console.warn('[salesPersonApi.getActive] Error:', err.message);
+      return [];
     }
   },
 

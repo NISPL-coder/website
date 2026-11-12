@@ -12,23 +12,6 @@ export const getSalesPersons = async (req, res) => {
     let list = [];
     if (isMongoConnected()) {
       list = await SalesPerson.find().sort({ createdAt: -1 }).lean();
-      if (!list || list.length === 0) {
-        // Seed MongoDB from file if empty
-        const initial = getSalesPersonsFromFile();
-        if (initial.length > 0) {
-          await SalesPerson.insertMany(initial.map(sp => ({
-            salesPersonId: sp.id || sp.salesPersonId,
-            name: sp.name,
-            email: sp.email,
-            phone: sp.phone,
-            designation: sp.designation,
-            status: sp.status || 'Active',
-            notes: sp.notes || '',
-            assignedCustomers: sp.assignedCustomers || []
-          })));
-          list = await SalesPerson.find().sort({ createdAt: -1 }).lean();
-        }
-      }
     } else {
       list = getSalesPersonsFromFile();
     }
@@ -62,16 +45,12 @@ export const getSalesPersons = async (req, res) => {
     });
   } catch (error) {
     console.error('[salesPersonController] getSalesPersons error:', error);
-    const fallback = getSalesPersonsFromFile();
-    return res.status(200).json({
-      success: true,
-      count: fallback.length,
-      stats: {
-        total: fallback.length,
-        active: fallback.filter(s => s.status === 'Active').length,
-        inactive: fallback.filter(s => s.status !== 'Active').length
-      },
-      data: fallback
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch sales persons',
+      count: 0,
+      stats: { total: 0, active: 0, inactive: 0 },
+      data: []
     });
   }
 };
@@ -85,9 +64,6 @@ export const getActiveSalesPersons = async (_req, res) => {
     let list = [];
     if (isMongoConnected()) {
       list = await SalesPerson.find({ status: 'Active' }).sort({ name: 1 }).lean();
-      if (!list || list.length === 0) {
-        list = getSalesPersonsFromFile().filter((sp) => sp.status === 'Active');
-      }
     } else {
       list = getSalesPersonsFromFile().filter((sp) => sp.status === 'Active');
     }
@@ -107,19 +83,10 @@ export const getActiveSalesPersons = async (_req, res) => {
     });
   } catch (error) {
     console.error('[salesPersonController] getActiveSalesPersons error:', error);
-    const fallback = getSalesPersonsFromFile()
-      .filter((sp) => sp.status === 'Active')
-      .map((sp) => ({
-        id: sp.id,
-        name: sp.name,
-        email: sp.email || '',
-        phone: sp.phone || '',
-        designation: sp.designation || 'Sales Executive'
-      }));
-    return res.status(200).json({
-      success: true,
-      count: fallback.length,
-      data: fallback
+    return res.status(500).json({
+      success: false,
+      count: 0,
+      data: []
     });
   }
 };
@@ -226,11 +193,12 @@ export const updateSalesPerson = async (req, res) => {
 
     let updated = null;
     if (isMongoConnected()) {
-      const query = mongoose.Types.ObjectId.isValid(id)
-        ? { $or: [{ _id: id }, { salesPersonId: id }] }
-        : { salesPersonId: id };
+      const orConditions = [{ salesPersonId: id }, { id: id }];
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        orConditions.push({ _id: id });
+      }
 
-      updated = await SalesPerson.findOneAndUpdate(query, { $set: updates }, { new: true });
+      updated = await SalesPerson.findOneAndUpdate({ $or: orConditions }, { $set: updates }, { new: true });
     }
 
     // Sync to file store
@@ -282,10 +250,11 @@ export const deleteSalesPerson = async (req, res) => {
     const { id } = req.params;
 
     if (isMongoConnected()) {
-      const query = mongoose.Types.ObjectId.isValid(id)
-        ? { $or: [{ _id: id }, { salesPersonId: id }] }
-        : { salesPersonId: id };
-      await SalesPerson.findOneAndDelete(query);
+      const orConditions = [{ salesPersonId: id }, { id: id }];
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        orConditions.push({ _id: id });
+      }
+      await SalesPerson.deleteMany({ $or: orConditions });
     }
 
     // Sync to file store
