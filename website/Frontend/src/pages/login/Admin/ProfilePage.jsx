@@ -72,7 +72,9 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
 
   const name = profile?.name || adminName || '';
   const email = profile?.email || adminEmail || '';
-  const role = capitalize(profile?.role);
+  const role = String(profile?.role || '').toLowerCase() === 'admin'
+    ? 'Primary Admin'
+    : capitalize(profile?.role);
   const accountStatus = profile?.accountStatus || 'active';
 
   const isStaffAccount = ['admin', 'manager', 'support'].includes(

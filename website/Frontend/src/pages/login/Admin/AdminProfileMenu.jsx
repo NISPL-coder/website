@@ -14,7 +14,7 @@ function getInitials(name) {
 }
 
 const ROLE_LABELS = {
-  admin: 'Admin',
+  admin: 'Primary Admin',
   manager: 'Manager',
   support: 'Support',
   partner: 'Partner',
@@ -24,12 +24,13 @@ const ROLE_LABELS = {
 /** The signed-in account's role, straight from the live session — never assumed. */
 function roleLabel(role, isPrimaryAdmin) {
   const key = String(role).trim().toLowerCase();
-  if (key === 'admin' && isPrimaryAdmin) return 'Primary Admin';
+  if (key === 'admin' || key === 'primary admin' || key === 'primaryadmin' || isPrimaryAdmin) return 'Primary Admin';
   return ROLE_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 function roleToneClass(role) {
   const key = String(role).trim().toLowerCase();
+  if (key === 'admin' || key === 'primary admin' || key === 'primaryadmin') return 'adm-profile-role--admin';
   return ROLE_LABELS[key] ? `adm-profile-role--${key}` : '';
 }
 
