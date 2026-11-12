@@ -389,7 +389,7 @@
   display: grid;
   grid-template-columns: 420px minmax(560px, 1fr);
   gap: 52px;
-  align-items: center;
+  align-items: stretch;
   position: relative;
   z-index: 10;
   box-sizing: border-box;
@@ -401,12 +401,39 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-.ebolt-login-col-inner {
+.ebolt-customer-split-card .ebolt-login-col-inner {
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ebolt-login-header-group {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.ebolt-customer-split-card .ebolt-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.ebolt-login-fields-group {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  width: 100%;
 }
 
 /* Portal Pill Badge */
@@ -652,17 +679,19 @@
   width: 100%;
   position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   min-height: 0;
+  height: 100%;
 }
 
 .ebolt-showcase-container {
   position: relative;
   width: 100%;
+  height: 100%;
   max-height: calc(100vh - 110px);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
 }
 
@@ -1119,6 +1148,7 @@
     width: 100%;
     max-width: 420px;
     margin: 0 auto;
+    height: auto !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1146,6 +1176,11 @@
 
   .ebolt-customer-split-card .ebolt-form {
     width: 100%;
+    height: auto !important;
+    flex: initial !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    margin-top: 10px !important;
   }
 
   .ebolt-options-row {

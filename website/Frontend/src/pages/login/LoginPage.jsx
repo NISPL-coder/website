@@ -403,116 +403,122 @@ export default function LoginPage({ lockedPortal }) {
             <div className="ebolt-login-col">
               <div className="ebolt-login-col-inner">
 
-                {/* Top Badge & Switcher */}
-                <div className="ebolt-portal-badge-wrap">
-                  <span className="ebolt-portal-pill-badge">
-                    <Cloud size={13} />
-                    <span>Customer Portal</span>
-                  </span>
+                {/* Header Group: Aligns with Top of Right Showcase Frame */}
+                <div className="ebolt-login-header-group">
+                  {/* Top Badge & Switcher */}
+                  <div className="ebolt-portal-badge-wrap">
+                    <span className="ebolt-portal-pill-badge">
+                      <Cloud size={13} />
+                      <span>Customer Portal</span>
+                    </span>
 
-                  {!isPortalLocked && (
-                    <button
-                      type="button"
-                      className="ebolt-switch-portal-link"
-                      onClick={() => handleSelectPortal('admin')}
-                    >
-                      Admin Login &rarr;
-                    </button>
-                  )}
-                </div>
-
-                {/* Heading & Subtitle */}
-                <h1 className="ebolt-split-title">Login to Your Account</h1>
-                <p className="ebolt-split-subtitle">
-                  Access your cloud instances, remote Tally licenses & support.
-                </p>
-
-                {/* Error Notice */}
-                {errorMessage && (
-                  <div className="ebolt-alert-error is-stacked" role="alert">
-                    <div className="ebolt-alert-error-row">
-                      <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <span>{errorMessage}</span>
-                    </div>
-                    {errorMessage.includes('Admin Portal') && (
+                    {!isPortalLocked && (
                       <button
                         type="button"
-                        className="ebolt-error-action-btn"
-                        onClick={() => {
-                          setErrorMessage('');
-                          handleSelectPortal('admin');
-                          navigate('/login?portal=admin');
-                        }}
+                        className="ebolt-switch-portal-link"
+                        onClick={() => handleSelectPortal('admin')}
                       >
-                        Go to Admin Portal &rarr;
+                        Admin Login &rarr;
                       </button>
                     )}
                   </div>
-                )}
 
-                {/* Customer Login Form */}
+                  {/* Heading & Subtitle */}
+                  <h1 className="ebolt-split-title">Login to Your Account</h1>
+                  <p className="ebolt-split-subtitle">
+                    Access your cloud instances, remote Tally licenses & support.
+                  </p>
+
+                  {/* Error Notice */}
+                  {errorMessage && (
+                    <div className="ebolt-alert-error is-stacked" role="alert">
+                      <div className="ebolt-alert-error-row">
+                        <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{errorMessage}</span>
+                      </div>
+                      {errorMessage.includes('Admin Portal') && (
+                        <button
+                          type="button"
+                          className="ebolt-error-action-btn"
+                          onClick={() => {
+                            setErrorMessage('');
+                            handleSelectPortal('admin');
+                            navigate('/login?portal=admin');
+                          }}
+                        >
+                          Go to Admin Portal &rarr;
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Customer Login Form: Spans Full Height of Showcase Frame */}
                 <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
 
-                  {/* Email / Username */}
-                  <div className="ebolt-input-wrap">
-                    <Mail size={16} className="ebolt-input-icon" />
-                    <input
-                      type="email"
-                      className="ebolt-input"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => handleEmailChange(e.target.value)}
-                      autoComplete="username"
-                      required
-                    />
-                  </div>
-
-                  {/* Password with Eye Toggle */}
-                  <div className="ebolt-input-wrap">
-                    <Lock size={16} className="ebolt-input-icon" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      className="ebolt-input"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      autoComplete="current-password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="ebolt-eye-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-
-                  {/* Remember Me & Forgot Password Row */}
-                  <div className="ebolt-options-row">
-                    <label className="ebolt-checkbox-label">
+                  {/* Inputs & Options Group */}
+                  <div className="ebolt-login-fields-group">
+                    {/* Email / Username */}
+                    <div className="ebolt-input-wrap">
+                      <Mail size={16} className="ebolt-input-icon" />
                       <input
-                        type="checkbox"
-                        className="ebolt-checkbox-input"
-                        checked={rememberMe}
-                        onChange={(e) => handleRememberMeToggle(e.target.checked)}
+                        type="email"
+                        className="ebolt-input"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        autoComplete="username"
+                        required
                       />
-                      <span>Remember Me</span>
-                    </label>
+                    </div>
 
-                    <button
-                      type="button"
-                      className="ebolt-forgot-btn"
-                      onClick={() => {
-                        setIsForgotOpen(true);
-                        setResetEmail(email);
-                        setResetError('');
-                        setResetSent(false);
-                      }}
-                    >
-                      Forgot Password?
-                    </button>
+                    {/* Password with Eye Toggle */}
+                    <div className="ebolt-input-wrap">
+                      <Lock size={16} className="ebolt-input-icon" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className="ebolt-input"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="ebolt-eye-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+
+                    {/* Remember Me & Forgot Password Row */}
+                    <div className="ebolt-options-row">
+                      <label className="ebolt-checkbox-label">
+                        <input
+                          type="checkbox"
+                          className="ebolt-checkbox-input"
+                          checked={rememberMe}
+                          onChange={(e) => handleRememberMeToggle(e.target.checked)}
+                        />
+                        <span>Remember Me</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        className="ebolt-forgot-btn"
+                        onClick={() => {
+                          setIsForgotOpen(true);
+                          setResetEmail(email);
+                          setResetError('');
+                          setResetSent(false);
+                        }}
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
                   </div>
 
                   {/* Vibrant High-Energy Gradient CTA */}
@@ -535,7 +541,7 @@ export default function LoginPage({ lockedPortal }) {
                     <p className="ebolt-social-note" role="status">{socialNote}</p>
                   )}
 
-                  {/* Registration Link */}
+                  {/* Registration Link: Aligns with Bottom of Right Showcase Frame */}
                   <div className="ebolt-create-account-box animate-fade-in">
                     <span className="ebolt-create-account-text">Not a member yet? </span>
                     <Link to="/customer-register" className="ebolt-create-account-link">
