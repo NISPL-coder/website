@@ -16,41 +16,48 @@ import { sendPasswordResetEmail, sendAdminOtpEmail, sendCustomerVerificationOtpE
 function isMongoConnected() {
   return mongoose.connection.readyState === 1;
 }
-function cookieOptions() {
+function cookieOptions(rememberMe = false) {
+  const maxAge = rememberMe
+    ? 30 * 24 * 60 * 60 * 1000 // 30 days
+    : env.SESSION_MAX_SECONDS * 1000;
+
   return {
     httpOnly: true,
     secure: env.COOKIE_SECURE,
     sameSite: env.COOKIE_SAME_SITE,
     path: '/',
-    maxAge: env.SESSION_MAX_SECONDS * 1000
+    maxAge
   };
 }
 
-async function issueSession(user, req, res, startedAt = new Date()) {
+async function issueSession(user, req, res, startedAt = new Date(), rememberMe = false) {
   const refreshToken = createRefreshToken(user);
   const decoded = verifyRefreshToken(refreshToken);
+  const sessionMaxMs = rememberMe ? 30 * 24 * 60 * 60 * 1000 : env.SESSION_MAX_SECONDS * 1000;
   const session = await Session.create({
     user: user._id,
     refreshTokenHash: hashToken(refreshToken),
-    expiresAt: new Date(Math.min(decoded.exp * 1000, startedAt.getTime() + env.SESSION_MAX_SECONDS * 1000)),
+    expiresAt: new Date(Math.min(decoded.exp * 1000, startedAt.getTime() + sessionMaxMs)),
     startedAt,
     lastActivityAt: new Date(),
     userAgent: req.get('user-agent'),
     ipAddress: req.ip
   });
-  res.cookie(env.REFRESH_COOKIE_NAME, refreshToken, cookieOptions());
+  res.cookie(env.REFRESH_COOKIE_NAME, refreshToken, cookieOptions(rememberMe));
   return { accessToken: createAccessToken(user, session._id), session };
 }
 
-const sessionPolicy = (session) => ({
+const sessionPolicy = (session, rememberMe = false) => ({
   expiresAt: session.expiresAt.toISOString(),
-  idleMinutes: env.SESSION_IDLE_MINUTES,
-  maxHours: env.SESSION_MAX_SECONDS / 3600
+  idleMinutes: rememberMe ? 7 * 24 * 60 : env.SESSION_IDLE_MINUTES,
+  maxHours: rememberMe ? 30 * 24 : env.SESSION_MAX_SECONDS / 3600,
+  rememberMe: Boolean(rememberMe)
 });
 
 export async function login(req, res) {
   const rawIdentifier = req.body.identifier || req.body.email || req.body.username;
   const { password, portal } = req.body;
+  const rememberMe = Boolean(req.body.rememberMe ?? req.body.remember);
   const user = await User.findByEmailOrCustomerId(rawIdentifier);
 
   if (!user || !(await user.comparePassword(password))) {
@@ -133,7 +140,7 @@ export async function login(req, res) {
     });
   }
 
-  const { accessToken, session } = await issueSession(user, req, res);
+  const { accessToken, session } = await issueSession(user, req, res, new Date(), rememberMe);
   res.json({
     success: true,
     message: 'Login successful.',
@@ -141,7 +148,8 @@ export async function login(req, res) {
     user: user.toSafeJSON(),
     role: user.role,
     portal: resolvedPortal,
-    session: sessionPolicy(session),
+    session: sessionPolicy(session, rememberMe),
+    rememberMe,
     redirect: user.role === 'customer' ? '/customer/overview' : (isAdminPortalUser ? '/admin/overview' : '/partner-dashboard')
   });
 }

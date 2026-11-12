@@ -161,15 +161,69 @@ export default function LoginPage({ lockedPortal }) {
     return () => { isMounted = false; };
   }, []);
 
-  // Form Fields State
-  const [email, setEmail] = useState('');
+  // Remember Me & Email persistence keys
+  const REMEMBER_KEY = 'nispl_customer_remember_me';
+  const REMEMBERED_EMAIL_KEY = 'nispl_customer_remembered_email';
+
+  // Form Fields State (initialized dynamically based on remembered preferences)
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      return localStorage.getItem(REMEMBER_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [email, setEmail] = useState(() => {
+    try {
+      const isRemembered = localStorage.getItem(REMEMBER_KEY) === 'true';
+      const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+      return (isRemembered && savedEmail) ? savedEmail : '';
+    } catch {
+      return '';
+    }
+  });
+
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isShaking, setIsShaking] = useState(false);
   const [socialNote, setSocialNote] = useState('');
+
+  // Handle dynamic Remember Me toggle
+  const handleRememberMeToggle = (checked) => {
+    setRememberMe(checked);
+    try {
+      if (checked) {
+        localStorage.setItem(REMEMBER_KEY, 'true');
+        if (email.trim()) {
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+        }
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      }
+    } catch (e) {
+      console.warn('Could not store remember me preference:', e);
+    }
+  };
+
+  // Handle email changes (updates remembered email if Remember Me is active)
+  const handleEmailChange = (newVal) => {
+    setEmail(newVal);
+    if (rememberMe) {
+      try {
+        if (newVal.trim()) {
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, newVal.trim());
+        } else {
+          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  };
 
   // Modals state
   const [activeSession, setActiveSession] = useState(null);
@@ -204,7 +258,8 @@ export default function LoginPage({ lockedPortal }) {
       const response = await authApi.login({
         email: email.trim(),
         password,
-        portal: activePortal
+        portal: activePortal,
+        rememberMe: Boolean(rememberMe)
       });
 
       const token = response?.accessToken || response?.token || authApi.getAuthToken();
@@ -223,6 +278,21 @@ export default function LoginPage({ lockedPortal }) {
 
         if (activePortal === 'partner' && userRole && userRole !== 'partner') {
           throw new Error('This account does not have Partner Portal access.');
+        }
+
+        // Persist or clear Remember Me preferences for Customer Portal
+        if (activePortal === 'customer') {
+          try {
+            if (rememberMe) {
+              localStorage.setItem(REMEMBER_KEY, 'true');
+              localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+            } else {
+              localStorage.removeItem(REMEMBER_KEY);
+              localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+            }
+          } catch (e) {
+            // ignore localStorage quota/privacy errors
+          }
         }
 
         // Navigate immediately to appropriate overview
@@ -391,7 +461,7 @@ export default function LoginPage({ lockedPortal }) {
                       className="ebolt-input"
                       placeholder="Email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       autoComplete="username"
                       required
                     />
@@ -426,7 +496,7 @@ export default function LoginPage({ lockedPortal }) {
                         type="checkbox"
                         className="ebolt-checkbox-input"
                         checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
+                        onChange={(e) => handleRememberMeToggle(e.target.checked)}
                       />
                       <span>Remember Me</span>
                     </label>
