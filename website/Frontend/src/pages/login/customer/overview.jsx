@@ -321,39 +321,6 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                 <span>Email Unverified</span>
               </span>
             )}
-
-            {/* Profile Completion Circular Indicator (Hidden when 100% complete) */}
-            {completion.percentage < 100 && (
-              <button
-                type="button"
-                className="flowmail-profile-completion-badge"
-                onClick={() => onNavigateTab?.('profile')}
-                title="Click to view and complete your profile"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '7px',
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  padding: '3px 10px',
-                  borderRadius: '20px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  color: '#334155',
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <ProfileCompletionCircle
-                  percentage={completion.percentage}
-                  size={18}
-                  strokeWidth={2.4}
-                  showPercentageInside={false}
-                />
-                <span>{completion.percentage}% Profile Completed</span>
-              </button>
-            )}
           </div>
           <p className="flowmail-welcome-sub">
             Manage your products, payments and stay updated with your account.
