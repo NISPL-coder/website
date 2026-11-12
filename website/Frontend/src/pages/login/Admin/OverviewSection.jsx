@@ -8,6 +8,7 @@ import {
   Plus,
   CheckCircle2,
   ChevronRight,
+  Briefcase,
   Server,
   ArrowUpRight,
   Users,
@@ -140,10 +141,13 @@ export default function OverviewSection({
   const navigate = useNavigate();
   const { can, visibleColumns } = usePermissions();
 
-  // Card-specific Date Range Filters (Card 1: Total Received & Dues, Card 2: Inactive Value, Card 4: Total Customers)
+  // Card-specific Date Range Filters (Card 1: Total Amount Received, Card 2: Total Business, Card 4: Total Customers)
   const [receivedRange, setReceivedRange] = useState({ from: '', to: '' });
-  const [dueRange, setDueRange] = useState({ from: '', to: '' });
+  const [businessRange, setBusinessRange] = useState({ from: '', to: '' });
   const [accountsRange, setAccountsRange] = useState({ from: '', to: '' });
+
+  // Card 3 Unit Selection ('cr' | 'lakhs' | 'k')
+  const [revenueUnit, setRevenueUnit] = useState('cr');
 
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [selectedFY, setSelectedFY] = useState('2026-2027');
@@ -159,8 +163,10 @@ export default function OverviewSection({
         fy: selectedFY,
         receivedFrom: receivedRange.from,
         receivedTo: receivedRange.to,
-        dueFrom: dueRange.from,
-        dueTo: dueRange.to,
+        businessFrom: businessRange.from,
+        businessTo: businessRange.to,
+        dueFrom: businessRange.from,
+        dueTo: businessRange.to,
         accountsFrom: accountsRange.from,
         accountsTo: accountsRange.to
       })
@@ -179,10 +185,12 @@ export default function OverviewSection({
   }, [
     receivedRange.from,
     receivedRange.to,
-    dueRange.from,
-    dueRange.to,
+    businessRange.from,
+    businessRange.to,
     accountsRange.from,
     accountsRange.to,
+    selectedPeriod,
+    selectedFY,
     customers.length,
     contracts.length,
     payments.length
@@ -672,12 +680,11 @@ export default function OverviewSection({
       }
     });
 
-    // 2. Inactive Value calculation (Pending / Due balance for Card 2)
-    let inactiveTotal = 0;
+    // Pending payment count
     let pendingCount = 0;
     list.forEach((p) => {
       const pDate = p.expectedPaymentDate || p.date || p.createdAt || p.invoiceDate;
-      if (!isDateInRange(pDate, dueRange.from, dueRange.to)) return;
+      if (!isDateInRange(pDate, receivedRange.from, receivedRange.to)) return;
 
       const total = parseRupee(p.total || p.totalAmount || p.amount || 0);
       let rec = parseRupee(p.receivedAmount || p.received || 0);
@@ -689,22 +696,22 @@ export default function OverviewSection({
       const pendingVal = explicitPending > 0 ? explicitPending : diff;
 
       if (pendingVal > 0 || ['pending', 'overdue', 'partially paid', 'partial', 'in progress'].includes(st)) {
-        inactiveTotal += pendingVal;
         pendingCount += 1;
       }
     });
 
     // Fallbacks to API data if no date filter is applied and API returned values
-    if (!receivedRange.from && !receivedRange.to && apiOverview?.kpi?.receivedNumeric != null) {
-      receivedTotal = apiOverview.kpi.receivedNumeric;
-      clearedCount = apiOverview.kpi.invoicesCleared || clearedCount;
-      if (totalDues === 0 && apiOverview?.kpi?.dueNumeric != null) {
-        totalDues = apiOverview.kpi.dueNumeric;
+    if (!receivedRange.from && !receivedRange.to) {
+      if (apiOverview?.kpi?.receivedNumeric != null) {
+        receivedTotal = apiOverview.kpi.receivedNumeric;
+        clearedCount = apiOverview.kpi.invoicesCleared || clearedCount;
+        if (totalDues === 0 && apiOverview?.kpi?.dueNumeric != null) {
+          totalDues = apiOverview.kpi.dueNumeric;
+        }
       }
-    }
-    if (!dueRange.from && !dueRange.to && apiOverview?.kpi?.dueNumeric != null) {
-      inactiveTotal = apiOverview.kpi.dueNumeric;
-      pendingCount = apiOverview.kpi.invoicesPending || pendingCount;
+      if (apiOverview?.kpi?.invoicesPending != null) {
+        pendingCount = apiOverview.kpi.invoicesPending;
+      }
     }
 
     const totalBilled = receivedTotal + totalDues;
@@ -714,23 +721,123 @@ export default function OverviewSection({
       receivedTotal,
       clearedCount,
       totalDues,
-      inactiveTotal,
       pendingCount,
       settledPercentage: `${settledRatio}% Settled`
     };
-  }, [payments, receivedRange, dueRange, apiOverview]);
+  }, [payments, receivedRange, apiOverview]);
 
-  // Card 3: Annual Net Revenue (No Date Range)
+  // Card 2: Total Business (Total Renewals & Total Acquisition)
+  const businessMetrics = useMemo(() => {
+    const custs = Array.isArray(customers) ? customers : [];
+    const ctrs = Array.isArray(contracts) ? contracts : [];
+    const pymts = Array.isArray(payments) ? payments : [];
+
+    // Map non-demo contracts per customer to identify 1st contract (acquisition) vs subsequent (renewal)
+    const contractsByCust = new Map();
+    ctrs.forEach((c) => {
+      const isDemo =
+        Boolean(c.isDemoTrial) ||
+        c.contractType === 'Trial' ||
+        c.productCategory === 'Trial' ||
+        normalizeContractStatus(c.status, c) === 'DEMO';
+      if (isDemo) return;
+      const key = String(c.customerId || c.accountId || c.email || c.company || c.customer || '')
+        .trim()
+        .toLowerCase();
+      if (!key) return;
+      if (!contractsByCust.has(key)) contractsByCust.set(key, []);
+      contractsByCust.get(key).push(c);
+    });
+
+    let totalRenewals = 0;
+    const countedRenewalIds = new Set();
+
+    contractsByCust.forEach((custCtrs) => {
+      // Sort by date ascending to isolate initial contract
+      custCtrs.sort(
+        (a, b) =>
+          new Date(a.startDate || a.orderDate || a.createdAt || 0) -
+          new Date(b.startDate || b.orderDate || b.createdAt || 0)
+      );
+      custCtrs.forEach((ctr, idx) => {
+        const d = ctr.startDate || ctr.orderDate || ctr.createdAt;
+        if (!isDateInRange(d, businessRange.from, businessRange.to)) return;
+
+        const isExplicitRenewal = /renew/i.test(
+          ctr.name || ctr.service || ctr.description || ctr.contractType || ''
+        );
+        if (idx > 0 || isExplicitRenewal || Boolean(ctr.isRenewal)) {
+          totalRenewals += 1;
+          countedRenewalIds.add(ctr.contractId || ctr.id || ctr._id);
+        }
+      });
+    });
+
+    // Also check payments with explicit renewal intent
+    pymts.forEach((p) => {
+      const isExplicit = p.mode === 'renewal' || /renew/i.test(p.description || p.label || p.solutionCategory || '');
+      if (!isExplicit) return;
+      const pDate = p.paymentReceivedDate || p.date || p.createdAt || p.invoiceDate;
+      if (!isDateInRange(pDate, businessRange.from, businessRange.to)) return;
+      if (p.contractId && countedRenewalIds.has(p.contractId)) return;
+      totalRenewals += 1;
+    });
+
+    // Total Acquisition: numbers of new customers after registration
+    let totalAcquisition = 0;
+    custs.forEach((c) => {
+      const regDate = c.createdAt || c.registered;
+      if (!isDateInRange(regDate, businessRange.from, businessRange.to)) return;
+
+      const lifecycle = normalizeCustomerLifecycle(c.status);
+      const custKey = String(c.customerId || c.accountId || c.email || c.company || c.name || '')
+        .trim()
+        .toLowerCase();
+      const hasPaidContract = (contractsByCust.get(custKey) || []).length > 0;
+
+      if (lifecycle === 'Active' || lifecycle === 'InProgress' || hasPaidContract) {
+        totalAcquisition += 1;
+      }
+    });
+
+    if (!businessRange.from && !businessRange.to) {
+      if (apiOverview?.kpi?.totalRenewals != null) {
+        totalRenewals = apiOverview.kpi.totalRenewals;
+      }
+      if (apiOverview?.kpi?.totalAcquisition != null) {
+        totalAcquisition = apiOverview.kpi.totalAcquisition;
+      }
+    }
+
+    return {
+      totalRenewals,
+      totalAcquisition,
+      totalBusiness: totalRenewals + totalAcquisition
+    };
+  }, [customers, contracts, payments, businessRange, apiOverview]);
+
+  // Card 3: Annual Net Revenue for financial years
   const arrMetrics = useMemo(() => {
     const custs = Array.isArray(customers) ? customers : [];
     const ctrs = Array.isArray(contracts) ? contracts : [];
 
-    const activeCusts = custs.filter((c) => normalizeCustomerLifecycle(c.status) === 'Active');
+    const startYear = parseInt(String(selectedFY || '').slice(0, 4), 10) || new Date().getFullYear();
+    const fyStart = new Date(startYear, 3, 1).getTime();
+    const fyEnd = new Date(startYear + 1, 3, 0, 23, 59, 59, 999).getTime();
+
+    const activeCusts = custs.filter((c) => {
+      const isAct = normalizeCustomerLifecycle(c.status) === 'Active';
+      if (!isAct) return false;
+      const cDate = new Date(c.createdAt || c.registered || 0).getTime();
+      return !cDate || cDate <= fyEnd;
+    });
     const activeMRR = activeCusts.reduce((sum, c) => sum + parseRupee(c.mrr || 0), 0);
 
     const inProgressCtrs = ctrs.filter((c) => {
       const st = normalizeContractStatus(c.status, c);
-      return st === 'In Progress';
+      if (st !== 'In Progress') return false;
+      const cStart = new Date(c.startDate || c.orderDate || c.createdAt || 0).getTime();
+      return !cStart || (cStart <= fyEnd && cStart >= fyStart - 365 * 86400000);
     });
 
     const commitments = inProgressCtrs.reduce(
@@ -739,21 +846,45 @@ export default function OverviewSection({
     );
 
     let totalARR = activeMRR * 12 + commitments;
-    let arrInCrores = parseFloat((totalARR / 10000000).toFixed(2));
 
-    if (apiOverview?.kpi?.arrValueNumeric != null) {
-      arrInCrores = apiOverview.kpi.arrValueNumeric;
-      totalARR = apiOverview.kpi.totalARR || totalARR;
+    if (apiOverview?.kpi?.totalARR != null && (!selectedFY || selectedFY === '2026-2027')) {
+      totalARR = apiOverview.kpi.totalARR;
+    } else if (apiOverview?.kpi?.arrValueNumeric != null && (!selectedFY || selectedFY === '2026-2027')) {
+      totalARR = Math.round(apiOverview.kpi.arrValueNumeric * 10000000);
     }
 
     return {
       totalARR,
-      arrInCrores,
       activeMRR,
       commitments,
       inProgressCount: inProgressCtrs.length
     };
-  }, [customers, contracts, apiOverview]);
+  }, [customers, contracts, apiOverview, selectedFY]);
+
+  // Card 3: Dynamic Unit Formatting (Cr., Lakhs, K)
+  const revenueDisplay = useMemo(() => {
+    const total = arrMetrics.totalARR;
+    if (revenueUnit === 'lakhs') {
+      return {
+        value: parseFloat((total / 100000).toFixed(2)),
+        unit: 'Lakhs',
+        decimals: 2
+      };
+    }
+    if (revenueUnit === 'k') {
+      return {
+        value: parseFloat((total / 1000).toFixed(2)),
+        unit: 'K',
+        decimals: 2
+      };
+    }
+    // Default 'cr'
+    return {
+      value: parseFloat((total / 10000000).toFixed(2)),
+      unit: 'Cr',
+      decimals: 2
+    };
+  }, [arrMetrics.totalARR, revenueUnit]);
 
   // Card 4: Total Accounts
   const accountsMetrics = useMemo(() => {
@@ -1753,7 +1884,7 @@ export default function OverviewSection({
          (2X2 GRID — ONLY BOTTOM-RIGHT BUTTONS ARE CLICKABLE TO NAVIGATE)
          ========================================================================= */}
       <div className="adm-finance-grid">
-        {/* CARD 1: TOTAL RECEIVED & TOTAL DUES (TWO PARTS) */}
+        {/* CARD 1: TOTAL AMOUNT RECEIVED */}
         <div className="adm-finance-card payment-received">
           <div className="adm-finance-header">
             <div className="adm-finance-badge emerald">
@@ -1770,23 +1901,12 @@ export default function OverviewSection({
           </div>
 
           <div className="adm-finance-content">
-            <div className="adm-dual-metric-row">
-              <div className="adm-metric-part">
-                <span className="adm-finance-label">Total Received</span>
-                <div className="adm-finance-value emerald-val compact-val">
-                  ₹<CountUp end={paymentMetrics.receivedTotal} useIndianFormat={true} duration={1400} />
-                </div>
-              </div>
-              <div className="adm-metric-divider" />
-              <div className="adm-metric-part">
-                <span className="adm-finance-label">Total Dues</span>
-                <div className="adm-finance-value amber-val compact-val">
-                  ₹<CountUp end={paymentMetrics.totalDues} useIndianFormat={true} duration={1400} />
-                </div>
-              </div>
+            <span className="adm-finance-label">Total Amount Received</span>
+            <div className="adm-finance-value emerald-val">
+              ₹<CountUp end={paymentMetrics.receivedTotal} useIndianFormat={true} duration={1400} />
             </div>
             <p className="adm-finance-caption">
-              {collectionMethodText} Cleared collections &amp; total invoice obligations.
+              {collectionMethodText} Cleared collections recorded in the payment ledger.
             </p>
           </div>
 
@@ -1809,29 +1929,42 @@ export default function OverviewSection({
           </div>
         </div>
 
-        {/* CARD 2: INACTIVE VALUE */}
+        {/* CARD 2: TOTAL BUSINESS (TOTAL RENEWALS & TOTAL ACQUISITION) */}
         <div className="adm-finance-card payment-due">
           <div className="adm-finance-header">
             <div className="adm-finance-badge amber">
-              <AlertCircle size={16} />
-              <span>Pending Balance</span>
+              <Briefcase size={16} />
+              <span>Total Business</span>
             </div>
             <DateRangeFilter
-              from={dueRange.from}
-              to={dueRange.to}
-              onChange={(from, to) => setDueRange({ from, to })}
+              from={businessRange.from}
+              to={businessRange.to}
+              onChange={(from, to) => setBusinessRange({ from, to })}
               compact={true}
               label="Date Range"
             />
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Inactive Value</span>
-            <div className="adm-finance-value amber-val">
-              ₹<CountUp end={paymentMetrics.inactiveTotal} useIndianFormat={true} duration={1400} />
+            <div className="adm-dual-metric-row">
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Total Renewals</span>
+                <div className="adm-finance-value amber-val compact-val">
+                  <CountUp end={businessMetrics.totalRenewals} duration={1200} />
+                </div>
+                <p className="adm-metric-hint">Renewals done by customers</p>
+              </div>
+              <div className="adm-metric-divider" />
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Total Acquisition</span>
+                <div className="adm-finance-value blue-val compact-val">
+                  <CountUp end={businessMetrics.totalAcquisition} duration={1200} />
+                </div>
+                <p className="adm-metric-hint">New customers post-registration</p>
+              </div>
             </div>
             <p className="adm-finance-caption">
-              Unsettled balances, overdue payments and partial payment differences.
+              Customer retention &amp; expansion: renewed agreements and new customer acquisitions post-registration.
             </p>
           </div>
 
@@ -1839,44 +1972,84 @@ export default function OverviewSection({
             <span className="adm-finance-status-tag">
               <span className="adm-dot amber" />
               <span>
-                <CountUp end={paymentMetrics.pendingCount} duration={1200} /> invoices awaiting clearance
+                <CountUp end={businessMetrics.totalBusiness} duration={1200} /> total engagements
               </span>
             </span>
             <button
               type="button"
               className="adm-finance-link amber-link"
-              onClick={() => navigate('/admin/customer/payment')}
-              title="Inspect pending payment dues"
+              onClick={() => navigate('/admin/customer/contract')}
+              title="Inspect customer contracts and renewals"
             >
-              <span>Inspect Dues</span>
+              <span>Contracts</span>
               <ArrowRight size={14} />
             </button>
           </div>
         </div>
 
-        {/* CARD 3: ANNUAL NET REVENUE (NO DATE RANGE) */}
+        {/* CARD 3: ANNUAL NET REVENUE (FINANCIAL YEARS & UNIT SWITCHER) */}
         <div className="adm-finance-card mrr-arr">
           <div className="adm-finance-header">
             <div className="adm-finance-badge purple">
               <FileText size={16} />
-              <span>Contract ARR</span>
+              <span>Annual Net Revenue</span>
             </div>
-            <span className="adm-finance-trend neutral">
-              <span>Annualised MRR + commitments</span>
-            </span>
+            <div className="adm-header-right-controls">
+              <select
+                className="adm-card-select"
+                value={selectedFY}
+                onChange={(e) => setSelectedFY(e.target.value)}
+                title="Select Financial Year"
+              >
+                {FINANCIAL_YEARS.map((fy) => (
+                  <option key={fy.id} value={fy.id}>
+                    {fy.label.replace(' (Current)', '')}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="adm-finance-content">
-            <span className="adm-finance-label">Annual Net Revenue</span>
+            <div className="adm-revenue-header-row">
+              <span className="adm-finance-label">Annual Net Revenue</span>
+              <div className="adm-unit-pill-group" role="group" aria-label="Revenue Unit">
+                <button
+                  type="button"
+                  className={`adm-unit-pill ${revenueUnit === 'cr' ? 'active' : ''}`}
+                  onClick={() => setRevenueUnit('cr')}
+                  title="Show in Crores (Cr)"
+                >
+                  Cr.
+                </button>
+                <button
+                  type="button"
+                  className={`adm-unit-pill ${revenueUnit === 'lakhs' ? 'active' : ''}`}
+                  onClick={() => setRevenueUnit('lakhs')}
+                  title="Show in Lakhs"
+                >
+                  Lakhs
+                </button>
+                <button
+                  type="button"
+                  className={`adm-unit-pill ${revenueUnit === 'k' ? 'active' : ''}`}
+                  onClick={() => setRevenueUnit('k')}
+                  title="Show in Thousands (K)"
+                >
+                  K (thousand)
+                </button>
+              </div>
+            </div>
+
             <div className="adm-finance-value purple-val">
-              ₹<CountUp end={arrMetrics.arrInCrores} decimals={2} duration={1400} /> Cr
+              ₹<CountUp end={revenueDisplay.value} decimals={revenueDisplay.decimals} duration={1200} /> {revenueDisplay.unit}
             </div>
             <p className="adm-finance-caption">
-              Monthly recurring of{' '}
+              Annualised revenue for {FINANCIAL_YEARS.find((f) => f.id === selectedFY)?.label.replace(' (Current)', '') || selectedFY}: monthly recurring of{' '}
               <strong>
-                ₹<CountUp end={arrMetrics.activeMRR} useIndianFormat={true} duration={1400} />
+                ₹<CountUp end={arrMetrics.activeMRR} useIndianFormat={true} duration={1200} />
               </strong>{' '}
-              on active accounts plus ₹{arrMetrics.commitments.toLocaleString('en-IN')} of in-progress contracts.
+              on active accounts plus ₹{arrMetrics.commitments.toLocaleString('en-IN')} contract commitments.
             </p>
           </div>
 

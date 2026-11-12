@@ -53,7 +53,10 @@ function pendingOverview(period, fy) {
       demoCount: 0,
       inProgressCount: 0,
       inactiveCount: 0,
-      accountsAdded: 0
+      accountsAdded: 0,
+      totalRenewals: 0,
+      totalAcquisition: 0,
+      totalBusiness: 0
     },
     salesChart: {
       points: [],

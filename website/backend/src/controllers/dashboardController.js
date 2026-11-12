@@ -186,7 +186,9 @@ export const getDashboardOverview = async (req, res) => {
       dueFrom,
       dueTo,
       accountsFrom,
-      accountsTo
+      accountsTo,
+      businessFrom,
+      businessTo
     } = req.query;
 
     let customers = [];
@@ -270,6 +272,61 @@ export const getDashboardOverview = async (req, res) => {
     const collectionMethods = [...new Set(
       receivedList.map((p) => String(p.paymentMethod || p.method || '').trim()).filter(Boolean)
     )];
+
+    // 3b. Total Business (Total Renewals & Total Acquisition)
+    const effectiveBusinessFrom = businessFrom || dueFrom;
+    const effectiveBusinessTo = businessTo || dueTo;
+
+    const contractsByCustomer = new Map();
+    contracts.forEach((ctr) => {
+      const isDemo = Boolean(ctr.isDemoTrial) || ctr.contractType === 'Trial' || normalizeContractStatus(ctr.status) === 'DEMO';
+      if (isDemo) return;
+      const key = String(ctr.customerId || ctr.accountId || ctr.email || ctr.company || ctr.customer || '').trim().toLowerCase();
+      if (!key) return;
+      if (!contractsByCustomer.has(key)) contractsByCustomer.set(key, []);
+      contractsByCustomer.get(key).push(ctr);
+    });
+
+    let totalRenewals = 0;
+    const countedRenewalContractIds = new Set();
+    contractsByCustomer.forEach((custCtrs) => {
+      custCtrs.sort((a, b) => new Date(a.startDate || a.orderDate || a.createdAt || 0) - new Date(b.startDate || b.orderDate || b.createdAt || 0));
+      custCtrs.forEach((ctr, idx) => {
+        const d = toDate(ctr.startDate || ctr.orderDate || ctr.createdAt);
+        if (!inRange(d, effectiveBusinessFrom, effectiveBusinessTo)) return;
+
+        const isExplicitRenewal = /renew/i.test(ctr.name || ctr.service || ctr.description || ctr.contractType || '');
+        if (idx > 0 || isExplicitRenewal || Boolean(ctr.isRenewal)) {
+          totalRenewals += 1;
+          countedRenewalContractIds.add(ctr.contractId || ctr.id || ctr._id);
+        }
+      });
+    });
+
+    payments.forEach((p) => {
+      const isExplicit = p.mode === 'renewal' || /renew/i.test(p.description || p.label || p.solutionCategory || '');
+      if (!isExplicit) return;
+      const pDate = collectionDate(p);
+      if (!inRange(pDate, effectiveBusinessFrom, effectiveBusinessTo)) return;
+      if (p.contractId && countedRenewalContractIds.has(p.contractId)) return;
+      totalRenewals += 1;
+    });
+
+    let totalAcquisition = 0;
+    customers.forEach((c) => {
+      const regDate = accountStartDate(c);
+      if (!inRange(regDate, effectiveBusinessFrom, effectiveBusinessTo)) return;
+      const lifecycle = deriveCustomerLifecycle(c, contracts, payments);
+      const custKey = String(c.customerId || c.accountId || c.email || c.company || c.name || '').trim().toLowerCase();
+      const hasPaidContract = (contractsByCustomer.get(custKey) || []).length > 0;
+      if (lifecycle === 'Active' || lifecycle === 'InProgress' || hasPaidContract) {
+        totalAcquisition += 1;
+      }
+    });
+
+    if (!effectiveBusinessFrom && !effectiveBusinessTo && totalAcquisition === 0) {
+      totalAcquisition = activeCustomers.length + inProgressCustomers.length;
+    }
 
     // 4. Sales curve: money received per bucket, straight off the ledger
     const bucketTotals = buckets.map(() => 0);
@@ -360,7 +417,10 @@ export const getDashboardOverview = async (req, res) => {
           demoCount: demoCustomers.length,
           inProgressCount: inProgressCustomers.length,
           inactiveCount: inactiveCustomers.length,
-          accountsAdded: accountsAddedInWindow
+          accountsAdded: accountsAddedInWindow,
+          totalRenewals,
+          totalAcquisition,
+          totalBusiness: totalRenewals + totalAcquisition
         },
         salesChart: {
           points,
