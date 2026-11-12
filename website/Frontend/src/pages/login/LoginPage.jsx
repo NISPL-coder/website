@@ -405,8 +405,14 @@ export default function LoginPage({ lockedPortal }) {
 
                 {/* Header Group: Aligns with Top of Right Showcase Frame */}
                 <div className="ebolt-login-header-group">
-                  {/* Top Badge & Switcher */}
-                  <div className="ebolt-portal-badge-wrap">
+                  {/* Heading & Subtitle */}
+                  <h1 className="ebolt-split-title">Login to Your Account</h1>
+                  <p className="ebolt-split-subtitle">
+                    Access your cloud instances, remote Tally licenses & support.
+                  </p>
+
+                  {/* Portal Pill Badge: Placed in the Middle & Centered */}
+                  <div className="ebolt-portal-badge-wrap is-centered">
                     <span className="ebolt-portal-pill-badge">
                       <Cloud size={13} />
                       <span>Customer Portal</span>
@@ -422,12 +428,6 @@ export default function LoginPage({ lockedPortal }) {
                       </button>
                     )}
                   </div>
-
-                  {/* Heading & Subtitle */}
-                  <h1 className="ebolt-split-title">Login to Your Account</h1>
-                  <p className="ebolt-split-subtitle">
-                    Access your cloud instances, remote Tally licenses & support.
-                  </p>
 
                   {/* Error Notice */}
                   {errorMessage && (

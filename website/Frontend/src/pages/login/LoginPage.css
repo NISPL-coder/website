@@ -281,10 +281,11 @@
   opacity: 0.88;
   color: #334155;
   border-color: #cbd5e1;
+  text-align: center;
+  text-align-last: center;
 }
 
 .is-locked-wrap::after {
-  content: '🔒';
   position: absolute;
   right: 14px;
   font-size: 0.75rem;
@@ -442,6 +443,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.ebolt-portal-badge-wrap.is-centered {
+  justify-content: center;
+  margin: 6px 0 16px 0;
 }
 
 .ebolt-portal-pill-badge {

@@ -1,7 +1,6 @@
 import { notificationApi } from '../../services/notificationApi';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import RegisterHeader from './components/RegisterHeader';
 import CustomerFormCard from './components/CustomerFormCard';
 import RegistrationSuccessModal from './components/RegistrationSuccessModal';
 import { customerAuthService } from './services/customerAuthService';
@@ -143,9 +142,6 @@ export default function CustomerRegisterPage() {
 
   return (
     <div className="ebolt-login-viewport cust-reg-viewport">
-      {/* Top Header Navigation */}
-      <RegisterHeader />
-
       {/* Main Registration Section */}
       <main className="cust-reg-container">
         <CustomerFormCard
