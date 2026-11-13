@@ -15,28 +15,34 @@ export default function FixedFooter() {
     '/customer/login',
     '/reset-password',
     '/customer-register',
-    '/customer_register'
+    '/customer_register',
+    '/admin/create'
   ].some((p) => pathname === p || pathname.startsWith(p));
 
   if (isLoginPage) {
     return null;
   }
 
-  // Detect whether current view has a desktop navigation rail
+  // Detect whether current view is a portal (Admin, Customer, or Partner portal)
   let sidebarType = '';
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/admin-dashboard') || pathname.startsWith('/admin_dashboard')) {
     sidebarType = 'admin';
   } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/customer')) {
     sidebarType = 'customer';
-  } else if (pathname.startsWith('/partner')) {
+  } else if (pathname.startsWith('/partner') || pathname.startsWith('/partner-dashboard') || pathname.startsWith('/partner_dashboard')) {
     sidebarType = 'partner';
+  }
+
+  // Only render fixed footer on portal views; exclude from main website (Home, About, Services, Contact, etc.)
+  if (!sidebarType) {
+    return null;
   }
 
   return (
     <footer
-      className={`nis-fixed-global-footer${sidebarType ? ` has-sidebar has-sidebar-${sidebarType}` : ''}`}
+      className={`nis-fixed-global-footer has-sidebar has-sidebar-${sidebarType}`}
       role="contentinfo"
-      aria-label="Global Fixed Footer"
+      aria-label="Portal Fixed Footer"
     >
       <div className="nis-fixed-footer-container">
         <span className="nis-fixed-footer-text">

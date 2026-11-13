@@ -115,8 +115,21 @@ function MainApp() {
     '/customer/login',
     '/reset-password',
     '/customer-register',
-    '/customer_register'
+    '/customer_register',
+    '/admin/create'
   ].some((path) => location.pathname === path || location.pathname.startsWith(path));
+
+  // Check if current route is a portal page (Admin, Customer, or Partner portal)
+  const isPortalPage = [
+    '/customer',
+    '/dashboard',
+    '/partner-dashboard',
+    '/partner_dashboard',
+    '/partner',
+    '/admin',
+    '/admin-dashboard',
+    '/admin_dashboard'
+  ].some((path) => location.pathname.startsWith(path)) && !isLoginPage;
 
   // Handle session cleanup on sign-out across all portals
   const handleSignOut = (portal = 'admin') => {
@@ -286,8 +299,8 @@ function MainApp() {
       {/* Global First-Visit Cookie & Privacy Consent */}
       <CookieConsent />
 
-      {/* Universal Fixed Footer Bar across all pages (excluded on login pages) */}
-      {!isLoginPage && <FixedFooter />}
+      {/* Fixed Footer Bar rendered exclusively on portal pages (excluded from main website and login views) */}
+      {isPortalPage && <FixedFooter />}
     </div>
   );
 }
