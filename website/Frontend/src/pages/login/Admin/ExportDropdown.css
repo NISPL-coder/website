@@ -1,0 +1,143 @@
+/* =========================================================================
+   NISPL ADMIN — EXPORT DROPDOWN MENU
+   ========================================================================= */
+
+.adm-export-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.adm-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  height: 38px;
+  white-space: nowrap;
+}
+
+.adm-btn-export:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.adm-btn-export-icon {
+  color: #6366f1;
+}
+
+.adm-btn-export-chevron {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.adm-btn-export-chevron.open {
+  transform: rotate(180deg);
+}
+
+.adm-export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  width: 210px;
+  max-width: calc(100vw - 24px);
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(0, 0, 0, 0.04);
+  padding: 6px;
+  z-index: 100;
+  animation: admFadeIn 0.15s ease-out;
+}
+
+.adm-export-menu.align-left {
+  left: 0;
+  right: auto;
+}
+
+.adm-export-menu.align-right {
+  right: 0;
+  left: auto;
+}
+
+.adm-export-menu-header {
+  padding: 6px 10px 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.adm-export-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.adm-export-item:hover {
+  background: #f8fafc;
+}
+
+.adm-export-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-export-item-icon.excel {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.adm-export-item-icon.csv {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.adm-export-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-export-item-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.adm-export-item-subtitle {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* On mobile / tablet (≤768px), prioritize left-align unless right-aligned explicitly */
+@media (max-width: 768px) {
+  .adm-export-menu:not(.align-right) {
+    left: 0;
+    right: auto;
+  }
+}
+

@@ -49,13 +49,21 @@ export const MODULE_COLUMNS = {
   payment: [
     { id: 'name', label: 'Name', fields: ['customer'] },
     { id: 'accountName', label: 'Account Name', fields: ['accountName', 'company'] },
+    { id: 'productName', label: 'Product / Plan', fields: ['solutionCategory', 'items'] },
     { id: 'invoiceNumber', label: 'Invoice Number', fields: ['invoiceNumber', 'invoiceRef', 'paymentId'] },
     { id: 'invoiceDate', label: 'Invoice Date', fields: ['invoiceDate', 'date'] },
-    { id: 'receivedAmount', label: 'Received Amount', fields: ['receivedAmount'] },
+    { id: 'receivedAmount', label: 'Received Amount', fields: ['receivedAmount', 'amount'] },
     { id: 'pendingPayment', label: 'Pending Payment', fields: ['pendingPayment'] },
+    { id: 'taxableAmount', label: 'Taxable Amount', fields: ['taxableAmount'] },
+    { id: 'gstAmount', label: 'GST Amount', fields: ['gstAmount'] },
     { id: 'expectedPaymentDate', label: 'Expected Payment Date', fields: ['expectedPaymentDate'] },
     { id: 'paymentReceivedDate', label: 'Payment Received Date', fields: ['paymentReceivedDate'] },
     { id: 'paymentMethod', label: 'Payment Method', fields: ['paymentMethod', 'method'] },
+    { id: 'referenceNumber', label: 'Cheque / Ref No.', fields: ['referenceNumber'] },
+    { id: 'bankName', label: 'Bank / Branch', fields: ['bankName'] },
+    { id: 'depositDate', label: 'Realisation Date', fields: ['depositDate'] },
+    { id: 'salesPerson', label: 'Sales Person', fields: ['salesPerson'] },
+    { id: 'notes', label: 'Notes / Remarks', fields: ['notes'] },
     {
       id: 'reference',
       label: 'Bank Reference & Remarks',
@@ -164,6 +172,9 @@ const LEGACY_COLUMN_ALIASES = {
     expiryDate: ['endDate'],
     // The CRM status left the contract table; it is granted by sangam_sync now.
     sangam: []
+  },
+  payment: {
+    reference: ['reference', 'referenceNumber', 'bankName', 'depositDate', 'notes']
   }
 };
 

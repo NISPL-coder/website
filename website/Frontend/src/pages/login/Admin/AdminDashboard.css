@@ -555,6 +555,20 @@
   background: var(--adm-purple);
 }
 
+.adm-nav-item.is-readonly,
+.adm-submenu-item.is-readonly {
+  cursor: default !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  opacity: 0.72;
+}
+
+.adm-nav-item.is-readonly:hover,
+.adm-submenu-item.is-readonly:hover {
+  background: transparent !important;
+  color: var(--adm-text-muted) !important;
+}
+
 .adm-nav-item-left {
   display: flex;
   align-items: center;
@@ -1594,11 +1608,17 @@ input:checked + .adm-slider:before {
 @media (max-width: 992px) {
   .adm-sidebar {
     position: fixed;
-    top: 0;
+    top: var(--adm-header-height);
     left: -280px;
-    height: 100vh;
+    height: calc(100vh - var(--adm-header-height));
+    height: calc(100dvh - var(--adm-header-height));
+    max-height: calc(100dvh - var(--adm-header-height));
     z-index: 110;
-    transition: left 0.28s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .adm-sidebar.mobile-open {
     left: 0;
@@ -3141,12 +3161,26 @@ input:checked + .adm-slider:before {
 
   /* Off-canvas drawer: cap width so it never eats the whole screen */
   .adm-sidebar {
+    top: var(--adm-header-height);
+    height: calc(100vh - var(--adm-header-height));
+    height: calc(100dvh - var(--adm-header-height));
+    max-height: calc(100dvh - var(--adm-header-height));
     width: 280px;
     max-width: 85vw;
     box-shadow: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
   .adm-sidebar.mobile-open {
     box-shadow: 12px 0 40px rgba(15, 23, 42, 0.25);
+  }
+
+  .adm-mobile-backdrop {
+    top: var(--adm-header-height);
+    height: calc(100vh - var(--adm-header-height));
+    height: calc(100dvh - var(--adm-header-height));
   }
 
   /* Cards: headers and action rows wrap instead of overflowing */
@@ -3344,10 +3378,51 @@ input:checked + .adm-slider:before {
     margin-left: 0;
   }
 
-  .adm-date-range,
-  .adm-date-range-trigger {
+  .adm-table-filters .adm-date-range,
+  .adm-table-filters .adm-date-range-trigger,
+  .adm-date-range:not(.is-compact),
+  .adm-date-range:not(.is-compact) .adm-date-range-trigger {
     width: 100%;
     min-width: 0;
+  }
+
+  .adm-finance-card {
+    padding: 18px 16px;
+  }
+
+  .adm-finance-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .adm-finance-badge {
+    flex-shrink: 0;
+  }
+
+  .adm-finance-card .adm-date-range.is-compact {
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  .adm-finance-card .adm-date-range.is-compact .adm-date-range-trigger {
+    width: auto !important;
+    height: 28px !important;
+    min-width: 90px !important;
+    max-width: 140px;
+    padding: 0 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .adm-finance-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .adm-select-filter {
@@ -3684,7 +3759,8 @@ input:checked + .adm-slider:before {
   .adm-kpi-card,
   .adm-chart-card,
   .adm-product-card,
-  .adm-form-card {
+  .adm-form-card,
+  .adm-finance-card {
     padding: 14px 12px;
   }
 

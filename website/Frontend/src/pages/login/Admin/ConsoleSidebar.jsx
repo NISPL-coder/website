@@ -59,18 +59,30 @@ export default function ConsoleSidebar({
 
   const renderSubmenu = (item) => (
     <div className="adm-submenu animate-fade-in">
-      {item.submenu.map((child) => (
-        <button
-          key={child.id}
-          type="button"
-          className={`adm-submenu-item ${activeNav === child.id ? 'active' : ''}`}
-          onClick={() => onNavigate(child)}
-          title={child.title || child.label}
-        >
-          <child.icon size={16} />
-          <span>{child.label}</span>
-        </button>
-      ))}
+      {item.submenu.map((child) =>
+        child.readOnly ? (
+          <div
+            key={child.id}
+            className="adm-submenu-item is-readonly"
+            title={child.title || child.label}
+            aria-disabled="true"
+          >
+            <child.icon size={16} />
+            <span>{child.label}</span>
+          </div>
+        ) : (
+          <button
+            key={child.id}
+            type="button"
+            className={`adm-submenu-item ${activeNav === child.id ? 'active' : ''}`}
+            onClick={() => onNavigate(child)}
+            title={child.title || child.label}
+          >
+            <child.icon size={16} />
+            <span>{child.label}</span>
+          </button>
+        )
+      )}
     </div>
   );
 
@@ -86,32 +98,46 @@ export default function ConsoleSidebar({
               {showGroupLabel && <div className="adm-sidebar-divider" aria-hidden="true" />}
               {showGroupLabel && <div className="adm-sidebar-tools-label">{item.group}</div>}
 
-              <button
-                type="button"
-                className={`adm-nav-item ${item.submenu ? 'has-submenu' : ''} ${
-                  activeNav === item.id ? 'active' : ''
-                }`}
-                onClick={() => onNavigate(item)}
-                title={item.title || item.label}
-                aria-expanded={item.submenu ? isOpen : undefined}
-              >
-                <div className="adm-nav-item-left">
-                  <item.icon size={19} />
-                  <span>{item.label}</span>
+              {item.readOnly ? (
+                <div
+                  className="adm-nav-item is-readonly"
+                  title={item.title || item.label}
+                  aria-disabled="true"
+                >
+                  <div className="adm-nav-item-left">
+                    <item.icon size={19} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge > 0 && <span className="adm-nav-badge">{item.badge}</span>}
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  className={`adm-nav-item ${item.submenu ? 'has-submenu' : ''} ${
+                    activeNav === item.id ? 'active' : ''
+                  }`}
+                  onClick={() => onNavigate(item)}
+                  title={item.title || item.label}
+                  aria-expanded={item.submenu ? isOpen : undefined}
+                >
+                  <div className="adm-nav-item-left">
+                    <item.icon size={19} />
+                    <span>{item.label}</span>
+                  </div>
 
-                {item.badge > 0 && <span className="adm-nav-badge">{item.badge}</span>}
+                  {item.badge > 0 && <span className="adm-nav-badge">{item.badge}</span>}
 
-                {item.submenu && (
-                  <span
-                    className={`adm-nav-chevron ${isOpen ? 'open' : ''}`}
-                    onClick={(event) => toggleGroup(event, item.id)}
-                    title={isOpen ? 'Collapse Submenu' : 'Expand Submenu'}
-                  >
-                    <ChevronDown size={16} />
-                  </span>
-                )}
-              </button>
+                  {item.submenu && (
+                    <span
+                      className={`adm-nav-chevron ${isOpen ? 'open' : ''}`}
+                      onClick={(event) => toggleGroup(event, item.id)}
+                      title={isOpen ? 'Collapse Submenu' : 'Expand Submenu'}
+                    >
+                      <ChevronDown size={16} />
+                    </span>
+                  )}
+                </button>
+              )}
 
               {item.submenu && isOpen && renderSubmenu(item)}
             </React.Fragment>

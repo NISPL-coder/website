@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Download, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { exportToExcel, exportToCsv } from './exportUtils';
+import './ExportDropdown.css';
 
 export default function ExportDropdown({
   data = [],
@@ -11,6 +12,7 @@ export default function ExportDropdown({
   itemLabel = 'records'
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuAlign, setMenuAlign] = useState('left');
   const dropdownRef = useRef(null);
 
   // Close dropdown on outside click
@@ -23,6 +25,36 @@ export default function ExportDropdown({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Compute smart left/right alignment so it never overflows off-screen
+  const checkAlignment = () => {
+    if (dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const menuWidth = 210;
+      // If aligning right would push the menu past the left screen edge
+      if (rect.right - menuWidth < 12) {
+        setMenuAlign('left');
+      } else if (rect.left + menuWidth > window.innerWidth - 12) {
+        setMenuAlign('right');
+      } else {
+        setMenuAlign(window.innerWidth <= 768 ? 'left' : 'right');
+      }
+    }
+  };
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      checkAlignment();
+    }
+    setIsOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    checkAlignment();
+    window.addEventListener('resize', checkAlignment);
+    return () => window.removeEventListener('resize', checkAlignment);
+  }, [isOpen]);
 
   const handleExport = (type) => {
     if (!data || data.length === 0) {
@@ -69,72 +101,24 @@ export default function ExportDropdown({
     <div
       ref={dropdownRef}
       className="adm-export-dropdown-wrapper"
-      style={{ position: 'relative', display: 'inline-block' }}
     >
       <button
         type="button"
         className="adm-btn-export"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         title="Export records as CSV or Excel"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '9px 16px',
-          borderRadius: '10px',
-          border: '1.5px solid #e2e8f0',
-          background: '#ffffff',
-          color: '#334155',
-          fontSize: '0.86rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-          height: '38px',
-          whiteSpace: 'nowrap'
-        }}
       >
-        <Download size={15} style={{ color: '#6366f1' }} />
+        <Download size={15} className="adm-btn-export-icon" />
         <span>{label}</span>
         <ChevronDown
           size={14}
-          style={{
-            color: '#94a3b8',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease'
-          }}
+          className={`adm-btn-export-chevron ${isOpen ? 'open' : ''}`}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="adm-export-menu"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            right: 0,
-            width: '210px',
-            background: '#ffffff',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 12px 30px -4px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(0, 0, 0, 0.04)',
-            padding: '6px',
-            zIndex: 100,
-            animation: 'fadeIn 0.15s ease-out'
-          }}
-        >
-          <div
-            style={{
-              padding: '6px 10px 4px 10px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: '#94a3b8',
-              borderBottom: '1px solid #f1f5f9',
-              marginBottom: '4px'
-            }}
-          >
+        <div className={`adm-export-menu align-${menuAlign}`}>
+          <div className="adm-export-menu-header">
             Export Options
           </div>
 
@@ -143,43 +127,13 @@ export default function ExportDropdown({
             type="button"
             className="adm-export-item"
             onClick={() => handleExport('excel')}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 10px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'background 0.15s ease'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            <div
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '8px',
-                background: '#ecfdf5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <FileSpreadsheet size={16} style={{ color: '#059669' }} />
+            <div className="adm-export-item-icon excel">
+              <FileSpreadsheet size={16} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0f172a' }}>
-                Excel (.xlsx)
-              </span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                Full formatted sheet
-              </span>
+            <div className="adm-export-item-text">
+              <span className="adm-export-item-title">Excel (.xlsx)</span>
+              <span className="adm-export-item-subtitle">Full formatted sheet</span>
             </div>
           </button>
 
@@ -188,43 +142,13 @@ export default function ExportDropdown({
             type="button"
             className="adm-export-item"
             onClick={() => handleExport('csv')}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 10px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'background 0.15s ease'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            <div
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '8px',
-                background: '#ede9fe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <FileText size={16} style={{ color: '#6366f1' }} />
+            <div className="adm-export-item-icon csv">
+              <FileText size={16} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0f172a' }}>
-                CSV (.csv)
-              </span>
-              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                Standard comma-separated
-              </span>
+            <div className="adm-export-item-text">
+              <span className="adm-export-item-title">CSV (.csv)</span>
+              <span className="adm-export-item-subtitle">Standard comma-separated</span>
             </div>
           </button>
         </div>

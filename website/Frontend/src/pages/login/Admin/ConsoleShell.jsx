@@ -134,7 +134,7 @@ export default function ConsoleShell({
   }, [isMobileOpen]);
 
   const handleNavigate = (item) => {
-    if (!item?.path) return;
+    if (!item?.path || item?.readOnly || item?.disabled) return;
     if (onNavigate) onNavigate(item);
     else navigate(item.path);
     setIsMobileOpen(false);

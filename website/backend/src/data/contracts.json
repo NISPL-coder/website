@@ -1,0 +1,39 @@
+[
+  {
+    "contractId": "CTR-2026-1000",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "Demo Company",
+    "customer": "deba customer",
+    "accountId": "d2a79ba0-43a8-4fdc-80d0-b15f7fa29100",
+    "email": "chakrabortydebasish002@gmail.com",
+    "service": "Subscription (1 Month)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Month",
+    "productCategory": "Software",
+    "totalContractValue": "₹590",
+    "value": "₹590 / 1 month",
+    "orderDate": "2026-11-13",
+    "startDate": "2026-11-13",
+    "endDate": "2026-12-13",
+    "expiryDate": "2026-12-13",
+    "status": "In Progress",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1001 (PAY-2026-1001).",
+    "productId": "PROD-1794552381131",
+    "salesPerson": "Demo SalesPerson",
+    "paymentInvoiceNumber": "INV-2026-1001",
+    "createdBy": {
+      "name": "deba customer",
+      "email": "chakrabortydebasish002@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "f9e60218-c2e6-4eb5-ac68-4e543cd4e91e",
+      "lastSyncedAt": "2026-11-13T06:58:47.161Z",
+      "syncError": null
+    },
+    "id": "CTR-2026-1000",
+    "createdAt": "2026-11-13T06:58:45.279Z"
+  }
+]

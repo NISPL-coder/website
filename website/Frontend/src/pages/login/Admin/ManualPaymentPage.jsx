@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
 import { paymentApi } from '../../../services/paymentApi';
 import { staffApi } from '../../../services/staffApi';
+import { productApi } from '../../../services/productApi';
 import { usePermissions } from './PermissionsContext';
 
 // How the money physically arrived. Each instrument is proved by a different
@@ -133,12 +134,51 @@ export default function ManualPaymentPage({
       }));
   }, [contracts, formState.company]);
 
+  const [liveProducts, setLiveProducts] = useState(catalogue);
+
+  useEffect(() => {
+    if (Array.isArray(catalogue) && catalogue.length > 0) {
+      setLiveProducts(catalogue);
+    }
+  }, [catalogue]);
+
+  useEffect(() => {
+    let cancelled = false;
+    productApi.getProducts().then((data) => {
+      if (!cancelled && Array.isArray(data)) {
+        setLiveProducts(data);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleDataChanged = (e) => {
+      const resource = e?.detail?.resource;
+      if (!resource || resource === '*' || resource === 'products') {
+        productApi.getProducts().then((data) => {
+          if (Array.isArray(data)) setLiveProducts(data);
+        });
+      }
+    };
+    window.addEventListener('nispl_data_changed', handleDataChanged);
+    return () => window.removeEventListener('nispl_data_changed', handleDataChanged);
+  }, []);
+
+  const effectiveProducts = liveProducts && liveProducts.length > 0 ? liveProducts : catalogue;
+
   const productOptions = useMemo(
     () =>
-      catalogue
+      (effectiveProducts || [])
         .filter((p) => p.available !== false && p.status !== 'inactive')
-        .map((p) => ({ value: p.productId || p.id, label: p.name, product: p })),
-    [catalogue]
+        .map((p) => ({
+          value: p.productId || p.id || p._id,
+          label: p.name || p.title || 'Unnamed Product',
+          product: p
+        })),
+    [effectiveProducts]
   );
 
   const [staffOptions, setStaffOptions] = useState([]);
@@ -240,7 +280,7 @@ export default function ManualPaymentPage({
   };
 
   const validate = () => {
-    if (!formState.company.trim()) return ['company', 'Select or type the paying organization.'];
+    if (!formState.company.trim()) return ['company', 'Select te customer.'];
     if (!(amountNumber(formState.amount) > 0)) return ['amount', 'Enter the amount received.'];
     if (!formState.paymentReceivedDate) return ['paymentReceivedDate', 'Enter the date the money was received.'];
     if (!formState.referenceNumber.trim() && !instrument.referenceOptional)
@@ -394,14 +434,14 @@ export default function ManualPaymentPage({
 
             {customerOptions.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
-                <label className="adm-form-label">Pick the paying account</label>
+                <label className="adm-form-label">Select Customer</label>
                 <Select
                   styles={customSelectStyles}
                   isSearchable={true}
                   options={customerOptions}
                   value={customerOptions.find((o) => o.value === formState.company) || null}
                   onChange={(opt) => handleSelectCustomer(opt?.value)}
-                  placeholder="Search and select paying client account..."
+                  placeholder="Search or select a customer"
                   classNamePrefix="react-select"
                 />
               </div>
@@ -410,7 +450,7 @@ export default function ManualPaymentPage({
             <div className="adm-form-grid">
               <div className="adm-form-field">
                 <label className="adm-form-label">
-                  Paying Organization <span className="adm-required-star">*</span>
+                  Comapny Name<span className="adm-required-star">*</span>
                 </label>
                 <input
                   type="text"
@@ -464,9 +504,17 @@ export default function ManualPaymentPage({
                   styles={customSelectStyles}
                   isSearchable={true}
                   options={productOptions}
-                  value={productOptions.find((p) => p.value === formState.productId) || null}
+                  value={
+                    productOptions.find(
+                      (p) =>
+                        p.value === formState.productId ||
+                        p.product?.productId === formState.productId ||
+                        p.product?._id === formState.productId
+                    ) || null
+                  }
                   onChange={(opt) => setField('productId')(opt ? opt.value : '')}
                   placeholder="Select the plan this payment covers..."
+                  noOptionsMessage={() => 'No products created by admin'}
                   classNamePrefix="react-select"
                 />
               </div>

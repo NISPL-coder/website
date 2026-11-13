@@ -220,25 +220,50 @@
 }
 
 @media (max-width: 640px) {
-  .adm-date-range,
-  .adm-date-range-trigger {
+  .adm-date-range:not(.is-compact),
+  .adm-date-range:not(.is-compact) .adm-date-range-trigger {
     width: 100%;
   }
 
-  .adm-date-range-trigger {
+  .adm-date-range:not(.is-compact) .adm-date-range-trigger {
     min-width: 0;
     height: 44px;
     font-size: 0.9rem;
   }
 
-  .adm-date-range.is-active .adm-date-range-trigger {
+  .adm-date-range.is-compact {
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .adm-date-range.is-compact .adm-date-range-trigger {
+    height: 28px;
+    min-width: 90px;
+    max-width: 140px;
+    padding: 0 8px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    width: auto;
+  }
+
+  .adm-date-range.is-active:not(.is-compact) .adm-date-range-trigger {
     padding-right: 44px;
   }
 
-  .adm-date-range-clear {
+  .adm-date-range.is-compact.is-active .adm-date-range-trigger {
+    padding-right: 22px;
+  }
+
+  .adm-date-range:not(.is-compact) .adm-date-range-clear {
     width: 32px;
     height: 32px;
     right: 7px;
+  }
+
+  .adm-date-range.is-compact .adm-date-range-clear {
+    width: 18px;
+    height: 18px;
+    right: 4px;
   }
 
   .adm-date-range-popover {

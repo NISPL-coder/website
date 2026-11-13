@@ -175,6 +175,9 @@ const LEGACY_COLUMN_ALIASES = {
     service: ['contractType'],
     expiryDate: ['endDate'],
     sangam: []
+  },
+  payment: {
+    reference: ['reference', 'referenceNumber', 'bankName', 'depositDate', 'notes']
   }
 };
 

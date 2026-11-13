@@ -83,7 +83,6 @@ const ADMIN_PAGES = [
   { path: '/admin/product/addons', title: 'Product Add-ons', subtitle: 'Manage add-ons and customer checkout toggles', keywords: 'addon addons add-on add-ons extra backup storage ram ip' },
   { path: '/admin/receipt', title: 'Receipts & Proofs', subtitle: 'Payment receipts, tax invoices and download proofs', keywords: 'receipt receipts invoice invoices tax slip proof download' },
   { path: '/admin/sales-person', title: 'Sales Person Allocation', subtitle: 'Manage sales representatives and customer allocation', keywords: 'sales person representative team rep agent dynamic allocation' },
-  { path: '/admin/ip-monitor', title: 'Active / Inactive IP Monitor', subtitle: 'Liveness of served public IPs across hosting nodes', keywords: 'ip inactive active network monitor node ping address uptime' },
   { path: '/admin/import-csv', title: 'Import CSV Data', subtitle: 'Batch import customers, contracts and records', keywords: 'import csv upload bulk excel spreadsheet' },
   { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
   { path: '/admin/user-access', title: 'User Access & Permissions', subtitle: 'Manage admin, manager and support staff roles', keywords: 'user access permission permissions role roles team staff grant' },
@@ -455,7 +454,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     }
     if (wants('payments') && can('payment', 'view')) {
       tasks.push(paymentApi.getPayments().then((data) => {
-        if (data && Array.isArray(data) && data.length) {
+        if (data && Array.isArray(data)) {
           setPayments(data);
         }
       }));
@@ -463,7 +462,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     // Load live product catalog from database
     if (wants('products')) {
       tasks.push(productApi.getProducts().then((data) => {
-        if (data && Array.isArray(data) && data.length) {
+        if (data && Array.isArray(data)) {
           setProducts(data);
         }
       }));
@@ -587,7 +586,13 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (can('receipt')) {
       items.push({ id: 'receipt', label: 'Receipt', icon: ReceiptText, path: '/admin/receipt', title: 'Payment Receipts' });
     }
-    items.push({ id: 'ip-monitor', label: 'Active/Inactive IP', icon: Network, path: '/admin/ip-monitor', title: 'Active & Inactive IP Monitor' });
+    items.push({
+      id: 'ip-monitor',
+      label: 'Active/Inactive IP',
+      icon: Network,
+      readOnly: true,
+      title: 'Active & Inactive IP Monitor (Read only)'
+    });
     items.push({ id: 'sales-person', label: 'Sales Person', icon: UserCheck, path: '/admin/sales-person', title: 'Sales Person Allocation & Management' });
 
     const canImportCsv = can('import_csv') || can('data_tools');

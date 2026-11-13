@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
 import { paymentApi } from '../../../services/paymentApi';
 import { staffApi } from '../../../services/staffApi';
+import { productApi } from '../../../services/productApi';
 
 const PAYMENT_METHODS = [
   { value: 'NEFT / RTGS Wire', label: 'NEFT / RTGS Wire' },
@@ -95,12 +96,51 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
       }));
   }, [contracts, formState.company]);
 
+  const [liveProducts, setLiveProducts] = useState(catalogue);
+
+  useEffect(() => {
+    if (Array.isArray(catalogue) && catalogue.length > 0) {
+      setLiveProducts(catalogue);
+    }
+  }, [catalogue]);
+
+  useEffect(() => {
+    let cancelled = false;
+    productApi.getProducts().then((data) => {
+      if (!cancelled && Array.isArray(data)) {
+        setLiveProducts(data);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleDataChanged = (e) => {
+      const resource = e?.detail?.resource;
+      if (!resource || resource === '*' || resource === 'products') {
+        productApi.getProducts().then((data) => {
+          if (Array.isArray(data)) setLiveProducts(data);
+        });
+      }
+    };
+    window.addEventListener('nispl_data_changed', handleDataChanged);
+    return () => window.removeEventListener('nispl_data_changed', handleDataChanged);
+  }, []);
+
+  const effectiveProducts = liveProducts && liveProducts.length > 0 ? liveProducts : catalogue;
+
   const productOptions = useMemo(
     () =>
-      catalogue
+      (effectiveProducts || [])
         .filter((p) => p.available !== false && p.status !== 'inactive')
-        .map((p) => ({ value: p.productId || p.id, label: p.name, product: p })),
-    [catalogue]
+        .map((p) => ({
+          value: p.productId || p.id || p._id,
+          label: p.name || p.title || 'Unnamed Product',
+          product: p
+        })),
+    [effectiveProducts]
   );
 
   const [staffOptions, setStaffOptions] = useState([]);
@@ -389,9 +429,17 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
                   styles={customSelectStyles}
                   isSearchable={true}
                   options={productOptions}
-                  value={productOptions.find((p) => p.value === formState.productId) || null}
+                  value={
+                    productOptions.find(
+                      (p) =>
+                        p.value === formState.productId ||
+                        p.product?.productId === formState.productId ||
+                        p.product?._id === formState.productId
+                    ) || null
+                  }
                   onChange={(opt) => setFormState({ ...formState, productId: opt ? opt.value : '' })}
                   placeholder="Select the plan this payment covers..."
+                  noOptionsMessage={() => 'No products created by admin'}
                   classNamePrefix="react-select"
                 />
               </div>

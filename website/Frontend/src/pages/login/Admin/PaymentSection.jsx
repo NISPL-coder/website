@@ -14,15 +14,21 @@ import { compareDate, compareNumber, compareText, isWithinDateRange } from './ad
 
 const getName = (row) => row.name || row.customer || '—';
 const getAccount = (row) => row.accountName || row.company || '—';
+const getProductName = (row) => row.items?.[0]?.name || row.solutionCategory || row.productName || '—';
 const getInvoiceNumber = (row) => row.invoiceNumber || row.invoiceRef || '—';
 const getInvoiceDate = (row) => row.invoiceDate || row.date || '—';
-const getReceivedAmount = (row) => row.receivedAmount || row.amount;
+const getReceivedAmount = (row) => row.receivedAmount || row.amount || '—';
 const getPending = (row) => row.pendingPayment || '₹0';
+const getTaxableAmount = (row) => row.taxableAmount || '—';
+const getGstAmount = (row) => row.gstAmount || '—';
 const getExpectedDate = (row) => row.expectedPaymentDate || '—';
 const getReceivedDate = (row) => row.paymentReceivedDate || row.date || '—';
 const getMethod = (row) => row.paymentMethod || row.method || '—';
-const getReference = (row) => row.referenceNumber || '';
-const getBank = (row) => row.bankName || '';
+const getReference = (row) => row.referenceNumber || row.chequeNumber || row.utrNumber || '';
+const getBank = (row) => row.bankName || row.bank || '';
+const getDepositDate = (row) => row.depositDate || row.realisationDate || '';
+const getSalesPerson = (row) => row.salesPerson || row.staff || '';
+const getNotes = (row) => row.notes || '';
 const getProof = (row) => row.proof || null;
 const getFilterDate = (row) =>
   row.invoiceDate || row.date || row.paymentReceivedDate || row.expectedPaymentDate || row.createdAt;
@@ -62,7 +68,11 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       const invNumStr = (p.invoiceNumber || p.invoiceRef || '').toLowerCase();
       const methodStr = (p.paymentMethod || p.method || '').toLowerCase();
       const statusStr = (p.status || '').toLowerCase();
-      const referenceStr = String(p.referenceNumber || '').toLowerCase();
+      const referenceStr = String(p.referenceNumber || p.chequeNumber || p.utrNumber || '').toLowerCase();
+      const bankStr = String(p.bankName || p.bank || '').toLowerCase();
+      const salesPersonStr = String(p.salesPerson || p.staff || '').toLowerCase();
+      const productStr = String(p.items?.[0]?.name || p.solutionCategory || p.productName || '').toLowerCase();
+      const notesStr = String(p.notes || '').toLowerCase();
 
       const matchesSearch =
         !q ||
@@ -70,8 +80,13 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         accountStr.includes(q) ||
         invNumStr.includes(q) ||
         methodStr.includes(q) ||
+        statusStr.includes(q) ||
         referenceStr.includes(q) ||
-        p.id.toLowerCase().includes(q);
+        bankStr.includes(q) ||
+        salesPersonStr.includes(q) ||
+        productStr.includes(q) ||
+        notesStr.includes(q) ||
+        String(p.id || '').toLowerCase().includes(q);
 
       const matchesStatus =
         statusFilter === 'all' || statusStr === statusFilter.toLowerCase();
@@ -98,7 +113,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getName(row),
       sortable: true,
       sortFunction: compareText(getName),
-      minWidth: '190px',
+      minWidth: '180px',
       grow: 1.1,
       cell: (p) => (
         <div>
@@ -115,9 +130,22 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getAccount(row),
       sortable: true,
       sortFunction: compareText(getAccount),
-      minWidth: '170px',
+      minWidth: '160px',
       grow: 1,
       cell: (p) => <span style={{ fontWeight: 600, color: '#1e293b' }}>{getAccount(p)}</span>
+    },
+    {
+      id: 'productName',
+      name: 'Product / Plan',
+      selector: (row) => getProductName(row),
+      sortable: true,
+      sortFunction: compareText(getProductName),
+      minWidth: '160px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.84rem', color: '#334155', fontWeight: 500 }}>
+          {getProductName(p)}
+        </span>
+      )
     },
     {
       id: 'invoiceNumber',
@@ -125,7 +153,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getInvoiceNumber(row),
       sortable: true,
       sortFunction: compareText(getInvoiceNumber),
-      minWidth: '150px',
+      minWidth: '140px',
       cell: (p) => (
         <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', color: '#334155' }}>
           {getInvoiceNumber(p)}
@@ -138,7 +166,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getInvoiceDate(row),
       sortable: true,
       sortFunction: compareDate(getInvoiceDate),
-      width: '130px',
+      width: '120px',
       cell: (p) => (
         <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{getInvoiceDate(p)}</span>
       )
@@ -149,7 +177,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getReceivedAmount(row),
       sortable: true,
       sortFunction: compareNumber(getReceivedAmount),
-      width: '150px',
+      minWidth: '150px',
       cell: (p) => (
         <span style={{ fontWeight: 700, color: '#059669', fontSize: '0.92rem' }}>
           {getReceivedAmount(p)}
@@ -162,7 +190,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getPending(row),
       sortable: true,
       sortFunction: compareNumber(getPending),
-      width: '150px',
+      minWidth: '150px',
       cell: (p) => (
         <span
           style={{
@@ -176,12 +204,38 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       )
     },
     {
+      id: 'taxableAmount',
+      name: 'Taxable Amount',
+      selector: (row) => getTaxableAmount(row),
+      sortable: true,
+      sortFunction: compareNumber(getTaxableAmount),
+      minWidth: '140px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.84rem', color: '#475569' }}>
+          {getTaxableAmount(p)}
+        </span>
+      )
+    },
+    {
+      id: 'gstAmount',
+      name: 'GST Amount',
+      selector: (row) => getGstAmount(row),
+      sortable: true,
+      sortFunction: compareNumber(getGstAmount),
+      minWidth: '130px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.84rem', color: '#475569' }}>
+          {getGstAmount(p)}
+        </span>
+      )
+    },
+    {
       id: 'expectedPaymentDate',
       name: 'Expected Payment Date',
       selector: (row) => getExpectedDate(row),
       sortable: true,
       sortFunction: compareDate(getExpectedDate),
-      width: '150px',
+      minWidth: '160px',
       cell: (p) => (
         <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{getExpectedDate(p)}</span>
       )
@@ -192,7 +246,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getReceivedDate(row),
       sortable: true,
       sortFunction: compareDate(getReceivedDate),
-      width: '155px',
+      minWidth: '165px',
       cell: (p) => (
         <span style={{ fontSize: '0.82rem', color: '#334155' }}>{getReceivedDate(p)}</span>
       )
@@ -203,36 +257,135 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       selector: (row) => getMethod(row),
       sortable: true,
       sortFunction: compareText(getMethod),
-      width: '150px',
-      cell: (p) => <span className="adm-status-pill info">{getMethod(p)}</span>
+      minWidth: '200px',
+      cell: (p) => {
+        const method = getMethod(p);
+        if (!method || method === '—') {
+          return <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>—</span>;
+        }
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 12px',
+              borderRadius: '9999px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: '#4338ca',
+              background: '#eef2ff',
+              border: '1px solid #c7d2fe',
+              whiteSpace: 'nowrap',
+              width: 'fit-content',
+              maxWidth: 'none'
+            }}
+          >
+            {method}
+          </span>
+        );
+      }
     },
     {
-      id: 'reference',
-      name: 'Bank Reference',
+      id: 'referenceNumber',
+      name: 'Cheque / Ref No.',
       selector: (row) => getReference(row),
       sortable: true,
       sortFunction: compareText(getReference),
-      width: '190px',
-      cell: (p) =>
-        getReference(p) || getBank(p) ? (
-          <div>
-            <div style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: '#334155' }}>
-              {getReference(p) || '—'}
-            </div>
-            {getBank(p) && (
-              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{getBank(p)}</div>
-            )}
-          </div>
+      minWidth: '180px',
+      cell: (p) => {
+        const ref = getReference(p);
+        if (!ref) {
+          return <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>—</span>;
+        }
+        return (
+          <span
+            style={{
+              fontFamily: 'monospace',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#334155',
+              background: '#f1f5f9',
+              padding: '2px 7px',
+              borderRadius: '4px',
+              display: 'inline-block'
+            }}
+          >
+            {ref}
+          </span>
+        );
+      }
+    },
+    {
+      id: 'bankName',
+      name: 'Bank / Branch',
+      selector: (row) => getBank(row),
+      sortable: true,
+      sortFunction: compareText(getBank),
+      minWidth: '180px',
+      cell: (p) => {
+        const bank = getBank(p);
+        return bank ? (
+          <span style={{ fontSize: '0.84rem', color: '#1e293b', fontWeight: 500 }}>{bank}</span>
         ) : (
-          <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>Online payment</span>
-        )
+          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>—</span>
+        );
+      }
+    },
+    {
+      id: 'depositDate',
+      name: 'Realisation Date',
+      selector: (row) => getDepositDate(row),
+      sortable: true,
+      sortFunction: compareDate(getDepositDate),
+      minWidth: '150px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+          {getDepositDate(p) || '—'}
+        </span>
+      )
+    },
+    {
+      id: 'salesPerson',
+      name: 'Sales Person',
+      selector: (row) => getSalesPerson(row),
+      sortable: true,
+      sortFunction: compareText(getSalesPerson),
+      minWidth: '190px',
+      cell: (p) => (
+        <span style={{ fontSize: '0.82rem', color: getSalesPerson(p) ? '#0f172a' : '#94a3b8', fontWeight: getSalesPerson(p) ? 500 : 400 }}>
+          {getSalesPerson(p) || '—'}
+        </span>
+      )
+    },
+    {
+      id: 'notes',
+      name: 'Remarks / Notes',
+      selector: (row) => getNotes(row),
+      sortable: true,
+      sortFunction: compareText(getNotes),
+      minWidth: '180px',
+      cell: (p) => (
+        <span
+          style={{
+            fontSize: '0.8rem',
+            color: '#64748b',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}
+          title={getNotes(p)}
+        >
+          {getNotes(p) || '—'}
+        </span>
+      )
     },
     {
       id: 'proof',
       name: 'Proof',
       selector: () => '',
       sortable: false,
-      width: '120px',
+      width: '110px',
       center: true,
       ignoreRowClick: true,
       searchable: false,
@@ -280,7 +433,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       id: 'actions',
       name: 'Action',
       center: true,
-      width: '130px',
+      width: '110px',
       button: true,
       allowOverflow: true,
       searchable: false,
@@ -400,7 +553,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         defaultSortFieldId="invoiceDate"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={2060}
+        minWidth={3000}
         noDataMessage="No payment records found"
         noDataHint="Try a different search term or settlement filter."
         ariaLabel="Customer payments"
