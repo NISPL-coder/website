@@ -98,18 +98,46 @@ export const contractTypeCategory = (type) =>
     : 'Software';
 
 /**
+ * Robust date parser supporting DD-MM-YYYY, DD/MM/YYYY, and standard ISO formats
+ */
+export const parseDateRobust = (value) => {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  const s = String(value).trim();
+  const ddmmyyyy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (ddmmyyyy) {
+    const day = parseInt(ddmmyyyy[1], 10);
+    const month = parseInt(ddmmyyyy[2], 10) - 1;
+    const year = parseInt(ddmmyyyy[3], 10);
+    return new Date(year, month, day);
+  }
+  const yyyymmdd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (yyyymmdd) {
+    const year = parseInt(yyyymmdd[1], 10);
+    const month = parseInt(yyyymmdd[2], 10) - 1;
+    const day = parseInt(yyyymmdd[3], 10);
+    return new Date(year, month, day);
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+/**
  * The term is no longer typed by hand — it is whatever the validity dates say,
  * so the receipt Duration and the CRM subscription_period cannot disagree with
  * the start and end dates printed on the same contract.
  */
 export const periodFromDates = (startDate, endDate) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) return '';
+  const start = parseDateRobust(startDate);
+  const end = parseDateRobust(endDate);
+  if (!start || !end || end <= start) return '';
+
+  const effectiveEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1);
 
   let months =
-    (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-  if (end.getDate() < start.getDate()) months -= 1;
+    (effectiveEnd.getFullYear() - start.getFullYear()) * 12 +
+    (effectiveEnd.getMonth() - start.getMonth());
+  if (effectiveEnd.getDate() < start.getDate()) months -= 1;
   if (months < 1) months = 1;
 
   if (months % 12 === 0) {

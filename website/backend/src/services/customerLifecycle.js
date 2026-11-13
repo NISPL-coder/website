@@ -168,6 +168,17 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
     return 'InProgress';
   }
 
+  // 4. Fallback to customer's own stored status if no contracts contradict it
+  if (stored === 'active') {
+    return 'Active';
+  }
+  if (stored === 'demo' || stored === 'trial') {
+    return 'Demo';
+  }
+  if (stored === 'demoinactive') {
+    return 'DemoInactive';
+  }
+
   return 'Inactive';
 };
 

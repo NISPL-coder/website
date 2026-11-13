@@ -9,6 +9,7 @@ import { nextLedgerReference } from './paymentController.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import { deriveCustomerLifecycle, refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
+import { periodFromDates } from '../utils/contractVocabulary.js';
 import mongoose from 'mongoose';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -1576,12 +1577,14 @@ export const importMaster = async (req, res) => {
     const credentials = [];
     let succeededCount = 0;
     let failedCount = 0;
+    let duplicateCount = 0;
     let activeCount = 0;
     let demoCount = 0;
     let paymentsCount = 0;
     let receiptsCount = 0;
     let crmSyncCount = 0;
     const touchedIdentities = new Map();
+    const seenBatchKeys = new Set();
 
     const year = new Date().getFullYear();
     const today = new Date().toISOString().split('T')[0];
@@ -1589,11 +1592,11 @@ export const importMaster = async (req, res) => {
     for (let i = 0; i < rows.length; i++) {
       const item = rows[i] || {};
 
-      // 1. Company & Contact Extraction
+      // 1. Company & Contact Extraction (Section A)
       const company = (item.companyName || item.company || item.accountName || item.name || '').trim();
       const contactPerson = (item.contactPerson || item.person || item.customerName || item.customer || item.name || company).trim();
-      const email = (item.email || item.corporateEmail || item.mail || '').trim().toLowerCase();
-      const phone = (item.phone || item.mobile || item.phoneNumber || '0000000000').trim();
+      const email = (item.email || item.corporateEmail || item.mail || item.personEmail || '').trim().toLowerCase();
+      const phone = (item.phone || item.mobile || item.phoneNumber || item.personMobile || '0000000000').trim();
       const designation = (item.designation || item.role || 'Customer').trim();
       const industry = (item.industry || 'Technology').trim();
       const tallySerialNo = (item.tallySerialNo || item.tallySlNo || '').trim();
@@ -1605,12 +1608,19 @@ export const importMaster = async (req, res) => {
       const gstin = (item.gstin || item.gstNo || '').trim().toUpperCase();
       const pan = (item.pan || '').trim().toUpperCase();
       const website = (item.website || '').trim();
+      const loginEmail = (item.loginEmail || email).trim().toLowerCase();
+      const additionalEmails = item.additionalEmails
+        ? (Array.isArray(item.additionalEmails) ? item.additionalEmails : String(item.additionalEmails).split(/[,;]/).map((s) => s.trim()).filter(Boolean))
+        : [];
+      const additionalPhones = item.additionalPhones
+        ? (Array.isArray(item.additionalPhones) ? item.additionalPhones : String(item.additionalPhones).split(/[,;]/).map((s) => s.trim()).filter(Boolean))
+        : [];
+      const alternatePhone = (item.alternatePhone || '').trim();
 
-      // 2. Contract Extraction
+      // 2. Contract Extraction (Section B)
       const contractName = (item.contractId || item.contractName || item.agreement || `${company} Cloud Services Agreement`).trim();
-      const service = (item.service || item.product || item.productName || 'Tally Prime Cloud Server').trim();
+      const service = (item.service || item.product || item.productName || item.productPlan || 'Tally Prime Cloud Server').trim();
       const contractType = (item.contractType || 'Comprehensive').trim();
-      const duration = (item.duration || item.subscriptionPeriod || '1 Year').trim();
       const productCategory = (item.productCategory || 'Software').trim();
       const rawTotalValue = item.totalContractValue ?? item.value ?? item.amount ?? '0';
       const formattedTotalValue = formatMasterAmount(rawTotalValue) || '₹0';
@@ -1624,6 +1634,15 @@ export const importMaster = async (req, res) => {
       }
       const orderDate = parseMasterDate(item.orderDate) || startDate;
 
+      // Auto-calculate duration from Start Date and End Date if duration is blank
+      let duration = (item.duration || item.subscriptionPeriod || '').trim();
+      if (!duration && startDate && endDate) {
+        duration = periodFromDates(startDate, endDate);
+      }
+      if (!duration) {
+        duration = '1 Year';
+      }
+
       // 3. Payment Status Extraction (Yes -> Active, No -> Demo)
       const rawPaymentStatus = String(item.paymentStatus || item.paid || item.isPaid || '').trim().toLowerCase();
       const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus);
@@ -1631,12 +1650,13 @@ export const importMaster = async (req, res) => {
       const customerStatus = isPaid ? 'Active' : 'Demo';
       const contractStatus = isPaid ? 'In Progress' : 'DEMO';
 
+      // 4. Payment Details (Section C)
       const paymentMethod = (item.paymentMode || item.paymentMethod || item.method || 'NEFT Wire').trim();
       const referenceNumber = (item.referenceNumber || item.chequeNumber || item.chequeNo || item.utr || '').trim();
       const bankName = (item.bankName || item.bankBranch || item.bank || '').trim();
       const salesPerson = (item.salesPerson || raisedBy.name || raisedBy.email || 'Online Customer Portal').trim();
       const slaTier = (item.slaTier || 'Tier-1 Priority NOC 99.99%').trim();
-      const description = (item.description || item.notes || '').trim();
+      const description = (item.description || item.notes || item.remarks || '').trim();
 
       if (!company || !email) {
         results.push({
@@ -1649,31 +1669,92 @@ export const importMaster = async (req, res) => {
         continue;
       }
 
+      // -------------------------------------------------------------
+      // DUPLICATE VALIDATION: Company Name + Phone Number Check
+      // -------------------------------------------------------------
+      const compNorm = company.trim().toLowerCase();
+      const phoneDigits = phone.replace(/[^0-9]/g, '');
+      const phoneLast10 = phoneDigits.length >= 10 ? phoneDigits.slice(-10) : phoneDigits;
+      const batchKey = `${compNorm}|${phoneLast10 || phone.trim()}`;
+
+      // A. Check within current spreadsheet batch
+      if (seenBatchKeys.has(batchKey)) {
+        results.push({
+          row: i + 1,
+          company,
+          phone,
+          email,
+          ok: false,
+          duplicate: true,
+          error: `Duplicate entry in spreadsheet: Company "${company}" with Phone "${phone}" repeats in this sheet. Skipped to prevent duplicate.`
+        });
+        duplicateCount++;
+        failedCount++;
+        continue;
+      }
+      seenBatchKeys.add(batchKey);
+
+      // B. Check against existing database / storage records
+      let existingCustomer = null;
+      if (isMongoConnected()) {
+        existingCustomer = await Customer.findOne({
+          $or: [
+            { email },
+            { phone: phone !== '0000000000' ? phone : '__none__' },
+            ...(phoneLast10 ? [{ phone: new RegExp(`${phoneLast10}$`) }, { mobile: new RegExp(`${phoneLast10}$`) }] : []),
+            { company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+          ]
+        });
+      } else {
+        const fileCustomers = getCustomersFromFile();
+        existingCustomer = fileCustomers.find(
+          (c) =>
+            (c.email && c.email.toLowerCase() === email) ||
+            (phone !== '0000000000' && c.phone && c.phone === phone) ||
+            (c.company && c.company.toLowerCase() === compNorm)
+        );
+      }
+
+      // Check if this exact contract already exists in the system
+      let existingContract = null;
+      if (isMongoConnected()) {
+        existingContract = await Contract.findOne({
+          $or: [
+            ...(item.contractId ? [{ contractId: item.contractId }] : []),
+            { name: new RegExp(`^${contractName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+          ]
+        });
+      } else {
+        const fileContracts = getContractsFromFile();
+        existingContract = fileContracts.find(
+          (c) =>
+            (item.contractId && c.contractId === item.contractId) ||
+            (c.name?.toLowerCase() === contractName.toLowerCase() && c.company?.toLowerCase() === compNorm)
+        );
+      }
+
+      // If both customer AND this specific contract already exist in system:
+      if (existingCustomer && existingContract && item.contractId && existingContract.contractId === item.contractId) {
+        results.push({
+          row: i + 1,
+          company,
+          phone,
+          email,
+          ok: false,
+          duplicate: true,
+          error: `Record already exists: Company "${company}" with Contract "${item.contractId}" is already provisioned. Skipped to prevent duplicate.`
+        });
+        duplicateCount++;
+        failedCount++;
+        continue;
+      }
+
       try {
         // -------------------------------------------------------------
         // STEP A: Customer Provisioning & Credentials Generation
         // -------------------------------------------------------------
-        let existingCustomer = null;
-        if (isMongoConnected()) {
-          existingCustomer = await Customer.findOne({
-            $or: [
-              { email },
-              { phone: phone !== '0000000000' ? phone : '__none__' },
-              { company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-            ]
-          });
-        } else {
-          const fileCustomers = getCustomersFromFile();
-          existingCustomer = fileCustomers.find(
-            (c) =>
-              (c.email && c.email.toLowerCase() === email) ||
-              (phone !== '0000000000' && c.phone && c.phone === phone) ||
-              (c.company && c.company.toLowerCase() === company.toLowerCase())
-          );
-        }
-
-        const customerId = existingCustomer?.customerId || `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
-        const plainPassword = existingCustomer?.portalPassword || generateCustomerPassword(company || contactPerson);
+        const customerId = existingCustomer?.customerId || item.customerId || item.id || `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+        const plainPassword = existingCustomer?.portalPassword || item.password || generateCustomerPassword(company || contactPerson);
 
         const customerPayload = {
           customerId,
@@ -1681,9 +1762,12 @@ export const importMaster = async (req, res) => {
           name: contactPerson,
           company,
           email,
-          loginEmail: email,
+          loginEmail,
+          additionalEmails,
           portalPassword: plainPassword,
           phone,
+          additionalPhones,
+          alternatePhone,
           website,
           industry,
           accountRelationship: 'Customer',
@@ -1739,7 +1823,7 @@ export const importMaster = async (req, res) => {
                 portalPassword: plainPassword,
                 role: 'customer',
                 customerId,
-                accountStatus: customerStatus,
+                accountStatus: 'active',
                 isEmailVerified: true
               });
             } else {
@@ -1747,7 +1831,7 @@ export const importMaster = async (req, res) => {
               existingUser.email = email;
               existingUser.company = company;
               existingUser.customerId = customerId;
-              existingUser.accountStatus = customerStatus;
+              existingUser.accountStatus = 'active';
               existingUser.portalPassword = plainPassword;
               await existingUser.save();
             }
@@ -2017,15 +2101,15 @@ export const importMaster = async (req, res) => {
       message: `Imported ${succeededCount} master records: ${activeCount} active, ${demoCount} demo trials, ${paymentsCount} payments & receipts generated.`,
       severity: failedCount > 0 ? 'warning' : 'success',
       entityType: 'customer',
-      metadata: { total: rows.length, succeeded: succeededCount, failed: failedCount, activeCount, demoCount, paymentsCount, receiptsCount, crmSyncCount }
+      metadata: { total: rows.length, succeeded: succeededCount, failed: failedCount, duplicateCount, activeCount, demoCount, paymentsCount, receiptsCount, crmSyncCount }
     });
 
     await logActivity(req, {
       action: 'IMPORT_MASTER_CSV',
       category: 'customer',
       resource: 'MasterImport',
-      details: `Bulk imported ${succeededCount} master records from unified CSV (${activeCount} active, ${demoCount} demo, ${paymentsCount} payments, ${receiptsCount} receipts, ${crmSyncCount} synced to CRM).`,
-      changes: { total: rows.length, succeeded: succeededCount, failed: failedCount, activeCount, demoCount, paymentsCount, receiptsCount }
+      details: `Bulk imported ${succeededCount} master records from unified CSV (${activeCount} active, ${demoCount} demo, ${duplicateCount} duplicates skipped, ${paymentsCount} payments, ${receiptsCount} receipts, ${crmSyncCount} synced to CRM).`,
+      changes: { total: rows.length, succeeded: succeededCount, failed: failedCount, duplicateCount, activeCount, demoCount, paymentsCount, receiptsCount }
     });
 
     return res.status(200).json({
@@ -2033,6 +2117,7 @@ export const importMaster = async (req, res) => {
       total: rows.length,
       succeeded: succeededCount,
       failed: failedCount,
+      duplicateCount,
       activeCount,
       demoCount,
       paymentsCount,
