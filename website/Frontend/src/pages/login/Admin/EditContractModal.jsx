@@ -42,6 +42,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
         startDate: contract.startDate || '',
         endDate: contract.endDate || contract.expiryDate || '',
         status: normalizeContractStatus(contract.status) || 'In Progress',
+        paymentStatus: ['yes', 'true', '1', 'paid'].includes(String(contract.paymentStatus || '').toLowerCase()) ? 'Yes' : 'No',
         slaTier: contract.slaTier || 'Tier-1 Priority NOC 99.99%',
         description: contract.description || ''
       });
@@ -313,6 +314,18 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   {statusChoices.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="adm-form-label">Payment Status</label>
+                <select
+                  className="adm-form-input"
+                  value={formData.paymentStatus}
+                  onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
+                >
+                  <option value="Yes">Yes (Active Client)</option>
+                  <option value="No">No (Demo Trial)</option>
                 </select>
               </div>
             </div>

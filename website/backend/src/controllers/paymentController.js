@@ -566,7 +566,7 @@ const STATUSES = ['Received', 'Cleared', 'Pending', 'Overdue'];
  * file. Mongo is queried directly; on the JSON fallback the same scan happens in
  * memory instead of through a model call that would never connect.
  */
-const nextLedgerReference = async (field, prefix) => {
+export const nextLedgerReference = async (field, prefix) => {
   const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
 
   let latest = null;

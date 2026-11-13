@@ -116,6 +116,21 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
   const paid = own.filter((ctr) => !isDemoContract(ctr));
   const settled = (payments || []).some((p) => isSettledPayment(p) && matchesCustomer(customer, p));
 
+  // Check explicit contract payment status first (Payment Status: Yes -> Active, No -> Demo)
+  const hasExplicitPaidContract = own.some((ctr) =>
+    ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(ctr.paymentStatus || '').trim().toLowerCase())
+  );
+  if (hasExplicitPaidContract) {
+    return 'Active';
+  }
+
+  const hasExplicitDemoContract = own.some((ctr) =>
+    ['no', 'false', '0', 'unpaid', 'n', 'demo'].includes(String(ctr.paymentStatus || '').trim().toLowerCase())
+  );
+  if (hasExplicitDemoContract) {
+    return 'Demo';
+  }
+
   // 1. If customer paid the purchased product -> Active section
   const hasPaidPurchase = (settled || paid.some((ctr) => {
     const end = String(ctr.endDate || ctr.expiryDate || '').trim();
@@ -156,13 +171,14 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
   return 'Inactive';
 };
 
-const customerQuery = ({ customerId, email, company, accountId, _id }) => {
+const customerQuery = ({ customerId, email, company, customer, accountId, _id }) => {
   const or = [];
   if (_id) or.push({ _id });
   if (customerId) or.push({ customerId });
   if (email) or.push({ email: new RegExp(`^${String(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
   if (accountId) or.push({ 'sangamCrm.recordId': accountId });
-  if (company) or.push({ company });
+  if (company) or.push({ company: new RegExp(`^${String(company).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
+  if (customer) or.push({ name: new RegExp(`^${String(customer).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
   return or.length ? { $or: or } : null;
 };
 
@@ -177,7 +193,16 @@ export const refreshCustomerLifecycle = async (identity = {}) => {
 
   const contracts = isMongoConnected() ? await Contract.find().lean() : getContractsFromFile();
   const payments = isMongoConnected() ? await Payment.find().lean() : getPaymentsFromFile();
-  const customers = isMongoConnected() ? await Customer.find(query).lean() : getCustomersFromFile().filter((c) => matchesCustomer(identity, c) || (identity.customerId && c.customerId === identity.customerId) || (identity.email && String(c.email || '').toLowerCase() === String(identity.email).toLowerCase()) || (identity.company && String(c.company || '').toLowerCase() === String(identity.company).toLowerCase()));
+  const customers = isMongoConnected()
+    ? await Customer.find(query).lean()
+    : getCustomersFromFile().filter(
+        (c) =>
+          matchesCustomer(identity, c) ||
+          (identity.customerId && c.customerId === identity.customerId) ||
+          (identity.email && String(c.email || '').toLowerCase() === String(identity.email).toLowerCase()) ||
+          (identity.company && String(c.company || '').toLowerCase() === String(identity.company).toLowerCase()) ||
+          (identity.customer && String(c.name || '').toLowerCase() === String(identity.customer).toLowerCase())
+      );
 
   const changed = [];
   for (const customer of customers) {

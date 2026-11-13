@@ -325,6 +325,23 @@ export default function ContractSection({ contracts, setContracts, customers = [
       searchType: 'select'
     },
     {
+      id: 'paymentStatus',
+      name: 'Payment Status',
+      selector: (row) => row.paymentStatus || 'No',
+      sortable: true,
+      sortFunction: compareText((row) => row.paymentStatus || 'No'),
+      width: '135px',
+      cell: (c) => {
+        const isPaid = ['yes', 'true', '1', 'paid'].includes(String(c.paymentStatus || '').toLowerCase());
+        return (
+          <span className={`adm-status-pill ${isPaid ? 'active' : 'inactive'}`}>
+            {isPaid ? 'Yes (Active)' : 'No (Demo)'}
+          </span>
+        );
+      },
+      searchType: 'select'
+    },
+    {
       id: 'personEmail',
       name: 'Person Email',
       selector: (row) => contractPersonEmail(row, customers),

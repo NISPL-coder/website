@@ -95,6 +95,34 @@ export const customerApi = {
   },
 
   /**
+   * Bulk import master CSV (Customer + Contract + Payment + Receipt)
+   * @param {Array<Object>} records
+   */
+  async importMaster(records) {
+    const res = await fetch(`${API_BASE_URL}/import-master`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({ records })
+    });
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Unified master CSV import failed.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Unified master CSV import failed.');
+    }
+    notifyDataChanged('customers');
+    notifyDataChanged('contracts');
+    notifyDataChanged('payments');
+    notifyDataChanged('receipts');
+    return data;
+  },
+
+  /**
    * Bulk import companies from CSV, sync to Sangam CRM Account, and generate dashboard credentials
    * @param {Array<Object>} companies
    */

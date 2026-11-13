@@ -280,7 +280,7 @@ export default function ManualPaymentPage({
   };
 
   const validate = () => {
-    if (!formState.company.trim()) return ['company', 'Select te customer.'];
+    if (!formState.company.trim()) return ['company', 'Select customer.'];
     if (!(amountNumber(formState.amount) > 0)) return ['amount', 'Enter the amount received.'];
     if (!formState.paymentReceivedDate) return ['paymentReceivedDate', 'Enter the date the money was received.'];
     if (!formState.referenceNumber.trim() && !instrument.referenceOptional)

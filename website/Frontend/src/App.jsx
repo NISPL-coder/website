@@ -103,6 +103,7 @@ function MainApp() {
     '/admin-dashboard',
     '/admin_dashboard',
     '/admin',
+    '/demo-active',
     '/help'
   ].some((path) => location.pathname.startsWith(path));
 
@@ -231,6 +232,8 @@ function MainApp() {
           <Route path="/admin/ip-monitor" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/sales-person" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/sales-persons" element={<Navigate to="/admin/sales-person" replace />} />
+          <Route path="/admin/demo-active" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
+          <Route path="/demo-active" element={<Navigate to="/admin/demo-active" replace />} />
           <Route path="/admin/receipts" element={<Navigate to="/admin/receipt" replace />} />
           <Route path="/admin/import-csv" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/sangam-sync" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/login?portal=admin"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />

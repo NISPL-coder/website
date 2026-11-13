@@ -14,7 +14,8 @@ import {
   UserCheck,
   Activity,
   Bell,
-  Network
+  Network,
+  ToggleRight
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -33,6 +34,7 @@ import ActivityLogsSection from './ActivityLogsSection';
 import NotificationsSection from './NotificationsSection';
 import IPMonitorSection from './IPMonitorSection';
 import SalesPersonSection from './SalesPersonSection';
+import DemoActiveSection from './DemoActiveSection';
 
 // Dedicated Separate Create Pages (Replacing Modals with /create URLs)
 import CreateCustomerPage from './CreateCustomerPage';
@@ -83,6 +85,7 @@ const ADMIN_PAGES = [
   { path: '/admin/product/addons', title: 'Product Add-ons', subtitle: 'Manage add-ons and customer checkout toggles', keywords: 'addon addons add-on add-ons extra backup storage ram ip' },
   { path: '/admin/receipt', title: 'Receipts & Proofs', subtitle: 'Payment receipts, tax invoices and download proofs', keywords: 'receipt receipts invoice invoices tax slip proof download' },
   { path: '/admin/sales-person', title: 'Sales Person Allocation', subtitle: 'Manage sales representatives and customer allocation', keywords: 'sales person representative team rep agent dynamic allocation' },
+  { path: '/admin/demo-active', title: 'Demo / Active Directory', subtitle: 'Monitor active customer subscriptions and demo trial accounts', keywords: 'demo active customer trial subscription listing' },
   { path: '/admin/import-csv', title: 'Import CSV Data', subtitle: 'Batch import customers, contracts and records', keywords: 'import csv upload bulk excel spreadsheet' },
   { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
   { path: '/admin/user-access', title: 'User Access & Permissions', subtitle: 'Manage admin, manager and support staff roles', keywords: 'user access permission permissions role roles team staff grant' },
@@ -127,6 +130,7 @@ const NAV_MODULE = {
   product: 'product',
   receipt: 'receipt',
   'sales-person': null,
+  'demo-active': 'customer',
   'import-csv': 'import_csv',
   'sangam-sync': 'sangam_sync',
   'user-access': 'user_access',
@@ -210,6 +214,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
     if (path.includes('/admin/sales-person')) return 'sales-person';
+    if (path.includes('/admin/demo-active')) return 'demo-active';
     if (path.includes('/admin/ip-monitor')) return 'ip-monitor';
     if (path.includes('/admin/profile')) return 'profile';
     if (path.includes('/admin/product')) return 'product';
@@ -594,6 +599,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
       title: 'Active & Inactive IP Monitor (Read only)'
     });
     items.push({ id: 'sales-person', label: 'Sales Person', icon: UserCheck, path: '/admin/sales-person', title: 'Sales Person Allocation & Management' });
+    items.push({ id: 'demo-active', label: 'Demo/Active', icon: ToggleRight, path: '/admin/demo-active', title: 'Demo & Active Accounts Directory' });
 
     const canImportCsv = can('import_csv') || can('data_tools');
     const canSangamSync = can('sangam_sync') || can('data_tools');
@@ -821,6 +827,16 @@ function AdminDashboardShell({ userSession, onSignOut }) {
               {activeNav === 'ip-monitor' && <IPMonitorSection externalSearch={sectionSearch} />}
 
               {activeNav === 'sales-person' && <SalesPersonSection externalSearch={sectionSearch} />}
+
+              {activeNav === 'demo-active' && (
+                <DemoActiveSection
+                  customers={customers}
+                  setCustomers={setCustomers}
+                  contracts={contracts}
+                  receipts={receipts}
+                  externalSearch={sectionSearch}
+                />
+              )}
 
               {activeNav === 'profile' && (
                 <ProfilePage

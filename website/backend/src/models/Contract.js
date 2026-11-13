@@ -134,6 +134,11 @@ const contractSchema = new mongoose.Schema(
       ],
       default: 'In Progress'
     },
+    paymentStatus: {
+      type: String,
+      enum: ['Yes', 'No', 'yes', 'no', ''],
+      default: 'No'
+    },
     slaTier: {
       type: String,
       default: 'Tier-1 Priority NOC 99.99%'

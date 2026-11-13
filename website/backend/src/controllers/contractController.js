@@ -202,6 +202,10 @@ export const createContract = async (req, res) => {
     // print the contract desk as if it were the client.
     const effectiveEmail = (requestedEmail || targetCustomer?.email || '').trim();
 
+    const rawPaymentStatus = String(req.body.paymentStatus || '').trim();
+    const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus.toLowerCase());
+    const paymentStatus = rawPaymentStatus ? (isPaid ? 'Yes' : 'No') : (effectiveStatus === 'DEMO' ? 'No' : 'Yes');
+
     // 3. Save Contract locally first
     let savedContract = null;
     if (isMongoConnected()) {
@@ -224,6 +228,7 @@ export const createContract = async (req, res) => {
         endDate,
         expiryDate: endDate,
         status: effectiveStatus,
+        paymentStatus,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
         productId: String(productId || '').trim(),
@@ -260,6 +265,7 @@ export const createContract = async (req, res) => {
         endDate,
         expiryDate: endDate,
         status: effectiveStatus,
+        paymentStatus,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
         description: description || '',
         productId: String(productId || '').trim(),
@@ -538,6 +544,9 @@ export const updateContract = async (req, res) => {
       ...(startDate && { startDate }),
       ...(endDate && { endDate, expiryDate: endDate }),
       ...(status && { status: normalizeContractStatus(status) }),
+      ...(req.body.paymentStatus !== undefined && {
+        paymentStatus: ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(req.body.paymentStatus || '').trim().toLowerCase()) ? 'Yes' : 'No'
+      }),
       ...(slaTier && { slaTier }),
       ...(description !== undefined && { description }),
       ...(productId !== undefined && { productId: String(productId).trim() }),
@@ -972,10 +981,78 @@ export const importContracts = async (req, res) => {
         const email = String(item.email || '').trim().toLowerCase() || 'contracts@nispl.in';
         const effectiveCompany = company || customer;
 
+        const rawPaymentStatus = String(item.paymentStatus || item.payment || item.isPaid || '').trim();
+        const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus.toLowerCase());
+        const paymentStatus = rawPaymentStatus ? (isPaid ? 'Yes' : 'No') : (toImportStatus(item.status) === 'DEMO' ? 'No' : 'Yes');
+
+        // Check if matching customer exists or auto-link/provision
+        let targetCustomer = null;
+        try {
+          if (isMongoConnected()) {
+            targetCustomer = await Customer.findOne({
+              $or: [
+                ...(email && email !== 'contracts@nispl.in' ? [{ email: escapeRegex(email) }] : []),
+                ...(effectiveCompany ? [{ company: escapeRegex(effectiveCompany) }] : []),
+                ...(customer ? [{ name: escapeRegex(customer) }] : [])
+              ]
+            });
+          } else {
+            const fileList = getCustomersFromFile();
+            targetCustomer = fileList.find(
+              (c) =>
+                (email && email !== 'contracts@nispl.in' && c.email?.toLowerCase() === email.toLowerCase()) ||
+                (effectiveCompany && c.company?.toLowerCase() === effectiveCompany.toLowerCase()) ||
+                (customer && c.name?.toLowerCase() === customer.toLowerCase())
+            );
+          }
+        } catch (findErr) {
+          console.warn('[ContractController] Customer find note:', findErr.message);
+        }
+
+        let customerId = targetCustomer?.customerId || targetCustomer?.id || '';
+        const initialStatus = isPaid ? 'Active' : 'Demo';
+
+        if (!targetCustomer && (effectiveCompany || customer)) {
+          // Provision customer record so they appear in Active or Demo section immediately
+          customerId = `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+          const newCust = {
+            customerId,
+            id: customerId,
+            name: customer || effectiveCompany,
+            company: effectiveCompany,
+            email: email,
+            phone: '0000000000',
+            status: initialStatus,
+            plan: String(item.service || '').trim(),
+            sangamCrm: { status: 'pending', recordId: null }
+          };
+          if (isMongoConnected()) {
+            try {
+              await Customer.create(newCust);
+            } catch (createCustErr) {
+              console.warn('[ContractController] Auto customer creation note:', createCustErr.message);
+            }
+          }
+          const fList = getCustomersFromFile();
+          fList.unshift(newCust);
+          saveCustomersToFile(fList);
+        } else if (targetCustomer) {
+          if (isMongoConnected()) {
+            await Customer.findByIdAndUpdate(targetCustomer._id, { $set: { status: initialStatus } });
+          }
+          const fList = getCustomersFromFile();
+          const fIdx = fList.findIndex((c) => c.customerId === targetCustomer.customerId || c.id === targetCustomer.id);
+          if (fIdx !== -1) {
+            fList[fIdx].status = initialStatus;
+            saveCustomersToFile(fList);
+          }
+        }
+
         const payload = {
           name: cleanName,
           company: effectiveCompany,
           customer,
+          customerId,
           accountId: await linkImportedAccount({ email, company: effectiveCompany, customer }),
           email,
           service: String(item.service || '').trim() || `${contractType} (${subscriptionPeriod})`,
@@ -989,6 +1066,7 @@ export const importContracts = async (req, res) => {
           endDate,
           expiryDate: endDate,
           status: toImportStatus(item.status),
+          paymentStatus,
           slaTier: String(item.slaTier || '').trim() || 'Tier-1 Priority NOC 99.99%',
           description: String(item.description || '').trim(),
           productId: String(item.productId || '').trim(),
@@ -1064,10 +1142,11 @@ export const importContracts = async (req, res) => {
         };
         if (sangamResult.success) syncedCount += 1;
 
-        touchedAccounts.set(`${saved.email}|${saved.company}`, {
+        touchedAccounts.set(`${saved.email}|${saved.company}|${saved.customer}`, {
           customerId: saved.customerId,
           email: saved.email,
-          company: saved.company
+          company: saved.company,
+          customer: saved.customer
         });
 
         if (isMongoConnected()) {

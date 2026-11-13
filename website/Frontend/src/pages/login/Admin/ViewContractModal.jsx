@@ -178,6 +178,26 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
 
           <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
             <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
+              Payment Status
+            </span>
+            <span
+              style={{
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                color: ['yes', 'true', '1', 'paid'].includes(String(contract.paymentStatus || '').toLowerCase()) ? '#059669' : '#d97706',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                marginTop: '4px'
+              }}
+            >
+              <CheckCircle2 size={13} />
+              {['yes', 'true', '1', 'paid'].includes(String(contract.paymentStatus || '').toLowerCase()) ? 'Yes (Active)' : 'No (Demo)'}
+            </span>
+          </div>
+
+          <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, display: 'block' }}>
               Total Value
             </span>
             <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1d4ed8', display: 'block', marginTop: '2px' }}>

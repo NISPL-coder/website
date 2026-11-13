@@ -97,7 +97,8 @@ export default function CreateContractPage({ contracts, setContracts }) {
     startDate: today,
     endDate: oneYearFromNow,
     contractType: 'Comprehensive',
-    contractValue: ''
+    contractValue: '',
+    paymentStatus: 'Yes'
   });
 
   const setField = (field) => (value) => setFormState((prev) => ({ ...prev, [field]: value }));
@@ -174,7 +175,8 @@ export default function CreateContractPage({ contracts, setContracts }) {
       endDate: formState.endDate,
       contractType: formState.contractType,
       totalContractValue: formattedVal,
-      value: formattedVal
+      value: formattedVal,
+      paymentStatus: formState.paymentStatus || 'Yes'
     };
 
     try {
@@ -461,6 +463,28 @@ export default function CreateContractPage({ contracts, setContracts }) {
                     required
                   />
                 </div>
+              </div>
+
+              {/* 10. Payment Status */}
+              <div className="adm-form-field">
+                <label className="adm-form-label">
+                  Payment Status <span className="adm-required-star">*</span>
+                </label>
+                <Select
+                  styles={customSelectStyles}
+                  isSearchable={false}
+                  options={[
+                    { value: 'Yes', label: 'Yes (Active Client)' },
+                    { value: 'No', label: 'No (Demo Trial)' }
+                  ]}
+                  value={{
+                    value: formState.paymentStatus || 'Yes',
+                    label: formState.paymentStatus === 'No' ? 'No (Demo Trial)' : 'Yes (Active Client)'
+                  }}
+                  onChange={(opt) => setField('paymentStatus')(opt ? opt.value : 'Yes')}
+                  classNamePrefix="react-select"
+                  menuPlacement="auto"
+                />
               </div>
             </div>
           </div>

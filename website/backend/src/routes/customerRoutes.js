@@ -9,6 +9,7 @@ import {
   syncCustomerToSangam,
   importCompanies,
   importContacts,
+  importMaster,
   allowDemoExtension
 } from '../controllers/customerController.js';
 
@@ -21,6 +22,9 @@ router.get('/', requirePermission('customer', 'view'), getCustomers);
 
 // POST /api/customers - Create customer locally and automatically sync to Sangam CRM Companies
 router.post('/', requirePermission('customer', 'create'), createCustomer);
+
+// POST /api/customers/import-master - Unified master bulk import from single CSV
+router.post('/import-master', requirePermission('customer', 'create'), importMaster);
 
 // POST /api/customers/import-companies - Bulk import companies from CSV
 router.post('/import-companies', requirePermission('customer', 'create'), importCompanies);

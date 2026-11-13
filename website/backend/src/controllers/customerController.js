@@ -1,9 +1,11 @@
 import { logNotification } from '../services/notificationService.js';
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
-import Contract, { getContractsFromFile } from '../models/Contract.js';
-import Payment, { getPaymentsFromFile } from '../models/Payment.js';
+import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
+import Payment, { getPaymentsFromFile, savePaymentsToFile } from '../models/Payment.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
+import { nextContractCode } from '../services/contractProvisioning.js';
+import { nextLedgerReference } from './paymentController.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import { deriveCustomerLifecycle, refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
@@ -1519,6 +1521,529 @@ export const allowDemoExtension = async (req, res) => {
   } catch (err) {
     console.error('Error authorizing demo extension:', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Helper date parser for CSV inputs (accepts DD-MM-YYYY, YYYY-MM-DD, DD/MM/YYYY, etc.)
+ */
+const parseMasterDate = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  const dmy = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+  if (dmy) {
+    const year = dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3];
+    const iso = `${year}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+    return Number.isNaN(Date.parse(iso)) ? '' : iso;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+};
+
+/**
+ * Helper value formatter for amounts
+ */
+const formatMasterAmount = (value) => {
+  const digits = String(value ?? '').replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+  return digits ? `₹${Number(digits[0]).toLocaleString('en-IN')}` : '';
+};
+
+/**
+ * Unified Master CSV Bulk Import
+ * Parses a single comprehensive CSV containing Company, Contact, Contract, and Payment data.
+ * - Customer: Provisioned with login credentials; if Payment Status is 'Yes' -> 'Active', if 'No' -> 'Demo'
+ * - Contract: Registered and synchronized to Sangam CRM Contracts module
+ * - Payment: If Payment Status is 'Yes' -> Settled payment recorded in ledger
+ * - Receipt: If Payment Status is 'Yes' -> Official receipt generated automatically
+ */
+export const importMaster = async (req, res) => {
+  try {
+    const rows = Array.isArray(req.body.records) ? req.body.records : [];
+    if (!rows.length) {
+      return res.status(400).json({ success: false, error: 'No master CSV records provided for import.' });
+    }
+
+    const raisedBy = req.user
+      ? { name: req.user.name || '', email: req.user.email || '', role: req.user.role || '' }
+      : { name: '', email: '', role: '' };
+
+    const results = [];
+    const credentials = [];
+    let succeededCount = 0;
+    let failedCount = 0;
+    let activeCount = 0;
+    let demoCount = 0;
+    let paymentsCount = 0;
+    let receiptsCount = 0;
+    let crmSyncCount = 0;
+    const touchedIdentities = new Map();
+
+    const year = new Date().getFullYear();
+    const today = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < rows.length; i++) {
+      const item = rows[i] || {};
+
+      // 1. Company & Contact Extraction
+      const company = (item.companyName || item.company || item.accountName || item.name || '').trim();
+      const contactPerson = (item.contactPerson || item.person || item.customerName || item.customer || item.name || company).trim();
+      const email = (item.email || item.corporateEmail || item.mail || '').trim().toLowerCase();
+      const phone = (item.phone || item.mobile || item.phoneNumber || '0000000000').trim();
+      const designation = (item.designation || item.role || 'Customer').trim();
+      const industry = (item.industry || 'Technology').trim();
+      const tallySerialNo = (item.tallySerialNo || item.tallySlNo || '').trim();
+      const street = (item.address || item.addressStreet || item.street || '').trim();
+      const city = (item.city || item.addressCity || 'Valsad').trim();
+      const state = (item.state || item.addressState || 'Gujarat').trim();
+      const country = (item.country || item.addressCountry || 'India').trim();
+      const postalCode = (item.postalCode || item.pincode || item.addressPostalCode || '').trim();
+      const gstin = (item.gstin || item.gstNo || '').trim().toUpperCase();
+      const pan = (item.pan || '').trim().toUpperCase();
+      const website = (item.website || '').trim();
+
+      // 2. Contract Extraction
+      const contractName = (item.contractId || item.contractName || item.agreement || `${company} Cloud Services Agreement`).trim();
+      const service = (item.service || item.product || item.productName || 'Tally Prime Cloud Server').trim();
+      const contractType = (item.contractType || 'Comprehensive').trim();
+      const duration = (item.duration || item.subscriptionPeriod || '1 Year').trim();
+      const productCategory = (item.productCategory || 'Software').trim();
+      const rawTotalValue = item.totalContractValue ?? item.value ?? item.amount ?? '0';
+      const formattedTotalValue = formatMasterAmount(rawTotalValue) || '₹0';
+
+      const startDate = parseMasterDate(item.startDate) || today;
+      let endDate = parseMasterDate(item.endDate || item.expiryDate);
+      if (!endDate) {
+        const nextY = new Date(startDate);
+        nextY.setFullYear(nextY.getFullYear() + 1);
+        endDate = nextY.toISOString().split('T')[0];
+      }
+      const orderDate = parseMasterDate(item.orderDate) || startDate;
+
+      // 3. Payment Status Extraction (Yes -> Active, No -> Demo)
+      const rawPaymentStatus = String(item.paymentStatus || item.paid || item.isPaid || '').trim().toLowerCase();
+      const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus);
+      const paymentStatus = isPaid ? 'Yes' : 'No';
+      const customerStatus = isPaid ? 'Active' : 'Demo';
+      const contractStatus = isPaid ? 'In Progress' : 'DEMO';
+
+      const paymentMethod = (item.paymentMode || item.paymentMethod || item.method || 'NEFT Wire').trim();
+      const referenceNumber = (item.referenceNumber || item.chequeNumber || item.chequeNo || item.utr || '').trim();
+      const bankName = (item.bankName || item.bankBranch || item.bank || '').trim();
+      const salesPerson = (item.salesPerson || raisedBy.name || raisedBy.email || 'Online Customer Portal').trim();
+      const slaTier = (item.slaTier || 'Tier-1 Priority NOC 99.99%').trim();
+      const description = (item.description || item.notes || '').trim();
+
+      if (!company || !email) {
+        results.push({
+          row: i + 1,
+          company: company || 'Unknown',
+          ok: false,
+          error: 'Company Name and Email are required.'
+        });
+        failedCount++;
+        continue;
+      }
+
+      try {
+        // -------------------------------------------------------------
+        // STEP A: Customer Provisioning & Credentials Generation
+        // -------------------------------------------------------------
+        let existingCustomer = null;
+        if (isMongoConnected()) {
+          existingCustomer = await Customer.findOne({
+            $or: [
+              { email },
+              { phone: phone !== '0000000000' ? phone : '__none__' },
+              { company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+            ]
+          });
+        } else {
+          const fileCustomers = getCustomersFromFile();
+          existingCustomer = fileCustomers.find(
+            (c) =>
+              (c.email && c.email.toLowerCase() === email) ||
+              (phone !== '0000000000' && c.phone && c.phone === phone) ||
+              (c.company && c.company.toLowerCase() === company.toLowerCase())
+          );
+        }
+
+        const customerId = existingCustomer?.customerId || `CUST-${Math.floor(1000 + Math.random() * 9000)}`;
+        const plainPassword = existingCustomer?.portalPassword || generateCustomerPassword(company || contactPerson);
+
+        const customerPayload = {
+          customerId,
+          id: customerId,
+          name: contactPerson,
+          company,
+          email,
+          loginEmail: email,
+          portalPassword: plainPassword,
+          phone,
+          website,
+          industry,
+          accountRelationship: 'Customer',
+          plan: service,
+          status: customerStatus,
+          designation,
+          addressCity: city,
+          addressState: state,
+          addressCountry: country,
+          addressPostalCode: postalCode,
+          gstNo: gstin,
+          pan,
+          tallySerialNo,
+          address: [
+            {
+              street,
+              area: '',
+              city,
+              state,
+              country,
+              postalCode,
+              type: 'Billing'
+            }
+          ]
+        };
+
+        let savedCustomer = null;
+        if (isMongoConnected()) {
+          if (existingCustomer) {
+            savedCustomer = await Customer.findByIdAndUpdate(
+              existingCustomer._id,
+              { $set: customerPayload },
+              { new: true }
+            ).lean();
+          } else {
+            const doc = new Customer(customerPayload);
+            savedCustomer = (await doc.save()).toObject();
+          }
+
+          // Ensure corresponding User account exists in 'users' collection for login
+          try {
+            const existingUser = await User.findOne({
+              $or: [{ email }, { customerId }]
+            }).select('+password');
+
+            if (!existingUser) {
+              await User.create({
+                name: contactPerson,
+                email,
+                phone,
+                company,
+                password: plainPassword,
+                portalPassword: plainPassword,
+                role: 'customer',
+                customerId,
+                accountStatus: customerStatus,
+                isEmailVerified: true
+              });
+            } else {
+              existingUser.name = contactPerson;
+              existingUser.email = email;
+              existingUser.company = company;
+              existingUser.customerId = customerId;
+              existingUser.accountStatus = customerStatus;
+              existingUser.portalPassword = plainPassword;
+              await existingUser.save();
+            }
+          } catch (uErr) {
+            console.warn('[MasterImport] User sync note:', uErr.message);
+          }
+        } else {
+          const fileCustomers = getCustomersFromFile();
+          const idx = fileCustomers.findIndex((c) => c.customerId === customerId || c.email?.toLowerCase() === email);
+          if (idx !== -1) {
+            fileCustomers[idx] = { ...fileCustomers[idx], ...customerPayload, updatedAt: new Date().toISOString() };
+            savedCustomer = fileCustomers[idx];
+          } else {
+            savedCustomer = { ...customerPayload, createdAt: new Date().toISOString() };
+            fileCustomers.unshift(savedCustomer);
+          }
+          saveCustomersToFile(fileCustomers);
+        }
+
+        // Sync Customer Account to Sangam CRM
+        let sangamAccountId = savedCustomer?.sangamCrm?.recordId || null;
+        if (!sangamAccountId || sangamAccountId.startsWith('SGM-ACC-')) {
+          try {
+            const crmAccRes = await sangamCrmService.createOrUpdateCompany(savedCustomer);
+            if (crmAccRes.success && crmAccRes.recordId) {
+              sangamAccountId = crmAccRes.recordId;
+              if (isMongoConnected()) {
+                await Customer.updateOne(
+                  { customerId },
+                  { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': sangamAccountId, 'sangamCrm.lastSyncedAt': new Date() } }
+                );
+              }
+            }
+          } catch (accSyncErr) {
+            console.warn('[MasterImport] CRM account sync note:', accSyncErr.message);
+          }
+        }
+
+        credentials.push({
+          name: contactPerson,
+          company,
+          customerId,
+          username: customerId,
+          email,
+          password: plainPassword,
+          role: 'customer',
+          status: customerStatus,
+          loginUrl: '/customer/login'
+        });
+
+        // -------------------------------------------------------------
+        // STEP B: Contract Provisioning & Sangam CRM Sync
+        // -------------------------------------------------------------
+        let existingContract = null;
+        if (isMongoConnected()) {
+          existingContract = await Contract.findOne({
+            $or: [
+              ...(item.contractId ? [{ contractId: item.contractId }] : []),
+              { name: new RegExp(`^${contractName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+            ]
+          });
+        } else {
+          const fileContracts = getContractsFromFile();
+          existingContract = fileContracts.find(
+            (c) =>
+              (item.contractId && c.contractId === item.contractId) ||
+              (c.name?.toLowerCase() === contractName.toLowerCase() && c.company?.toLowerCase() === company.toLowerCase())
+          );
+        }
+
+        const contractCode = existingContract?.contractId || (await nextContractCode());
+
+        const contractPayload = {
+          contractId: contractCode,
+          name: contractName,
+          company,
+          customer: contactPerson,
+          customerId,
+          accountId: sangamAccountId,
+          email,
+          service,
+          contractType,
+          subscriptionPeriod: duration,
+          productCategory,
+          totalContractValue: formattedTotalValue,
+          value: `${formattedTotalValue} / ${duration.toLowerCase()}`,
+          orderDate,
+          startDate,
+          endDate,
+          expiryDate: endDate,
+          status: contractStatus,
+          paymentStatus,
+          slaTier,
+          description,
+          salesPerson,
+          createdBy: raisedBy
+        };
+
+        let savedContract = null;
+        if (isMongoConnected()) {
+          if (existingContract) {
+            savedContract = await Contract.findByIdAndUpdate(
+              existingContract._id,
+              { $set: { ...contractPayload, updatedBy: raisedBy } },
+              { new: true }
+            ).lean();
+          } else {
+            savedContract = (await Contract.create({
+              ...contractPayload,
+              sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
+            })).toObject();
+          }
+        } else {
+          const fileContracts = getContractsFromFile();
+          const cIdx = fileContracts.findIndex((c) => c.contractId === contractCode);
+          if (cIdx !== -1) {
+            fileContracts[cIdx] = { ...fileContracts[cIdx], ...contractPayload, updatedBy: raisedBy, updatedAt: new Date().toISOString() };
+            savedContract = fileContracts[cIdx];
+          } else {
+            savedContract = { ...contractPayload, createdAt: new Date().toISOString(), sangamCrm: { status: 'pending', recordId: null } };
+            fileContracts.unshift(savedContract);
+          }
+          saveContractsToFile(fileContracts);
+        }
+
+        // Sync Contract to Sangam CRM Contracts module
+        try {
+          const crmCtrRes = await sangamCrmService.createOrUpdateContract(savedContract);
+          if (crmCtrRes.success) {
+            crmSyncCount++;
+            if (isMongoConnected()) {
+              await Contract.updateOne(
+                { contractId: contractCode },
+                { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': crmCtrRes.recordId, 'sangamCrm.lastSyncedAt': new Date() } }
+              );
+            }
+          }
+        } catch (ctrSyncErr) {
+          console.warn('[MasterImport] CRM contract sync note:', ctrSyncErr.message);
+        }
+
+        // -------------------------------------------------------------
+        // STEP C: Payment Recording & Receipt Generation (if Paid)
+        // -------------------------------------------------------------
+        let createdPaymentId = null;
+        let createdInvoiceNumber = null;
+
+        if (isPaid) {
+          createdPaymentId = await nextLedgerReference('paymentId', `PAY-${year}-`);
+          createdInvoiceNumber = await nextLedgerReference('invoiceNumber', `INV-${year}-`);
+
+          const digits = String(formattedTotalValue).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+          const numVal = digits ? Number(digits[0]) : 0;
+          const basePrice = numVal > 0 ? Math.round(numVal / 1.18) : 0;
+          const gstVal = Math.max(numVal - basePrice, 0);
+
+          const paymentPayload = {
+            paymentId: createdPaymentId,
+            id: createdPaymentId,
+            invoiceNumber: createdInvoiceNumber,
+            invoiceRef: createdInvoiceNumber,
+            customer: contactPerson,
+            company,
+            accountName: company,
+            email,
+            customerId,
+            amount: formattedTotalValue,
+            receivedAmount: formattedTotalValue,
+            pendingPayment: '₹0',
+            paymentMethod,
+            method: paymentMethod,
+            invoiceDate: orderDate || startDate,
+            date: orderDate || startDate,
+            paymentReceivedDate: orderDate || startDate,
+            status: 'Received',
+            solutionCategory: service,
+            contractId: contractCode,
+            contractIds: [contractCode],
+            taxableAmount: `₹${basePrice.toLocaleString('en-IN')}`,
+            gstAmount: `₹${gstVal.toLocaleString('en-IN')}`,
+            gstBasis: 'Imported via Master CSV with standard 18% GST',
+            salesPerson,
+            referenceNumber,
+            bankName,
+            source: 'import',
+            items: [
+              {
+                name: service,
+                quantity: 1,
+                basePrice,
+                gstAmount: gstVal,
+                finalPrice: numVal,
+                durationMonths: duration.includes('Year') ? 12 : parseInt(duration, 10) || 12,
+                startDate,
+                endDate,
+                description: description || service
+              }
+            ],
+            raisedBy,
+            createdAt: new Date().toISOString()
+          };
+
+          if (isMongoConnected()) {
+            await Payment.create(paymentPayload);
+          } else {
+            const filePayments = getPaymentsFromFile();
+            filePayments.unshift(paymentPayload);
+            savePaymentsToFile(filePayments);
+          }
+
+          paymentsCount++;
+          receiptsCount++;
+        }
+
+        // -------------------------------------------------------------
+        // STEP D: Record Result
+        // -------------------------------------------------------------
+        touchedIdentities.set(`${email}|${company}|${contactPerson}`, {
+          customerId,
+          email,
+          company,
+          customer: contactPerson
+        });
+
+        if (isPaid) activeCount++;
+        else demoCount++;
+
+        results.push({
+          row: i + 1,
+          company,
+          customer: contactPerson,
+          email,
+          customerId,
+          customerStatus,
+          contractId: contractCode,
+          contractStatus,
+          paymentStatus,
+          paymentId: createdPaymentId,
+          receiptNumber: createdInvoiceNumber,
+          totalValue: formattedTotalValue,
+          ok: true
+        });
+        succeededCount++;
+      } catch (rowErr) {
+        console.error(`[MasterImport] Error on row ${i + 1}:`, rowErr);
+        results.push({
+          row: i + 1,
+          company: company || 'Unknown',
+          customer: contactPerson || 'Unknown',
+          ok: false,
+          error: rowErr.message || 'Failed to import master record.'
+        });
+        failedCount++;
+      }
+    }
+
+    // Refresh Customer Lifecycle for all touched accounts
+    for (const identity of touchedIdentities.values()) {
+      await refreshCustomerLifecycle(identity).catch((err) =>
+        console.warn('[MasterImport] Lifecycle refresh note:', err.message)
+      );
+    }
+
+    await logNotification({
+      type: 'customer_created',
+      title: 'Unified Master CSV Import',
+      message: `Imported ${succeededCount} master records: ${activeCount} active, ${demoCount} demo trials, ${paymentsCount} payments & receipts generated.`,
+      severity: failedCount > 0 ? 'warning' : 'success',
+      entityType: 'customer',
+      metadata: { total: rows.length, succeeded: succeededCount, failed: failedCount, activeCount, demoCount, paymentsCount, receiptsCount, crmSyncCount }
+    });
+
+    await logActivity(req, {
+      action: 'IMPORT_MASTER_CSV',
+      category: 'customer',
+      resource: 'MasterImport',
+      details: `Bulk imported ${succeededCount} master records from unified CSV (${activeCount} active, ${demoCount} demo, ${paymentsCount} payments, ${receiptsCount} receipts, ${crmSyncCount} synced to CRM).`,
+      changes: { total: rows.length, succeeded: succeededCount, failed: failedCount, activeCount, demoCount, paymentsCount, receiptsCount }
+    });
+
+    return res.status(200).json({
+      success: true,
+      total: rows.length,
+      succeeded: succeededCount,
+      failed: failedCount,
+      activeCount,
+      demoCount,
+      paymentsCount,
+      receiptsCount,
+      crmSyncCount,
+      credentials,
+      results
+    });
+  } catch (err) {
+    console.error('[CustomerController] importMaster error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Failed to import master CSV records.' });
   }
 };
 

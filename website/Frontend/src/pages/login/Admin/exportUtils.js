@@ -89,6 +89,11 @@ export function formatContractsForExport(contracts) {
     'Contract ID': ctr.name || '—',
     'Company Name': ctr.company || '—',
     'Status': normalizeContractStatus(ctr.status) || '—',
+    'Payment Status': ['yes', 'true', '1', 'paid'].includes(String(ctr.paymentStatus || '').toLowerCase())
+      ? 'Yes'
+      : ['no', 'false', '0', 'unpaid'].includes(String(ctr.paymentStatus || '').toLowerCase())
+      ? 'No'
+      : (ctr.paymentStatus || 'No'),
     'Person Email': contractPersonEmail(ctr) || '—',
     'Person Mobile': contractPersonMobile(ctr) || '—',
     'Contract Type': normalizeContractType(ctr.contractType) || '—',

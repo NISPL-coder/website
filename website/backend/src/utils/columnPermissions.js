@@ -31,6 +31,7 @@ export const MODULE_COLUMNS = {
     { id: 'name', label: 'Contract ID', fields: ['name'] },
     { id: 'company', label: 'Company Name', fields: ['company'] },
     { id: 'status', label: 'Status', fields: ['status'] },
+    { id: 'paymentStatus', label: 'Payment Status', fields: ['paymentStatus'] },
     { id: 'personEmail', label: 'Person Email Address', fields: ['personEmail', 'email'] },
     { id: 'personMobile', label: 'Person Mobile', fields: ['personMobile'] },
     {
