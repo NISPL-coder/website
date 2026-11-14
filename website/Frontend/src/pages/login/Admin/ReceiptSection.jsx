@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Check, Search, X } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Check, Search, X, RefreshCw } from 'lucide-react';
 import Select from 'react-select';
 import { compactSelectStyles } from './reactSelectStyles';
 import ExportDropdown from './ExportDropdown';
@@ -10,6 +10,8 @@ import RowActionMenu from './RowActionMenu';
 import ViewReceiptModal from './ViewReceiptModal';
 import { usePermissions } from './PermissionsContext';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
+import { paymentApi } from '../../../services/paymentApi';
+import { onDataChanged } from '../../../utils/dataBus';
 import {
   compareDate,
   compareNumber,
@@ -58,13 +60,62 @@ const STATUS_TONES = {
   overdue: '#dc2626'
 };
 
-export default function ReceiptSection({ receipts, externalSearch }) {
+export default function ReceiptSection({ receipts: initialReceipts, externalSearch }) {
   const { visibleColumns } = usePermissions();
+  const [localReceipts, setLocalReceipts] = useState(
+    Array.isArray(initialReceipts) ? initialReceipts : []
+  );
+  const [isLoading, setIsLoading] = useState(!Array.isArray(initialReceipts) || initialReceipts.length === 0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [viewing, setViewing] = useState(null);
+
+  const fetchReceipts = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    else setIsRefreshing(true);
+    try {
+      const data = await paymentApi.getReceipts();
+      if (Array.isArray(data)) {
+        setLocalReceipts(data);
+      }
+    } catch (err) {
+      console.warn('[ReceiptSection] Failed to load receipts:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Array.isArray(initialReceipts) && initialReceipts.length > 0) {
+      setLocalReceipts(initialReceipts);
+      setIsLoading(false);
+    }
+  }, [initialReceipts]);
+
+  useEffect(() => {
+    fetchReceipts(Array.isArray(initialReceipts) && initialReceipts.length > 0);
+
+    const unsubscribe = onDataChanged((event) => {
+      const list = Array.isArray(event?.detail) ? event.detail : ['*'];
+      if (
+        list.includes('*') ||
+        list.includes('receipt') ||
+        list.includes('receipts') ||
+        list.includes('payment') ||
+        list.includes('payments')
+      ) {
+        fetchReceipts(true);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchReceipts, initialReceipts]);
 
   useEffect(() => {
     if (externalSearch !== undefined && externalSearch !== null) {
@@ -74,23 +125,23 @@ export default function ReceiptSection({ receipts, externalSearch }) {
 
   const statusOptions = useMemo(() => {
     const counts = new Map();
-    receipts.forEach((r) => {
+    localReceipts.forEach((r) => {
       const key = String(r.status || '').trim() || 'Unknown';
       counts.set(key, (counts.get(key) || 0) + 1);
     });
     return [
-      { value: 'all', label: `All statuses (${receipts.length})` },
+      { value: 'all', label: `All statuses (${localReceipts.length})` },
       ...[...counts.entries()].map(([value, count]) => ({
         value,
         label: `${value} (${count})`
       }))
     ];
-  }, [receipts]);
+  }, [localReceipts]);
 
   const filteredReceipts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
-    return receipts
+    return localReceipts
       .filter((r) => {
         const matchesSearch = !q || searchBlob(r).includes(q);
         const matchesStatus =
@@ -104,7 +155,7 @@ export default function ReceiptSection({ receipts, externalSearch }) {
         if (dateB !== dateA) return dateB - dateA;
         return String(b.id || '').localeCompare(String(a.id || ''));
       });
-  }, [receipts, searchQuery, statusFilter, dateFrom, dateTo]);
+  }, [localReceipts, searchQuery, statusFilter, dateFrom, dateTo]);
 
   const columns = [
     {
@@ -311,7 +362,18 @@ export default function ReceiptSection({ receipts, externalSearch }) {
           </p>
         </div>
 
-        <div className="adm-card-header-action">
+        <div className="adm-card-header-action" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => fetchReceipts(false)}
+            disabled={isLoading || isRefreshing}
+            className="adm-btn adm-btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 12px' }}
+            title="Refresh payment receipts from server"
+          >
+            <RefreshCw size={14} className={isLoading || isRefreshing ? 'adm-spin' : ''} />
+            <span>Refresh</span>
+          </button>
           <ExportDropdown
             data={filteredReceipts}
             formatter={formatReceiptsForExport}

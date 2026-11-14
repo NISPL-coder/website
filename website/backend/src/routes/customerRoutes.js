@@ -10,6 +10,7 @@ import {
   importCompanies,
   importContacts,
   importMaster,
+  importMasterStream,
   allowDemoExtension
 } from '../controllers/customerController.js';
 
@@ -25,6 +26,9 @@ router.post('/', requirePermission('customer', 'create'), createCustomer);
 
 // POST /api/customers/import-master - Unified master bulk import from single CSV
 router.post('/import-master', requirePermission('customer', 'create'), importMaster);
+
+// POST /api/customers/import-master-stream - Same import with live NDJSON progress events
+router.post('/import-master-stream', requirePermission('customer', 'create'), importMasterStream);
 
 // POST /api/customers/import-companies - Bulk import companies from CSV
 router.post('/import-companies', requirePermission('customer', 'create'), importCompanies);

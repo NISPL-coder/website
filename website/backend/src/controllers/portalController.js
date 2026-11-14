@@ -152,7 +152,7 @@ const CATALOGUE_TTL_MS = 10 * 60 * 1000;
 let catalogueCache = { at: 0, byKey: new Map() };
 
 const loadCatalogue = async () => {
-  if (catalogueCache.byKey.size && Date.now() - catalogueCache.at < CATALOGUE_TTL_MS) return catalogueCache;
+  if (catalogueCache.at && Date.now() - catalogueCache.at < CATALOGUE_TTL_MS) return catalogueCache;
 
   let rows = [];
   if (isMongoConnected()) {

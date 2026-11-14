@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Upload,
   FileSpreadsheet,
@@ -25,12 +25,18 @@ import {
   Receipt as ReceiptIcon,
   Clock,
   ArrowRight,
-  AlertTriangle
+  AlertTriangle,
+  Timer,
+  Gauge,
+  Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { customerApi } from '../../../services/customerApi';
+import { contractApi } from '../../../services/contractApi';
+import { paymentApi } from '../../../services/paymentApi';
 import { notificationApi } from '../../../services/notificationApi';
+import { notifyDataChanged } from '../../../utils/dataBus';
 import { usePermissions } from './PermissionsContext';
 import {
   contractStatusTone,
@@ -95,6 +101,26 @@ function normalizeHeader(header) {
 
 function headerMatchers(field) {
   return [...field.aliases.map(normalizeHeader), normalizeHeader(field.label)];
+}
+
+/* ------------------------------------------------------------------ *
+ * Duration / rate formatters for the import progress panel
+ * ------------------------------------------------------------------ */
+function formatDuration(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+  if (ms < 1000) return `${Math.max(Math.round(ms), 0)} ms`;
+  const totalSeconds = ms / 1000;
+  if (totalSeconds < 60) return `${totalSeconds.toFixed(totalSeconds < 10 ? 2 : 1)}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+  return `${minutes}m ${seconds}s`;
+}
+
+function formatRate(processed, elapsedMs) {
+  if (!processed || !elapsedMs) return '—';
+  const perSecond = processed / (elapsedMs / 1000);
+  if (!Number.isFinite(perSecond) || perSecond <= 0) return '—';
+  return perSecond >= 1 ? `${perSecond.toFixed(1)} rec/s` : `${(perSecond * 60).toFixed(1)} rec/min`;
 }
 
 /* ------------------------------------------------------------------ *
@@ -170,7 +196,7 @@ CUST-1001,Priya Nair,Finance Director,Northgate Textiles Pvt Ltd,billing@northga
 CUST-1002,Anil Ghosh,Accounts Head,Mahadev Logistics,accounts@mahadevlogistics.com,accounts@mahadevlogistics.com,,Mahadev@2026,9123456789,,,Kolkata,West Bengal,700001,24 Netaji Subhash Road,19AABCM5678K1ZQ,AABCM5678K,https://mahadevlogistics.com,Logistics,987654321,Active,AMC Support Contract,In Progress,Yes,accounts@mahadevlogistics.com,9123456789,Tally AMC & Remote Support,AMC,12 Months,Service,"₹60,000",02-04-2026,15-04-2026,14-04-2027,Nilmoni Ghosal,Tier-2 Business Hours NOC 99.9%,Annual maintenance and license support,Mahadev Logistics,INV-2026-1002,15-04-2026,"₹60,000",₹0,"₹50,847","₹9,153",15-04-2026,15-04-2026,Cheque,CHQ-482019,State Bank of India - Dalhousie,15-04-2026,,Received
 CUST-1003,Rina Das,Operations Lead,Kaveri Foods,private@kaverifoods.com,private@kaverifoods.com,,Kaveri@2026,9876501234,,,Valsad,Gujarat,396001,12 Industrial Area Phase 2,24AABCK9012P1ZN,AABCK9012P,https://kaverifoods.com,Food Processing,456123789,Demo,Trial Proof Of Concept,DEMO,No,private@kaverifoods.com,9876501234,Tally Prime Cloud Trial,SHARED,1 Month,Software,₹0,10-10-2026,20-10-2026,19-11-2026,Nilmoni Ghosal,Tier-3 Standard NOC 99.5%,30-day evaluation trial of Cloud setup before purchase,Kaveri Foods,,,,,,,,,,,,Unpaid`;
 
-export default function ImportCsvPage({ setCustomers }) {
+export default function ImportCsvPage({ setCustomers, setContracts, setPayments, setReceipts }) {
   const { can } = usePermissions();
   const canImport = can('customer', 'create') || can('import_csv') || can('data_tools') || can('contract', 'create');
 
@@ -183,6 +209,28 @@ export default function ImportCsvPage({ setCustomers }) {
   const [isImporting, setIsImporting] = useState(false);
   const [importResults, setImportResults] = useState(null);
   const [credentials, setCredentials] = useState(null);
+
+  // Import progress + timing (live duration while running)
+  const [importProgress, setImportProgress] = useState(null);
+  const [importElapsedMs, setImportElapsedMs] = useState(0);
+  const [parseDurationMs, setParseDurationMs] = useState(0);
+  const importStartedAtRef = useRef(0);
+
+  useEffect(() => {
+    if (!isImporting) return undefined;
+    const intervalId = window.setInterval(() => {
+      if (importStartedAtRef.current) {
+        setImportElapsedMs(Date.now() - importStartedAtRef.current);
+      }
+    }, 100);
+    return () => window.clearInterval(intervalId);
+  }, [isImporting]);
+
+  const resetImportProgress = () => {
+    setImportProgress(null);
+    setImportElapsedMs(0);
+    setParseDurationMs(0);
+  };
 
   // Credentials Search and Copy
   const [credSearchQuery, setCredSearchQuery] = useState('');
@@ -224,6 +272,7 @@ export default function ImportCsvPage({ setCustomers }) {
       return;
     }
 
+    const parseStartedAt = performance.now();
     try {
       let rows = [];
       if (isExcel) {
@@ -362,13 +411,16 @@ export default function ImportCsvPage({ setCustomers }) {
       setPreviewSearch('');
       setImportResults(null);
       setCredentials(null);
+      setImportProgress(null);
+      setImportElapsedMs(0);
+      setParseDurationMs(performance.now() - parseStartedAt);
 
       const notes = [];
       if (autoCalcCount > 0) notes.push(`${autoCalcCount} duration(s) calculated`);
       if (duplicateInFileCount > 0) notes.push(`${duplicateInFileCount} duplicate(s) flagged`);
 
       toast.success(
-        `Parsed ${parsed.length} master record(s)${notes.length ? ` (${notes.join(', ')})` : ''} from ${file.name}`
+        `Parsed ${parsed.length} master record(s) in ${formatDuration(performance.now() - parseStartedAt)}${notes.length ? ` (${notes.join(', ')})` : ''} from ${file.name}`
       );
     } catch (err) {
       toast.error(`Failed to read spreadsheet file: ${err.message}`);
@@ -405,25 +457,74 @@ export default function ImportCsvPage({ setCustomers }) {
    * ------------------------------------------------------------------ */
   const handleExecuteImport = async () => {
     if (!records.length || isImporting) return;
+
+    const startedAt = Date.now();
+    importStartedAtRef.current = startedAt;
     setIsImporting(true);
+    setImportResults(null);
+    setCredentials(null);
+    setImportElapsedMs(0);
+    setImportProgress({
+      phase: 'starting',
+      processed: 0,
+      total: records.length,
+      percent: 0,
+      elapsedMs: 0,
+      succeeded: 0,
+      failed: 0,
+      duplicateCount: 0,
+      activeCount: 0,
+      demoCount: 0
+    });
+
     const toastId = toast.loading(`Importing ${records.length} records & provisioning Customer, Contract, Payment, and Receipt data...`);
 
     try {
-      const res = await customerApi.importMaster(records);
-      setImportResults(res);
+      const res = await customerApi.importMasterStream(records, {
+        onProgress: (snapshot) => {
+          setImportProgress((prev) => ({
+            ...prev,
+            ...snapshot,
+            percent: Math.max(prev?.percent || 0, Number(snapshot.percent) || 0)
+          }));
+        }
+      });
+
+      const durationMs = Date.now() - startedAt;
+      setImportElapsedMs(durationMs);
+      setImportProgress((prev) => ({
+        ...(prev || {}),
+        phase: 'done',
+        processed: records.length,
+        total: records.length,
+        percent: 100,
+        elapsedMs: durationMs,
+        succeeded: res.succeeded,
+        failed: res.failed,
+        duplicateCount: res.duplicateCount
+      }));
+      setImportResults({ ...res, durationMs, serverDurationMs: Number(res.elapsedMs) || durationMs });
       setCredentials(res.credentials || []);
 
-      // Refresh global customer list for real-time dashboard updates
+      // Refresh global customer, contract, payment, and receipt lists for real-time dashboard updates
       try {
-        const live = await customerApi.getCustomers();
-        if (live && Array.isArray(live) && setCustomers) setCustomers(live);
+        const [liveCust, livePay, liveRec, liveCtr] = await Promise.allSettled([
+          customerApi.getCustomers(),
+          paymentApi.getPayments(),
+          paymentApi.getReceipts(),
+          contractApi.getContracts()
+        ]);
+        if (liveCust.status === 'fulfilled' && Array.isArray(liveCust.value) && setCustomers) setCustomers(liveCust.value);
+        if (livePay.status === 'fulfilled' && Array.isArray(livePay.value) && setPayments) setPayments(livePay.value);
+        if (liveRec.status === 'fulfilled' && Array.isArray(liveRec.value) && setReceipts) setReceipts(liveRec.value);
+        if (liveCtr.status === 'fulfilled' && Array.isArray(liveCtr.value) && setContracts) setContracts(liveCtr.value);
       } catch (custErr) {
-        console.warn('Customer list refresh note:', custErr.message);
+        console.warn('Dashboard live refresh note:', custErr.message);
       }
 
       // Broadcast update event across all open admin views
       try {
-        window.dispatchEvent(new CustomEvent('nispl_data_changed', { detail: { resources: ['*'] } }));
+        notifyDataChanged(['*']);
       } catch {
         // Safe fallback
       }
@@ -431,21 +532,24 @@ export default function ImportCsvPage({ setCustomers }) {
       notificationApi.createNotification({
         type: 'customer_created',
         title: 'Master Import Completed',
-        message: `Imported ${res.succeeded} master records (${res.activeCount} active, ${res.demoCount} demo trials, ${res.duplicateCount || 0} duplicates skipped, ${res.paymentsCount} payments, ${res.receiptsCount} receipts).`,
+        message: `Imported ${res.succeeded} master records in ${formatDuration(durationMs)} (${res.activeCount} active, ${res.demoCount} demo trials, ${res.duplicateCount || 0} duplicates skipped, ${res.paymentsCount} payments, ${res.receiptsCount} receipts).`,
         severity: res.failed > 0 ? 'warning' : 'success',
         entityType: 'customer',
         metadata: { succeeded: res.succeeded, failed: res.failed, duplicateCount: res.duplicateCount, activeCount: res.activeCount, demoCount: res.demoCount, paymentsCount: res.paymentsCount }
       });
 
       if (res.duplicateCount > 0) {
-        toast.success(`Import finished: ${res.succeeded} imported, ${res.duplicateCount} duplicate(s) prevented.`, { id: toastId });
+        toast.success(`Import finished in ${formatDuration(durationMs)}: ${res.succeeded} imported, ${res.duplicateCount} duplicate(s) prevented.`, { id: toastId });
       } else if (res.succeeded === records.length) {
-        toast.success(`All ${res.succeeded} record(s) imported! Active accounts, demo trials, payments & receipts provisioned.`, { id: toastId });
+        toast.success(`All ${res.succeeded} record(s) imported in ${formatDuration(durationMs)}! Active accounts, demo trials, payments & receipts provisioned.`, { id: toastId });
       } else {
-        toast.success(`Import finished: ${res.succeeded} succeeded, ${res.failed} failed. Credentials and receipts generated.`, { id: toastId });
+        toast.success(`Import finished in ${formatDuration(durationMs)}: ${res.succeeded} succeeded, ${res.failed} failed. Credentials and receipts generated.`, { id: toastId });
       }
     } catch (err) {
-      toast.error(`Import failed: ${err.message}`, { id: toastId });
+      const failedAfterMs = Date.now() - startedAt;
+      setImportElapsedMs(failedAfterMs);
+      setImportProgress((prev) => (prev ? { ...prev, phase: 'error', error: err.message, elapsedMs: failedAfterMs } : prev));
+      toast.error(`Import failed after ${formatDuration(failedAfterMs)}: ${err.message}`, { id: toastId });
     } finally {
       setIsImporting(false);
     }
@@ -594,6 +698,22 @@ export default function ImportCsvPage({ setCustomers }) {
         (c.customerId && c.customerId.toLowerCase().includes(q))
     );
   }, [credentials, credSearchQuery]);
+
+  /* ------------------------------------------------------------------ *
+   * Import progress derived values
+   * ------------------------------------------------------------------ */
+  const progressProcessed = importProgress?.processed || 0;
+  const progressTotal = importProgress?.total || records.length;
+  const liveElapsedMs = isImporting ? importElapsedMs : (importProgress?.elapsedMs || importElapsedMs);
+  const progressPercent = Math.round(
+    importProgress?.phase === 'fallback' && isImporting
+      ? Math.min(92, 8 + (liveElapsedMs / 1000) * 2.5)
+      : importProgress?.percent || 0
+  );
+  const etaMs =
+    isImporting && progressProcessed > 0 && progressPercent > 0 && progressPercent < 95
+      ? Math.max(0, (liveElapsedMs / progressProcessed) * (progressTotal - progressProcessed))
+      : null;
 
   return (
     <div className="animate-fade-in" style={{ padding: '0 2px' }}>
@@ -792,7 +912,9 @@ export default function ImportCsvPage({ setCustomers }) {
                 </span>
               </h4>
               <p>
-                File Size: {fileSize} • Master columns recognized • Ready to import into respective lists
+                File Size: {fileSize}
+                {parseDurationMs > 0 && <> • Parsed in {formatDuration(parseDurationMs)}</>}
+                {' • '}Master columns recognized • Ready to import into respective lists
               </p>
             </div>
           </div>
@@ -807,6 +929,7 @@ export default function ImportCsvPage({ setCustomers }) {
                 setRecords([]);
                 setImportResults(null);
                 setCredentials(null);
+                resetImportProgress();
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
             >
@@ -834,10 +957,92 @@ export default function ImportCsvPage({ setCustomers }) {
               <FileUp size={16} />
               <span>
                 {isImporting
-                  ? 'Importing Master Data & Provisioning...'
+                  ? `Importing Master Data… ${progressPercent}% (${progressProcessed}/${progressTotal})`
                   : `Import ${records.length} Master Records`}
               </span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+         LIVE IMPORT PROGRESS + ELAPSED TIME
+         ========================================================================= */}
+      {importProgress && (
+        <div
+          className={`adm-import-progress-card ${importProgress.phase === 'done' ? 'is-complete' : ''} ${importProgress.phase === 'error' ? 'is-error' : ''}`}
+          role="status"
+          aria-live="polite"
+        >
+          <div className="adm-import-progress-head">
+            <div className="adm-import-progress-heading">
+              <span className="adm-import-progress-badge">
+                {importProgress.phase === 'done' ? (
+                  <CheckCircle2 size={18} />
+                ) : importProgress.phase === 'error' ? (
+                  <XCircle size={18} />
+                ) : (
+                  <Loader2 size={18} className="adm-import-progress-spin" />
+                )}
+              </span>
+              <div>
+                <h4 className="adm-import-progress-title">
+                  {importProgress.phase === 'done'
+                    ? 'Import Completed'
+                    : importProgress.phase === 'error'
+                      ? 'Import Failed'
+                      : importProgress.phase === 'finalizing'
+                        ? 'Finalizing — refreshing customer lifecycles, payments & receipts…'
+                        : importProgress.phase === 'fallback'
+                          ? 'Processing on server (live progress unavailable)…'
+                          : `Importing master records… ${progressProcessed} of ${progressTotal}`}
+                </h4>
+                <p className="adm-import-progress-sub">
+                  {importProgress.phase === 'done' ? (
+                    <>
+                      Completed in <strong>{formatDuration(liveElapsedMs)}</strong> • {formatRate(progressProcessed, liveElapsedMs)} • {progressProcessed} record(s)
+                    </>
+                  ) : importProgress.phase === 'error' ? (
+                    <>
+                      Stopped after <strong>{formatDuration(liveElapsedMs)}</strong>
+                      {importProgress.error ? ` • ${importProgress.error}` : ''}
+                    </>
+                  ) : (
+                    <>
+                      Elapsed <strong>{formatDuration(liveElapsedMs)}</strong>
+                      {etaMs !== null && <> • Remaining ≈ <strong>{formatDuration(etaMs)}</strong></>}
+                      {importProgress.company ? <> • Processing: {importProgress.company}</> : null}
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            <span className="adm-import-progress-percent">{progressPercent}%</span>
+          </div>
+
+          <div className={`adm-import-progress-track ${isImporting ? 'is-active' : ''}`}>
+            <div className="adm-import-progress-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
+
+          <div className="adm-import-progress-meta">
+            <span>
+              <FileSpreadsheet size={12} /> {progressProcessed} / {progressTotal} records
+            </span>
+            <span>
+              <CheckCircle2 size={12} /> {importProgress.succeeded || 0} succeeded
+            </span>
+            <span>
+              <XCircle size={12} /> {importProgress.failed || 0} failed
+            </span>
+            <span>
+              <AlertTriangle size={12} /> {importProgress.duplicateCount || 0} duplicate(s) skipped
+            </span>
+            <span>
+              <Timer size={12} /> {formatDuration(liveElapsedMs)} elapsed
+            </span>
+            <span>
+              <Gauge size={12} /> {formatRate(progressProcessed, liveElapsedMs)}
+            </span>
           </div>
         </div>
       )}
@@ -1154,7 +1359,11 @@ export default function ImportCsvPage({ setCustomers }) {
               <Sparkles size={18} style={{ color: '#16a34a' }} />
               <span>Import Execution Results</span>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <span className="adm-status-pill active">
+                <Timer size={12} style={{ verticalAlign: '-2px', marginRight: '4px' }} />
+                Imported in {formatDuration(importResults.durationMs)}
+              </span>
               <span className="adm-status-pill active">{importResults.succeeded} Succeeded</span>
               {importResults.duplicateCount > 0 && <span className="adm-status-pill inactive" style={{ background: '#ffe4e6', color: '#e11d48' }}>{importResults.duplicateCount} Duplicates Skipped</span>}
               {importResults.failed > 0 && <span className="adm-status-pill inactive">{importResults.failed} Failed</span>}
@@ -1185,6 +1394,18 @@ export default function ImportCsvPage({ setCustomers }) {
             <div>
               <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Sangam CRM Synced</span>
               <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>{importResults.crmSyncCount || 0}</p>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Total Import Time</span>
+              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#4f46e5', fontSize: '1.05rem' }}>
+                {formatDuration(importResults.durationMs)}
+              </p>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Throughput</span>
+              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>
+                {formatRate(importResults.total || records.length, importResults.durationMs)}
+              </p>
             </div>
           </div>
         </div>

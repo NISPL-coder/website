@@ -5,7 +5,8 @@ import Payment, {
   getPaymentProof
 } from '../models/Payment.js';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
-import Contract from '../models/Contract.js';
+import Contract, { getContractsFromFile } from '../models/Contract.js';
+import Product from '../models/Product.js';
 import mongoose from 'mongoose';
 import { logActivity } from '../utils/activityLogger.js';
 import { logNotification } from '../services/notificationService.js';
@@ -104,39 +105,27 @@ const loadReceiptContext = async (rows) => {
     catalogue: new Map()
   };
 
-  if (!isMongoConnected()) return context;
+  if (!isMongoConnected()) {
+    const customers = getCustomersFromFile();
+    const contracts = getContractsFromFile();
+    context.contracts = contracts;
+    context.linkable = buildContractLinkIndex(contracts);
+    customers.forEach((c) => addLink(context.customerByKey, [c.email, c.loginEmail, c.customerId, c.company, c.name], c));
+    contracts.forEach((c) => addLink(context.contractById, [c.contractId, c.id], c));
+    return context;
+  }
 
-  const [customers, contracts] = await Promise.all([
+  const [customers, contracts, products] = await Promise.all([
     Customer.find({}).lean().catch(() => []),
-    Contract.find({}).lean().catch(() => [])
+    Contract.find({}).lean().catch(() => []),
+    Product.find({}).lean().catch(() => [])
   ]);
 
   context.contracts = contracts;
   context.linkable = buildContractLinkIndex(contracts);
   customers.forEach((c) => addLink(context.customerByKey, [c.email, c.loginEmail, c.customerId, c.company, c.name], c));
   contracts.forEach((c) => addLink(context.contractById, [c.contractId, c.id], c));
-
-  // The ledger names a product as free text and a contract names it another
-  // way, so every wording gathered from both sides is resolved against the
-  // catalogue once per request rather than once per row.
-  const termKeys = new Set();
-  const collectTerms = (values) =>
-    values.forEach((v) => {
-      const key = norm(v);
-      if (key) termKeys.add(key);
-    });
-
-  rows.forEach((row) =>
-    [row.solutionCategory, row.productName, row.service, row.contractId].forEach((value) =>
-      collectTerms(labelVariants(value))
-    )
-  );
-  contracts.forEach((c) => collectTerms([c.productId, c.name, c.service, c.productCategory]));
-
-  for (const key of termKeys) {
-    const product = await findCatalogueRow(key);
-    if (product) context.catalogue.set(key, product);
-  }
+  products.forEach((p) => addLink(context.catalogue, [p.productId, p.id, p.name], p));
 
   return context;
 };
@@ -357,14 +346,14 @@ const termOf = (items, paidOn) => {
   };
 };
 
-const receiptItems = async (row, contract, context, split) => {
+const receiptItems = (row, contract, context, split) => {
   if (Array.isArray(row.items) && row.items.length) {
     return row.items.map((item) => ({ ...item }));
   }
 
   const rawLabel = row.solutionCategory || row.productName || row.service || contract?.name || '';
   const product = lookupProduct(rawLabel, context) || context.catalogue.get(norm(contract?.productId));
-  const name = await resolveDisplayName(rawLabel, contract?.name || 'Subscription');
+  const name = product?.name || rawLabel || contract?.name || 'Subscription';
 
   if (!product && !contract) {
     // Nothing in the catalogue or the contracts names this charge. Show the
@@ -393,14 +382,14 @@ const receiptItems = async (row, contract, context, split) => {
   ];
 };
 
-const buildReceipt = async (row, context) => {
+const buildReceipt = (row, context) => {
   const total = parseAmount(row.amount);
   const received = parseAmount(row.receivedAmount) || (String(row.status || '').toLowerCase() === 'received' ? total : 0);
   const pending = parseAmount(row.pendingPayment) || Math.max(total - received, 0);
   const split = gstSplit(row, total);
   const { contract, basis: contractLink } = linkContract(row, context);
   const customer = matchCustomer(row, context);
-  const items = await receiptItems(row, contract, context, split);
+  const items = receiptItems(row, contract, context, split);
   const catalogueProduct =
     lookupProduct(items[0]?.name || row.solutionCategory || row.productName || row.service, context) ||
     context.catalogue.get(norm(contract?.productId));
@@ -464,9 +453,6 @@ const buildReceipt = async (row, context) => {
     status: row.status || '',
     service: items.map((item) => item.name).join(', '),
     solutionCategory: row.solutionCategory || '',
-    // What a payment taken outside the gateway was reconciled with. The bytes
-    // of a proof are never carried here; only its name, so the list can offer
-    // to open it.
     referenceNumber: row.referenceNumber || '',
     bankName: row.bankName || '',
     depositDate: isoDay(row.depositDate),
@@ -483,6 +469,116 @@ const buildReceipt = async (row, context) => {
   };
 };
 
+/**
+ * Ensures any paid contracts in the database or file fallback that lack
+ * a ledger payment entry are automatically provisioned so that receipts
+ * and payments are immediately visible without requiring manual re-import.
+ */
+const syncPaidContractsToPayments = async (existingPayments) => {
+  try {
+    const existingContractIds = new Set(
+      (existingPayments || []).map((p) => p.contractId).filter(Boolean)
+    );
+
+    let contracts = [];
+    if (isMongoConnected()) {
+      contracts = await Contract.find({}).lean().catch(() => []);
+    } else {
+      contracts = getContractsFromFile();
+    }
+
+    const missingPaid = contracts.filter((c) => {
+      if (!c.contractId || existingContractIds.has(c.contractId)) return false;
+      const val = parseFloat(String(c.totalContractValue || c.value || '').replace(/[^0-9.]/g, '')) || 0;
+      const rawStatus = String(c.status || '').toLowerCase();
+      const isPaid =
+        ['yes', 'true', '1', 'paid'].includes(String(c.paymentStatus || '').toLowerCase()) ||
+        rawStatus === 'in progress' ||
+        (val > 0 && !rawStatus.includes('demo') && !rawStatus.includes('trial'));
+      return isPaid;
+    });
+
+    if (!missingPaid.length) return existingPayments;
+
+    const year = new Date().getFullYear();
+    const newPayments = [];
+
+    for (const c of missingPaid) {
+      const createdPaymentId = await nextLedgerReference('paymentId', `PAY-${year}-`);
+      const createdInvoiceNumber = await nextLedgerReference('invoiceNumber', `INV-${year}-`);
+      const digits = String(c.totalContractValue || c.value || '').replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+      const numVal = digits ? Number(digits[0]) : 0;
+      const basePrice = numVal > 0 ? Math.round(numVal / 1.18) : 0;
+      const gstVal = Math.max(numVal - basePrice, 0);
+      const formattedTotal = numVal > 0 ? `₹${numVal.toLocaleString('en-IN')}` : '₹0';
+
+      const payload = {
+        paymentId: createdPaymentId,
+        id: createdPaymentId,
+        invoiceNumber: createdInvoiceNumber,
+        invoiceRef: createdInvoiceNumber,
+        customer: c.customer || c.company || '',
+        company: c.company || '',
+        accountName: c.company || '',
+        email: c.email || '',
+        customerId: c.customerId || '',
+        amount: formattedTotal,
+        receivedAmount: formattedTotal,
+        pendingPayment: '₹0',
+        paymentMethod: 'NEFT Wire',
+        method: 'NEFT Wire',
+        invoiceDate: c.startDate || c.orderDate || new Date().toISOString().slice(0, 10),
+        date: c.startDate || c.orderDate || new Date().toISOString().slice(0, 10),
+        paymentReceivedDate: c.startDate || c.orderDate || new Date().toISOString().slice(0, 10),
+        status: 'Received',
+        solutionCategory: c.service || c.name || 'Cloud Services',
+        contractId: c.contractId,
+        contractIds: [c.contractId],
+        taxableAmount: `₹${basePrice.toLocaleString('en-IN')}`,
+        gstAmount: `₹${gstVal.toLocaleString('en-IN')}`,
+        gstBasis: 'Synchronized from contract ledger with standard 18% GST',
+        salesPerson: c.salesPerson || '',
+        source: 'sync',
+        items: [
+          {
+            name: c.service || c.name || 'Cloud Services',
+            quantity: 1,
+            basePrice,
+            gstAmount: gstVal,
+            finalPrice: numVal,
+            durationMonths: 12,
+            startDate: c.startDate || '',
+            endDate: c.endDate || '',
+            description: c.description || c.name || ''
+          }
+        ],
+        createdAt: new Date()
+      };
+
+      if (isMongoConnected()) {
+        try {
+          const doc = await Payment.create(payload);
+          newPayments.push(doc.toObject ? doc.toObject() : payload);
+        } catch (saveErr) {
+          console.warn('[syncPaidContracts] Note:', saveErr.message);
+        }
+      } else {
+        newPayments.push(payload);
+      }
+    }
+
+    if (!isMongoConnected() && newPayments.length) {
+      const filePayments = getPaymentsFromFile();
+      savePaymentsToFile([...newPayments, ...filePayments]);
+    }
+
+    return [...newPayments, ...(existingPayments || [])];
+  } catch (err) {
+    console.warn('[syncPaidContractsToPayments] Auto-sync note:', err.message);
+    return existingPayments;
+  }
+};
+
 export const getReceipts = async (req, res) => {
   try {
     let rows = [];
@@ -492,8 +588,10 @@ export const getReceipts = async (req, res) => {
       rows = getPaymentsFromFile();
     }
 
+    rows = await syncPaidContractsToPayments(rows);
+
     const context = await loadReceiptContext(rows);
-    const receipts = await Promise.all(rows.map((row) => buildReceipt(row, context)));
+    const receipts = rows.map((row) => buildReceipt(row, context));
     const visible = redactRecords(req.user, 'receipt', receipts);
 
     res.json({ success: true, count: visible.length, data: visible });
@@ -511,6 +609,8 @@ export const getPayments = async (req, res) => {
     } else {
       payments = getPaymentsFromFile();
     }
+
+    payments = await syncPaidContractsToPayments(payments);
 
     const visible = redactRecords(req.user, 'payment', payments);
     res.json({

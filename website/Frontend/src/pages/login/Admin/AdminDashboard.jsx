@@ -464,6 +464,13 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         }
       }));
     }
+    if ((wants('receipts') || wants('receipt') || wants('payments')) && can('receipt', 'view')) {
+      tasks.push(paymentApi.getReceipts().then((data) => {
+        if (data && Array.isArray(data)) {
+          setReceipts(data);
+        }
+      }));
+    }
     // Load live product catalog from database
     if (wants('products')) {
       tasks.push(productApi.getProducts().then((data) => {
@@ -817,7 +824,12 @@ function AdminDashboardShell({ userSession, onSignOut }) {
               )}
 
               {activeNav === 'import-csv' && (
-                <ImportCsvPage setCustomers={setCustomers} />
+                <ImportCsvPage
+                  setCustomers={setCustomers}
+                  setContracts={setContracts}
+                  setPayments={setPayments}
+                  setReceipts={setReceipts}
+                />
               )}
 
               {activeNav === 'sangam-sync' && (

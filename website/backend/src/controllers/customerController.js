@@ -1555,34 +1555,60 @@ const formatMasterAmount = (value) => {
 };
 
 /**
- * Unified Master CSV Bulk Import
+ * Unified Master CSV Bulk Import (shared runner)
  * Parses a single comprehensive CSV containing Company, Contact, Contract, and Payment data.
  * - Customer: Provisioned with login credentials; if Payment Status is 'Yes' -> 'Active', if 'No' -> 'Demo'
  * - Contract: Registered and synchronized to Sangam CRM Contracts module
  * - Payment: If Payment Status is 'Yes' -> Settled payment recorded in ledger
  * - Receipt: If Payment Status is 'Yes' -> Official receipt generated automatically
+ *
+ * Processes rows sequentially and reports live progress through onProgress(snapshot).
  */
-export const importMaster = async (req, res) => {
-  try {
-    const rows = Array.isArray(req.body.records) ? req.body.records : [];
-    if (!rows.length) {
-      return res.status(400).json({ success: false, error: 'No master CSV records provided for import.' });
-    }
+const runMasterImport = async (req, rows, onProgress) => {
+  const startedAt = Date.now();
+  let lastProgressAt = 0;
 
+  const results = [];
+  const credentials = [];
+  let succeededCount = 0;
+  let failedCount = 0;
+  let duplicateCount = 0;
+  let activeCount = 0;
+  let demoCount = 0;
+  let paymentsCount = 0;
+  let receiptsCount = 0;
+  let crmSyncCount = 0;
+
+  const reportProgress = (phase, processed, extra = {}) => {
+    if (typeof onProgress !== 'function') return;
+    const now = Date.now();
+    if (phase === 'importing' && processed < rows.length && now - lastProgressAt < 120) return;
+    lastProgressAt = now;
+    const percent =
+      phase === 'finalizing' ? 97 : phase === 'done' ? 100 : Math.min(95, Math.round((processed / Math.max(rows.length, 1)) * 95));
+    onProgress({
+      phase,
+      processed,
+      total: rows.length,
+      percent,
+      elapsedMs: now - startedAt,
+      succeeded: succeededCount,
+      failed: failedCount,
+      duplicateCount,
+      activeCount,
+      demoCount,
+      paymentsCount,
+      receiptsCount,
+      crmSyncCount,
+      ...extra
+    });
+  };
+
+  try {
     const raisedBy = req.user
       ? { name: req.user.name || '', email: req.user.email || '', role: req.user.role || '' }
       : { name: '', email: '', role: '' };
 
-    const results = [];
-    const credentials = [];
-    let succeededCount = 0;
-    let failedCount = 0;
-    let duplicateCount = 0;
-    let activeCount = 0;
-    let demoCount = 0;
-    let paymentsCount = 0;
-    let receiptsCount = 0;
-    let crmSyncCount = 0;
     const touchedIdentities = new Map();
     const seenBatchKeys = new Set();
 
@@ -1667,7 +1693,23 @@ export const importMaster = async (req, res) => {
 
       // 3. Payment Status Extraction (Yes -> Active, No -> Demo)
       const rawPaymentStatus = String(item.paymentStatus || item.paid || item.isPaid || '').trim().toLowerCase();
-      const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus);
+      const rawContractStatus = String(item.contractStatus || item.status || '').trim().toLowerCase();
+      const digitsValue = String(formattedTotalValue).replace(/[^0-9.]/g, '');
+      const numValue = parseFloat(digitsValue) || 0;
+
+      let isPaid = false;
+      if (['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus)) {
+        isPaid = true;
+      } else if (['no', 'false', '0', 'unpaid', 'n', 'demo'].includes(rawPaymentStatus)) {
+        isPaid = false;
+      } else if (
+        rawPaymentStatus === 'in progress' ||
+        rawContractStatus === 'in progress' ||
+        (numValue > 0 && !rawContractStatus.includes('demo') && !rawContractStatus.includes('trial'))
+      ) {
+        isPaid = true;
+      }
+
       const paymentStatus = isPaid ? 'Yes' : 'No';
       const customerStatus = isPaid ? 'Active' : 'Demo';
       const contractStatus = isPaid ? 'In Progress' : 'DEMO';
@@ -1701,6 +1743,7 @@ export const importMaster = async (req, res) => {
         });
         duplicateCount++;
         failedCount++;
+        reportProgress('importing', i + 1, { company });
         continue;
       }
       if (batchKey) seenBatchKeys.add(batchKey);
@@ -1757,6 +1800,7 @@ export const importMaster = async (req, res) => {
         });
         duplicateCount++;
         failedCount++;
+        reportProgress('importing', i + 1, { company });
         continue;
       }
 
@@ -2097,9 +2141,12 @@ export const importMaster = async (req, res) => {
         });
         failedCount++;
       }
+
+      reportProgress('importing', i + 1, { company: company || '' });
     }
 
     // Refresh Customer Lifecycle for all touched accounts
+    reportProgress('finalizing', rows.length);
     for (const identity of touchedIdentities.values()) {
       await refreshCustomerLifecycle(identity).catch((err) =>
         console.warn('[MasterImport] Lifecycle refresh note:', err.message)
@@ -2123,8 +2170,9 @@ export const importMaster = async (req, res) => {
       changes: { total: rows.length, succeeded: succeededCount, failed: failedCount, duplicateCount, activeCount, demoCount, paymentsCount, receiptsCount }
     });
 
-    return res.status(200).json({
-      success: true,
+    reportProgress('done', rows.length);
+
+    return {
       total: rows.length,
       succeeded: succeededCount,
       failed: failedCount,
@@ -2135,11 +2183,77 @@ export const importMaster = async (req, res) => {
       receiptsCount,
       crmSyncCount,
       credentials,
-      results
-    });
+      results,
+      elapsedMs: Date.now() - startedAt,
+      durationMs: Date.now() - startedAt
+    };
   } catch (err) {
     console.error('[CustomerController] importMaster error:', err);
+    throw err;
+  }
+};
+
+/**
+ * POST /api/customers/import-master
+ * Standard JSON (non-streaming) unified master import.
+ */
+export const importMaster = async (req, res) => {
+  const rows = Array.isArray(req.body?.records) ? req.body.records : [];
+  if (!rows.length) {
+    return res.status(400).json({ success: false, error: 'No master CSV records provided for import.' });
+  }
+
+  try {
+    const summary = await runMasterImport(req, rows);
+    return res.status(200).json({ success: true, ...summary });
+  } catch (err) {
     return res.status(500).json({ success: false, error: err.message || 'Failed to import master CSV records.' });
+  }
+};
+
+/**
+ * POST /api/customers/import-master-stream
+ * Same unified master import, but streams newline-delimited JSON progress events:
+ *   { type: 'start' } -> { type: 'progress', processed, total, percent, ... }* -> { type: 'complete', ... } | { type: 'error' }
+ */
+export const importMasterStream = async (req, res) => {
+  const rows = Array.isArray(req.body?.records) ? req.body.records : [];
+  if (!rows.length) {
+    return res.status(400).json({ success: false, error: 'No master CSV records provided for import.' });
+  }
+
+  res.status(200);
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  const startedAt = Date.now();
+  const writeEvent = (payload) => {
+    if (res.writableEnded) return;
+    try {
+      res.write(`${JSON.stringify(payload)}\n`);
+      if (typeof res.flush === 'function') res.flush();
+    } catch (writeErr) {
+      console.warn('[MasterImport] Progress stream write skipped:', writeErr.message);
+    }
+  };
+
+  writeEvent({ type: 'start', total: rows.length, startedAt });
+
+  try {
+    const summary = await runMasterImport(req, rows, (progress) => {
+      writeEvent({ type: 'progress', ...progress });
+    });
+    writeEvent({ type: 'complete', success: true, ...summary, elapsedMs: Date.now() - startedAt });
+    res.end();
+  } catch (err) {
+    writeEvent({
+      type: 'error',
+      error: err.message || 'Failed to import master CSV records.',
+      elapsedMs: Date.now() - startedAt
+    });
+    res.end();
   }
 };
 

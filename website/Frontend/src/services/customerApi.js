@@ -123,6 +123,116 @@ export const customerApi = {
   },
 
   /**
+   * Bulk import master CSV (Customer + Contract + Payment + Receipt)
+   * Streams live progress events from the server so the UI can render a
+   * real progress bar, elapsed time and ETA while rows are provisioned.
+   *
+   * @param {Array<Object>} records
+   * @param {{ onProgress?: (snapshot: Object) => void }} options
+   */
+  async importMasterStream(records, { onProgress } = {}) {
+    const startedAt = Date.now();
+    const res = await fetch(`${API_BASE_URL}/import-master-stream`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/x-ndjson'
+      }),
+      body: JSON.stringify({ records })
+    });
+
+    // Older backend builds do not expose the streaming endpoint yet.
+    if (res.status === 404 || res.status === 405) {
+      if (typeof onProgress === 'function') {
+        onProgress({ phase: 'fallback', processed: 0, total: records.length, percent: 8, elapsedMs: Date.now() - startedAt });
+      }
+      const data = await this.importMaster(records);
+      if (typeof onProgress === 'function') {
+        onProgress({
+          phase: 'done',
+          processed: records.length,
+          total: records.length,
+          percent: 100,
+          elapsedMs: Date.now() - startedAt
+        });
+      }
+      return { ...data, elapsedMs: Date.now() - startedAt, durationMs: Date.now() - startedAt, streamed: false };
+    }
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Unified master CSV import failed.');
+    }
+    if (!res.body || typeof res.body.getReader !== 'function') {
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Unified master CSV import failed.');
+      }
+      return data;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let summary = null;
+    let streamError = null;
+
+    const handleLine = (line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      let event;
+      try {
+        event = JSON.parse(trimmed);
+      } catch {
+        return;
+      }
+      if (event.type === 'progress' || event.type === 'start') {
+        if (typeof onProgress === 'function') onProgress(event);
+      } else if (event.type === 'complete') {
+        summary = event;
+      } else if (event.type === 'error') {
+        streamError = event;
+      }
+    };
+
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newlineIdx = buffer.indexOf('\n');
+        while (newlineIdx !== -1) {
+          handleLine(buffer.slice(0, newlineIdx));
+          buffer = buffer.slice(newlineIdx + 1);
+          newlineIdx = buffer.indexOf('\n');
+        }
+      }
+      buffer += decoder.decode();
+      handleLine(buffer);
+    } finally {
+      try {
+        reader.releaseLock();
+      } catch {
+        /* stream already closed */
+      }
+    }
+
+    if (streamError) {
+      throw new Error(streamError.error || 'Unified master CSV import failed.');
+    }
+    if (!summary) {
+      throw new Error('Import stream ended before the server confirmed completion. Please check the Customer list before retrying.');
+    }
+
+    notifyDataChanged('customers');
+    notifyDataChanged('contracts');
+    notifyDataChanged('payments');
+    notifyDataChanged('receipts');
+
+    const elapsedMs = Number(summary.elapsedMs) || Date.now() - startedAt;
+    return { ...summary, elapsedMs, durationMs: elapsedMs, streamed: true };
+  },
+
+  /**
    * Bulk import companies from CSV, sync to Sangam CRM Account, and generate dashboard credentials
    * @param {Array<Object>} companies
    */
