@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Landmark, Paperclip, X, Search, Clock } from 'lucide-react';
+import { CheckCircle2, Landmark, Paperclip, X, Search, Clock, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 import { compactSelectStyles } from './reactSelectStyles';
@@ -11,6 +11,7 @@ import DateRangeFilter from './DateRangeFilter';
 import { usePermissions } from './PermissionsContext';
 import { paymentApi } from '../../../services/paymentApi';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import EditPaymentModal from './EditPaymentModal';
 
 const getName = (row) => row.name || row.customer || '—';
 const getAccount = (row) => row.accountName || row.company || '—';
@@ -40,6 +41,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
   const navigate = useNavigate();
   const { visibleColumns, can } = usePermissions();
   const [searchQuery, setSearchQuery] = useState(externalSearch || '');
+  const [editingPayment, setEditingPayment] = useState(null);
 
   useEffect(() => {
     if (externalSearch !== undefined && externalSearch !== null) {
@@ -433,22 +435,33 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       id: 'actions',
       name: 'Action',
       center: true,
-      width: '110px',
+      width: '160px',
       button: true,
       allowOverflow: true,
       searchable: false,
       ignoreRowClick: true,
       cell: (p) => (
-        <button
-          type="button"
-          className="adm-action-pill"
-          onClick={() => {
-            toast.success(`Opening receipt for ${getInvoiceNumber(p)}`);
-            if (onGoToReceipt) onGoToReceipt();
-          }}
-        >
-          Receipt
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            type="button"
+            className="adm-action-pill"
+            onClick={() => setEditingPayment(p)}
+            title="Edit payment transaction"
+          >
+            <Edit3 size={12} />
+            <span>Edit</span>
+          </button>
+          <button
+            type="button"
+            className="adm-action-pill"
+            onClick={() => {
+              toast.success(`Opening receipt for ${getInvoiceNumber(p)}`);
+              if (onGoToReceipt) onGoToReceipt();
+            }}
+          >
+            Receipt
+          </button>
+        </div>
       )
     }
   ];
