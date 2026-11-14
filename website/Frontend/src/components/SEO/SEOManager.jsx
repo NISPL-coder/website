@@ -41,6 +41,18 @@ const PAGE_SEO = {
     description: 'Unified login access for Net Infotech System (NISPL). Access NISPL Admin Infrastructure, Authorized Tally Partner Hub, and Enterprise Customer Tally on Cloud ERP.',
     keywords: 'NISPL Login, Net Infotech System Admin Login, Tally Cloud Login, Partner Portal NISPL, Customer Cloud Access Kolkata, IT Support Portal',
     canonical: 'https://nispl.netlify.app/login'
+  },
+  '/admin-login': {
+    title: 'NISPL Admin Operations Console Login | Net Infotech System',
+    description: 'Secure administrator login for Net Infotech System (NISPL) infrastructure and operations console.',
+    keywords: 'NISPL Admin Login, Net Infotech System Operations Console, Admin Sign In, Enterprise IT Management',
+    canonical: 'https://nispl.netlify.app/admin-login'
+  },
+  '/customer-login': {
+    title: 'Secure Client Login Portal | Net Infotech System (NISPL)',
+    description: 'Customer login access for Net Infotech System (NISPL) Tally on Cloud ERP and hosting.',
+    keywords: 'NISPL Customer Login, Tally Cloud Login, Customer Cloud Access Kolkata',
+    canonical: 'https://nispl.netlify.app/customer-login'
   }
 };
 

@@ -126,7 +126,7 @@ export const MEGA_MENU_CONFIG = {
         id: 'login-admin',
         label: 'Admin',
         desc: 'Internal infrastructure & NOC systems administration',
-        path: '/login?portal=admin',
+        path: '/admin-login',
         icon: 'Shield',
         openInNewTab: true
       },

@@ -196,7 +196,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
       if (onSignOut) {
         onSignOut();
       } else {
-        navigate('/login?portal=admin', { replace: true });
+        navigate('/admin-login', { replace: true });
       }
     }
   }, [navigate, onSignOut]);

@@ -130,7 +130,7 @@ export default function CustomerLoginPage() {
                   {errorMsg.includes('Admin Portal') && (
                     <button
                       type="button"
-                      onClick={() => navigate('/login?portal=admin')}
+                      onClick={() => navigate('/admin-login')}
                       style={{
                         alignSelf: 'flex-start',
                         marginTop: '4px',

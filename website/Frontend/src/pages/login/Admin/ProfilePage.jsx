@@ -131,7 +131,7 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
       toast.success('Password changed. Please sign in again.', { id: toastId });
       authApi.clearAuthSession();
       setTimeout(() => {
-        window.location.href = '/login?portal=admin';
+        window.location.href = '/admin-login';
       }, 800);
     } catch (err) {
       toast.error(err.message, { id: toastId });

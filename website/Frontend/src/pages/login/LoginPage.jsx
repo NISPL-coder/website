@@ -60,21 +60,34 @@ export default function LoginPage({ lockedPortal }) {
     setIsMuted(!isMuted);
   };
 
-  // Portal selection is locked/uneditable if selected from navbar (?portal=admin/customer/partner) or via lockedPortal prop or /customer-login route
+  const isAdminLoginRoute = (
+    location.pathname === '/admin-login' ||
+    location.pathname === '/admin_login' ||
+    location.pathname === '/admin/login'
+  );
+
+  const isCustomerLoginRoute = (
+    location.pathname === '/customer-login' ||
+    location.pathname === '/customer_login' ||
+    location.pathname === '/customer/login'
+  );
+
+  // Portal selection is locked/uneditable if selected from navbar (?portal=admin/customer/partner) or via lockedPortal prop or /customer-login or /admin-login route
   const isPortalLocked = Boolean(
     lockedPortal ||
+    isAdminLoginRoute ||
+    isCustomerLoginRoute ||
     urlPortal === 'admin' ||
     urlPortal === 'partner' ||
     urlPortal === 'customer' ||
-    location.pathname === '/customer-login' ||
-    location.pathname === '/customer_login' ||
     searchParams.get('locked') === 'true'
   );
 
   // Determine active portal: 'admin' | 'partner' | 'customer'
   const getInitialPortal = () => {
     if (lockedPortal) return lockedPortal;
-    if (location.pathname === '/customer-login' || location.pathname === '/customer_login' || location.pathname === '/customer/login') return 'customer';
+    if (isAdminLoginRoute) return 'admin';
+    if (isCustomerLoginRoute) return 'customer';
     if (urlPortal === 'customer') return 'customer';
     if (urlPortal === 'partner') return 'partner';
     if (urlPortal === 'admin') return 'admin';
@@ -86,12 +99,21 @@ export default function LoginPage({ lockedPortal }) {
   useEffect(() => {
     if (lockedPortal) {
       setActivePortal(lockedPortal);
-    } else if (location.pathname === '/customer-login' || location.pathname === '/customer_login' || location.pathname === '/customer/login') {
+    } else if (isAdminLoginRoute) {
+      setActivePortal('admin');
+    } else if (isCustomerLoginRoute) {
       setActivePortal('customer');
     } else if (urlPortal && ['admin', 'partner', 'customer'].includes(urlPortal)) {
       setActivePortal(urlPortal);
     }
-  }, [lockedPortal, location.pathname, urlPortal]);
+  }, [lockedPortal, location.pathname, urlPortal, isAdminLoginRoute, isCustomerLoginRoute]);
+
+  // Seamlessly redirect legacy /login?portal=admin to /admin-login
+  useEffect(() => {
+    if (location.pathname === '/login' && urlPortal === 'admin') {
+      navigate('/admin-login', { replace: true });
+    }
+  }, [location.pathname, urlPortal, navigate]);
 
   // If already authenticated with a valid token, redirect to active portal dashboard
   useEffect(() => {
@@ -120,6 +142,14 @@ export default function LoginPage({ lockedPortal }) {
     if (isPortalLocked) return;
     if (portalKey === 'partner') {
       navigate('/partner-dashboard');
+      return;
+    }
+    if (portalKey === 'admin') {
+      navigate('/admin-login');
+      return;
+    }
+    if (portalKey === 'customer') {
+      navigate('/customer-login');
       return;
     }
     setActivePortal(portalKey);
@@ -372,10 +402,14 @@ export default function LoginPage({ lockedPortal }) {
 
   // Determine if we should display the Customer-specific 2-column video interface
   const isCustomerPortal = (
-    activePortal === 'customer' ||
-    location.pathname === '/customer-login' ||
-    location.pathname === '/customer_login' ||
-    location.pathname === '/customer/login'
+    !isAdminLoginRoute &&
+    lockedPortal !== 'admin' &&
+    (
+      activePortal === 'customer' ||
+      location.pathname === '/customer-login' ||
+      location.pathname === '/customer_login' ||
+      location.pathname === '/customer/login'
+    )
   );
 
   return (
@@ -422,7 +456,7 @@ export default function LoginPage({ lockedPortal }) {
                       <button
                         type="button"
                         className="ebolt-switch-portal-link"
-                        onClick={() => handleSelectPortal('admin')}
+                        onClick={() => navigate('/admin-login')}
                       >
                         Admin Login &rarr;
                       </button>
@@ -442,8 +476,7 @@ export default function LoginPage({ lockedPortal }) {
                           className="ebolt-error-action-btn"
                           onClick={() => {
                             setErrorMessage('');
-                            handleSelectPortal('admin');
-                            navigate('/login?portal=admin');
+                            navigate('/admin-login');
                           }}
                         >
                           Go to Admin Portal &rarr;

@@ -10,6 +10,9 @@ export default function FixedFooter() {
   // Exclude footer completely from all types of login and registration pages
   const isLoginPage = [
     '/login',
+    '/admin-login',
+    '/admin_login',
+    '/admin/login',
     '/customer-login',
     '/customer_login',
     '/customer/login',

@@ -199,7 +199,7 @@ export default function CreateAdminPage() {
           />
         </Link>
 
-        <Link to="/login?portal=admin" className="ebolt-home-pill-btn">
+        <Link to="/admin-login" className="ebolt-home-pill-btn">
           <ArrowLeft size={14} />
           <span>Back to Login</span>
         </Link>
@@ -238,7 +238,7 @@ export default function CreateAdminPage() {
                 If you already have administrator credentials, please sign in through the Admin Portal.
               </p>
               <Link 
-                to="/login?portal=admin" 
+                to="/admin-login" 
                 className="ebolt-submit-btn" 
                 style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
@@ -357,7 +357,7 @@ export default function CreateAdminPage() {
             {/* Back to Login Link */}
             <div className="ebolt-create-account-box">
               <span className="ebolt-create-account-text">Already an admin? </span>
-              <Link to="/login?portal=admin" className="ebolt-create-account-link">
+              <Link to="/admin-login" className="ebolt-create-account-link">
                 Sign In
               </Link>
             </div>
@@ -554,7 +554,7 @@ export default function CreateAdminPage() {
             <button
               type="button"
               className="ebolt-submit-btn"
-              onClick={() => navigate('/login?portal=admin')}
+              onClick={() => navigate('/admin-login')}
             >
               <span>Proceed to Login</span>
               <ArrowRight size={16} />
