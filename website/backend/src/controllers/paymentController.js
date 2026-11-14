@@ -789,6 +789,7 @@ const EDITABLE_TEXT_FIELDS = [
   'receivedAmount',
   'pendingPayment',
   'paymentMethod',
+  'paymentMode',
   'method',
   'invoiceNumber',
   'invoiceRef',
@@ -797,11 +798,18 @@ const EDITABLE_TEXT_FIELDS = [
   'paymentReceivedDate',
   'expectedPaymentDate',
   'solutionCategory',
+  'service',
+  'productName',
   'contractId',
   'taxableAmount',
   'gstAmount',
   'gstBasis',
-  'salesPerson'
+  'salesPerson',
+  'referenceNumber',
+  'chequeNumber',
+  'bankName',
+  'depositDate',
+  'notes'
 ];
 
 export const updatePayment = async (req, res) => {

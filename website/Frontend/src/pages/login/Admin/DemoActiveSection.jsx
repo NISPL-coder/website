@@ -12,7 +12,8 @@ import {
   Printer,
   RotateCw,
   ToggleRight,
-  ShieldCheck
+  ShieldCheck,
+  Edit3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -22,6 +23,7 @@ import ExportDropdown from './ExportDropdown';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import ViewCustomerModal from './ViewCustomerModal';
+import EditCustomerModal from './EditCustomerModal';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { compareDate, compareNumber, compareText, formatStamp, isWithinDateRange } from './adminTableUtils';
 import { usePermissions } from './PermissionsContext';
@@ -69,6 +71,7 @@ export default function DemoActiveSection({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
 
   const copyToClipboard = (text, key, label = 'Text') => {
@@ -386,13 +389,22 @@ export default function DemoActiveSection({
       id: 'actions',
       name: 'Action',
       center: true,
-      width: '120px',
+      width: '170px',
       button: true,
       allowOverflow: true,
       searchable: false,
       ignoreRowClick: true,
       cell: (cust) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            type="button"
+            className="adm-action-pill"
+            onClick={() => setEditingCustomer(cust)}
+            title="Edit customer details"
+          >
+            <Edit3 size={12} />
+            <span>Edit</span>
+          </button>
           <button
             type="button"
             className="adm-action-pill"
@@ -594,6 +606,26 @@ export default function DemoActiveSection({
           onPrint={(cust) => generateCustomerPdf(cust)}
           contracts={contracts}
           receipts={receipts}
+        />
+      )}
+
+      {/* Edit Customer Modal */}
+      {editingCustomer && (
+        <EditCustomerModal
+          customer={editingCustomer}
+          isOpen={Boolean(editingCustomer)}
+          onClose={() => setEditingCustomer(null)}
+          onUpdated={(updated) => {
+            if (setCustomers) {
+              setCustomers((prev) =>
+                prev.map((c) =>
+                  (c.customerId && c.customerId === updated.customerId) || (c.id && c.id === updated.id)
+                    ? { ...c, ...updated }
+                    : c
+                )
+              );
+            }
+          }}
         />
       )}
     </div>

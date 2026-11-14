@@ -106,19 +106,15 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
     }
 
     const cleanPhone = formData.phone.trim().replace(/\D/g, '');
-    if (!cleanPhone) {
-      toast.error('Primary phone number is required.');
-      return;
-    }
-    if (cleanPhone.length !== 10) {
-      toast.error(`Primary phone number must be exactly 10 digits (currently ${cleanPhone.length} digits).`);
+    if (cleanPhone && (cleanPhone.length < 7 || cleanPhone.length > 15)) {
+      toast.error(`Phone number must be between 7 and 15 digits (currently ${cleanPhone.length} digits).`);
       return;
     }
 
     for (let i = 0; i < additionalPhones.length; i++) {
       const cleanExtraPhone = additionalPhones[i].trim().replace(/\D/g, '');
-      if (cleanExtraPhone && cleanExtraPhone.length !== 10) {
-        toast.error(`Secondary phone #${i + 1} must be exactly 10 digits (currently ${cleanExtraPhone.length} digits).`);
+      if (cleanExtraPhone && (cleanExtraPhone.length < 7 || cleanExtraPhone.length > 15)) {
+        toast.error(`Secondary phone #${i + 1} must be between 7 and 15 digits (currently ${cleanExtraPhone.length} digits).`);
         return;
       }
     }

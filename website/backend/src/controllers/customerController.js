@@ -1592,20 +1592,42 @@ export const importMaster = async (req, res) => {
     for (let i = 0; i < rows.length; i++) {
       const item = rows[i] || {};
 
+      // Skip summary / total rows or completely empty rows
+      const rawComp = (item.companyName || item.company || item.accountName || item.name || '').trim();
+      const rawContract = (item.contractId || item.contractName || item.agreement || '').trim();
+      const rawTotalVal = String(item.totalContractValue ?? item.value ?? item.amount ?? '').trim();
+      if (
+        /total.*sum|total total contract value/i.test(rawComp) ||
+        /total.*sum/i.test(rawContract) ||
+        /total.*sum/i.test(rawTotalVal)
+      ) {
+        continue;
+      }
+
       // 1. Company & Contact Extraction (Section A)
-      const company = (item.companyName || item.company || item.accountName || item.name || '').trim();
-      const contactPerson = (item.contactPerson || item.person || item.customerName || item.customer || item.name || company).trim();
-      const email = (item.email || item.corporateEmail || item.mail || item.personEmail || '').trim().toLowerCase();
-      const phone = (item.phone || item.mobile || item.phoneNumber || item.personMobile || '0000000000').trim();
+      const contactCombined = [item.contactFirstName, item.contactLastName].filter(Boolean).join(' ').trim();
+      const contactPerson = (item.contactPerson || contactCombined || item.customerName || item.person || item.customer || rawComp || 'Valued Customer').trim();
+      const company = (rawComp || contactPerson || rawContract || `NISPL Client ${i + 1}`).trim();
+
+      // Email fallback if missing in sheet so records can import cleanly and be edited later from admin portal
+      let rawEmail = (item.email || item.personEmail || item.personEmailAddress || item.corporateEmail || item.mail || '').trim().toLowerCase();
+      if (!rawEmail) {
+        const cleanSlug = company.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16) || `client${i + 1}`;
+        rawEmail = `${cleanSlug}_${Math.floor(1000 + Math.random() * 9000)}@nisplcloud.local`;
+      }
+      const email = rawEmail;
+
+      const rawPhone = (item.phone || item.contactPhone || item.mobile || item.phoneNumber || item.personMobile || '').trim();
+      const phone = rawPhone || '';
       const designation = (item.designation || item.role || 'Customer').trim();
       const industry = (item.industry || 'Technology').trim();
       const tallySerialNo = (item.tallySerialNo || item.tallySlNo || '').trim();
-      const street = (item.address || item.addressStreet || item.street || '').trim();
-      const city = (item.city || item.addressCity || 'Valsad').trim();
-      const state = (item.state || item.addressState || 'Gujarat').trim();
+      const street = (item.address || item.accountStreet || item.addressStreet || item.street || '').trim();
+      const city = (item.city || item.accountCity || item.addressCity || 'Kolkata').trim();
+      const state = (item.state || item.accountState || item.addressState || 'West Bengal').trim();
       const country = (item.country || item.addressCountry || 'India').trim();
       const postalCode = (item.postalCode || item.pincode || item.addressPostalCode || '').trim();
-      const gstin = (item.gstin || item.gstNo || '').trim().toUpperCase();
+      const gstin = (item.gstin || item.accountGstin || item.gstNo || '').trim().toUpperCase();
       const pan = (item.pan || '').trim().toUpperCase();
       const website = (item.website || '').trim();
       const loginEmail = (item.loginEmail || email).trim().toLowerCase();
@@ -1618,8 +1640,8 @@ export const importMaster = async (req, res) => {
       const alternatePhone = (item.alternatePhone || '').trim();
 
       // 2. Contract Extraction (Section B)
-      const contractName = (item.contractId || item.contractName || item.agreement || `${company} Cloud Services Agreement`).trim();
-      const service = (item.service || item.product || item.productName || item.productPlan || 'Tally Prime Cloud Server').trim();
+      const contractName = (rawContract || `${company} Cloud Services Agreement`).trim();
+      const service = (item.service || item.product || item.productName || item.rentalProductName || item.rentalProductMasterRentalProductName || item.productPlan || 'Tally Prime Cloud Server').trim();
       const contractType = (item.contractType || 'Comprehensive').trim();
       const productCategory = (item.productCategory || 'Software').trim();
       const rawTotalValue = item.totalContractValue ?? item.value ?? item.amount ?? '0';
@@ -1658,27 +1680,16 @@ export const importMaster = async (req, res) => {
       const slaTier = (item.slaTier || 'Tier-1 Priority NOC 99.99%').trim();
       const description = (item.description || item.notes || item.remarks || '').trim();
 
-      if (!company || !email) {
-        results.push({
-          row: i + 1,
-          company: company || 'Unknown',
-          ok: false,
-          error: 'Company Name and Email are required.'
-        });
-        failedCount++;
-        continue;
-      }
-
       // -------------------------------------------------------------
       // DUPLICATE VALIDATION: Company Name + Phone Number Check
       // -------------------------------------------------------------
       const compNorm = company.trim().toLowerCase();
       const phoneDigits = phone.replace(/[^0-9]/g, '');
-      const phoneLast10 = phoneDigits.length >= 10 ? phoneDigits.slice(-10) : phoneDigits;
-      const batchKey = `${compNorm}|${phoneLast10 || phone.trim()}`;
+      const phoneKey = phoneDigits.length >= 7 ? phoneDigits.slice(-10) : '';
+      const batchKey = phoneKey ? `${compNorm}|${phoneKey}` : `${compNorm}|contract:${(rawContract || '').toLowerCase()}`;
 
       // A. Check within current spreadsheet batch
-      if (seenBatchKeys.has(batchKey)) {
+      if (batchKey && seenBatchKeys.has(batchKey)) {
         results.push({
           row: i + 1,
           company,
@@ -1686,13 +1697,13 @@ export const importMaster = async (req, res) => {
           email,
           ok: false,
           duplicate: true,
-          error: `Duplicate entry in spreadsheet: Company "${company}" with Phone "${phone}" repeats in this sheet. Skipped to prevent duplicate.`
+          error: `Duplicate entry in spreadsheet: Company "${company}" with ${phoneKey ? `Phone "${phone}"` : 'same contract'} repeats in this sheet. Skipped to prevent duplicate.`
         });
         duplicateCount++;
         failedCount++;
         continue;
       }
-      seenBatchKeys.add(batchKey);
+      if (batchKey) seenBatchKeys.add(batchKey);
 
       // B. Check against existing database / storage records
       let existingCustomer = null;

@@ -103,21 +103,23 @@ function headerMatchers(field) {
 const MASTER_FIELDS = [
   // SECTION A: Customer Columns (CustomerSection)
   { key: 'customerId', label: 'Customer ID', required: false, aliases: ['customerid', 'id', 'custid', 'clientid'] },
-  { key: 'contactPerson', label: 'Customer Name', required: true, aliases: ['customername', 'contactperson', 'name', 'person', 'customer', 'firstname', 'fullname'] },
+  { key: 'contactFirstName', label: 'Contact - First Name', required: false, aliases: ['contactfirstname', 'firstname'] },
+  { key: 'contactLastName', label: 'Contact - Last Name', required: false, aliases: ['contactlastname', 'lastname'] },
+  { key: 'contactPerson', label: 'Customer Name', required: false, aliases: ['customername', 'contactperson', 'name', 'person', 'customer', 'fullname', 'contactfirstname'] },
   { key: 'designation', label: 'Designation', required: false, aliases: ['designation', 'role', 'title', 'position'] },
   { key: 'companyName', label: 'Company Name', required: true, aliases: ['companyname', 'company', 'accountname', 'account', 'firm', 'organization'] },
-  { key: 'email', label: 'Email', required: true, aliases: ['email', 'emailaddress', 'mail', 'corporateemail', 'contactemail'] },
+  { key: 'email', label: 'Email', required: false, aliases: ['email', 'emailaddress', 'mail', 'corporateemail', 'contactemail', 'personemailaddress', 'personemail'] },
   { key: 'loginEmail', label: 'Login Email', required: false, aliases: ['loginemail', 'useremail', 'usernameemail'] },
   { key: 'additionalEmails', label: 'Additional Emails', required: false, aliases: ['additionalemails', 'extraemails', 'ccemails', 'otheremails'] },
   { key: 'password', label: 'Password', required: false, aliases: ['password', 'portalpassword', 'pass'] },
-  { key: 'phone', label: 'Phone Number', required: false, aliases: ['phonenumber', 'phone', 'mobile', 'contact', 'contactnumber'] },
+  { key: 'phone', label: 'Phone Number', required: false, aliases: ['phonenumber', 'phone', 'mobile', 'contact', 'contactnumber', 'contactphone', 'personmobile'] },
   { key: 'additionalPhones', label: 'Additional Phones', required: false, aliases: ['additionalphones', 'extraphones', 'otherphones'] },
   { key: 'alternatePhone', label: 'Alternate Phone', required: false, aliases: ['alternatephone', 'altphone', 'landline'] },
-  { key: 'city', label: 'City', required: false, aliases: ['city', 'addresscity'] },
-  { key: 'state', label: 'State', required: false, aliases: ['state', 'addressstate'] },
+  { key: 'city', label: 'City', required: false, aliases: ['city', 'addresscity', 'accountcity'] },
+  { key: 'state', label: 'State', required: false, aliases: ['state', 'addressstate', 'accountstate'] },
   { key: 'postalCode', label: 'Postal Code', required: false, aliases: ['postalcode', 'pincode', 'zip', 'addresspostalcode'] },
-  { key: 'address', label: 'Address', required: false, aliases: ['address', 'addressstreet', 'street'] },
-  { key: 'gstin', label: 'GSTIN', required: false, aliases: ['gstin', 'gst', 'gstno'] },
+  { key: 'address', label: 'Address', required: false, aliases: ['address', 'addressstreet', 'street', 'accountstreet'] },
+  { key: 'gstin', label: 'GSTIN', required: false, aliases: ['gstin', 'gst', 'gstno', 'accountgstin'] },
   { key: 'pan', label: 'PAN', required: false, aliases: ['pan', 'panno'] },
   { key: 'website', label: 'Website', required: false, aliases: ['website', 'url'] },
   { key: 'industry', label: 'Industry', required: false, aliases: ['industry', 'industrydd'] },
@@ -126,11 +128,11 @@ const MASTER_FIELDS = [
 
   // SECTION B: Contract Columns (ContractSection)
   { key: 'contractId', label: 'Contract Name / ID', required: false, aliases: ['contractnameid', 'contractname', 'contractid', 'agreement', 'dealname', 'name'] },
-  { key: 'contractStatus', label: 'Contract Status', required: false, aliases: ['contractstatus', 'dealstatus', 'agreementstatus'] },
-  { key: 'paymentStatus', label: 'Payment Status', required: false, aliases: ['paymentstatus', 'paid', 'ispaid', 'payment', 'paidstatus', 'payment_status', 'status'] },
-  { key: 'personEmail', label: 'Person Email', required: false, aliases: ['personemail', 'signatoryemail'] },
-  { key: 'personMobile', label: 'Person Mobile', required: false, aliases: ['personmobile', 'signatorymobile'] },
-  { key: 'service', label: 'Product / Plan', required: false, aliases: ['productplan', 'serviceproduct', 'service', 'product', 'servicename', 'productname', 'plan'] },
+  { key: 'contractStatus', label: 'Contract Status', required: false, aliases: ['contractstatus', 'dealstatus', 'agreementstatus', 'status'] },
+  { key: 'paymentStatus', label: 'Payment Status', required: false, aliases: ['paymentstatus', 'paid', 'ispaid', 'payment', 'paidstatus', 'payment_status'] },
+  { key: 'personEmail', label: 'Person Email', required: false, aliases: ['personemail', 'personemailaddress', 'signatoryemail'] },
+  { key: 'personMobile', label: 'Person Mobile', required: false, aliases: ['personmobile', 'contactphone', 'signatorymobile'] },
+  { key: 'service', label: 'Product / Plan', required: false, aliases: ['productplan', 'serviceproduct', 'service', 'product', 'servicename', 'productname', 'plan', 'rentalproductmasterrentalproductname', 'rentalproductname'] },
   { key: 'contractType', label: 'Contract Type', required: false, aliases: ['contracttype', 'type', 'dealtype'] },
   { key: 'duration', label: 'Duration', required: false, aliases: ['duration', 'subscriptionperiod', 'period', 'term', 'validity'] },
   { key: 'productCategory', label: 'Product Category', required: false, aliases: ['productcategory', 'category', 'subcategory'] },
@@ -187,6 +189,29 @@ export default function ImportCsvPage({ setCustomers }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
 
+  // Interactive Preview Controls
+  const [previewPage, setPreviewPage] = useState(1);
+  const [previewPageSize, setPreviewPageSize] = useState(15);
+  const [previewSearch, setPreviewSearch] = useState('');
+
+  const handleRowPaymentStatusChange = (indexInRecords, newStatus) => {
+    setRecords((prev) => {
+      const next = [...prev];
+      next[indexInRecords] = { ...next[indexInRecords], paymentStatus: newStatus };
+      return next;
+    });
+  };
+
+  const handleSetAllPaymentStatus = (status) => {
+    setRecords((prev) => prev.map((r) => ({ ...r, paymentStatus: status })));
+    toast.success(`Set all ${records.length} records to Payment Status: ${status === 'Yes' ? 'Yes (Active)' : 'No (Demo)'}`);
+  };
+
+  const handleResetPaymentStatus = () => {
+    setRecords((prev) => prev.map((r) => ({ ...r, paymentStatus: r._initialPaymentStatus || 'Yes' })));
+    toast.success('Reset all records to initial auto-detected payment status');
+  };
+
   /* ------------------------------------------------------------------ *
    * File Handling (Supports Excel .xlsx/.xls and CSV .csv)
    * ------------------------------------------------------------------ */
@@ -224,10 +249,30 @@ export default function ImportCsvPage({ setCustomers }) {
         return { ...f, index };
       });
 
-      // Validate core required headers
-      const missingRequired = map.filter((f) => f.required && f.index < 0).map((f) => f.label);
-      if (missingRequired.length > 0) {
-        toast.error(`Missing required column(s) in sheet header: ${missingRequired.join(', ')}`);
+      // Flexible required check: must at least have Company Name or Contact Name or Contract Name
+      const hasCompany = map.find((f) => f.key === 'companyName')?.index >= 0;
+      const hasContact = map.find((f) => f.key === 'contactPerson' || f.key === 'contactFirstName')?.index >= 0;
+      const hasContract = map.find((f) => f.key === 'contractId')?.index >= 0;
+
+      if (!hasCompany && !hasContact && !hasContract) {
+        toast.error('The spreadsheet must include at least a "Company Name" or "Contact Name" or "Contract Name" column.');
+        return;
+      }
+
+      // Filter out summary lines (e.g., Total Total Contract Value Sum : ...) and empty rows
+      const summaryRegex = /total.*sum|total total contract value/i;
+      const dataRows = rows.slice(1).filter((r) => {
+        const lineStr = r.join(' ').trim();
+        if (!lineStr) return false;
+        if (summaryRegex.test(lineStr)) return false;
+        // Repeated header check
+        const firstNorm = normalizeHeader(r[0]);
+        if (firstNorm === 'contractname' || firstNorm === 'customerid' || firstNorm === 'companyname') return false;
+        return true;
+      });
+
+      if (dataRows.length === 0) {
+        toast.error('The spreadsheet file contains no valid data rows.');
         return;
       }
 
@@ -235,13 +280,31 @@ export default function ImportCsvPage({ setCustomers }) {
       let duplicateInFileCount = 0;
       const seenInSheet = new Set();
 
-      const parsed = rows.slice(1).map((cells) => {
+      const parsed = dataRows.map((cells, rowIdx) => {
         const item = {};
         map.forEach((f) => {
           item[f.key] = f.index >= 0 ? String(cells[f.index] ?? '').trim() : '';
         });
 
-        // Auto-calculate Duration from Start Date and End Date if duration is blank
+        // 1. Combine Contact - First Name & Contact - Last Name if contactPerson is empty
+        const splitName = [item.contactFirstName, item.contactLastName].filter(Boolean).join(' ').trim();
+        if (!item.contactPerson) {
+          item.contactPerson = splitName || item.companyName || 'Valued Customer';
+        }
+
+        // 2. Company Name fallback
+        if (!item.companyName) {
+          item.companyName = item.contactPerson || item.contractId || `NISPL Client ${rowIdx + 1}`;
+        }
+
+        // 3. Email fallback
+        if (!item.email) {
+          const slug = (item.companyName || 'client').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
+          item.email = `${slug}@nisplcloud.com`;
+          item._emailAutoGenerated = true;
+        }
+
+        // 4. Auto-calculate Duration from Start Date and End Date if duration is blank
         if (!item.duration && item.startDate && item.endDate) {
           const computed = periodFromDates(item.startDate, item.endDate);
           if (computed) {
@@ -251,13 +314,36 @@ export default function ImportCsvPage({ setCustomers }) {
           }
         }
 
-        // Duplicate validation check (Company Name + Phone Number)
+        // 5. Determine initial Payment Status (admin can manually change in preview table)
+        let payStatus = 'Yes';
+        const rawPay = String(item.paymentStatus || '').trim().toLowerCase();
+        const rawCtrStatus = String(item.contractStatus || '').trim().toLowerCase();
+        const rawVal = parseFloat(String(item.totalContractValue || '').replace(/[^0-9.]/g, '')) || 0;
+
+        if (rawPay) {
+          if (['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPay)) {
+            payStatus = 'Yes';
+          } else {
+            payStatus = 'No';
+          }
+        } else if (rawCtrStatus === 'demo' || rawCtrStatus.includes('demo') || rawCtrStatus.includes('trial')) {
+          payStatus = 'No';
+        } else if (rawCtrStatus === 'in progress' || rawVal > 0) {
+          payStatus = 'Yes';
+        } else {
+          payStatus = 'Yes';
+        }
+
+        item.paymentStatus = payStatus;
+        item._initialPaymentStatus = payStatus;
+
+        // 6. Duplicate validation check (Company Name + Phone Number)
         const compNorm = String(item.companyName || '').trim().toLowerCase();
         const pDigits = String(item.phone || '').replace(/[^0-9]/g, '');
-        const pLast10 = pDigits.length >= 10 ? pDigits.slice(-10) : pDigits;
-        const key = `${compNorm}|${pLast10 || item.phone}`;
+        const pLast10 = pDigits.length >= 7 ? pDigits.slice(-10) : '';
+        const key = pLast10 ? `${compNorm}|${pLast10}` : `${compNorm}|${(item.contractId || '').toLowerCase()}`;
 
-        if (compNorm && (pLast10 || item.phone)) {
+        if (key) {
           if (seenInSheet.has(key)) {
             item._isDuplicateInFile = true;
             duplicateInFileCount += 1;
@@ -272,6 +358,8 @@ export default function ImportCsvPage({ setCustomers }) {
       setFileName(file.name);
       setFileSize((file.size / 1024).toFixed(1) + ' KB');
       setRecords(parsed);
+      setPreviewPage(1);
+      setPreviewSearch('');
       setImportResults(null);
       setCredentials(null);
 
@@ -812,14 +900,70 @@ export default function ImportCsvPage({ setCustomers }) {
 
           {/* Parsed Master Table */}
           <div className="adm-import-preview-section">
-            <div className="adm-import-preview-header">
+            <div className="adm-import-preview-header" style={{ flexWrap: 'wrap', gap: '12px' }}>
               <div className="adm-import-preview-title">
                 <FileCheck2 size={18} style={{ color: '#6366f1' }} />
                 <span>Parsed Master Preview ({records.length} records ready)</span>
               </div>
-              <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                Showing first {Math.min(records.length, 8)} rows
-              </span>
+
+              {/* Batch Action Buttons & Search */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#475569' }}>Batch Action:</span>
+                <button
+                  type="button"
+                  onClick={() => handleSetAllPaymentStatus('Yes')}
+                  className="adm-action-pill"
+                  style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0', fontWeight: 600, padding: '4px 10px' }}
+                  title="Mark all rows as Paid Active clients"
+                >
+                  <CheckCircle2 size={12} />
+                  <span>Set All: Yes (Active)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSetAllPaymentStatus('No')}
+                  className="adm-action-pill"
+                  style={{ background: '#fffbeb', color: '#b45309', borderColor: '#fde68a', fontWeight: 600, padding: '4px 10px' }}
+                  title="Mark all rows as Unpaid Demo trials"
+                >
+                  <Clock size={12} />
+                  <span>Set All: No (Demo)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleResetPaymentStatus}
+                  className="adm-action-pill"
+                  style={{ color: '#6366f1', padding: '4px 10px' }}
+                  title="Reset to auto-detected statuses from file"
+                >
+                  <RefreshCw size={12} />
+                  <span>Reset Auto-detect</span>
+                </button>
+
+                {/* Quick Search Input */}
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <Search size={13} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    value={previewSearch}
+                    onChange={(e) => {
+                      setPreviewSearch(e.target.value);
+                      setPreviewPage(1);
+                    }}
+                    placeholder="Search preview rows..."
+                    style={{
+                      padding: '4px 8px 4px 26px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.76rem',
+                      outline: 'none',
+                      width: '160px'
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="adm-import-preview-table-wrap">
@@ -833,67 +977,169 @@ export default function ImportCsvPage({ setCustomers }) {
                     <th>Contract / Service</th>
                     <th>Type &amp; Duration</th>
                     <th>Total Value</th>
-                    <th style={{ textAlign: 'center' }}>Payment Status</th>
+                    <th style={{ textAlign: 'center', minWidth: '135px' }}>
+                      Payment Status (Interactive)
+                    </th>
                     <th>Payment Mode / Ref</th>
                     <th>Sales Person</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {records.slice(0, 8).map((rec, idx) => {
-                    const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(rec.paymentStatus || '').toLowerCase());
-                    return (
-                      <tr key={idx} style={rec._isDuplicateInFile ? { backgroundColor: '#fff1f2' } : undefined}>
-                        <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{idx + 1}</td>
-                        <td style={{ fontWeight: 700, color: '#0f172a' }}>
-                          <div>{rec.companyName}</div>
-                          {rec._isDuplicateInFile && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: 600, color: '#e11d48', background: '#ffe4e6', padding: '1px 6px', borderRadius: '4px', marginTop: '3px' }}>
-                              <AlertTriangle size={10} /> Duplicate in File (Will Skip)
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ fontWeight: 600, color: '#334155' }}>
-                          <div>{rec.contactPerson}</div>
-                          {rec.designation && <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.designation}</span>}
-                        </td>
-                        <td style={{ fontSize: '0.78rem' }}>
-                          <div style={{ color: '#475569' }}>{rec.email}</div>
-                          <div style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{rec.phone || '—'}</div>
-                        </td>
-                        <td style={{ fontSize: '0.80rem', color: '#334155' }}>
-                          <div style={{ fontWeight: 600 }}>{rec.service || rec.contractId || 'Cloud Server'}</div>
-                          {rec.contractId && <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.contractId}</span>}
-                        </td>
-                        <td style={{ fontSize: '0.78rem' }}>
-                          <div>{normalizeContractType(rec.contractType) || rec.contractType || 'Comprehensive'}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.duration || '1 Year'}</span>
-                            {rec._durationAutoCalculated && (
-                              <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-                                Auto-calc
+                  {(() => {
+                    const filtered = records
+                      .map((r, origIdx) => ({ ...r, _origIdx: origIdx }))
+                      .filter((r) => {
+                        if (!previewSearch.trim()) return true;
+                        const q = previewSearch.toLowerCase();
+                        return (
+                          (r.companyName && r.companyName.toLowerCase().includes(q)) ||
+                          (r.contactPerson && r.contactPerson.toLowerCase().includes(q)) ||
+                          (r.email && r.email.toLowerCase().includes(q)) ||
+                          (r.phone && r.phone.toLowerCase().includes(q)) ||
+                          (r.contractId && r.contractId.toLowerCase().includes(q))
+                        );
+                      });
+
+                    const start = (previewPage - 1) * previewPageSize;
+                    const pageRows = filtered.slice(start, start + previewPageSize);
+
+                    if (!pageRows.length) {
+                      return (
+                        <tr>
+                          <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                            No preview records match your search filter.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return pageRows.map((rec) => {
+                      const actualIdx = rec._origIdx;
+                      const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(rec.paymentStatus || '').toLowerCase());
+
+                      return (
+                        <tr key={actualIdx} style={rec._isDuplicateInFile ? { backgroundColor: '#fff1f2' } : undefined}>
+                          <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{actualIdx + 1}</td>
+                          <td style={{ fontWeight: 700, color: '#0f172a' }}>
+                            <div>{rec.companyName}</div>
+                            {rec._isDuplicateInFile && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: 600, color: '#e11d48', background: '#ffe4e6', padding: '1px 6px', borderRadius: '4px', marginTop: '3px' }}>
+                                <AlertTriangle size={10} /> Duplicate in File (Will Skip)
                               </span>
                             )}
-                          </div>
-                        </td>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
-                          {rec.totalContractValue || '₹0'}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={`adm-status-pill ${isPaid ? 'active' : 'inactive'}`}>
-                            {isPaid ? 'Yes (Active)' : 'No (Demo)'}
-                          </span>
-                        </td>
-                        <td style={{ fontSize: '0.76rem' }}>
-                          <div>{rec.paymentMode || (isPaid ? 'NEFT Wire' : '—')}</div>
-                          {rec.referenceNumber && <span style={{ fontFamily: 'monospace', color: '#64748b' }}>Ref: {rec.referenceNumber}</span>}
-                        </td>
-                        <td style={{ fontSize: '0.78rem', color: '#475569' }}>{rec.salesPerson || '—'}</td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                          <td style={{ fontWeight: 600, color: '#334155' }}>
+                            <div>{rec.contactPerson}</div>
+                            {rec.designation && <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.designation}</span>}
+                          </td>
+                          <td style={{ fontSize: '0.78rem' }}>
+                            <div style={{ color: '#475569' }}>
+                              {rec.email}
+                              {rec._emailAutoGenerated && (
+                                <span style={{ marginLeft: '4px', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                                  (auto fallback)
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{rec.phone || '—'}</div>
+                          </td>
+                          <td style={{ fontSize: '0.80rem', color: '#334155' }}>
+                            <div style={{ fontWeight: 600 }}>{rec.service || rec.contractId || 'Cloud Server'}</div>
+                            {rec.contractId && <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.contractId}</span>}
+                          </td>
+                          <td style={{ fontSize: '0.78rem' }}>
+                            <div>{normalizeContractType(rec.contractType) || rec.contractType || 'Comprehensive'}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.duration || '1 Year'}</span>
+                              {rec._durationAutoCalculated && (
+                                <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                                  Auto-calc
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                            {rec.totalContractValue || '₹0'}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <select
+                              value={isPaid ? 'Yes' : 'No'}
+                              onChange={(e) => handleRowPaymentStatusChange(actualIdx, e.target.value)}
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                outline: 'none',
+                                border: isPaid ? '1px solid #10b981' : '1px solid #f59e0b',
+                                background: isPaid ? '#ecfdf5' : '#fffbeb',
+                                color: isPaid ? '#047857' : '#b45309',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                              }}
+                              title="Click to manually toggle between Active (Yes) and Demo (No)"
+                            >
+                              <option value="Yes">Yes (Active)</option>
+                              <option value="No">No (Demo)</option>
+                            </select>
+                          </td>
+                          <td style={{ fontSize: '0.76rem' }}>
+                            <div>{rec.paymentMode || (isPaid ? 'NEFT Wire' : '—')}</div>
+                            {rec.referenceNumber && <span style={{ fontFamily: 'monospace', color: '#64748b' }}>Ref: {rec.referenceNumber}</span>}
+                          </td>
+                          <td style={{ fontSize: '0.78rem', color: '#475569' }}>{rec.salesPerson || '—'}</td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {records.length > previewPageSize && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', fontSize: '0.78rem', color: '#64748b' }}>
+                <div>
+                  Showing {Math.min((previewPage - 1) * previewPageSize + 1, records.length)} to{' '}
+                  {Math.min(previewPage * previewPageSize, records.length)} of {records.length} records
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="adm-action-pill"
+                    onClick={() => setPreviewPage((p) => Math.max(p - 1, 1))}
+                    disabled={previewPage <= 1}
+                  >
+                    Previous
+                  </button>
+                  <span style={{ fontWeight: 600, color: '#334155' }}>
+                    Page {previewPage} of {Math.ceil(records.length / previewPageSize) || 1}
+                  </span>
+                  <button
+                    type="button"
+                    className="adm-action-pill"
+                    onClick={() => setPreviewPage((p) => Math.min(p + 1, Math.ceil(records.length / previewPageSize) || 1))}
+                    disabled={previewPage >= Math.ceil(records.length / previewPageSize)}
+                  >
+                    Next
+                  </button>
+                  <select
+                    value={previewPageSize}
+                    onChange={(e) => {
+                      setPreviewPageSize(Number(e.target.value));
+                      setPreviewPage(1);
+                    }}
+                    style={{ padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.76rem' }}
+                  >
+                    <option value={10}>10 per page</option>
+                    <option value={15}>15 per page</option>
+                    <option value={25}>25 per page</option>
+                    <option value={50}>50 per page</option>
+                    <option value={100}>100 per page</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

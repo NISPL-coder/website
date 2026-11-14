@@ -559,6 +559,28 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         ariaLabel="Customer payments"
         scrollHeight="600px"
       />
+
+      {/* Edit Payment Modal */}
+      {editingPayment && (
+        <EditPaymentModal
+          payment={editingPayment}
+          isOpen={Boolean(editingPayment)}
+          onClose={() => setEditingPayment(null)}
+          onUpdated={(updated) => {
+            if (setPayments) {
+              setPayments((prev) =>
+                prev.map((item) =>
+                  (item.paymentId && item.paymentId === updated.paymentId) ||
+                  (item.id && item.id === updated.id) ||
+                  (item.invoiceNumber && item.invoiceNumber === updated.invoiceNumber)
+                    ? { ...item, ...updated }
+                    : item
+                )
+              );
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
