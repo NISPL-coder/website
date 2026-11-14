@@ -193,7 +193,7 @@ export const getCustomers = async (req, res) => {
         password = generateCustomerPassword(c.company || c.name || 'Client');
         c.portalPassword = password;
         if (isMongoConnected() && c._id) {
-          Customer.findByIdAndUpdate(c._id, { portalPassword: password }).catch(() => {});
+          Customer.findByIdAndUpdate(c._id, { portalPassword: password }).catch(() => { });
           if (matchedUser) {
             User.findById(matchedUser._id).then((u) => {
               if (u && !u.portalPassword) {
@@ -201,7 +201,7 @@ export const getCustomers = async (req, res) => {
                 u.portalPassword = password;
                 return u.save();
               }
-            }).catch(() => {});
+            }).catch(() => { });
           }
         }
       }
@@ -513,8 +513,8 @@ export const createCustomer = async (req, res) => {
       message: syncResult.success
         ? `Customer saved locally and synchronized to Sangam CRM Companies (Record ID: ${savedCustomer.sangamCrm.recordId})`
         : syncResult.disabled
-        ? 'Customer created and saved in database successfully. (Sangam CRM sync is disabled)'
-        : `Customer saved locally, but Sangam CRM sync failed: ${syncResult.message}`
+          ? 'Customer created and saved in database successfully. (Sangam CRM sync is disabled)'
+          : `Customer saved locally, but Sangam CRM sync failed: ${syncResult.message}`
     });
   } catch (err) {
     console.error('[CustomerController] createCustomer error:', err);
@@ -562,17 +562,17 @@ export const syncCustomerToSangam = async (req, res) => {
 
     const updatedSangam = syncResult.success
       ? {
-          status: 'synced',
-          recordId: syncResult.recordId,
-          lastSyncedAt: new Date().toISOString(),
-          syncError: null
-        }
+        status: 'synced',
+        recordId: syncResult.recordId,
+        lastSyncedAt: new Date().toISOString(),
+        syncError: null
+      }
       : {
-          status: 'failed',
-          recordId: customer.sangamCrm?.recordId || null,
-          lastSyncedAt: new Date().toISOString(),
-          syncError: syncResult.message
-        };
+        status: 'failed',
+        recordId: customer.sangamCrm?.recordId || null,
+        lastSyncedAt: new Date().toISOString(),
+        syncError: syncResult.message
+      };
 
     customer.sangamCrm = updatedSangam;
 
@@ -1555,6 +1555,70 @@ const formatMasterAmount = (value) => {
 };
 
 /**
+ * Asynchronous background worker queue for Sangam CRM synchronization.
+ * Decouples bulk spreadsheet import from remote internet roundtrips so imports finish in seconds.
+ */
+const crmSyncQueue = [];
+let isCrmWorkerActive = false;
+
+const drainCrmSyncQueue = async () => {
+  if (isCrmWorkerActive) return;
+  isCrmWorkerActive = true;
+  try {
+    while (crmSyncQueue.length > 0) {
+      const task = crmSyncQueue.shift();
+      if (!task) continue;
+      const { customer, contract } = task;
+      try {
+        let accountId = customer?.sangamCrm?.recordId || null;
+        if (customer && (!accountId || accountId.startsWith('SGM-ACC-'))) {
+          const crmAccRes = await sangamCrmService.createOrUpdateCompany(customer);
+          if (crmAccRes?.success && crmAccRes?.recordId) {
+            accountId = crmAccRes.recordId;
+            if (isMongoConnected()) {
+              await Customer.updateOne(
+                { customerId: customer.customerId },
+                { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': accountId, 'sangamCrm.lastSyncedAt': new Date() } }
+              );
+            }
+          }
+        }
+
+        if (contract) {
+          const ctrPayload = { ...contract };
+          if (accountId && !ctrPayload.accountId) {
+            ctrPayload.accountId = accountId;
+          }
+          const crmCtrRes = await sangamCrmService.createOrUpdateContract(ctrPayload);
+          if (crmCtrRes?.success && crmCtrRes?.recordId) {
+            if (isMongoConnected()) {
+              await Contract.updateOne(
+                { contractId: contract.contractId },
+                { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': crmCtrRes.recordId, 'sangamCrm.lastSyncedAt': new Date() } }
+              );
+            }
+          }
+        }
+      } catch (itemErr) {
+        console.warn('[Background CRM Sync] Task note:', itemErr.message);
+      }
+      // Brief pause between requests to prevent Sangam CRM API rate limit throttling
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+  } catch (workerErr) {
+    console.error('[Background CRM Sync] Worker error:', workerErr);
+  } finally {
+    isCrmWorkerActive = false;
+  }
+};
+
+const queueBackgroundCrmSync = (customer, contract) => {
+  if (!sangamCrmService.isSyncEnabled()) return;
+  crmSyncQueue.push({ customer, contract });
+  setImmediate(drainCrmSyncQueue);
+};
+
+/**
  * Unified Master CSV Bulk Import (shared runner)
  * Parses a single comprehensive CSV containing Company, Contact, Contract, and Payment data.
  * - Customer: Provisioned with login credentials; if Payment Status is 'Yes' -> 'Active', if 'No' -> 'Demo'
@@ -1615,6 +1679,34 @@ const runMasterImport = async (req, rows, onProgress) => {
     const year = new Date().getFullYear();
     const today = new Date().toISOString().split('T')[0];
 
+    // Seed sequence numbers once for the batch to eliminate hundreds of slow DB roundtrips in the loop
+    let paymentSeq = 1000;
+    let invoiceSeq = 1000;
+    let contractSeq = 1000;
+
+    if (isMongoConnected()) {
+      const [latestPay, latestInv, latestCtr] = await Promise.all([
+        Payment.findOne({ paymentId: new RegExp(`^PAY-${year}-`) }).sort({ paymentId: -1 }).lean(),
+        Payment.findOne({ invoiceNumber: new RegExp(`^INV-${year}-`) }).sort({ invoiceNumber: -1 }).lean(),
+        Contract.findOne({ contractId: new RegExp(`^CTR-${year}-`) }).sort({ contractId: -1 }).lean()
+      ]);
+      const pTail = parseInt(String(latestPay?.paymentId || '').split('-').pop(), 10);
+      if (Number.isFinite(pTail)) paymentSeq = pTail;
+      const iTail = parseInt(String(latestInv?.invoiceNumber || '').split('-').pop(), 10);
+      if (Number.isFinite(iTail)) invoiceSeq = iTail;
+      const cTail = parseInt(String(latestCtr?.contractId || '').split('-').pop(), 10);
+      if (Number.isFinite(cTail)) contractSeq = cTail;
+    } else {
+      const filePayments = getPaymentsFromFile();
+      const pTail = parseInt(String(filePayments.find((p) => String(p.paymentId || '').startsWith(`PAY-${year}-`))?.paymentId || '').split('-').pop(), 10);
+      if (Number.isFinite(pTail)) paymentSeq = pTail;
+      const iTail = parseInt(String(filePayments.find((p) => String(p.invoiceNumber || '').startsWith(`INV-${year}-`))?.invoiceNumber || '').split('-').pop(), 10);
+      if (Number.isFinite(iTail)) invoiceSeq = iTail;
+      const fileContracts = getContractsFromFile();
+      const cTail = parseInt(String(fileContracts.find((c) => String(c.contractId || '').startsWith(`CTR-${year}-`))?.contractId || '').split('-').pop(), 10);
+      if (Number.isFinite(cTail)) contractSeq = cTail;
+    }
+
     for (let i = 0; i < rows.length; i++) {
       const item = rows[i] || {};
 
@@ -1630,21 +1722,16 @@ const runMasterImport = async (req, rows, onProgress) => {
         continue;
       }
 
-      // 1. Company & Contact Extraction (Section A)
+      // 1. Company & Contact Extraction (Section A) - preserve missing fields as empty ("as it is")
       const contactCombined = [item.contactFirstName, item.contactLastName].filter(Boolean).join(' ').trim();
-      const contactPerson = (item.contactPerson || contactCombined || item.customerName || item.person || item.customer || rawComp || 'Valued Customer').trim();
-      const company = (rawComp || contactPerson || rawContract || `NISPL Client ${i + 1}`).trim();
+      const contactPerson = (item.contactPerson || contactCombined || '').trim();
+      const company = rawComp.trim();
 
-      // Email fallback if missing in sheet so records can import cleanly and be edited later from admin portal
-      let rawEmail = (item.email || item.personEmail || item.personEmailAddress || item.corporateEmail || item.mail || '').trim().toLowerCase();
-      if (!rawEmail) {
-        const cleanSlug = company.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16) || `client${i + 1}`;
-        rawEmail = `${cleanSlug}_${Math.floor(1000 + Math.random() * 9000)}@nisplcloud.local`;
-      }
+      const rawEmail = (item.email || item.personEmail || item.personEmailAddress || item.corporateEmail || item.mail || '').trim().toLowerCase();
       const email = rawEmail;
 
-      const rawPhone = (item.phone || item.contactPhone || item.mobile || item.phoneNumber || item.personMobile || '').trim();
-      const phone = rawPhone || '';
+      const rawPhone = (item.phone || item.contactPhone || item.mobile || item.phoneNumber || item.personMobile || item.alternatePhone || '').trim();
+      const phone = rawPhone;
       const designation = (item.designation || item.role || 'Customer').trim();
       const industry = (item.industry || 'Technology').trim();
       const tallySerialNo = (item.tallySerialNo || item.tallySlNo || '').trim();
@@ -1727,8 +1814,10 @@ const runMasterImport = async (req, rows, onProgress) => {
       // -------------------------------------------------------------
       const compNorm = company.trim().toLowerCase();
       const phoneDigits = phone.replace(/[^0-9]/g, '');
-      const phoneKey = phoneDigits.length >= 7 ? phoneDigits.slice(-10) : '';
-      const batchKey = phoneKey ? `${compNorm}|${phoneKey}` : `${compNorm}|contract:${(rawContract || '').toLowerCase()}`;
+      const phoneLast10 = phoneDigits.length >= 7 ? phoneDigits.slice(-10) : '';
+      const batchKey = phoneLast10
+        ? `${compNorm}|${phoneLast10}`
+        : `${compNorm}|${(email || '').toLowerCase()}|contract:${(rawContract || '').toLowerCase()}`;
 
       // A. Check within current spreadsheet batch
       if (batchKey && seenBatchKeys.has(batchKey)) {
@@ -1739,34 +1828,60 @@ const runMasterImport = async (req, rows, onProgress) => {
           email,
           ok: false,
           duplicate: true,
-          error: `Duplicate entry in spreadsheet: Company "${company}" with ${phoneKey ? `Phone "${phone}"` : 'same contract'} repeats in this sheet. Skipped to prevent duplicate.`
+          error: `Duplicate entry in spreadsheet: Company "${company}" with ${phoneLast10 ? `Phone "${phone}"` : 'same contract'} repeats in this sheet. Skipped to prevent duplicate entries and Sangam CRM sync.`
         });
         duplicateCount++;
-        failedCount++;
         reportProgress('importing', i + 1, { company });
         continue;
       }
       if (batchKey) seenBatchKeys.add(batchKey);
 
       // B. Check against existing database / storage records
-      let existingCustomer = null;
+      // If BOTH Company Name AND Phone Number match an existing record in the system:
+      // It MUST NOT upload or sync to Sangam CRM!
+      let duplicateExistingCustomer = null;
       if (isMongoConnected()) {
-        existingCustomer = await Customer.findOne({
-          $or: [
-            { email },
-            { phone: phone !== '0000000000' ? phone : '__none__' },
-            ...(phoneLast10 ? [{ phone: new RegExp(`${phoneLast10}$`) }, { mobile: new RegExp(`${phoneLast10}$`) }] : []),
-            { company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-          ]
-        });
+        const query = {
+          company: new RegExp(`^${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+        };
+        if (phoneLast10 && phoneLast10 !== '0000000000') {
+          query.$or = [
+            { phone: new RegExp(`${phoneLast10}$`) },
+            { mobile: new RegExp(`${phoneLast10}$`) },
+            { alternatePhone: new RegExp(`${phoneLast10}$`) },
+            { additionalPhones: new RegExp(`${phoneLast10}$`) }
+          ];
+          duplicateExistingCustomer = await Customer.findOne(query);
+        } else if (email) {
+          query.email = email;
+          duplicateExistingCustomer = await Customer.findOne(query);
+        }
       } else {
         const fileCustomers = getCustomersFromFile();
-        existingCustomer = fileCustomers.find(
-          (c) =>
-            (c.email && c.email.toLowerCase() === email) ||
-            (phone !== '0000000000' && c.phone && c.phone === phone) ||
-            (c.company && c.company.toLowerCase() === compNorm)
-        );
+        duplicateExistingCustomer = fileCustomers.find((c) => {
+          const cComp = String(c.company || '').trim().toLowerCase();
+          if (cComp !== compNorm) return false;
+          if (phoneLast10 && phoneLast10 !== '0000000000') {
+            const cPhone = String(c.phone || '').replace(/[^0-9]/g, '');
+            return cPhone.endsWith(phoneLast10);
+          }
+          return c.email && c.email.toLowerCase() === email;
+        });
+      }
+
+      if (duplicateExistingCustomer) {
+        results.push({
+          row: i + 1,
+          company,
+          phone,
+          email,
+          ok: false,
+          duplicate: true,
+          error: `Duplicate record: Company "${company}" with ${phoneLast10 ? `Phone "${phone}"` : `Email "${email}"`} already exists in the system (Customer ID: ${duplicateExistingCustomer.customerId || duplicateExistingCustomer.id}). Skipped to prevent duplicate entries and Sangam CRM sync.`
+        });
+        duplicateCount++;
+        reportProgress('importing', i + 1, { company });
+        continue;
       }
 
       // Check if this exact contract already exists in the system
@@ -1787,8 +1902,7 @@ const runMasterImport = async (req, rows, onProgress) => {
         );
       }
 
-      // If both customer AND this specific contract already exist in system:
-      if (existingCustomer && existingContract && item.contractId && existingContract.contractId === item.contractId) {
+      if (existingContract && item.contractId && existingContract.contractId === item.contractId) {
         results.push({
           row: i + 1,
           company,
@@ -1799,9 +1913,16 @@ const runMasterImport = async (req, rows, onProgress) => {
           error: `Record already exists: Company "${company}" with Contract "${item.contractId}" is already provisioned. Skipped to prevent duplicate.`
         });
         duplicateCount++;
-        failedCount++;
         reportProgress('importing', i + 1, { company });
         continue;
+      }
+
+      // Retrieve existing customer profile if any (e.g. matching email for linking)
+      let existingCustomer = null;
+      if (isMongoConnected()) {
+        existingCustomer = await Customer.findOne({ email });
+      } else {
+        existingCustomer = getCustomersFromFile().find((c) => c.email && c.email.toLowerCase() === email);
       }
 
       try {
@@ -1862,40 +1983,42 @@ const runMasterImport = async (req, rows, onProgress) => {
             savedCustomer = (await doc.save()).toObject();
           }
 
-          // Ensure corresponding User account exists in 'users' collection for login
+          // Ensure corresponding User account exists in 'users' collection for login (only if email exists)
           try {
-            const existingUser = await User.findOne({
-              $or: [{ email }, { customerId }]
-            }).select('+password');
+            if (email) {
+              const existingUser = await User.findOne({
+                $or: [{ email }, { customerId }]
+              }).select('+password');
 
-            if (!existingUser) {
-              await User.create({
-                name: contactPerson,
-                email,
-                phone,
-                company,
-                password: plainPassword,
-                portalPassword: plainPassword,
-                role: 'customer',
-                customerId,
-                accountStatus: 'active',
-                isEmailVerified: true
-              });
-            } else {
-              existingUser.name = contactPerson;
-              existingUser.email = email;
-              existingUser.company = company;
-              existingUser.customerId = customerId;
-              existingUser.accountStatus = 'active';
-              existingUser.portalPassword = plainPassword;
-              await existingUser.save();
+              if (!existingUser) {
+                await User.create({
+                  name: contactPerson || company || customerId,
+                  email,
+                  phone: phone || '',
+                  company: company || '',
+                  password: plainPassword,
+                  portalPassword: plainPassword,
+                  role: 'customer',
+                  customerId,
+                  accountStatus: 'active',
+                  isEmailVerified: true
+                });
+              } else {
+                existingUser.name = contactPerson || existingUser.name;
+                existingUser.email = email;
+                existingUser.company = company || existingUser.company;
+                existingUser.customerId = customerId;
+                existingUser.accountStatus = 'active';
+                existingUser.portalPassword = plainPassword;
+                await existingUser.save();
+              }
             }
           } catch (uErr) {
             console.warn('[MasterImport] User sync note:', uErr.message);
           }
         } else {
           const fileCustomers = getCustomersFromFile();
-          const idx = fileCustomers.findIndex((c) => c.customerId === customerId || c.email?.toLowerCase() === email);
+          const idx = fileCustomers.findIndex((c) => c.customerId === customerId || (email && c.email?.toLowerCase() === email));
           if (idx !== -1) {
             fileCustomers[idx] = { ...fileCustomers[idx], ...customerPayload, updatedAt: new Date().toISOString() };
             savedCustomer = fileCustomers[idx];
@@ -1906,36 +2029,22 @@ const runMasterImport = async (req, rows, onProgress) => {
           saveCustomersToFile(fileCustomers);
         }
 
-        // Sync Customer Account to Sangam CRM
+        // Sangam CRM account ID (retained if customer already has a CRM record)
         let sangamAccountId = savedCustomer?.sangamCrm?.recordId || null;
-        if (!sangamAccountId || sangamAccountId.startsWith('SGM-ACC-')) {
-          try {
-            const crmAccRes = await sangamCrmService.createOrUpdateCompany(savedCustomer);
-            if (crmAccRes.success && crmAccRes.recordId) {
-              sangamAccountId = crmAccRes.recordId;
-              if (isMongoConnected()) {
-                await Customer.updateOne(
-                  { customerId },
-                  { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': sangamAccountId, 'sangamCrm.lastSyncedAt': new Date() } }
-                );
-              }
-            }
-          } catch (accSyncErr) {
-            console.warn('[MasterImport] CRM account sync note:', accSyncErr.message);
-          }
-        }
 
-        credentials.push({
-          name: contactPerson,
-          company,
-          customerId,
-          username: customerId,
-          email,
-          password: plainPassword,
-          role: 'customer',
-          status: customerStatus,
-          loginUrl: '/customer/login'
-        });
+        if (email) {
+          credentials.push({
+            name: contactPerson || company || 'Customer',
+            company: company || '—',
+            customerId,
+            username: customerId,
+            email,
+            password: plainPassword,
+            role: 'customer',
+            status: customerStatus,
+            loginUrl: '/customer/login'
+          });
+        }
 
         // -------------------------------------------------------------
         // STEP B: Contract Provisioning & Sangam CRM Sync
@@ -1957,7 +2066,11 @@ const runMasterImport = async (req, rows, onProgress) => {
           );
         }
 
-        const contractCode = existingContract?.contractId || (await nextContractCode());
+        let contractCode = existingContract?.contractId || item.contractId;
+        if (!contractCode) {
+          contractSeq++;
+          contractCode = `CTR-${year}-${contractSeq}`;
+        }
 
         const contractPayload = {
           contractId: contractCode,
@@ -2012,20 +2125,10 @@ const runMasterImport = async (req, rows, onProgress) => {
           saveContractsToFile(fileContracts);
         }
 
-        // Sync Contract to Sangam CRM Contracts module
-        try {
-          const crmCtrRes = await sangamCrmService.createOrUpdateContract(savedContract);
-          if (crmCtrRes.success) {
-            crmSyncCount++;
-            if (isMongoConnected()) {
-              await Contract.updateOne(
-                { contractId: contractCode },
-                { $set: { 'sangamCrm.status': 'synced', 'sangamCrm.recordId': crmCtrRes.recordId, 'sangamCrm.lastSyncedAt': new Date() } }
-              );
-            }
-          }
-        } catch (ctrSyncErr) {
-          console.warn('[MasterImport] CRM contract sync note:', ctrSyncErr.message);
+        // Queue asynchronous background sync to Sangam CRM without blocking import throughput
+        if (sangamCrmService.isSyncEnabled()) {
+          queueBackgroundCrmSync(savedCustomer, savedContract);
+          crmSyncCount++;
         }
 
         // -------------------------------------------------------------
@@ -2035,8 +2138,10 @@ const runMasterImport = async (req, rows, onProgress) => {
         let createdInvoiceNumber = null;
 
         if (isPaid) {
-          createdPaymentId = await nextLedgerReference('paymentId', `PAY-${year}-`);
-          createdInvoiceNumber = await nextLedgerReference('invoiceNumber', `INV-${year}-`);
+          paymentSeq++;
+          invoiceSeq++;
+          createdPaymentId = `PAY-${year}-${paymentSeq}`;
+          createdInvoiceNumber = `INV-${year}-${invoiceSeq}`;
 
           const digits = String(formattedTotalValue).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
           const numVal = digits ? Number(digits[0]) : 0;
@@ -2145,12 +2250,18 @@ const runMasterImport = async (req, rows, onProgress) => {
       reportProgress('importing', i + 1, { company: company || '' });
     }
 
-    // Refresh Customer Lifecycle for all touched accounts
+    // Background Customer Lifecycle derivation so import completes and responds immediately
     reportProgress('finalizing', rows.length);
-    for (const identity of touchedIdentities.values()) {
-      await refreshCustomerLifecycle(identity).catch((err) =>
-        console.warn('[MasterImport] Lifecycle refresh note:', err.message)
-      );
+    if (touchedIdentities.size > 0) {
+      setImmediate(async () => {
+        try {
+          for (const identity of touchedIdentities.values()) {
+            await refreshCustomerLifecycle(identity).catch(() => { });
+          }
+        } catch (lcErr) {
+          console.warn('[MasterImport] Lifecycle maintenance note:', lcErr.message);
+        }
+      });
     }
 
     await logNotification({

@@ -271,7 +271,7 @@ const paymentSchema = new mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ['', 'portal', 'gateway', 'admin', 'manual', 'import'],
+      enum: ['', 'portal', 'gateway', 'admin', 'manual', 'import', 'sync'],
       default: ''
     },
     raisedBy: {

@@ -28,10 +28,12 @@ import {
   AlertTriangle,
   Timer,
   Gauge,
-  Loader2
+  Loader2,
+  Pencil
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
+import MasterRecordEditModal from './MasterRecordEditModal';
 import { customerApi } from '../../../services/customerApi';
 import { contractApi } from '../../../services/contractApi';
 import { paymentApi } from '../../../services/paymentApi';
@@ -123,6 +125,15 @@ function formatRate(processed, elapsedMs) {
   return perSecond >= 1 ? `${perSecond.toFixed(1)} rec/s` : `${(perSecond * 60).toFixed(1)} rec/min`;
 }
 
+export function formatRupee(value) {
+  if (value === null || value === undefined || value === '') return '₹0';
+  const str = String(value).trim();
+  const digits = str.replace(/[$,₹\s]/g, '').match(/\d+(?:\.\d+)?/);
+  if (!digits) return '₹0';
+  const num = Math.round(Number(digits[0]));
+  return `₹${num.toLocaleString('en-IN')}`;
+}
+
 /* ------------------------------------------------------------------ *
  * Master Spreadsheet Field Specification (Sections A, B, and C)
  * ------------------------------------------------------------------ */
@@ -196,7 +207,7 @@ CUST-1001,Priya Nair,Finance Director,Northgate Textiles Pvt Ltd,billing@northga
 CUST-1002,Anil Ghosh,Accounts Head,Mahadev Logistics,accounts@mahadevlogistics.com,accounts@mahadevlogistics.com,,Mahadev@2026,9123456789,,,Kolkata,West Bengal,700001,24 Netaji Subhash Road,19AABCM5678K1ZQ,AABCM5678K,https://mahadevlogistics.com,Logistics,987654321,Active,AMC Support Contract,In Progress,Yes,accounts@mahadevlogistics.com,9123456789,Tally AMC & Remote Support,AMC,12 Months,Service,"₹60,000",02-04-2026,15-04-2026,14-04-2027,Nilmoni Ghosal,Tier-2 Business Hours NOC 99.9%,Annual maintenance and license support,Mahadev Logistics,INV-2026-1002,15-04-2026,"₹60,000",₹0,"₹50,847","₹9,153",15-04-2026,15-04-2026,Cheque,CHQ-482019,State Bank of India - Dalhousie,15-04-2026,,Received
 CUST-1003,Rina Das,Operations Lead,Kaveri Foods,private@kaverifoods.com,private@kaverifoods.com,,Kaveri@2026,9876501234,,,Valsad,Gujarat,396001,12 Industrial Area Phase 2,24AABCK9012P1ZN,AABCK9012P,https://kaverifoods.com,Food Processing,456123789,Demo,Trial Proof Of Concept,DEMO,No,private@kaverifoods.com,9876501234,Tally Prime Cloud Trial,SHARED,1 Month,Software,₹0,10-10-2026,20-10-2026,19-11-2026,Nilmoni Ghosal,Tier-3 Standard NOC 99.5%,30-day evaluation trial of Cloud setup before purchase,Kaveri Foods,,,,,,,,,,,,Unpaid`;
 
-export default function ImportCsvPage({ setCustomers, setContracts, setPayments, setReceipts }) {
+export default function ImportCsvPage({ setCustomers, setContracts, setPayments, setReceipts, existingCustomers = [] }) {
   const { can } = usePermissions();
   const canImport = can('customer', 'create') || can('import_csv') || can('data_tools') || can('contract', 'create');
 
@@ -209,6 +220,42 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
   const [isImporting, setIsImporting] = useState(false);
   const [importResults, setImportResults] = useState(null);
   const [credentials, setCredentials] = useState(null);
+
+  // Row edit modal state
+  const [editingRecordIndex, setEditingRecordIndex] = useState(null);
+  const [editingRecordData, setEditingRecordData] = useState(null);
+
+  const handleOpenEditModal = (rec, focusField = '') => {
+    setEditingRecordIndex(rec._origIdx);
+    setEditingRecordData({ ...rec, _focusField: focusField });
+  };
+
+  const handleSaveEditedRecord = (updated) => {
+    if (editingRecordIndex === null) return;
+    setRecords((prev) => {
+      const next = [...prev];
+      const item = { ...next[editingRecordIndex], ...updated };
+
+      if (item.startDate && item.endDate) {
+        const computed = periodFromDates(item.startDate, item.endDate);
+        if (computed) item.duration = computed;
+      }
+
+      const missing = [];
+      if (!item.companyName) missing.push('Company');
+      if (!item.contactPerson) missing.push('Contact Person');
+      if (!item.email) missing.push('Email');
+      if (!item.phone) missing.push('Phone');
+      item._missingFields = missing;
+      item._hasMissingData = missing.length > 0;
+
+      next[editingRecordIndex] = item;
+      return next;
+    });
+    setEditingRecordIndex(null);
+    setEditingRecordData(null);
+    toast.success('Record updated');
+  };
 
   // Import progress + timing (live duration while running)
   const [importProgress, setImportProgress] = useState(null);
@@ -327,6 +374,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
 
       let autoCalcCount = 0;
       let duplicateInFileCount = 0;
+      let duplicateInDbCount = 0;
       const seenInSheet = new Set();
 
       const parsed = dataRows.map((cells, rowIdx) => {
@@ -335,23 +383,35 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
           item[f.key] = f.index >= 0 ? String(cells[f.index] ?? '').trim() : '';
         });
 
-        // 1. Combine Contact - First Name & Contact - Last Name if contactPerson is empty
+        // 1. Combine Contact - First Name & Contact - Last Name if present in sheet
         const splitName = [item.contactFirstName, item.contactLastName].filter(Boolean).join(' ').trim();
         if (!item.contactPerson) {
-          item.contactPerson = splitName || item.companyName || 'Valued Customer';
+          item.contactPerson = splitName || '';
         }
 
-        // 2. Company Name fallback
+        // 2. Company Name: keep as it is from the sheet ("whose data are missing , it will show as it is")
         if (!item.companyName) {
-          item.companyName = item.contactPerson || item.contractId || `NISPL Client ${rowIdx + 1}`;
+          item.companyName = '';
         }
 
-        // 3. Email fallback
+        // 3. Email: keep as it is from the sheet
         if (!item.email) {
-          const slug = (item.companyName || 'client').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
-          item.email = `${slug}@nisplcloud.com`;
-          item._emailAutoGenerated = true;
+          item.email = item.personEmail || '';
         }
+
+        // 3b. Phone: keep as it is from the sheet
+        if (!item.phone) {
+          item.phone = item.personMobile || item.alternatePhone || '';
+        }
+
+        // Track missing data flags for alerts and warnings
+        const missingFields = [];
+        if (!item.companyName) missingFields.push('Company');
+        if (!item.contactPerson) missingFields.push('Contact Person');
+        if (!item.email) missingFields.push('Email');
+        if (!item.phone) missingFields.push('Phone');
+        item._missingFields = missingFields;
+        item._hasMissingData = missingFields.length > 0;
 
         // 4. Auto-calculate Duration from Start Date and End Date if duration is blank
         if (!item.duration && item.startDate && item.endDate) {
@@ -386,6 +446,13 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
         item.paymentStatus = payStatus;
         item._initialPaymentStatus = payStatus;
 
+        // Format monetary amounts to standard Indian Rupee symbol (₹)
+        item.totalContractValue = formatRupee(item.totalContractValue);
+        if (item.receivedAmount) item.receivedAmount = formatRupee(item.receivedAmount);
+        if (item.pendingPayment) item.pendingPayment = formatRupee(item.pendingPayment);
+        if (item.taxableAmount) item.taxableAmount = formatRupee(item.taxableAmount);
+        if (item.gstAmount) item.gstAmount = formatRupee(item.gstAmount);
+
         // 6. Duplicate validation check (Company Name + Phone Number)
         const compNorm = String(item.companyName || '').trim().toLowerCase();
         const pDigits = String(item.phone || '').replace(/[^0-9]/g, '');
@@ -398,6 +465,19 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
             duplicateInFileCount += 1;
           } else {
             seenInSheet.add(key);
+          }
+        }
+
+        // Check if matching Company Name + Phone Number already exists in the system
+        if (Array.isArray(existingCustomers) && compNorm && pLast10 && pLast10 !== '0000000000') {
+          const matchExisting = existingCustomers.some((ec) => {
+            const ecComp = String(ec.company || '').trim().toLowerCase();
+            const ecDigits = String(ec.phone || '').replace(/[^0-9]/g, '');
+            return ecComp === compNorm && ecDigits.endsWith(pLast10);
+          });
+          if (matchExisting) {
+            item._isDuplicateInDb = true;
+            duplicateInDbCount += 1;
           }
         }
 
@@ -417,7 +497,8 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
 
       const notes = [];
       if (autoCalcCount > 0) notes.push(`${autoCalcCount} duration(s) calculated`);
-      if (duplicateInFileCount > 0) notes.push(`${duplicateInFileCount} duplicate(s) flagged`);
+      if (duplicateInFileCount > 0) notes.push(`${duplicateInFileCount} duplicate(s) in sheet`);
+      if (duplicateInDbCount > 0) notes.push(`${duplicateInDbCount} existing in system`);
 
       toast.success(
         `Parsed ${parsed.length} master record(s) in ${formatDuration(performance.now() - parseStartedAt)}${notes.length ? ` (${notes.join(', ')})` : ''} from ${file.name}`
@@ -431,12 +512,16 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
    * Calculations for Summary Cards on Loaded Records
    * ------------------------------------------------------------------ */
   const previewStats = useMemo(() => {
-    if (!records.length) return { total: 0, active: 0, demo: 0, duplicates: 0 };
+    if (!records.length) return { total: 0, active: 0, demo: 0, duplicates: 0, missingCount: 0 };
     let active = 0;
     let demo = 0;
     let duplicates = 0;
+    let missingCount = 0;
     records.forEach((r) => {
       if (r._isDuplicateInFile) duplicates += 1;
+      if (r._hasMissingData || !r.companyName || !r.contactPerson || !r.email || !r.phone) {
+        missingCount += 1;
+      }
       const statusRaw = String(r.paymentStatus || '').toLowerCase();
       if (['yes', 'true', '1', 'paid', 'y', 'active'].includes(statusRaw)) {
         active += 1;
@@ -448,7 +533,8 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
       total: records.length,
       active,
       demo,
-      duplicates
+      duplicates,
+      missingCount
     };
   }, [records]);
 
@@ -1101,6 +1187,35 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                 {previewStats.duplicates > 0 ? 'Same Company + Phone (Skipped)' : 'No duplicates detected'}
               </span>
             </div>
+
+            <div
+              className="adm-cust-stat-card"
+              style={
+                previewStats.missingCount > 0
+                  ? { border: '1px solid #fde68a', background: '#fffbeb' }
+                  : undefined
+              }
+            >
+              <div className="adm-cust-stat-top">
+                <span className="adm-cust-stat-label">Missing Data</span>
+                <AlertTriangle
+                  size={18}
+                  className="adm-cust-stat-icon amber"
+                  style={{ color: '#d97706' }}
+                />
+              </div>
+              <span
+                className="adm-cust-stat-val"
+                style={{ color: previewStats.missingCount > 0 ? '#b45309' : '#64748b' }}
+              >
+                {previewStats.missingCount}
+              </span>
+              <span className="adm-cust-stat-desc">
+                {previewStats.missingCount > 0
+                  ? `${previewStats.missingCount} record(s) need attention`
+                  : 'All records complete'}
+              </span>
+            </div>
           </div>
 
           {/* Parsed Master Table */}
@@ -1221,12 +1336,46 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                     return pageRows.map((rec) => {
                       const actualIdx = rec._origIdx;
                       const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(rec.paymentStatus || '').toLowerCase());
+                      const isDup = Boolean(rec._isDuplicateInFile || rec._isDuplicateInDb);
+                      const hasMissing = Boolean(!rec.companyName || !rec.contactPerson || !rec.email || !rec.phone);
 
                       return (
-                        <tr key={actualIdx} style={rec._isDuplicateInFile ? { backgroundColor: '#fff1f2' } : undefined}>
-                          <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>{actualIdx + 1}</td>
+                        <tr
+                          key={actualIdx}
+                          style={
+                            isDup
+                              ? { backgroundColor: '#fff1f2' }
+                              : hasMissing
+                              ? { backgroundColor: '#fffdf5' }
+                              : undefined
+                          }
+                        >
+                          <td style={{ textAlign: 'center', fontWeight: 600, color: '#64748b' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+                              {hasMissing && !isDup && (
+                                <AlertTriangle size={12} style={{ color: '#d97706', flexShrink: 0 }} title="Missing data: Needs attention" />
+                              )}
+                              <span>{actualIdx + 1}</span>
+                            </div>
+                          </td>
                           <td style={{ fontWeight: 700, color: '#0f172a' }}>
-                            <div>{rec.companyName}</div>
+                            {rec.companyName ? (
+                              <div>{rec.companyName}</div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(rec, 'companyName')}
+                                className="adm-missing-placeholder-btn warning"
+                                title="Company Name is missing in file. Click to add company."
+                              >
+                                <AlertTriangle size={11} /> + Add Company
+                              </button>
+                            )}
+                            {rec._isDuplicateInDb && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: 600, color: '#b91c1c', background: '#fee2e2', padding: '1px 6px', borderRadius: '4px', marginTop: '3px', marginRight: '4px' }}>
+                                <AlertTriangle size={10} /> Already in System (Will Skip)
+                              </span>
+                            )}
                             {rec._isDuplicateInFile && (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: 600, color: '#e11d48', background: '#ffe4e6', padding: '1px 6px', borderRadius: '4px', marginTop: '3px' }}>
                                 <AlertTriangle size={10} /> Duplicate in File (Will Skip)
@@ -1234,19 +1383,48 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                             )}
                           </td>
                           <td style={{ fontWeight: 600, color: '#334155' }}>
-                            <div>{rec.contactPerson}</div>
+                            {rec.contactPerson ? (
+                              <div>{rec.contactPerson}</div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(rec, 'contactPerson')}
+                                className="adm-missing-placeholder-btn"
+                                title="Contact person is missing in file. Click to add person."
+                              >
+                                + Add Person
+                              </button>
+                            )}
                             {rec.designation && <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.designation}</span>}
                           </td>
                           <td style={{ fontSize: '0.78rem' }}>
-                            <div style={{ color: '#475569' }}>
-                              {rec.email}
-                              {rec._emailAutoGenerated && (
-                                <span style={{ marginLeft: '4px', fontSize: '0.65rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                                  (auto fallback)
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{rec.phone || '—'}</div>
+                            {rec.email ? (
+                              <div style={{ color: '#475569' }}>{rec.email}</div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(rec, 'email')}
+                                className="adm-missing-placeholder-btn"
+                                style={{ marginBottom: '3px' }}
+                                title="Email is missing in file. Click to add email."
+                              >
+                                + Add Email
+                              </button>
+                            )}
+                            {rec.phone ? (
+                              <div style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{rec.phone}</div>
+                            ) : (
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(rec, 'phone')}
+                                  className="adm-missing-placeholder-btn"
+                                  title="Phone number is missing in file. Click to add phone."
+                                >
+                                  + Add Phone
+                                </button>
+                              </div>
+                            )}
                           </td>
                           <td style={{ fontSize: '0.80rem', color: '#334155' }}>
                             <div style={{ fontWeight: 600 }}>{rec.service || rec.contractId || 'Cloud Server'}</div>
@@ -1264,7 +1442,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                             </div>
                           </td>
                           <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
-                            {rec.totalContractValue || '₹0'}
+                            {formatRupee(rec.totalContractValue)}
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             <select
@@ -1292,7 +1470,30 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                             <div>{rec.paymentMode || (isPaid ? 'NEFT Wire' : '—')}</div>
                             {rec.referenceNumber && <span style={{ fontFamily: 'monospace', color: '#64748b' }}>Ref: {rec.referenceNumber}</span>}
                           </td>
-                          <td style={{ fontSize: '0.78rem', color: '#475569' }}>{rec.salesPerson || '—'}</td>
+                          <td style={{ fontSize: '0.78rem', color: '#475569' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                              <span>{rec.salesPerson || '—'}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(rec)}
+                                style={{
+                                  padding: '3px 6px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #e2e8f0',
+                                  background: '#fff',
+                                  color: '#64748b',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '2px',
+                                  fontSize: '0.70rem'
+                                }}
+                                title="Edit row data"
+                              >
+                                <Pencil size={11} />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     });
@@ -1536,6 +1737,17 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
           </div>
         </div>
       )}
+
+      {/* Row Edit Modal for modifying missing/existing fields before import */}
+      <MasterRecordEditModal
+        isOpen={Boolean(editingRecordData)}
+        onClose={() => {
+          setEditingRecordIndex(null);
+          setEditingRecordData(null);
+        }}
+        record={editingRecordData}
+        onSave={handleSaveEditedRecord}
+      />
     </div>
   );
 }

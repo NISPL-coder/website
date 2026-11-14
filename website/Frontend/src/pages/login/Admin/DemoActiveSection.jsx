@@ -93,11 +93,11 @@ export default function DemoActiveSection({
     return match?.name || match?.service || match?.contractType || 'Cloud Plan';
   };
 
-  // Base dataset: accounts categorized as Demo or Active (or DemoInactive)
+  // Base dataset: accounts categorized as Demo or Active (or InProgress / DemoInactive)
   const demoActivePool = useMemo(() => {
     return (customers || []).filter((c) => {
       const stage = normalizeCustomerLifecycle(c.status);
-      return stage === 'Active' || stage === 'Demo' || stage === 'DemoInactive';
+      return stage === 'Active' || stage === 'InProgress' || stage === 'Demo' || stage === 'DemoInactive';
     });
   }, [customers]);
 
@@ -109,7 +109,7 @@ export default function DemoActiveSection({
 
     (customers || []).forEach((c) => {
       const stage = normalizeCustomerLifecycle(c.status);
-      if (stage === 'Active') active += 1;
+      if (stage === 'Active' || stage === 'InProgress') active += 1;
       else if (stage === 'Demo') demo += 1;
       else if (stage === 'DemoInactive') demoInactive += 1;
     });
@@ -161,7 +161,7 @@ export default function DemoActiveSection({
         const stage = normalizeCustomerLifecycle(c.status);
         let matchesStatus = true;
         if (statusFilter === 'active') {
-          matchesStatus = stage === 'Active';
+          matchesStatus = stage === 'Active' || stage === 'InProgress';
         } else if (statusFilter === 'demo') {
           matchesStatus = stage === 'Demo';
         } else if (statusFilter === 'demoinactive') {

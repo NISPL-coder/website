@@ -1,0 +1,15 @@
+[
+  {
+    "id": "SP-915",
+    "salesPersonId": "SP-915",
+    "name": "Deba",
+    "email": "demo@gmail.com",
+    "phone": "9823498872",
+    "designation": "demo",
+    "status": "Active",
+    "notes": "",
+    "assignedCustomers": [],
+    "createdAt": "2026-11-14T11:43:00.792Z",
+    "updatedAt": "2026-11-14T11:43:00.792Z"
+  }
+]
