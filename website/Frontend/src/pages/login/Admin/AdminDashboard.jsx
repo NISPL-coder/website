@@ -829,6 +829,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setContracts={setContracts}
                   setPayments={setPayments}
                   setReceipts={setReceipts}
+                  existingCustomers={customers}
                 />
               )}
 

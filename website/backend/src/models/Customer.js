@@ -46,7 +46,7 @@ const customerSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      required: [true, 'Contact person name is required'],
+      default: '',
       trim: true
     },
     // The form captures the person as two names plus a role; `name` above keeps
@@ -56,13 +56,13 @@ const customerSchema = new mongoose.Schema(
     designation: { type: String, default: '', trim: true },
     company: {
       type: String,
-      required: [true, 'Company name is required'],
+      default: '',
       trim: true,
       index: true
     },
     email: {
       type: String,
-      required: [true, 'Corporate email is required'],
+      default: '',
       lowercase: true,
       trim: true,
       index: true
@@ -73,9 +73,9 @@ const customerSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
       trim: true,
-      index: true
+      index: true,
+      default: ''
     },
     additionalPhones: {
       type: [String],

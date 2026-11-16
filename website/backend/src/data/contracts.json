@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "contractId": "CTR-2026-1000",
+    "name": "Cloud Services - 1 User (2 core/3 GB/50 GB) (1 Month)",
+    "company": "Indware Technologies Pvt Ltd",
+    "customer": "Indware Drabhu",
+    "accountId": "394cc5aa-baec-4959-94ae-6ad5f16f8ecb",
+    "email": "dj@indware.com",
+    "service": "Subscription (1 Month)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Month",
+    "productCategory": "Software",
+    "totalContractValue": "₹590",
+    "value": "₹590 / 1 month",
+    "orderDate": "2026-11-14",
+    "startDate": "2026-11-14",
+    "endDate": "2026-12-14",
+    "expiryDate": "2026-12-14",
+    "status": "In Progress",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1468 (PAY-2026-1468).",
+    "productId": "PROD-1794656543313",
+    "salesPerson": "Deba",
+    "paymentInvoiceNumber": "INV-2026-1468",
+    "createdBy": {
+      "name": "Indware Drabhu",
+      "email": "dj@indware.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "8bcd09a9-2c12-4f21-96eb-a79ebabb0242",
+      "lastSyncedAt": "2026-11-14T11:43:39.673Z",
+      "syncError": null
+    },
+    "id": "CTR-2026-1000",
+    "createdAt": "2026-11-14T11:43:38.910Z"
+  }
+]

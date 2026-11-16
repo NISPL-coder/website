@@ -76,7 +76,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
     }
   }, [customer]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
