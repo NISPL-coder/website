@@ -14,7 +14,8 @@ import {
   Sparkles,
   ShieldAlert,
   ShieldCheck,
-  MailCheck
+  MailCheck,
+  AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
@@ -31,7 +32,7 @@ const LIFECYCLE_BADGE = {
   Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
   Demo: { background: '#fffbeb', color: '#b45309', border: '#fde68a', icon: Sparkles },
   InProgress: { background: '#eef2ff', color: '#4338ca', border: '#c7d2fe', icon: Clock },
-  Inactive: { background: '#f1f5f9', color: '#475569', border: '#e2e8f0', icon: Inbox }
+  Inactive: { background: '#fef2f2', color: '#dc2626', border: '#fecaca', icon: AlertCircle }
 };
 
 function formatDate(value) {
@@ -229,8 +230,19 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const greeting =
     account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
 
-  const lifecycleStage = normalizeCustomerLifecycle(account?.status || customer?.status);
-  const lifecycleBadge = LIFECYCLE_BADGE[lifecycleStage];
+  // Derive lifecycle stage:
+  // If account.status is explicitly Inactive (or customer.status is Inactive),
+  // OR if the customer has products but ZERO active products and ZERO demo products (e.g. all set to Inactive by admin),
+  // it MUST show as Inactive!
+  const rawStatus = account?.status || customer?.status;
+  const isExplicitInactive = ['inactive', 'suspended', 'paused'].includes(String(rawStatus || '').toLowerCase());
+  const hasZeroLiveProducts = products.length > 0 && activeCount === 0 && demoCount === 0;
+
+  const lifecycleStage = (isExplicitInactive || hasZeroLiveProducts)
+    ? 'Inactive'
+    : normalizeCustomerLifecycle(rawStatus);
+
+  const lifecycleBadge = LIFECYCLE_BADGE[lifecycleStage] || LIFECYCLE_BADGE.Inactive;
   const LifecycleIcon = lifecycleBadge.icon;
 
   // The portal's account row is the billing identity printed on the invoice.
@@ -653,10 +665,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                         ? `Valid till ${formatDate(product.expiryDate)}`
                         : 'Validity not recorded'
                     ].filter(Boolean);
+                    const normProductStatus = String(product.status || '').toLowerCase();
+                    const isProductInactive = ['inactive', 'disabled', 'suspended', 'paused', 'closed'].includes(normProductStatus);
+
                     const displayStatus = isConverted
                       ? 'Converted'
                       : product.expired
                       ? 'Expired'
+                      : isProductInactive
+                      ? product.status || 'Inactive'
                       : isDemo
                       ? 'Demo Trial'
                       : product.status || 'Active';
@@ -664,6 +681,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                       ? 'completed'
                       : product.expired
                       ? 'overdue'
+                      : isProductInactive
+                      ? 'inactive'
                       : isDemo
                       ? 'due'
                       : 'active';

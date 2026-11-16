@@ -3,17 +3,7 @@
  * Centralizes all HTTP communication with the NISPL backend authentication endpoints.
  */
 
-const isLocalhost = Boolean(
-  typeof window !== 'undefined' && (
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === '[::1]'
-  )
-);
-
-const BACKEND_URL = isLocalhost
-  ? 'http://localhost:4000'
-  : (import.meta.env.VITE_API_URL || 'https://website-ebxf.onrender.com');
+import { BACKEND_URL } from './apiConfig';
 
 const API_BASE_URL = `${BACKEND_URL}/api/auth`;
 

@@ -253,6 +253,7 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
           name: String(line.name || '').trim() || subscriptionPeriod,
           company,
           customer: person || company,
+          customerId: String(customer?.customerId || user?.customerId || payment?.customerId || '').trim(),
           accountId,
           email,
           service: `${contractType} (${subscriptionPeriod})`,
@@ -268,6 +269,7 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
           endDate,
           expiryDate: endDate,
           status: startDate > paidOn ? 'Not Started' : 'In Progress',
+          paymentStatus: 'Yes',
           // No support cover was sold with the plan, so none is claimed here.
           slaTier: '',
           description: [
@@ -357,7 +359,7 @@ export const activateAccountAfterPayment = async ({
   if (company) custOrConditions.push({ company });
   if (custOrConditions.length === 0) return { activated: false, converted: 0 };
 
-  const customerSet = planName ? { plan: planName } : null;
+  const customerSet = planName ? { plan: planName, status: 'Active' } : { status: 'Active' };
 
   const demoOrConditions = [];
   if (email) demoOrConditions.push({ email: new RegExp(`^${String(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') });
@@ -372,12 +374,15 @@ export const activateAccountAfterPayment = async ({
       { contractType: 'Trial' },
       { productCategory: 'Trial' },
       { status: 'DEMO' },
-      { status: 'demo' }
+      { status: 'demo' },
+      { status: 'DEMO-Inactive' },
+      { status: 'DEMO-INACTIVE' }
     ]
   };
   const conversionSet = {
-    status: 'Converted',
+    status: 'DEMO-Inactive',
     convertedToPaid: true,
+    isDemoTrial: false,
     convertedAt: new Date().toISOString(),
     convertedToContractId: contractId
   };

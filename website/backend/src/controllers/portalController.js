@@ -946,17 +946,34 @@ export const getCustomerOverview = async (req, res) => {
             }
           );
 
+          const shouldSetActive =
+            activePaidCount > 0 &&
+            !['inactive', 'suspended', 'paused'].includes(String(customer?.status || '').toLowerCase());
+          const customerUpdate = {
+            demoTrialUsed: true,
+            plan: regularProducts[0]?.name || customer?.plan
+          };
+          if (shouldSetActive) {
+            customerUpdate.status = 'Active';
+          }
+
           await Customer.updateMany(
             {
               $or: identity.map((id) => ({ email: id })).concat(identity.map((id) => ({ customerId: id })))
             },
             {
-              $set: {
-                demoTrialUsed: true,
-                plan: regularProducts[0]?.name || customer?.plan
-              }
+              $set: customerUpdate
             }
           );
+
+          // Ensure paid regular contracts have paymentStatus: 'Yes'
+          const regularContractIds = regularProducts.map((p) => p.id || p.contractId).filter(Boolean);
+          if (regularContractIds.length > 0) {
+            await Contract.updateMany(
+              { contractId: { $in: regularContractIds } },
+              { $set: { paymentStatus: 'Yes' } }
+            );
+          }
         } catch (dbErr) {
           console.warn('[PortalController] Demo auto-conversion persistence note:', dbErr.message);
         }
@@ -1226,6 +1243,19 @@ const settleRow = async ({ payment, user, customer, method }) => {
   payment.paymentReceivedDate = todayIso();
   if (!payment.paymentMethod) payment.paymentMethod = method;
   await payment.save();
+
+  // Mark associated contracts as paid (paymentStatus: 'Yes')
+  const cIds = (payment.contractIds || [payment.contractId]).filter(Boolean);
+  if (cIds.length > 0 && isMongoConnected()) {
+    try {
+      await Contract.updateMany(
+        { contractId: { $in: cIds } },
+        { $set: { paymentStatus: 'Yes' } }
+      );
+    } catch (cErr) {
+      console.warn('[PortalController] Contract paymentStatus update note:', cErr.message);
+    }
+  }
 
   await notifyPaymentReceived(user, customer, payment);
   return { settled: true, outstanding };
