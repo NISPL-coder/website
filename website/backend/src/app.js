@@ -27,6 +27,8 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
   ...env.CLIENT_ORIGINS,
+  'http://163.128.104.103:5173',
+  'http://163.128.104.103',
   'https://nispldemo.vercel.app',
   'https://nispl.netlify.app'
 ];
@@ -34,6 +36,8 @@ const allowedOrigins = [
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
+  // Allow UAT live server IP on any port
+  if (/^http:\/\/163\.128\.104\.103(:\d+)?$/.test(origin)) return true;
   // Allow any Vercel deployment (production or preview branch)
   if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) return true;
   // Allow any Netlify deployment (production or deploy previews)
@@ -55,7 +59,8 @@ app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginOpenerPolicy: false
 }));
-app.use(cors({
+
+const corsOptions = {
   origin(origin, callback) {
     if (isOriginAllowed(origin)) return callback(null, true);
     return callback(null, false);
@@ -77,19 +82,24 @@ app.use(cors({
     'x-refreshed-token'
   ],
   exposedHeaders: ['x-refreshed-token', 'X-Refreshed-Token']
-}));
-app.options('*', cors());
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 // Razorpay signs the exact bytes it posts, so the webhook has to read them
 // before the JSON parser turns them into an object.
 const razorpayWebhookParser = express.raw({ type: 'application/json' });
 app.post('/api/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
 app.post('/api/v1/payments/razorpay/webhook', razorpayWebhookParser, razorpayWebhookHandler);
+
 // A scan of the cheque travels inside the same request as the payment itself,
 // and base64 is a third larger than the file, so the manual endpoints need a
 // parser that can carry a 5 MB document. Every other route keeps 1 MB.
 const manualPaymentParser = express.json({ limit: '8mb' });
 app.use('/api/payments/manual', manualPaymentParser);
 app.use('/api/v1/payments/manual', manualPaymentParser);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
@@ -110,8 +120,10 @@ app.get('/', (req, res) => res.json({
     users: '/api/v1/users'
   }
 }));
+
 app.get('/health', (req, res) => res.json({ success: true, service: 'NISPL API', status: 'healthy' }));
 app.get('/api/health', (req, res) => res.json({ success: true, service: 'NISPL API', status: 'healthy' }));
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
