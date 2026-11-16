@@ -8,7 +8,7 @@ export default function ProfileCompletionCircle({
   size = 36,
   strokeWidth = 3,
   showPercentageInside = true,
-  className = '',
+  className = '', 
   onClick = null,
   title = null
 }) {
