@@ -102,7 +102,10 @@ export const createContract = async (req, res) => {
       slaTier,
       description,
       productId,
-      salesPerson
+      salesPerson,
+      phone,
+      mobile,
+      renewalDate
     } = req.body;
 
     // 1. Mandatory field validation
@@ -508,7 +511,10 @@ export const updateContract = async (req, res) => {
       slaTier,
       description,
       productId,
-      salesPerson
+      salesPerson,
+      phone,
+      mobile,
+      renewalDate
     } = req.body;
 
     const formattedVal = totalContractValue
@@ -551,6 +557,9 @@ export const updateContract = async (req, res) => {
       ...(description !== undefined && { description }),
       ...(productId !== undefined && { productId: String(productId).trim() }),
       ...(salesPerson !== undefined && { salesPerson: String(salesPerson).trim() }),
+      ...(phone !== undefined && { phone: String(phone).trim() }),
+      ...(mobile !== undefined && { mobile: String(mobile).trim() }),
+      ...(renewalDate !== undefined && { renewalDate: String(renewalDate).trim() }),
       updatedBy: req.user
         ? {
             name: req.user.name || '',

@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import { X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { paymentApi } from '../../../services/paymentApi';
+import { productApi } from '../../../services/productApi';
+import { salesPersonApi } from '../../../services/salesPersonApi';
+import { customerApi } from '../../../services/customerApi';
 import { notificationApi } from '../../../services/notificationApi';
 
 const PAYMENT_METHODS = [
@@ -42,6 +45,32 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
     notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiProducts, setApiProducts] = useState([]);
+  const [apiSalesPersons, setApiSalesPersons] = useState([]);
+  const [apiCustomers, setApiCustomers] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    Promise.allSettled([
+      productApi.getProducts().catch(() => []),
+      salesPersonApi.getAll().catch(() => ({ data: [] })),
+      customerApi.getCustomers().catch(() => [])
+    ]).then(([prodRes, spRes, custRes]) => {
+      if (!isMounted) return;
+      if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value)) {
+        setApiProducts(prodRes.value);
+      }
+      if (spRes.status === 'fulfilled') {
+        const data = spRes.value?.data || (Array.isArray(spRes.value) ? spRes.value : []);
+        setApiSalesPersons(data);
+      }
+      if (custRes.status === 'fulfilled' && Array.isArray(custRes.value)) {
+        setApiCustomers(custRes.value);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [isOpen]);
 
   useEffect(() => {
     if (payment) {
@@ -221,11 +250,30 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
                 <input
                   type="text"
                   required
+                  list="epm-company-datalist"
                   className="adm-modal-input"
                   value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const matched = apiCustomers.find((c) => (c.company || c.name || '').toLowerCase() === val.toLowerCase());
+                    if (matched) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        company: matched.company || matched.name || val,
+                        customer: prev.customer || matched.name || '',
+                        email: prev.email || matched.email || ''
+                      }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, company: val }));
+                    }
+                  }}
                   placeholder="e.g. Bio Sil Laboratories Co"
                 />
+                <datalist id="epm-company-datalist">
+                  {apiCustomers.map((c, i) => (
+                    <option key={i} value={c.company || c.name} />
+                  ))}
+                </datalist>
               </div>
 
               <div>
@@ -283,11 +331,17 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
                 <label className="adm-modal-label">Product / Plan / Category</label>
                 <input
                   type="text"
+                  list="epm-product-datalist"
                   className="adm-modal-input"
                   value={formData.productName}
                   onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                   placeholder="e.g. Tally Prime Cloud Server"
                 />
+                <datalist id="epm-product-datalist">
+                  {apiProducts.map((p, i) => (
+                    <option key={i} value={p.name || p.title} />
+                  ))}
+                </datalist>
               </div>
             </div>
           </div>
@@ -401,11 +455,17 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
                 <label className="adm-modal-label">Sales Person / Handled By</label>
                 <input
                   type="text"
+                  list="epm-salesperson-datalist"
                   className="adm-modal-input"
                   value={formData.salesPerson}
                   onChange={(e) => setFormData({ ...formData, salesPerson: e.target.value })}
                   placeholder="e.g. Nilmoni Ghosal"
                 />
+                <datalist id="epm-salesperson-datalist">
+                  {apiSalesPersons.map((sp, i) => (
+                    <option key={i} value={sp.name} />
+                  ))}
+                </datalist>
               </div>
 
               <div>

@@ -73,6 +73,16 @@ const contractSchema = new mongoose.Schema(
       trim: true,
       default: 'contracts@nispl.in'
     },
+    phone: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    mobile: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     service: {
       type: String,
       trim: true,
@@ -114,6 +124,10 @@ const contractSchema = new mongoose.Schema(
       required: true
     },
     expiryDate: {
+      type: String,
+      default: ''
+    },
+    renewalDate: {
       type: String,
       default: ''
     },
