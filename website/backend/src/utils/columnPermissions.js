@@ -28,6 +28,7 @@ export const MODULE_COLUMNS = {
     { id: 'updatedAt', label: 'Updated At', fields: ['updatedAt'] }
   ],
   contract: [
+    { id: 'customerId', label: 'Customer ID', fields: ['customerId'] },
     { id: 'name', label: 'Contract ID', fields: ['name'] },
     { id: 'company', label: 'Company Name', fields: ['company'] },
     { id: 'status', label: 'Status', fields: ['status'] },
@@ -168,7 +169,7 @@ const LEGACY_COLUMN_ALIASES = {
   },
   contract: {
     id: ['name'],
-    customer: ['personEmail', 'personMobile'],
+    customer: ['customerId', 'personEmail', 'personMobile'],
     service: ['contractType'],
     expiryDate: ['endDate'],
     // The CRM status left the contract table; it is granted by sangam_sync now.

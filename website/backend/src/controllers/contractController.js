@@ -54,6 +54,7 @@ export const getContracts = async (req, res) => {
       return {
         ...c,
         id: c.contractId || c._id || c.id,
+        customerId: c.customerId || '',
         status: effectiveStatus,
         sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
       };
@@ -806,7 +807,7 @@ const attachCustomerContacts = async (list) => {
   let customers = [];
   try {
     if (isMongoConnected()) {
-      const projection = 'name company email phone alternatePhone mobile contacts';
+      const projection = 'name company email phone alternatePhone mobile contacts customerId';
       // The indexed exact match covers almost every row; only the names that
       // miss it are retried case-insensitively, so a large register does not
       // turn into a collection scan on every page load.
@@ -869,8 +870,15 @@ const attachCustomerContacts = async (list) => {
     const contact =
       linked?.contacts?.find((entry) => String(entry.name || '').trim().toLowerCase() === person) || null;
 
+    const resolvedCustomerId =
+      c.customerId ||
+      linked?.customerId ||
+      (linked?.id && String(linked.id).startsWith('CUST-') ? linked.id : '') ||
+      '';
+
     return {
       ...c,
+      customerId: resolvedCustomerId,
       personEmail: contact?.email || linked?.email || c.email || '',
       personMobile:
         contact?.phone ||

@@ -248,6 +248,11 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                 <span style={{ fontWeight: 600, color: '#0f172a' }}>
                   {contract.company || 'N/A'}
                 </span>
+                {contract.customerId && (
+                  <span style={{ color: '#4f46e5', fontFamily: 'monospace', fontWeight: 700 }}>
+                    • Customer ID: {contract.customerId}
+                  </span>
+                )}
                 {contract.customer && (
                   <span style={{ color: '#64748b' }}>
                     • Signed by <strong>{contract.customer}</strong>

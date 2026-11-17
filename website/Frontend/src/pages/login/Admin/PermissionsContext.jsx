@@ -171,7 +171,7 @@ const LEGACY_COLUMN_ALIASES = {
   },
   contract: {
     id: ['name'],
-    customer: ['personEmail', 'personMobile'],
+    customer: ['customerId', 'personEmail', 'personMobile'],
     service: ['contractType'],
     expiryDate: ['endDate'],
     sangam: []

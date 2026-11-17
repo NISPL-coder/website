@@ -86,6 +86,7 @@ export function formatCustomersForExport(customers) {
  */
 export function formatContractsForExport(contracts) {
   return contracts.map((ctr) => ({
+    'Customer ID': ctr.customerId || '—',
     'Contract ID': ctr.name || '—',
     'Company Name': ctr.company || '—',
     'Status': normalizeContractStatus(ctr.status) || '—',

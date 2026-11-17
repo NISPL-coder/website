@@ -622,6 +622,20 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                 <span className="ecm-ref-chip">
                   Ref ID: {contract.contractId || contract.id || 'N/A'}
                 </span>
+                {contract.customerId && (
+                  <span
+                    className="ecm-ref-chip"
+                    style={{
+                      backgroundColor: '#eef2ff',
+                      color: '#4f46e5',
+                      border: '1px solid #c7d2fe',
+                      fontFamily: 'monospace',
+                      fontWeight: 700
+                    }}
+                  >
+                    Cust ID: {contract.customerId}
+                  </span>
+                )}
                 <span
                   style={{
                     fontSize: '0.74rem',

@@ -11,7 +11,8 @@ import {
   Trash2,
   RotateCw,
   Power,
-  CheckCircle2
+  CheckCircle2,
+  ArrowUpRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -194,11 +195,32 @@ export default function ContractSection({ contracts, setContracts, customers = [
     }
   };
 
+  const resolveCustomerId = (c) => {
+    if (c.customerId) return c.customerId;
+    if (c.accountId && String(c.accountId).startsWith('CUST-')) return c.accountId;
+    const comp = String(c.company || '').trim().toLowerCase();
+    const pers = String(c.customer || c.person || '').trim().toLowerCase();
+    const mail = String(c.personEmail || c.email || '').trim().toLowerCase();
+
+    const matched = (customers || []).find((cust) => {
+      const custComp = String(cust.company || '').trim().toLowerCase();
+      const custName = String(cust.name || '').trim().toLowerCase();
+      const custMail = String(cust.email || '').trim().toLowerCase();
+      return (
+        (comp && custComp === comp) ||
+        (mail && custMail === mail) ||
+        (pers && custName === pers)
+      );
+    });
+    return matched?.customerId || matched?.id || '';
+  };
+
   // Filtered contracts
   const filteredContracts = useMemo(() => {
     return contracts.filter((c) => {
       const q = searchQuery.toLowerCase();
       const code = (c.id || c.contractId || '').toLowerCase();
+      const custId = String(c.customerId || resolveCustomerId(c) || '').toLowerCase();
       const name = (c.name || '').toLowerCase();
       const company = (c.company || '').toLowerCase();
       const email = contractPersonEmail(c, customers).toLowerCase();
@@ -209,6 +231,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
       const matchesSearch =
         !q ||
         code.includes(q) ||
+        custId.includes(q) ||
         name.includes(q) ||
         company.includes(q) ||
         email.includes(q) ||
@@ -231,7 +254,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
       if (dateB !== dateA) return dateB - dateA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
-  }, [contracts, searchQuery, statusFilter, dateFrom, dateTo]);
+  }, [contracts, searchQuery, statusFilter, dateFrom, dateTo, customers]);
 
   // One option per status in the register, counted from the rows themselves.
   const statusFilterOptions = useMemo(() => {
@@ -258,7 +281,8 @@ export default function ContractSection({ contracts, setContracts, customers = [
         when: (row) => {
           const cId = String(row.id || row.contractId || '').trim().toLowerCase();
           const cName = String(row.name || '').trim().toLowerCase();
-          return cId === target || cName === target;
+          const custId = String(row.customerId || resolveCustomerId(row) || '').trim().toLowerCase();
+          return cId === target || cName === target || (custId && custId === target);
         },
         style: {
           backgroundColor: '#f5f3ff',
@@ -267,9 +291,63 @@ export default function ContractSection({ contracts, setContracts, customers = [
         classNames: ['adm-row-target-highlight']
       }
     ];
-  }, [highlightedId]);
+  }, [highlightedId, customers]);
 
   const columns = [
+    {
+      id: 'customerId',
+      name: 'Customer ID',
+      selector: (row) => row.customerId || resolveCustomerId(row) || '',
+      sortable: true,
+      sortFunction: compareText((row) => row.customerId || resolveCustomerId(row) || ''),
+      minWidth: '140px',
+      width: '150px',
+      cell: (c) => {
+        const custId = c.customerId || resolveCustomerId(c);
+        const isTarget = highlightedId && custId && String(custId).trim().toLowerCase() === String(highlightedId).trim().toLowerCase();
+        if (!custId) {
+          return <span style={{ color: '#94a3b8' }}>—</span>;
+        }
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              type="button"
+              className="adm-clickable-id-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/admin/customer?search=${encodeURIComponent(custId)}`, {
+                  state: {
+                    search: custId,
+                    highlightId: custId
+                  }
+                });
+              }}
+              title={`View customer ${custId} in Customer List`}
+            >
+              <span>{custId}</span>
+              <ArrowUpRight size={13} className="adm-clickable-id-icon" />
+            </button>
+            {isTarget && (
+              <span
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  backgroundColor: '#e0e7ff',
+                  color: '#4338ca',
+                  border: '1px solid #c7d2fe',
+                  letterSpacing: '0.02em',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Target
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
     {
       id: 'name',
       name: 'Contract Name/ID',

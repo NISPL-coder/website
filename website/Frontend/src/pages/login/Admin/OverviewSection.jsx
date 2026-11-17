@@ -1508,6 +1508,38 @@ export default function OverviewSection({
 
   const overviewContractColumns = [
     {
+      id: 'customerId',
+      name: 'Customer ID',
+      selector: (row) => row.customerId || row.accountId || '',
+      sortable: true,
+      sortFunction: compareText((row) => row.customerId || row.accountId || ''),
+      minWidth: '140px',
+      width: '150px',
+      cell: (c) => {
+        const custId = c.customerId || c.accountId;
+        if (!custId) return <span style={{ color: '#94a3b8' }}>—</span>;
+        return (
+          <button
+            type="button"
+            className="adm-clickable-id-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/customer?search=${encodeURIComponent(custId)}`, {
+                state: {
+                  search: custId,
+                  highlightId: custId
+                }
+              });
+            }}
+            title={`View customer ${custId} in Customer List`}
+          >
+            <span>{custId}</span>
+            <ArrowUpRight size={13} className="adm-clickable-id-icon" />
+          </button>
+        );
+      }
+    },
+    {
       id: 'name',
       name: 'Contract Name/ID',
       selector: (row) => row.name || row.contractId || row.id,
