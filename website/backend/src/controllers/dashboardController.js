@@ -166,11 +166,21 @@ function solutionOf(payment) {
 
 /** Signed percentage change, or null when there is no baseline to compare with. */
 function changeFromPrevious(previous, current) {
-  if (!previous || previous <= 0) return null;
+  if (previous === 0 && current === 0) {
+    return { value: 0, direction: 'flat', label: '0.0%' };
+  }
+  if (!previous || previous <= 0) {
+    if (current > 0) {
+      return { value: 100, direction: 'up', label: '+100%' };
+    }
+    return null;
+  }
   const pct = ((current - previous) / previous) * 100;
+  const rounded = parseFloat(pct.toFixed(1));
   return {
-    value: parseFloat(pct.toFixed(1)),
-    direction: pct >= 0 ? 'up' : 'down'
+    value: Math.abs(rounded),
+    direction: rounded > 0 ? 'up' : rounded < 0 ? 'down' : 'flat',
+    label: `${rounded >= 0 ? '+' : ''}${rounded.toFixed(1)}%`
   };
 }
 
@@ -372,13 +382,54 @@ export const getDashboardOverview = async (req, res) => {
       if (idx !== -1) bucketTotals[idx] += receivedAmount(p);
     });
 
+    let cumulativeSum = 0;
     const points = buckets.map((bucket, idx) => {
-      const change = idx > 0 ? changeFromPrevious(bucketTotals[idx - 1], bucketTotals[idx]) : null;
+      cumulativeSum += bucketTotals[idx];
+      const prevSales = idx > 0 ? bucketTotals[idx - 1] : null;
+      const prevMonth = idx > 0 ? buckets[idx - 1].label : null;
+
+      let growthLabel = null;
+      let growthDirection = 'flat'; // 'up' | 'down' | 'flat' | 'baseline'
+      let growthPercent = 0;
+
+      if (idx === 0) {
+        growthDirection = 'baseline';
+        growthLabel = 'Baseline Period';
+      } else if (prevSales === 0 && bucketTotals[idx] > 0) {
+        growthDirection = 'up';
+        growthPercent = 100;
+        growthLabel = `+100% vs ${prevMonth}`;
+      } else if (prevSales === 0 && bucketTotals[idx] === 0) {
+        growthDirection = 'flat';
+        growthPercent = 0;
+        growthLabel = `0.0% vs ${prevMonth}`;
+      } else if (prevSales > 0) {
+        const pct = ((bucketTotals[idx] - prevSales) / prevSales) * 100;
+        growthPercent = parseFloat(pct.toFixed(1));
+        if (growthPercent > 0) {
+          growthDirection = 'up';
+          growthLabel = `+${growthPercent}% vs ${prevMonth}`;
+        } else if (growthPercent < 0) {
+          growthDirection = 'down';
+          growthLabel = `${growthPercent}% vs ${prevMonth}`;
+        } else {
+          growthDirection = 'flat';
+          growthLabel = `0.0% vs ${prevMonth}`;
+        }
+      }
+
       return {
         month: bucket.label,
         sales: bucketTotals[idx],
+        formattedSales: formatRupee(bucketTotals[idx]),
         label: formatLakhCrore(bucketTotals[idx]),
-        growth: change ? `${change.direction === 'up' ? '+' : '-'}${Math.abs(change.value)}%` : null
+        growth: growthLabel,
+        growthPercent,
+        growthDirection,
+        prevMonth,
+        prevSales: prevSales !== null ? formatRupee(prevSales) : null,
+        cumulativeSales: cumulativeSum,
+        cumulativeGrossFormatted: formatLakhCrore(cumulativeSum)
       };
     });
 
@@ -462,9 +513,9 @@ export const getDashboardOverview = async (req, res) => {
           periodLabel: cumulativeGrossTotal > 0 && latestPoint
             ? `${latestPoint.month.toUpperCase()} VERIFIED SALES`
             : 'NO BILLING DATA',
-          growthLabel: trend
-            ? `${trend.direction === 'up' ? '+' : '-'}${Math.abs(trend.value)}% ${trendSuffix}`
-            : null,
+          growthLabel: latestPoint?.growth || (trend ? `${trend.direction === 'up' ? '+' : '-'}${Math.abs(trend.value)}% ${trendSuffix}` : null),
+          growthDirection: latestPoint?.growthDirection || (trend ? trend.direction : 'flat'),
+          growthPercent: latestPoint?.growthPercent || (trend ? trend.value : 0),
           cumulativeGross,
           cumulativeGrossFormatted: formatLakhCrore(cumulativeGrossTotal),
           timeframeDescription: `${periodWord} collections recorded in the payment ledger for ${window.label} (${windowRange}).`

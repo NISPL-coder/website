@@ -38,8 +38,7 @@ export const getContracts = async (req, res) => {
         c.contractType === 'Trial' ||
         c.productCategory === 'Trial' ||
         String(c.status).toUpperCase() === 'DEMO' ||
-        String(c.status).toUpperCase() === 'DEMO-INACTIVE' ||
-        String(c.status).toUpperCase() === 'CONVERTED'
+        String(c.status).toUpperCase() === 'DEMO-INACTIVE'
       );
       const isExpired = c.endDate || c.expiryDate
         ? new Date(c.endDate || c.expiryDate).getTime() < now

@@ -180,6 +180,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       !p.expired &&
       ['in progress', 'active'].includes(String(p.status || '').toLowerCase()) &&
       String(p.status).toUpperCase() !== 'DEMO' &&
+      String(p.status).toUpperCase() !== 'CONVERTED' &&
+      !p.convertedToPaid &&
       !p.isDemoTrial
   ).length;
 
@@ -860,7 +862,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                     const metaParts = [
                       product.contractType || product.category || null,
                       isConverted
-                        ? 'Converted to paid plan'
+                        ? (isRawDemo ? 'Converted to paid plan' : 'Upgraded to latest plan')
                         : product.expiryDate
                         ? `Valid till ${formatDate(product.expiryDate)}`
                         : 'Validity not recorded'

@@ -7,7 +7,7 @@
 
 import { formatStamp } from './adminTableUtils';
 
-export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
+export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'Converted', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -24,10 +24,10 @@ const STATUS_LOOKUP = {
   notstarted: 'Not Started',
   inprogress: 'In Progress',
   closed: 'Closed',
+  converted: 'Converted',
   demo: 'DEMO',
   demoinactive: 'DEMO-Inactive',
   'demo-inactive': 'DEMO-Inactive',
-  converted: 'DEMO-Inactive',
   disabled: 'DISABLED',
   // Previous vocabulary.
   active: 'In Progress',
@@ -48,6 +48,7 @@ const STATUS_TONE = {
   Inactive: 'inactive',
   'Not Started': 'pending',
   Closed: 'inactive',
+  Converted: 'completed',
   DEMO: 'info',
   'DEMO-Inactive': 'demoinactive',
   DISABLED: 'suspended'
@@ -59,7 +60,7 @@ export const normalizeContractStatus = (value, contract = null) => {
   if (!raw) return '';
 
   const squashed = squash(raw);
-  if (squashed === 'demoinactive' || squashed === 'converted') {
+  if (squashed === 'demoinactive') {
     return 'DEMO-Inactive';
   }
 
@@ -79,6 +80,10 @@ export const normalizeContractStatus = (value, contract = null) => {
       return 'DEMO-Inactive';
     }
     return 'DEMO';
+  }
+
+  if (squashed === 'converted') {
+    return 'Converted';
   }
 
   return STATUS_LOOKUP[squashed] || raw;
@@ -103,6 +108,7 @@ const STATUS_COLOR = {
   Inactive: '#64748b',
   'Not Started': '#d97706',
   Closed: '#64748b',
+  Converted: '#64748b',
   DEMO: '#6366f1',
   'DEMO-Inactive': '#dc2626',
   DISABLED: '#e11d48'
@@ -196,6 +202,7 @@ export const matchesStatusFilter = (contract, filter) => {
   if (filterNorm === 'inprogress') return status === 'In Progress';
   if (filterNorm === 'notstarted') return status === 'Not Started';
   if (filterNorm === 'closed') return status === 'Closed';
+  if (filterNorm === 'converted') return status === 'Converted';
   if (filterNorm === 'demo') return status === 'DEMO';
   if (filterNorm === 'demoinactive') return status === 'DEMO-Inactive';
   if (filterNorm === 'disabled') return status === 'DISABLED';

@@ -237,17 +237,21 @@ export default function OverviewSection({
   const [hoveredPieSlice, setHoveredPieSlice] = useState(null);
   const [chartAnimKey, setChartAnimKey] = useState(0);
 
-  // Sync hovered point whenever active overview dataset changes
+  // Trigger animation key ONLY when period or fiscal year filter changes
+  useEffect(() => {
+    setChartAnimKey((prev) => prev + 1);
+  }, [selectedPeriod, selectedFY]);
+
+  // Sync hovered point to latest point whenever series data changes
   useEffect(() => {
     const series = activeOverviewData.salesChart?.points;
     if (series?.length) {
       setHoveredSalesPoint(series[series.length - 1]);
-      setChartAnimKey((prev) => prev + 1);
     } else {
       // A year with no billing must not keep the previous selection on screen.
       setHoveredSalesPoint(null);
     }
-  }, [activeOverviewData]);
+  }, [activeOverviewData.salesChart?.points]);
 
   // Customer status breakdown counts for current filtered view
   const customerCounts = useMemo(() => {
@@ -2361,27 +2365,65 @@ export default function OverviewSection({
           <div className="adm-sales-metric-row">
             <div className="adm-metric-block">
               <span className="adm-metric-caption">
-                {hoveredSalesPoint ? `${hoveredSalesPoint.month} Verified Sales` : activeOverviewData.salesChart.periodLabel}
+                {hoveredSalesPoint ? `${hoveredSalesPoint.month} Collections` : activeOverviewData.salesChart.periodLabel}
               </span>
-              <span className="adm-metric-value">
-                {hoveredSalesPoint?.label ||
-                  activeOverviewData.salesChart.points[activeOverviewData.salesChart.points.length - 1]?.label ||
-                  'No collections'}
-              </span>
+              <div className="adm-metric-val-wrap">
+                <span className="adm-metric-value">
+                  {hoveredSalesPoint?.label ||
+                    activeOverviewData.salesChart.points[activeOverviewData.salesChart.points.length - 1]?.label ||
+                    'No collections'}
+                </span>
+                {hoveredSalesPoint?.formattedSales && (
+                  <span className="adm-metric-subtext">
+                    ({hoveredSalesPoint.formattedSales})
+                  </span>
+                )}
+              </div>
             </div>
+
             <div className="adm-metric-block">
               <span className="adm-metric-caption">Growth Velocity</span>
-              <span className="adm-metric-growth">
-                {hoveredSalesPoint?.growth ||
-                  activeOverviewData.salesChart.growthLabel ||
-                  `No ${activeOverviewData.kpi.trendSuffix} baseline`}
-              </span>
+              <div className="adm-metric-growth-wrap">
+                {hoveredSalesPoint?.growthDirection === 'up' && (
+                  <span className="adm-growth-badge up">
+                    <TrendingUp size={13} />
+                    <span>{hoveredSalesPoint.growth}</span>
+                  </span>
+                )}
+                {hoveredSalesPoint?.growthDirection === 'down' && (
+                  <span className="adm-growth-badge down">
+                    <TrendingDown size={13} />
+                    <span>{hoveredSalesPoint.growth}</span>
+                  </span>
+                )}
+                {hoveredSalesPoint?.growthDirection === 'baseline' && (
+                  <span className="adm-growth-badge baseline">
+                    <span>{hoveredSalesPoint.growth || 'Baseline Period'}</span>
+                  </span>
+                )}
+                {(!hoveredSalesPoint || hoveredSalesPoint?.growthDirection === 'flat') && (
+                  <span className="adm-growth-badge flat">
+                    <span>{hoveredSalesPoint?.growth || activeOverviewData.salesChart.growthLabel || '0.0%'}</span>
+                  </span>
+                )}
+                {hoveredSalesPoint?.prevSales && (
+                  <span className="adm-metric-subtext">
+                    vs {hoveredSalesPoint.prevMonth}: {hoveredSalesPoint.prevSales}
+                  </span>
+                )}
+              </div>
             </div>
+
             <div className="adm-metric-block">
               <span className="adm-metric-caption">Cumulative Gross Total</span>
-              <span className="adm-metric-val-sm">
-                ₹<CountUp end={activeOverviewData.salesChart.cumulativeGross} decimals={2} duration={1400} /> Crore
-              </span>
+              <div className="adm-metric-val-wrap">
+                <span className="adm-metric-val-sm">
+                  {hoveredSalesPoint?.cumulativeGrossFormatted || `₹${activeOverviewData.salesChart.cumulativeGross} Cr`}
+                </span>
+                <span className="adm-metric-subtext">
+                  through {hoveredSalesPoint?.month || 'period'}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -2392,6 +2434,10 @@ export default function OverviewSection({
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
               className="adm-sales-svg"
               preserveAspectRatio="xMidYMid meet"
+              onMouseLeave={() => {
+                const latest = points[points.length - 1];
+                if (latest) setHoveredSalesPoint(latest);
+              }}
             >
               <defs>
                 {/* Area Gradient */}
@@ -2463,17 +2509,16 @@ export default function OverviewSection({
                 className="adm-chart-stroke-path"
               />
 
-              {/* Interactive Data Points with Staggered Entrance & Pulsing Hover */}
+              {/* Static Data Points & Visual Accents */}
               {points.map((pt, idx) => {
                 const isHovered = hoveredSalesPoint?.month === pt.month;
                 return (
                   <g
                     key={`${selectedPeriod}-${selectedFY}-${idx}`}
                     className="adm-chart-point-group"
-                    onMouseEnter={() => setHoveredSalesPoint(pt)}
+                    pointerEvents="none"
                     style={{
-                      cursor: 'pointer',
-                      animationDelay: `${idx * 80 + 300}ms`
+                      animationDelay: `${idx * 60 + 200}ms`
                     }}
                   >
                     {/* Hover Reference Vertical Line */}
@@ -2484,20 +2529,24 @@ export default function OverviewSection({
                         x2={pt.x}
                         y2={svgHeight - paddingY}
                         stroke="#6366f1"
-                        strokeWidth="1.4"
-                        strokeDasharray="2 3"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 3"
+                        opacity="0.65"
                         className="adm-chart-guide-line"
                       />
                     )}
 
-                    {/* Outer Pulse Radar Beacon */}
+                    {/* Outer Static/Gently Pulsing Halo on Active Point */}
                     {isHovered && (
                       <circle
                         cx={pt.x}
                         cy={pt.y}
-                        r="12"
+                        r="11"
                         fill="#6366f1"
-                        className="adm-chart-pulse-radar"
+                        fillOpacity="0.2"
+                        stroke="#6366f1"
+                        strokeWidth="1.4"
+                        strokeOpacity="0.5"
                       />
                     )}
 
@@ -2505,10 +2554,10 @@ export default function OverviewSection({
                     <circle
                       cx={pt.x}
                       cy={pt.y}
-                      r={isHovered ? 6 : 4.5}
+                      r={isHovered ? 6 : 4}
                       fill={isHovered ? '#4338ca' : '#ffffff'}
-                      stroke="#6366f1"
-                      strokeWidth={isHovered ? 2.8 : 2.4}
+                      stroke="#4f46e5"
+                      strokeWidth={isHovered ? 2.6 : 2.2}
                       className="adm-chart-point-circle"
                     />
 
@@ -2527,6 +2576,77 @@ export default function OverviewSection({
                   </g>
                 );
               })}
+
+              {/* Floating Tooltip Card on Active Point */}
+              {hoveredSalesPoint && (() => {
+                const pt = points.find((p) => p.month === hoveredSalesPoint.month);
+                if (!pt) return null;
+                const tipW = 126;
+                const tipH = 42;
+                const tipX = Math.max(paddingX + tipW / 2 + 4, Math.min(svgWidth - paddingX - tipW / 2 - 4, pt.x));
+                const tipY = pt.y > 60 ? pt.y - 32 : pt.y + 40;
+                const isDown = pt.growthDirection === 'down';
+                const isUp = pt.growthDirection === 'up';
+                const growthColor = isDown ? '#f87171' : isUp ? '#4ade80' : '#cbd5e1';
+                return (
+                  <g pointerEvents="none">
+                    <rect
+                      x={tipX - tipW / 2}
+                      y={tipY - tipH / 2}
+                      width={tipW}
+                      height={tipH}
+                      rx="7"
+                      fill="#0f172a"
+                      fillOpacity="0.94"
+                      stroke="#334155"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={tipX}
+                      y={tipY - 5}
+                      fill="#ffffff"
+                      fontSize="11"
+                      fontWeight="700"
+                      textAnchor="middle"
+                    >
+                      {pt.month}: {pt.label}
+                    </text>
+                    <text
+                      x={tipX}
+                      y={tipY + 11}
+                      fill={growthColor}
+                      fontSize="9.5"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      {pt.growth || 'Verified Collection'}
+                    </text>
+                  </g>
+                );
+              })()}
+
+              {/* Full-Height Transparent Hit Columns for Rock-Solid, Flicker-Free Hover */}
+              {(() => {
+                const sliceW = points.length > 1 ? chartW / (points.length - 1) : chartW;
+                return points.map((pt, idx) => {
+                  const isFirst = idx === 0;
+                  const isLast = idx === points.length - 1;
+                  const xLeft = isFirst ? paddingX - 16 : pt.x - sliceW / 2;
+                  const rectW = isFirst || isLast ? sliceW / 2 + 16 : sliceW;
+                  return (
+                    <rect
+                      key={`hit-${idx}`}
+                      x={xLeft}
+                      y={0}
+                      width={rectW}
+                      height={svgHeight}
+                      fill="transparent"
+                      style={{ cursor: 'pointer' }}
+                      onMouseEnter={() => setHoveredSalesPoint(pt)}
+                    />
+                  );
+                });
+              })()}
             </svg>
           </div>
           ) : (

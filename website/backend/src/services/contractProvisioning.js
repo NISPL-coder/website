@@ -402,6 +402,33 @@ export const activateAccountAfterPayment = async ({
         { $set: conversionSet }
       );
       converted = result.modifiedCount ?? result.nModified ?? 0;
+
+      // Upgrade previous active non-demo contracts to 'Converted'
+      if (contractId) {
+        await Contract.updateMany(
+          {
+            $and: [
+              { $or: demoOrConditions },
+              { contractId: { $ne: contractId } },
+              {
+                $or: [
+                  { status: { $in: ['In Progress', 'Active', 'in progress', 'active'] } },
+                  { paymentStatus: { $in: ['Yes', 'yes', 'Paid', 'paid'] } }
+                ]
+              },
+              { status: { $nin: ['Closed', 'Converted', 'closed', 'converted', 'DEMO-Inactive', 'demo-inactive'] } }
+            ]
+          },
+          {
+            $set: {
+              status: 'Converted',
+              convertedToPaid: true,
+              convertedAt: new Date().toISOString(),
+              convertedToContractId: contractId
+            }
+          }
+        );
+      }
     }
   }
 
@@ -429,6 +456,15 @@ export const activateAccountAfterPayment = async ({
       if (matches && isDemo && c.status !== 'Converted' && c.status !== 'Closed') {
         converted += 1;
         return { ...c, ...conversionSet };
+      }
+      if (matches && !isDemo && contractId && c.contractId !== contractId && ['in progress', 'active'].includes(String(c.status || '').toLowerCase())) {
+        return {
+          ...c,
+          status: 'Converted',
+          convertedToPaid: true,
+          convertedAt: new Date().toISOString(),
+          convertedToContractId: contractId
+        };
       }
       return c;
     });

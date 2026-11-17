@@ -16,7 +16,7 @@
     "startDate": "2026-11-14",
     "endDate": "2026-12-14",
     "expiryDate": "2026-12-14",
-    "status": "In Progress",
+    "status": "Converted",
     "slaTier": "",
     "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1468 (PAY-2026-1468).",
     "productId": "PROD-1794656543313",
@@ -34,6 +34,9 @@
       "syncError": null
     },
     "id": "CTR-2026-1000",
-    "createdAt": "2026-11-14T11:43:38.910Z"
+    "createdAt": "2026-11-14T11:43:38.910Z",
+    "convertedToPaid": true,
+    "convertedAt": "2026-11-17T12:06:46.981Z",
+    "convertedToContractId": "CTR-2026-1001"
   }
 ]

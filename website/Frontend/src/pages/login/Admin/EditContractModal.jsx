@@ -447,6 +447,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
       'In Progress',
       'DEMO',
       'DEMO-Inactive',
+      'Converted',
       'Not Started',
       'Inactive',
       'Closed',

@@ -8,7 +8,7 @@
  * spelling.
  */
 
-export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
+export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'Converted', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -25,10 +25,10 @@ const STATUS_LOOKUP = {
   notstarted: 'Not Started',
   inprogress: 'In Progress',
   closed: 'Closed',
+  converted: 'Converted',
   demo: 'DEMO',
   demoinactive: 'DEMO-Inactive',
   'demo-inactive': 'DEMO-Inactive',
-  converted: 'DEMO-Inactive',
   disabled: 'DISABLED',
   // Previous vocabulary.
   active: 'In Progress',
@@ -60,7 +60,7 @@ export const normalizeContractStatus = (value, contract = null) => {
   if (!raw) return '';
 
   const squashed = squash(raw);
-  if (squashed === 'demoinactive' || squashed === 'converted') {
+  if (squashed === 'demoinactive') {
     return 'DEMO-Inactive';
   }
 
@@ -80,6 +80,10 @@ export const normalizeContractStatus = (value, contract = null) => {
       return 'DEMO-Inactive';
     }
     return 'DEMO';
+  }
+
+  if (squashed === 'converted') {
+    return 'Converted';
   }
 
   return STATUS_LOOKUP[squashed] || raw;

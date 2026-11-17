@@ -65,6 +65,8 @@ function pendingOverview(period, fy) {
       points: [],
       periodLabel: 'NO BILLING DATA',
       growthLabel: null,
+      growthDirection: 'flat',
+      growthPercent: 0,
       cumulativeGross: 0,
       cumulativeGrossFormatted: '₹0',
       timeframeDescription: `Collections recorded in the payment ledger for ${label}.`
