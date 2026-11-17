@@ -73,6 +73,7 @@ import {
   customerLifecycleLabel,
   customerLifecycleTone
 } from '../../../utils/customerLifecycle';
+import { getCustomerUserCount } from '../../../utils/customerUsers';
 
 function addressPart(cust, key) {
   const fromAddress = cust.address && typeof cust.address === 'object' ? cust.address[key] : '';
@@ -337,6 +338,9 @@ export default function OverviewSection({
         (c.id || '').toLowerCase().includes(q) ||
         (c.designation || '').toLowerCase().includes(q) ||
         (c.phone || '').toLowerCase().includes(q) ||
+        (c.plan || '').toLowerCase().includes(q) ||
+        (String(getCustomerUserCount(c, contracts, products) || '') + ' user').includes(q) ||
+        (String(getCustomerUserCount(c, contracts, products) || '') + ' users').includes(q) ||
         addressPart(c, 'city').toLowerCase().includes(q) ||
         addressPart(c, 'state').toLowerCase().includes(q);
 
@@ -925,6 +929,39 @@ export default function OverviewSection({
     };
   }, [customers, accountsRange, apiOverview]);
 
+  // Card 5: Cloud Users Taken / Capacity Provisioned
+  const usersMetrics = useMemo(() => {
+    let totalUsed = 0;
+    let activeUsers = 0;
+    let demoUsers = 0;
+    let customersWithUsers = 0;
+
+    const custs = Array.isArray(customers) ? customers : [];
+    custs.forEach((c) => {
+      const u = getCustomerUserCount(c, contracts, products);
+      if (u > 0) {
+        totalUsed += u;
+        customersWithUsers++;
+        const stage = normalizeCustomerLifecycle(c.status);
+        if (stage === 'Active') activeUsers += u;
+        else if (stage === 'Demo') demoUsers += u;
+      }
+    });
+
+    const apiTotal = apiOverview?.kpi?.totalCloudUsers;
+    const finalTotal = apiTotal != null && apiTotal > 0 ? apiTotal : totalUsed;
+    const finalActive = apiOverview?.kpi?.activeCloudUsers != null ? apiOverview.kpi.activeCloudUsers : activeUsers;
+    const finalDemo = apiOverview?.kpi?.demoCloudUsers != null ? apiOverview.kpi.demoCloudUsers : demoUsers;
+
+    return {
+      totalUsed: finalTotal,
+      activeUsers: finalActive,
+      demoUsers: finalDemo,
+      customersWithUsers: customersWithUsers || (finalTotal > 0 ? 1 : 0),
+      totalPlans: customersWithUsers || (finalTotal > 0 ? 1 : 0)
+    };
+  }, [customers, contracts, products, apiOverview]);
+
   const receivedTrend = formatTrend(
     activeOverviewData.kpi.trendValue,
     activeOverviewData.kpi.trendDirection,
@@ -1031,6 +1068,38 @@ export default function OverviewSection({
       minWidth: '190px',
       grow: 1.1,
       cell: (cust) => <span style={{ color: '#1e293b' }}>{cust.company || '—'}</span>
+    },
+    {
+      id: 'users',
+      name: 'Users',
+      selector: (row) => getCustomerUserCount(row, contracts, products),
+      sortable: true,
+      sortFunction: compareNumber((row) => getCustomerUserCount(row, contracts, products)),
+      minWidth: '135px',
+      cell: (cust) => {
+        const count = getCustomerUserCount(cust, contracts, products);
+        if (!count) {
+          return <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>—</span>;
+        }
+        return (
+          <span
+            className="adm-status-pill purple"
+            style={{
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '3px 9px',
+              borderRadius: '20px'
+            }}
+            title={cust.plan ? `Plan: ${cust.plan} (${count} Users)` : `${count} Users Allocated`}
+          >
+            <Users size={12} />
+            <span>{count} Used</span>
+          </span>
+        );
+      }
     },
     {
       id: 'email',
@@ -1775,12 +1844,18 @@ export default function OverviewSection({
       <div className="adm-table-card animate-fade-in" style={{ marginBottom: '28px' }}>
         <div className="adm-card-header">
           <div className="adm-card-header-info">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h2 className="adm-section-title">Customer List</h2>
               <span className="adm-status-pill info">
                 <Users size={12} />
                 <span>
                   <CountUp end={customerCounts.total} duration={1200} /> Registered Accounts
+                </span>
+              </span>
+              <span className="adm-status-pill purple" style={{ fontWeight: 700 }}>
+                <Server size={12} />
+                <span>
+                  <CountUp end={usersMetrics.totalUsed} duration={1200} /> Users Used
                 </span>
               </span>
             </div>
@@ -2197,6 +2272,59 @@ export default function OverviewSection({
               title="Navigate to Customer List"
             >
               <span>Customer List</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* CARD 5: CLOUD USERS ALLOCATED (USERS USED) */}
+        <div className="adm-finance-card cloud-users">
+          <div className="adm-finance-header">
+            <div className="adm-finance-badge purple">
+              <Server size={16} />
+              <span>Cloud Users</span>
+            </div>
+            <span
+              className="adm-status-pill purple"
+              style={{ fontWeight: 700, fontSize: '0.72rem', padding: '3px 8px' }}
+            >
+              <Users size={12} />
+              <span>{usersMetrics.customersWithUsers} {usersMetrics.customersWithUsers === 1 ? 'Client' : 'Clients'}</span>
+            </span>
+          </div>
+
+          <div className="adm-finance-content">
+            <span className="adm-finance-label">Total Cloud Users</span>
+            <div className="adm-finance-value purple-val">
+              <CountUp end={usersMetrics.totalUsed} duration={1200} /> Used
+            </div>
+            <p className="adm-finance-caption">
+              <strong style={{ color: '#059669' }}>
+                <CountUp end={usersMetrics.activeUsers} duration={1200} /> Active
+              </strong>{' '}
+              •{' '}
+              <strong style={{ color: '#d97706' }}>
+                <CountUp end={usersMetrics.demoUsers} duration={1200} /> Demo Trial
+              </strong>{' '}
+              •{' '}
+              <strong style={{ color: '#6366f1' }}>
+                {usersMetrics.totalPlans} Cloud {usersMetrics.totalPlans === 1 ? 'Plan' : 'Plans'} Provisioned
+              </strong>
+            </p>
+          </div>
+
+          <div className="adm-finance-footer">
+            <span className="adm-finance-status-tag">
+              <span className="adm-dot purple" />
+              <span>Capacity taken based on customer plan (e.g. 3 users plan = 3 used)</span>
+            </span>
+            <button
+              type="button"
+              className="adm-finance-link purple-link"
+              onClick={() => navigate('/admin/customer')}
+              title="Navigate to Customer List to view plan users"
+            >
+              <span>Customer Users</span>
               <ArrowRight size={14} />
             </button>
           </div>

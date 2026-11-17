@@ -38,12 +38,21 @@ export const computeCustomerStats = (customerList = [], contractList = [], payme
   let demoTrials = 0;
   let inProgressClients = 0;
   let inactivePaused = 0;
+  let totalCloudUsers = 0;
+  let activeCloudUsers = 0;
+  let demoCloudUsers = 0;
 
   customerList.forEach((c) => {
+    const u = Number(c.users) || 0;
+    totalCloudUsers += u;
     const bucket = deriveCustomerLifecycle(c, contracts, paymentList);
-    if (bucket === 'Active') activeClients++;
-    else if (bucket === 'Demo') demoTrials++;
-    else if (bucket === 'InProgress') inProgressClients++;
+    if (bucket === 'Active') {
+      activeClients++;
+      activeCloudUsers += u;
+    } else if (bucket === 'Demo') {
+      demoTrials++;
+      demoCloudUsers += u;
+    } else if (bucket === 'InProgress') inProgressClients++;
     else inactivePaused++;
   });
 
@@ -60,6 +69,9 @@ export const computeCustomerStats = (customerList = [], contractList = [], payme
     demoTrials,
     inProgressClients,
     inactivePaused,
+    totalCloudUsers,
+    activeCloudUsers,
+    demoCloudUsers,
     monthlyMrr,
     formattedMonthlyMrr: `₹${monthlyMrr.toLocaleString('en-IN')}`,
     descriptions: {
@@ -67,7 +79,8 @@ export const computeCustomerStats = (customerList = [], contractList = [], payme
       activeClients: `Monthly MRR: ₹${monthlyMrr.toLocaleString('en-IN')}`,
       demoTrials: 'Trials running, nothing purchased yet',
       inProgressClients: 'Demo ended or purchase unpaid',
-      inactivePaused: 'Registered without demo or purchase'
+      inactivePaused: 'Registered without demo or purchase',
+      totalCloudUsers: 'Total users provisioned across customer cloud plans'
     }
   };
 };
@@ -123,7 +136,31 @@ const attachOrderCounts = async (list) => {
       customer.demoTrialUsed ||
       hasDemoOrder
     );
-    return { ...customer, orderCount: count, demoTrialUsed };
+
+    // Compute user capacity taken by customer
+    let users = Number(customer.users) || 0;
+    if (!users) {
+      const matchingContracts = orders.filter((ctr) => isCustomerMatch(customer, ctr));
+      for (const ctr of matchingContracts) {
+        const text = `${ctr.name || ''} ${ctr.service || ''} ${ctr.description || ''}`;
+        const match = text.match(/(\d+)\s*(?:user|users|usr)/i);
+        if (match && Number(match[1]) > 0) {
+          users = Number(match[1]);
+          break;
+        }
+      }
+    }
+    if (!users && customer.plan) {
+      const match = String(customer.plan).match(/(\d+)\s*(?:user|users|usr)/i);
+      if (match && Number(match[1]) > 0) {
+        users = Number(match[1]);
+      } else {
+        const num = Number(customer.plan);
+        if (!Number.isNaN(num) && num > 0 && num < 1000) users = num;
+      }
+    }
+
+    return { ...customer, orderCount: count, demoTrialUsed, users };
   });
 
   return { list: updated, orders };
@@ -353,6 +390,9 @@ export const createCustomer = async (req, res) => {
       industry: industry || 'Technology',
       accountRelationship: accountRelationship || 'Customer',
       plan: (plan || '').trim(),
+      users: req.body.users !== undefined
+        ? Number(req.body.users) || 0
+        : (plan ? Number(plan.match(/(\d+)\s*(?:user|users|usr)/i)?.[1] || 0) : 0),
       serverNode: (serverNode || '').trim(),
       // Lifecycle is system-derived; a brand-new account has taken nothing yet.
       status: 'Inactive',
@@ -676,6 +716,8 @@ export const updateCustomer = async (req, res) => {
       ...(industry && { industry }),
       ...(accountRelationship && { accountRelationship }),
       ...(plan && { plan }),
+      ...(req.body.users !== undefined && { users: Number(req.body.users) || 0 }),
+      ...(!req.body.users && plan && { users: Number(plan.match(/(\d+)\s*(?:user|users|usr)/i)?.[1] || 0) }),
       ...(serverNode && { serverNode }),
       ...(mrr && { mrr }),
       ...(address && { address }),

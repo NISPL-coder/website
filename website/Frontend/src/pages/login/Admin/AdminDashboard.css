@@ -1812,7 +1812,7 @@ input:checked + .adm-slider:before {
    ========================================================================= */
 .adm-finance-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 22px;
   margin-bottom: 30px;
 }
@@ -1855,6 +1855,10 @@ input:checked + .adm-slider:before {
 
 .adm-finance-card.customer-ratio::after {
   background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.adm-finance-card.cloud-users::after {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
 }
 
 .adm-finance-card:hover {
@@ -2426,7 +2430,7 @@ input:checked + .adm-slider:before {
    ========================================================================= */
 .adm-customer-summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
   gap: 16px;
   padding: 0 28px 18px;
 }

@@ -232,6 +232,32 @@ export const getDashboardOverview = async (req, res) => {
     const inProgressCustomers = [];
     const inactiveCustomers = [];
 
+    const extractUsers = (c) => {
+      if (c.users != null && !Number.isNaN(Number(c.users)) && Number(c.users) > 0) return Number(c.users);
+      const cId = c.customerId || c.id || c._id;
+      const cEmail = String(c.email || '').trim().toLowerCase();
+      const cCompany = String(c.company || '').trim().toLowerCase();
+      const matching = contracts.filter((ctr) => {
+        if (!ctr) return false;
+        const matchId = (ctr.customerId && cId && String(ctr.customerId).toUpperCase() === String(cId).toUpperCase());
+        const matchEmail = (cEmail && ctr.email && String(ctr.email).trim().toLowerCase() === cEmail);
+        const matchCompany = (cCompany && ctr.company && String(ctr.company).trim().toLowerCase() === cCompany);
+        return matchId || matchEmail || matchCompany;
+      });
+      for (const ctr of matching) {
+        const text = `${ctr.name || ''} ${ctr.service || ''} ${ctr.description || ''}`;
+        const match = text.match(/(\d+)\s*(?:user|users|usr)/i);
+        if (match && Number(match[1]) > 0) return Number(match[1]);
+      }
+      if (c.plan) {
+        const match = String(c.plan).match(/(\d+)\s*(?:user|users|usr)/i);
+        if (match && Number(match[1]) > 0) return Number(match[1]);
+        const num = Number(c.plan);
+        if (!Number.isNaN(num) && num > 0 && num < 1000) return num;
+      }
+      return 0;
+    };
+
     targetAccounts.forEach((c) => {
       const bucket = deriveCustomerLifecycle(c, contracts, payments);
       if (bucket === 'Active') activeCustomers.push(c);
@@ -239,6 +265,10 @@ export const getDashboardOverview = async (req, res) => {
       else if (bucket === 'InProgress') inProgressCustomers.push(c);
       else inactiveCustomers.push(c);
     });
+
+    const totalCloudUsers = targetAccounts.reduce((sum, c) => sum + extractUsers(c), 0);
+    const activeCloudUsers = activeCustomers.reduce((sum, c) => sum + extractUsers(c), 0);
+    const demoCloudUsers = demoCustomers.reduce((sum, c) => sum + extractUsers(c), 0);
 
     const accountsAddedInWindow = customers.filter((c) =>
       inRange(accountStartDate(c), accountsFrom, accountsTo)
@@ -417,6 +447,9 @@ export const getDashboardOverview = async (req, res) => {
           demoCount: demoCustomers.length,
           inProgressCount: inProgressCustomers.length,
           inactiveCount: inactiveCustomers.length,
+          totalCloudUsers,
+          activeCloudUsers,
+          demoCloudUsers,
           accountsAdded: accountsAddedInWindow,
           totalRenewals,
           totalAcquisition,

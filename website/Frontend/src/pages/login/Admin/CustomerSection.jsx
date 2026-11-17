@@ -17,7 +17,8 @@ import {
   Edit3,
   Trash2,
   Printer,
-  Activity
+  Activity,
+  Server
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -40,6 +41,7 @@ import {
   customerLifecycleLabel,
   customerLifecycleTone
 } from '../../../utils/customerLifecycle';
+import { getCustomerUserCount } from '../../../utils/customerUsers';
 
 // Rows saved before the address became structured hold one joined string, so
 // the city and state may only exist on the top level or not at all.
@@ -54,7 +56,9 @@ export default function CustomerSection({
   customerStats,
   setCustomerStats,
   receipts = [],
-  externalSearch = ''
+  externalSearch = '',
+  contracts = [],
+  products = []
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -171,6 +175,10 @@ export default function CustomerSection({
     };
   }, [customers]);
 
+  const totalUsersAllocated = useMemo(() => {
+    return customers.reduce((sum, c) => sum + getCustomerUserCount(c, contracts, products), 0);
+  }, [customers, contracts, products]);
+
   // Backward-compatible counts object for filters
   const counts = useMemo(() => ({
     all: dynamicCards.total,
@@ -192,6 +200,7 @@ export default function CustomerSection({
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
       const q = searchQuery.toLowerCase();
+      const userCount = getCustomerUserCount(c, contracts, products);
 
       const searchable = [
         c.id,
@@ -201,6 +210,9 @@ export default function CustomerSection({
         c.email,
         c.loginEmail,
         c.phone,
+        c.plan,
+        userCount ? `${userCount} user` : '',
+        userCount ? `${userCount} users` : '',
         addressPart(c, 'city'),
         addressPart(c, 'state'),
         c.status
@@ -403,6 +415,38 @@ export default function CustomerSection({
       minWidth: '190px',
       grow: 1.1,
       cell: (cust) => <span style={{ color: '#1e293b' }}>{cust.company || '—'}</span>
+    },
+    {
+      id: 'users',
+      name: 'Users',
+      selector: (row) => getCustomerUserCount(row, contracts, products),
+      sortable: true,
+      sortFunction: compareNumber((row) => getCustomerUserCount(row, contracts, products)),
+      minWidth: '135px',
+      cell: (cust) => {
+        const count = getCustomerUserCount(cust, contracts, products);
+        if (!count) {
+          return <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>—</span>;
+        }
+        return (
+          <span
+            className="adm-status-pill purple"
+            style={{
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '3px 9px',
+              borderRadius: '20px'
+            }}
+            title={cust.plan ? `Plan: ${cust.plan} (${count} Users)` : `${count} Users Allocated`}
+          >
+            <Users size={12} />
+            <span>{count} Used</span>
+          </span>
+        );
+      }
     },
     {
       id: 'email',
@@ -908,6 +952,22 @@ export default function CustomerSection({
             <CountUp end={dynamicCards.inactive} duration={1200} />
           </span>
           <span className="adm-cust-stat-desc">{dynamicCards.inactiveDesc}</span>
+        </div>
+
+        <div
+          className="adm-cust-stat-card"
+          style={{ borderColor: '#ddd6fe', background: '#faf5ff' }}
+        >
+          <div className="adm-cust-stat-top">
+            <span className="adm-cust-stat-label" style={{ color: '#7c3aed' }}>Cloud Users</span>
+            <Server size={18} className="adm-cust-stat-icon purple" style={{ color: '#7c3aed' }} />
+          </div>
+          <span className="adm-cust-stat-val" style={{ color: '#7c3aed' }}>
+            <CountUp end={totalUsersAllocated} duration={1200} /> Used
+          </span>
+          <span className="adm-cust-stat-desc">
+            Allocated across customer cloud plans
+          </span>
         </div>
       </div>
 

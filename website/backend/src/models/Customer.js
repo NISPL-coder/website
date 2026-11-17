@@ -106,6 +106,11 @@ const customerSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    users: {
+      type: Number,
+      default: 0,
+      index: true
+    },
     serverNode: {
       type: String,
       default: '',

@@ -34,6 +34,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
     industry: 'Technology',
     accountRelationship: 'Customer',
     plan: '',
+    users: 0,
     serverNode: '',
     status: 'Inactive',
     mrr: '',
@@ -62,6 +63,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
         industry: customer.industry || 'Technology',
         accountRelationship: customer.accountRelationship || 'Customer',
         plan: customer.plan || '',
+        users: customer.users != null ? Number(customer.users) : (customer.plan ? Number(customer.plan.match(/(\d+)\s*(?:user|users|usr)/i)?.[1] || 0) : 0),
         serverNode: customer.serverNode || '',
         status: customer.status || 'Inactive',
         mrr: customer.mrr || '',
@@ -140,6 +142,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       industry: formData.industry,
       accountRelationship: formData.accountRelationship,
       plan: formData.plan,
+      users: Number(formData.users) || 0,
       serverNode: formData.serverNode,
       mrr: formData.mrr,
       address: {
@@ -593,15 +596,33 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
               </div>
             </div>
 
-            {/* Plan & MRR */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+            {/* Plan, Users & MRR */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-form-label">Cloud Plan</label>
                 <input
                   type="text"
                   className="adm-form-input"
+                  placeholder="e.g. Enterprise Cloud Server — 3 User"
                   value={formData.plan}
-                  onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
+                  onChange={(e) => {
+                    const newPlan = e.target.value;
+                    const match = newPlan.match(/(\d+)\s*(?:user|users|usr)/i);
+                    const autoUsers = match ? Number(match[1]) : formData.users;
+                    setFormData({ ...formData, plan: newPlan, users: autoUsers });
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="adm-form-label">Users Taken (Capacity)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="adm-form-input"
+                  placeholder="e.g. 3"
+                  value={formData.users || ''}
+                  onChange={(e) => setFormData({ ...formData, users: Number(e.target.value) || 0 })}
                 />
               </div>
 

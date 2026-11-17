@@ -786,6 +786,8 @@ function AdminDashboardShell({ userSession, onSignOut }) {
                   setCustomerStats={setCustomerStats}
                   receipts={receipts}
                   externalSearch={sectionSearch}
+                  contracts={contracts}
+                  products={products}
                 />
               )}
 

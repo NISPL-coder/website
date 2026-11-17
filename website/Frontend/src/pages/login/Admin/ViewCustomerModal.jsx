@@ -633,9 +633,14 @@ export default function ViewCustomerModal({
           </div>
 
           <div>
-            <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Subscribed Tier</span>
-            <div style={{ fontWeight: 600, color: customer.plan ? '#0f172a' : '#94a3b8' }}>
-              {customer.plan || 'Not recorded'}
+            <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Subscribed Tier &amp; Users</span>
+            <div style={{ fontWeight: 600, color: customer.plan || customer.users ? '#0f172a' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span>{customer.plan || 'Not recorded'}</span>
+              {Boolean(customer.users || (customer.plan && /(\d+)\s*(?:user|users|usr)/i.test(customer.plan))) && (
+                <span className="adm-status-pill purple" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                  {customer.users || (customer.plan?.match(/(\d+)\s*(?:user|users|usr)/i)?.[1])} Used
+                </span>
+              )}
             </div>
           </div>
 
