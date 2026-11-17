@@ -290,67 +290,69 @@ const pickRenewal = (products) =>
     .filter((product) => product.expiryDate && product.daysLeft !== null && product.daysLeft >= 0)
     .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
 
-// A renewal only asks for money once the term is actually coming up and nothing
-// has been booked against that term yet — a contract valid for another year is
-// information, not a demand.
-const RENEWAL_REMINDER_WINDOW_DAYS = 45;
+// User rule: A renewal only asks for money from 10 days before the expiry date (or if overdue)
+const RENEWAL_REMINDER_WINDOW_DAYS = 10;
 
-const isTermPaid = (product, payments) => {
+const isRenewalPaid = (product, payments) => {
+  const pId = String(product.contractId || product.id || '').trim();
   const key = normalizeKey(product.name);
-  if (!key) return false;
+  if (!pId && !key) return false;
 
-  return payments.some(
-    (payment) =>
-      PAID_STATUSES.has(String(payment.status || '').toLowerCase()) &&
-      normalizeKey(payment.service) === key &&
-      (!product.startDate || !payment.date || payment.date >= product.startDate)
+  const settled = payments.filter((payment) => {
+    if (!PAID_STATUSES.has(String(payment.status || '').toLowerCase())) return false;
+    const matchId = pId && String(payment.contractId || '').trim() === pId;
+    const matchKey = key && normalizeKey(payment.service) === key;
+    return matchId || matchKey;
+  });
+
+  if (!settled.length) return false;
+
+  // 1. Explicit renewal mode payment
+  const hasExplicitRenewal = settled.some((payment) =>
+    payment.mode === 'renewal' ||
+    /renew/i.test(payment.label || payment.description || payment.service || payment.category || '')
   );
+  if (hasExplicitRenewal) return true;
+
+  // 2. If contract has multiple settled payments (initial purchase + renewal)
+  if (settled.length > 1) return true;
+
+  // 3. If single payment, check if it was made for renewal (within 10 days of expiry or after expiry)
+  const expiryDate = product.expiryDate ? new Date(product.expiryDate) : null;
+  if (expiryDate && settled.length === 1) {
+    const payDate = toDate(settled[0].depositDate || settled[0].date || settled[0].createdAt);
+    const windowStart = new Date(expiryDate.getTime() - RENEWAL_REMINDER_WINDOW_DAYS * 86400000);
+    // An initial payment made prior to the 10-day renewal window paid for the current period, not the upcoming renewal
+    if (payDate && payDate < windowStart) {
+      return false;
+    }
+  }
+
+  return false;
 };
 
-const pickRenewalReminder = (products, payments) =>
-  products
-    .filter((product) => product.expiryDate && product.daysLeft !== null && product.amount > 0)
-    .filter((product) => product.daysLeft <= RENEWAL_REMINDER_WINDOW_DAYS)
-    .filter((product) => !isTermPaid(product, payments))
-    .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
-
-const pickReminder = (payments, products) => {
-  const dues = payments
-    .filter((payment) => payment.pending > 0)
-    .sort((a, b) => {
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return a.dueDate.localeCompare(b.dueDate);
-    });
-
-  if (dues.length > 0) {
-    const soonest = dues[0];
-    return {
-      kind: 'payment',
-      title: soonest.service,
-      invoiceNumber: soonest.invoiceNumber,
-      amount: soonest.pending,
-      dueDate: soonest.dueDate,
-      daysLeft: soonest.daysLeft,
-      overdue: soonest.daysLeft !== null && soonest.daysLeft < 0
-    };
-  }
-
-  const renewal = pickRenewalReminder(products, payments);
-  if (renewal) {
-    return {
-      kind: 'renewal',
-      contractId: renewal.id,
-      title: renewal.name,
-      invoiceNumber: null,
-      amount: renewal.amount,
-      dueDate: renewal.expiryDate,
-      daysLeft: renewal.daysLeft,
-      overdue: renewal.daysLeft < 0
-    };
-  }
-
-  return null;
+const getPendingRenewals = (products, payments) => {
+  return (products || [])
+    .filter((product) => {
+      // Demo trials do not have renewals
+      if (
+        Boolean(product.isDemoTrial) ||
+        product.contractType === 'Trial' ||
+        product.category === 'Trial' ||
+        ['DEMO', 'DEMO-INACTIVE'].includes(String(product.status || '').toUpperCase())
+      ) {
+        return false;
+      }
+      if (!product.expiryDate || product.daysLeft === null || product.amount <= 0) return false;
+      // User rule: show from 10 days before the expiry date (or overdue)
+      if (product.daysLeft > RENEWAL_REMINDER_WINDOW_DAYS) return false;
+      // Closed or disabled contracts are not active renewals
+      const st = String(product.status || '').toLowerCase();
+      if (['closed', 'disabled', 'inactive'].includes(st)) return false;
+      // Must not be already paid for renewal
+      return !isRenewalPaid(product, payments);
+    })
+    .sort((a, b) => a.daysLeft - b.daysLeft);
 };
 
 const collectAllReminders = (payments, products) => {
@@ -372,19 +374,15 @@ const collectAllReminders = (payments, products) => {
       amount: due.pending,
       dueDate: due.dueDate,
       daysLeft: due.daysLeft,
-      overdue: due.daysLeft !== null && due.daysLeft < 0
+      overdue: due.daysLeft !== null && due.daysLeft < 0,
+      isRenewal: false
     });
   }
 
-  const upcomingRenewals = products
-    .filter((product) => product.expiryDate && product.daysLeft !== null && product.amount > 0)
-    .filter((product) => product.daysLeft <= RENEWAL_REMINDER_WINDOW_DAYS)
-    .filter((product) => !isTermPaid(product, payments))
-    .sort((a, b) => a.daysLeft - b.daysLeft);
-
-  for (const renewal of upcomingRenewals) {
+  const pendingRenewals = getPendingRenewals(products, payments);
+  for (const renewal of pendingRenewals) {
     list.push({
-      id: renewal.id || renewal.name,
+      id: `renewal-${renewal.id}`,
       kind: 'renewal',
       contractId: renewal.id,
       title: renewal.name,
@@ -392,11 +390,24 @@ const collectAllReminders = (payments, products) => {
       amount: renewal.amount,
       dueDate: renewal.expiryDate,
       daysLeft: renewal.daysLeft,
-      overdue: renewal.daysLeft < 0
+      overdue: renewal.daysLeft < 0,
+      isRenewal: true,
+      urgent: true
     });
   }
 
-  return list;
+  // Sort: overdue items first, then earliest daysLeft
+  return list.sort((a, b) => {
+    const aOverdue = a.overdue ? 1 : 0;
+    const bOverdue = b.overdue ? 1 : 0;
+    if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+    return (a.daysLeft ?? 9999) - (b.daysLeft ?? 9999);
+  });
+};
+
+const pickReminder = (payments, products) => {
+  const all = collectAllReminders(payments, products);
+  return all.length > 0 ? all[0] : null;
 };
 
 // What the account already owns, resolved back to catalogue rows so the Products
@@ -878,7 +889,7 @@ export const getCustomerOverview = async (req, res) => {
     payments.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
     const totalPaid = payments.reduce((sum, payment) => sum + (payment.received || 0), 0);
-    const totalPending = payments.reduce((sum, payment) => sum + (payment.pending || 0), 0);
+    const totalInvoicePending = payments.reduce((sum, payment) => sum + (payment.pending || 0), 0);
 
     // Identify demo contracts vs regular paid contracts
     const isDemoProduct = (p) =>
@@ -1013,6 +1024,12 @@ export const getCustomerOverview = async (req, res) => {
     const renewal = pickRenewal(regularProducts.length > 0 ? regularProducts : products);
     const entitlements = await buildEntitlements(products, payments);
 
+    const pendingRenewals = getPendingRenewals(regularProducts.length > 0 ? regularProducts : products, payments);
+    const totalRenewalPending = pendingRenewals.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalPending = totalInvoicePending + totalRenewalPending;
+    const reminders = collectAllReminders(payments, regularProducts.length > 0 ? regularProducts : products);
+    const reminder = pickReminder(payments, regularProducts.length > 0 ? regularProducts : products);
+
     res.json({
       success: true,
       data: {
@@ -1050,7 +1067,12 @@ export const getCustomerOverview = async (req, res) => {
           activeDemoProducts: activeDemoCount,
           totalPaid,
           totalPending,
+          totalInvoicePending,
+          totalRenewalPending,
           pendingInvoices: payments.filter((payment) => payment.pending > 0).length,
+          pendingRenewalsCount: pendingRenewals.length,
+          hasPendingRenewal: pendingRenewals.length > 0,
+          pendingRenewalAmount: totalRenewalPending,
           renewalName: renewal?.name || null,
           renewalDate: renewal?.expiryDate || null,
           renewalDaysLeft: renewal?.daysLeft ?? null
@@ -1062,8 +1084,8 @@ export const getCustomerOverview = async (req, res) => {
         payments,
         entitlements,
         recentPayments: payments.slice(0, 50),
-        reminders: collectAllReminders(payments, products),
-        reminder: pickReminder(payments, products),
+        reminders,
+        reminder,
         identityMatched: identity.length > 0 && Boolean(customer)
       }
     });
@@ -1497,6 +1519,57 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
       gstBasis: snapshot.gstBasis
     });
     await notifyPaymentReceived(user, customer, created);
+
+    if (snapshot.contractId) {
+      try {
+        const query = mongoose.Types.ObjectId.isValid(snapshot.contractId)
+          ? { $or: [{ contractId: snapshot.contractId }, { _id: snapshot.contractId }] }
+          : { contractId: snapshot.contractId };
+
+        const existingCtr = isMongoConnected()
+          ? await Contract.findOne(query).lean()
+          : getContractsFromFile().find((c) => c.contractId === snapshot.contractId || c._id === snapshot.contractId);
+
+        if (existingCtr) {
+          const currentEnd = toDate(existingCtr.endDate || existingCtr.expiryDate) || new Date();
+          const baseDate = currentEnd.getTime() > Date.now() ? currentEnd : new Date();
+          const period = String(existingCtr.subscriptionPeriod || '1 Month').toLowerCase();
+          const nextEnd = new Date(baseDate.getTime());
+          if (period.includes('year')) {
+            nextEnd.setFullYear(nextEnd.getFullYear() + 1);
+          } else {
+            nextEnd.setMonth(nextEnd.getMonth() + 1);
+          }
+          const nextEndIso = isoDate(nextEnd);
+
+          if (isMongoConnected()) {
+            await Contract.updateOne(
+              query,
+              {
+                $set: {
+                  endDate: nextEndIso,
+                  expiryDate: nextEndIso,
+                  paymentStatus: 'Yes',
+                  status: 'In Progress'
+                }
+              }
+            );
+          } else {
+            const list = getContractsFromFile();
+            const idx = list.findIndex((c) => c.contractId === snapshot.contractId || c._id === snapshot.contractId);
+            if (idx !== -1) {
+              list[idx].endDate = nextEndIso;
+              list[idx].expiryDate = nextEndIso;
+              list[idx].paymentStatus = 'Yes';
+              list[idx].status = 'In Progress';
+              saveContractsToFile(list);
+            }
+          }
+        }
+      } catch (extErr) {
+        console.warn('[PortalController] Contract renewal date extension note:', extErr.message);
+      }
+    }
 
     return {
       statusCode: 201,

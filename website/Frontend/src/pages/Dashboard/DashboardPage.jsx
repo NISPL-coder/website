@@ -479,6 +479,16 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     const totalPending = Math.round(Number(kpi.totalPending) || 0);
     if (totalPending > 0) {
       const reminder = portal?.reminder;
+      if (reminder?.kind === 'renewal' && reminder.contractId) {
+        return {
+          mode: 'renewal',
+          label: `Renewal: ${reminder.title}`,
+          contractId: reminder.contractId,
+          amount: Math.round(reminder.amount || totalPending),
+          subtotal: Math.round(reminder.amount || totalPending),
+          gst: 0
+        };
+      }
       const openCount = Math.max(Number(kpi.pendingInvoices) || 1, 1);
       const invoice = reminder?.kind === 'payment' ? reminder.invoiceNumber : null;
       return {

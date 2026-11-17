@@ -222,10 +222,130 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const demoCount = hasPurchasedPaidProduct ? 0 : (kpi.demoProducts ?? demoProducts.length);
 
-  const reminder = data?.reminder || null;
-  const reminders = Array.isArray(data?.reminders) && data.reminders.length > 0
+  const rawReminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders
-    : (reminder ? [reminder] : []);
+    : (data?.reminder ? [data.reminder] : []);
+
+  // Check for any pending renewals from products (window: daysLeft <= 10 or overdue)
+  const pendingRenewalsFromProducts = products.filter((p) => {
+    if (
+      p.isDemoTrial ||
+      p.contractType === 'Trial' ||
+      p.category === 'Trial' ||
+      String(p.status || '').toUpperCase() === 'DEMO' ||
+      String(p.status || '').toUpperCase() === 'DEMO-INACTIVE'
+    ) {
+      return false;
+    }
+    if (!p.expiryDate || p.daysLeft === null || !p.amount) return false;
+    if (p.daysLeft > 10) return false;
+    const st = String(p.status || '').toLowerCase();
+    if (['closed', 'disabled', 'inactive'].includes(st)) return false;
+    // Check if there is an explicit renewal payment
+    const pId = String(p.contractId || p.id || '').trim();
+    const settledPayments = payments.filter((pmt) => {
+      const isPaid = ['received', 'cleared', 'paid'].includes(String(pmt.status || '').toLowerCase());
+      if (!isPaid) return false;
+      const matchId = pId && String(pmt.contractId || '').trim() === pId;
+      const matchName = String(pmt.service || '').trim().toLowerCase() === String(p.name || '').trim().toLowerCase();
+      return matchId || matchName;
+    });
+    if (settledPayments.length > 1) return false;
+    if (settledPayments.some((pmt) => pmt.mode === 'renewal')) return false;
+    return true;
+  });
+
+  // Merge any pending renewals into reminders if not already present
+  const reminders = [...rawReminders];
+  for (const pr of pendingRenewalsFromProducts) {
+    const existing = reminders.find(
+      (r) =>
+        (r.contractId && r.contractId === (pr.contractId || pr.id)) ||
+        (r.title && r.title === pr.name)
+    );
+    if (!existing) {
+      reminders.push({
+        id: `renewal-${pr.contractId || pr.id}`,
+        kind: 'renewal',
+        contractId: pr.contractId || pr.id,
+        title: pr.name,
+        invoiceNumber: null,
+        amount: pr.amount,
+        dueDate: pr.expiryDate,
+        daysLeft: pr.daysLeft,
+        overdue: pr.daysLeft < 0,
+        isRenewal: true,
+        urgent: true
+      });
+    } else {
+      existing.isRenewal = true;
+      existing.urgent = true;
+      if (existing.daysLeft === undefined || existing.daysLeft === null) {
+        existing.daysLeft = pr.daysLeft;
+      }
+    }
+  }
+
+  // Sort reminders: overdue first, then earliest daysLeft
+  reminders.sort((a, b) => {
+    const aOver = a.overdue || (a.daysLeft !== null && a.daysLeft < 0) ? 1 : 0;
+    const bOver = b.overdue || (b.daysLeft !== null && b.daysLeft < 0) ? 1 : 0;
+    if (aOver !== bOver) return bOver - aOver;
+    return (a.daysLeft ?? 9999) - (b.daysLeft ?? 9999);
+  });
+
+  const pendingRenewalTotal = pendingRenewalsFromProducts.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalPendingAmount = Math.max(
+    Number(kpi.totalPending || 0),
+    (kpi.totalInvoicePending || 0) + pendingRenewalTotal,
+    reminders.reduce((sum, r) => sum + (r.amount || 0), 0)
+  );
+
+  const pendingRenewalsCount = Math.max(
+    kpi.pendingRenewalsCount || 0,
+    pendingRenewalsFromProducts.length,
+    reminders.filter((r) => r.kind === 'renewal' || r.isRenewal).length
+  );
+  const pendingInvoicesCount = kpi.pendingInvoices ?? payments.filter((p) => p.pending > 0).length;
+
+  const hasUrgentRenewal = reminders.some(
+    (r) => (r.kind === 'renewal' || r.isRenewal) && (r.urgent || (r.daysLeft !== null && r.daysLeft <= 10))
+  );
+  const hasOverdueRenewal = reminders.some(
+    (r) => (r.kind === 'renewal' || r.isRenewal) && (r.overdue || (r.daysLeft !== null && r.daysLeft < 0))
+  );
+
+  let pendingNote = '0 open invoices';
+  if (totalPendingAmount > 0) {
+    if (pendingRenewalsCount > 0 && pendingInvoicesCount > 0) {
+      pendingNote = `${pendingInvoicesCount} open invoice${pendingInvoicesCount === 1 ? '' : 's'} · ${pendingRenewalsCount} renewal due`;
+    } else if (pendingRenewalsCount > 0) {
+      const urgentRenewal =
+        reminders.find((r) => (r.kind === 'renewal' || r.isRenewal) && r.daysLeft !== null) ||
+        pendingRenewalsFromProducts[0];
+      if (urgentRenewal?.overdue || (urgentRenewal?.daysLeft !== null && urgentRenewal?.daysLeft < 0)) {
+        pendingNote = `Renewal overdue by ${Math.abs(urgentRenewal.daysLeft)} days`;
+      } else if (urgentRenewal?.daysLeft === 0) {
+        pendingNote = 'Renewal due today';
+      } else if (urgentRenewal?.daysLeft !== null && urgentRenewal?.daysLeft <= 10) {
+        pendingNote = `Renewal due in ${urgentRenewal.daysLeft} day${urgentRenewal.daysLeft === 1 ? '' : 's'}`;
+      } else {
+        pendingNote = `${pendingRenewalsCount} renewal due`;
+      }
+    } else {
+      pendingNote = `${pendingInvoicesCount} open invoice${pendingInvoicesCount === 1 ? '' : 's'}`;
+    }
+  }
+
+  const handlePayPending = () => {
+    if (!onPay) return;
+    const renewalRem = reminders.find((r) => r.kind === 'renewal' || r.isRenewal) || pendingRenewalsFromProducts[0];
+    if (renewalRem && renewalRem.contractId) {
+      onPay({ mode: 'renewal', contractId: renewalRem.contractId, amount: renewalRem.amount });
+    } else {
+      onPay({ mode: 'dues', amount: totalPendingAmount });
+    }
+  };
 
   const greeting =
     account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
@@ -490,10 +610,12 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
             <KpiCard
               icon={AlertTriangle}
               label="Pending Amount"
-              value={formatINR(kpi.totalPending || 0)}
-              note={`${kpi.pendingInvoices || 0} open invoice${kpi.pendingInvoices === 1 ? '' : 's'}`}
-              actionLabel="Pay now"
-              onAction={() => onPay?.({ mode: 'dues', amount: kpi.totalPending || 0 })}
+              value={formatINR(totalPendingAmount)}
+              note={pendingNote}
+              actionLabel={totalPendingAmount > 0 ? "Pay now" : undefined}
+              onAction={totalPendingAmount > 0 ? handlePayPending : undefined}
+              onClick={totalPendingAmount > 0 ? handlePayPending : undefined}
+              isClickable={totalPendingAmount > 0}
             />
           </section>
 
@@ -584,10 +706,31 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               </div>
             </div>
 
-            <div className={`flowmail-card flowmail-reminder-card ${reminders.length ? '' : 'is-clear'}`}>
+            <div className={`flowmail-card flowmail-reminder-card ${reminders.length ? '' : 'is-clear'} ${hasUrgentRenewal ? 'has-urgent-renewal' : ''}`}>
               <div className="flowmail-card-header-row">
                 <div>
-                  <h3 className="flowmail-card-title">Payment Reminder</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h3 className="flowmail-card-title">Payment Reminder</h3>
+                    {hasUrgentRenewal && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '2px 9px',
+                          borderRadius: '12px',
+                          background: hasOverdueRenewal ? '#fee2e2' : '#fef3c7',
+                          color: hasOverdueRenewal ? '#dc2626' : '#b45309',
+                          border: `1px solid ${hasOverdueRenewal ? '#fca5a5' : '#fde68a'}`
+                        }}
+                      >
+                        <AlertTriangle size={11} />
+                        {hasOverdueRenewal ? 'Renewal Overdue' : 'Renewal Due Soon'}
+                      </span>
+                    )}
+                  </div>
                   <p className="flowmail-card-subtitle">
                     {reminders.length
                       ? `${reminders.length} item${reminders.length === 1 ? '' : 's'} requiring attention`
@@ -598,29 +741,74 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
               {reminders.length > 0 ? (
                 <div className="flowmail-reminder-scroll-wrap">
-                  {reminders.map((rem, idx) => (
-                    <div key={rem.id || rem.invoiceNumber || idx} className="flowmail-reminder-item">
-                      <div className="flowmail-reminder-item-header">
-                        <span className={`flowmail-reminder-pill ${rem.overdue ? 'is-overdue' : ''}`}>
-                          {dueInWords(rem.daysLeft)}
-                        </span>
-                        <span className="flowmail-reminder-item-amount">{formatINR(rem.amount)}</span>
+                  {reminders.map((rem, idx) => {
+                    const isRenewal = rem.kind === 'renewal' || rem.isRenewal;
+                    const isUrgent = isRenewal && (rem.urgent || (rem.daysLeft !== null && rem.daysLeft <= 10));
+                    const isOverdue = rem.overdue || (rem.daysLeft !== null && rem.daysLeft < 0);
+
+                    return (
+                      <div
+                        key={rem.id || rem.invoiceNumber || idx}
+                        className={`flowmail-reminder-item ${isRenewal ? 'is-renewal' : ''} ${isUrgent ? 'is-urgent-highlight' : ''}`}
+                        style={isUrgent ? {
+                          border: isOverdue ? '1.5px solid #ef4444' : '1.5px solid #f59e0b',
+                          background: isOverdue
+                            ? 'linear-gradient(180deg, #fef2f2 0%, #ffffff 100%)'
+                            : 'linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)',
+                          boxShadow: isOverdue
+                            ? '0 4px 14px -2px rgba(239, 68, 68, 0.16)'
+                            : '0 4px 14px -2px rgba(245, 158, 11, 0.16)'
+                        } : {}}
+                      >
+                        <div className="flowmail-reminder-item-header">
+                          <span
+                            className={`flowmail-reminder-pill ${isOverdue ? 'is-overdue' : ''}`}
+                            style={!isOverdue && isRenewal ? { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' } : {}}
+                          >
+                            {isOverdue
+                              ? `Overdue · ${dueInWords(rem.daysLeft)}`
+                              : isRenewal
+                              ? `Renewal Due · ${dueInWords(rem.daysLeft)}`
+                              : dueInWords(rem.daysLeft)}
+                          </span>
+                          <span
+                            className="flowmail-reminder-item-amount"
+                            style={{ color: isOverdue ? '#dc2626' : isRenewal ? '#b45309' : '#0f172a' }}
+                          >
+                            {formatINR(rem.amount)}
+                          </span>
+                        </div>
+                        <h4 className="flowmail-reminder-item-title">{rem.title}</h4>
+                        <p className="flowmail-reminder-item-meta">
+                          {isRenewal ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: isOverdue ? '#b91c1c' : '#92400e', fontWeight: 600 }}>
+                              <Clock size={12} />
+                              Subscription Renewal{rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}
+                            </span>
+                          ) : (
+                            `${rem.invoiceNumber ? `Invoice ${rem.invoiceNumber}` : 'Service due'}${rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}`
+                          )}
+                        </p>
+                        <div className="flowmail-reminder-item-actions">
+                          <button
+                            type="button"
+                            className="flowmail-btn-primary"
+                            style={isOverdue ? { background: '#dc2626' } : isRenewal ? { background: '#d97706' } : {}}
+                            onClick={() => payReminder(rem)}
+                          >
+                            {isRenewal ? 'Pay Renewal Now' : 'Pay Now'}
+                          </button>
+                          <button
+                            type="button"
+                            className="flowmail-btn-secondary"
+                            onClick={() => goTo(isRenewal ? 'products' : 'receipt')}
+                          >
+                            {isRenewal ? 'View Product' : 'View Details'}
+                          </button>
+                        </div>
                       </div>
-                      <h4 className="flowmail-reminder-item-title">{rem.title}</h4>
-                      <p className="flowmail-reminder-item-meta">
-                        {rem.invoiceNumber ? `Invoice ${rem.invoiceNumber}` : 'Subscription renewal'}
-                        {rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}
-                      </p>
-                      <div className="flowmail-reminder-item-actions">
-                        <button type="button" className="flowmail-btn-primary" onClick={() => payReminder(rem)}>
-                          Pay Now
-                        </button>
-                        <button type="button" className="flowmail-btn-secondary" onClick={() => goTo('receipt')}>
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flowmail-reminder-body flowmail-reminder-clear">
