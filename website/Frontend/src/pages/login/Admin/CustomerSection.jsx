@@ -1,6 +1,6 @@
 import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Users,
   Plus,
@@ -57,12 +57,37 @@ export default function CustomerSection({
   externalSearch = ''
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { can, visibleColumns } = usePermissions();
-  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
+
+  const [highlightedId, setHighlightedId] = useState(
+    () => location.state?.highlightId || location.state?.search || externalSearch || null
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    () => location.state?.search || externalSearch || ''
+  );
 
   useEffect(() => {
-    if (externalSearch !== undefined && externalSearch !== null) {
+    const stateSearch = location.state?.search;
+    const stateHighlight = location.state?.highlightId || stateSearch;
+    const urlParams = new URLSearchParams(location.search);
+    const querySearch = urlParams.get('search') || urlParams.get('id') || urlParams.get('customerId');
+    const target = stateSearch || querySearch;
+
+    if (target) {
+      setSearchQuery(target);
+      setStatusFilter('all');
+      setDateFrom('');
+      setDateTo('');
+      setHighlightedId(stateHighlight || target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.key, location.state, location.search]);
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null && externalSearch !== '') {
       setSearchQuery(externalSearch);
+      setHighlightedId(externalSearch);
     }
   }, [externalSearch]);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'inactive' | 'demo' | 'inprogress' | 'active'
@@ -291,6 +316,24 @@ export default function CustomerSection({
     }
   };
 
+  const conditionalRowStyles = useMemo(() => {
+    if (!highlightedId) return [];
+    const target = String(highlightedId).trim().toLowerCase();
+    return [
+      {
+        when: (row) => {
+          const rowId = String(row.id || row.customerId || '').trim().toLowerCase();
+          return rowId === target;
+        },
+        style: {
+          backgroundColor: '#f5f3ff',
+          boxShadow: 'inset 4px 0 0 #6366f1'
+        },
+        classNames: ['adm-row-target-highlight']
+      }
+    ];
+  }, [highlightedId]);
+
   const columns = [
     {
       id: 'id',
@@ -298,10 +341,35 @@ export default function CustomerSection({
       selector: (row) => row.id,
       sortable: true,
       sortFunction: compareText((row) => row.id),
-      width: '135px',
-      cell: (cust) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
-      )
+      width: '150px',
+      cell: (cust) => {
+        const isTarget = highlightedId && (
+          String(cust.id || '').trim().toLowerCase() === String(highlightedId).trim().toLowerCase() ||
+          String(cust.customerId || '').trim().toLowerCase() === String(highlightedId).trim().toLowerCase()
+        );
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
+            {isTarget && (
+              <span
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  backgroundColor: '#e0e7ff',
+                  color: '#4338ca',
+                  border: '1px solid #c7d2fe',
+                  letterSpacing: '0.02em',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Target
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       id: 'name',
@@ -852,7 +920,10 @@ export default function CustomerSection({
             type="text"
             placeholder="Search by ID, name, company, email, city..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (!e.target.value) setHighlightedId(null);
+            }}
             className="adm-search-input"
           />
           {searchQuery && (
@@ -860,7 +931,10 @@ export default function CustomerSection({
               type="button"
               className="adm-search-clear"
               aria-label="Clear search"
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchQuery('');
+                setHighlightedId(null);
+              }}
             >
               <X size={14} />
             </button>
@@ -906,6 +980,7 @@ export default function CustomerSection({
         noDataHint="Try a different search term or account status."
         ariaLabel="Customer accounts"
         scrollHeight="600px"
+        conditionalRowStyles={conditionalRowStyles}
       />
 
       {/* View Customer Modal (React Portal) */}

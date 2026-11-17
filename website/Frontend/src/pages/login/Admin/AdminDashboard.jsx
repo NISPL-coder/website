@@ -260,6 +260,13 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [sectionSearch, setSectionSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Sync external search when navigating with route state (e.g. from Overview cards)
+  useEffect(() => {
+    if (location.state?.search) {
+      setSectionSearch(location.state.search);
+    }
+  }, [location.key, location.state]);
   // Bumped after a manual sync so the shell's bell re-reads the live stream.
   const [notifRefreshKey, setNotifRefreshKey] = useState(0);
 

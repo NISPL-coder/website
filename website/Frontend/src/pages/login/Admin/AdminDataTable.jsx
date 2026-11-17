@@ -154,6 +154,7 @@ export default function AdminDataTable({
   resetPageToken,
   minWidth = 1000,
   ariaLabel = 'Data table',
+  conditionalRowStyles = [],
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(paginationPerPage);
@@ -702,6 +703,7 @@ export default function AdminDataTable({
         noDataComponent={noDataComponent}
         progressPending={progressPending}
         progressComponent={progressComponent}
+        conditionalRowStyles={conditionalRowStyles}
       />
 
       {(sheetOpen || (rowTip && tipStyle)) &&

@@ -958,10 +958,29 @@ export default function OverviewSection({
       selector: (row) => row.id,
       sortable: true,
       sortFunction: compareText((row) => row.id),
-      width: '135px',
-      cell: (cust) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
-      )
+      width: '145px',
+      cell: (cust) => {
+        const custId = cust.id || cust.customerId;
+        return (
+          <button
+            type="button"
+            className="adm-clickable-id-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/admin/customer', {
+                state: {
+                  search: custId,
+                  highlightId: custId
+                }
+              });
+            }}
+            title={`View customer ${custId} in Customer List`}
+          >
+            <span>{custId}</span>
+            <ArrowUpRight size={13} className="adm-clickable-id-icon" />
+          </button>
+        );
+      }
     },
     {
       id: 'name',
@@ -971,9 +990,26 @@ export default function OverviewSection({
       sortFunction: compareText((row) => row.name),
       minWidth: '170px',
       grow: 1,
-      cell: (cust) => (
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>{cust.name || '—'}</span>
-      )
+      cell: (cust) => {
+        const custId = cust.id || cust.customerId;
+        return (
+          <span
+            style={{ fontWeight: 600, color: '#0f172a', cursor: 'pointer' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/admin/customer', {
+                state: {
+                  search: custId,
+                  highlightId: custId
+                }
+              });
+            }}
+            title={`View customer ${cust.name || custId} in Customer List`}
+          >
+            {cust.name || '—'}
+          </span>
+        );
+      }
     },
     {
       id: 'designation',
@@ -1401,13 +1437,52 @@ export default function OverviewSection({
     {
       id: 'name',
       name: 'Contract Name/ID',
-      selector: (row) => row.name,
+      selector: (row) => row.name || row.contractId || row.id,
       sortable: true,
-      sortFunction: compareText((row) => row.name),
+      sortFunction: compareText((row) => row.name || row.contractId || row.id),
       minWidth: '220px',
       grow: 1.2,
       wrap: true,
-      cell: (c) => <div className="adm-primary-text">{c.name || '—'}</div>
+      cell: (c) => {
+        const cId = c.id || c.contractId;
+        const targetSearch = cId || c.name;
+        return (
+          <button
+            type="button"
+            className="adm-clickable-id-btn"
+            style={{
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              padding: '4px 8px',
+              fontFamily: 'inherit',
+              maxWidth: '100%',
+              textAlign: 'left'
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/admin/customer/contract', {
+                state: {
+                  search: targetSearch,
+                  highlightId: cId || c.name
+                }
+              });
+            }}
+            title={`View contract ${targetSearch} in Contract List`}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', width: '100%' }}>
+              <span style={{ fontWeight: 600, color: '#4f46e5', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {c.name || targetSearch || '—'}
+              </span>
+              <ArrowUpRight size={13} className="adm-clickable-id-icon" style={{ flexShrink: 0 }} />
+            </div>
+            {cId && cId !== c.name && (
+              <span style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#6366f1', fontWeight: 600 }}>
+                {cId}
+              </span>
+            )}
+          </button>
+        );
+      }
     },
     {
       id: 'company',

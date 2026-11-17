@@ -1,6 +1,6 @@
 import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
   X,
@@ -44,12 +44,37 @@ const getContractId = (row) => row.id || row.contractId;
 
 export default function ContractSection({ contracts, setContracts, customers = [], externalSearch = '' }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { can, visibleColumns } = usePermissions();
-  const [searchQuery, setSearchQuery] = useState(externalSearch || '');
+
+  const [highlightedId, setHighlightedId] = useState(
+    () => location.state?.highlightId || location.state?.search || externalSearch || null
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    () => location.state?.search || externalSearch || ''
+  );
 
   useEffect(() => {
-    if (externalSearch !== undefined && externalSearch !== null) {
+    const stateSearch = location.state?.search;
+    const stateHighlight = location.state?.highlightId || stateSearch;
+    const urlParams = new URLSearchParams(location.search);
+    const querySearch = urlParams.get('search') || urlParams.get('id') || urlParams.get('contractId');
+    const target = stateSearch || querySearch;
+
+    if (target) {
+      setSearchQuery(target);
+      setStatusFilter('all');
+      setDateFrom('');
+      setDateTo('');
+      setHighlightedId(stateHighlight || target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.key, location.state, location.search]);
+
+  useEffect(() => {
+    if (externalSearch !== undefined && externalSearch !== null && externalSearch !== '') {
       setSearchQuery(externalSearch);
+      setHighlightedId(externalSearch);
     }
   }, [externalSearch]);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -225,6 +250,25 @@ export default function ContractSection({ contracts, setContracts, customers = [
     ];
   }, [contracts]);
 
+  const conditionalRowStyles = useMemo(() => {
+    if (!highlightedId) return [];
+    const target = String(highlightedId).trim().toLowerCase();
+    return [
+      {
+        when: (row) => {
+          const cId = String(row.id || row.contractId || '').trim().toLowerCase();
+          const cName = String(row.name || '').trim().toLowerCase();
+          return cId === target || cName === target;
+        },
+        style: {
+          backgroundColor: '#f5f3ff',
+          boxShadow: 'inset 4px 0 0 #6366f1'
+        },
+        classNames: ['adm-row-target-highlight']
+      }
+    ];
+  }, [highlightedId]);
+
   const columns = [
     {
       id: 'name',
@@ -235,7 +279,42 @@ export default function ContractSection({ contracts, setContracts, customers = [
       minWidth: '220px',
       grow: 1.2,
       wrap: true,
-      cell: (c) => <div className="adm-primary-text">{c.name || '—'}</div>
+      cell: (c) => {
+        const cId = c.id || c.contractId;
+        const isTarget = highlightedId && (
+          String(cId || '').trim().toLowerCase() === String(highlightedId).trim().toLowerCase() ||
+          String(c.name || '').trim().toLowerCase() === String(highlightedId).trim().toLowerCase()
+        );
+        return (
+          <div className="adm-primary-text">
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 600 }}>{c.name || '—'}</span>
+              {isTarget && (
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    backgroundColor: '#e0e7ff',
+                    color: '#4338ca',
+                    border: '1px solid #c7d2fe',
+                    letterSpacing: '0.02em',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  Target
+                </span>
+              )}
+            </div>
+            {cId && cId !== c.name && (
+              <div style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#6366f1', fontWeight: 600 }}>
+                {cId}
+              </div>
+            )}
+          </div>
+        );
+      }
     },
     {
       id: 'company',
@@ -560,14 +639,20 @@ export default function ContractSection({ contracts, setContracts, customers = [
             placeholder="Search by contract ID, company, person, type..."
             className="adm-search-input"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (!e.target.value) setHighlightedId(null);
+            }}
           />
           {searchQuery && (
             <button
               type="button"
               className="adm-search-clear"
               aria-label="Clear search"
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchQuery('');
+                setHighlightedId(null);
+              }}
             >
               <X size={14} />
             </button>
@@ -613,6 +698,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
         noDataHint="Try a different search term or status filter."
         ariaLabel="Customer contracts"
         scrollHeight="600px"
+        conditionalRowStyles={conditionalRowStyles}
       />
 
       {/* View Modal */}
