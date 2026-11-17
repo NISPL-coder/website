@@ -948,7 +948,7 @@ export const getCustomerOverview = async (req, res) => {
 
           const shouldSetActive =
             activePaidCount > 0 &&
-            !['inactive', 'suspended', 'paused'].includes(String(customer?.status || '').toLowerCase());
+            !['suspended', 'paused'].includes(String(customer?.status || '').toLowerCase());
           const customerUpdate = {
             demoTrialUsed: true,
             plan: regularProducts[0]?.name || customer?.plan

@@ -109,8 +109,8 @@ const isLivePaid = (ctr, today) => {
  */
 export const deriveCustomerLifecycle = (customer, contracts = [], payments = []) => {
   const stored = squash(customer?.status);
-  // An explicit inactive, suspended, or paused status on customer profile always wins
-  if (['suspended', 'paused', 'inactive'].includes(stored)) return 'Inactive';
+  // An explicit suspended or paused status on customer profile always wins
+  if (['suspended', 'paused'].includes(stored)) return 'Inactive';
 
   const today = new Date().toISOString().split('T')[0];
   const own = (contracts || []).filter((ctr) => matchesCustomer(customer, ctr));
@@ -134,8 +134,14 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
     ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(ctr.paymentStatus || '').trim().toLowerCase())
   );
 
+  // A live in-progress or active contract is also considered Active
+  const hasLiveInProgressContract = paid.some((ctr) =>
+    isContractLive(ctr) &&
+    ['In Progress', 'Active'].includes(normalizeContractStatus(ctr.status))
+  );
+
   // 1. If customer has a live, active paid contract -> Active
-  if (hasExplicitPaidContract || (settled && hasLivePaidContract)) {
+  if (hasExplicitPaidContract || (settled && hasLivePaidContract) || hasLiveInProgressContract) {
     return 'Active';
   }
 

@@ -31,7 +31,7 @@ import ActiveProductsModal from './components/ActiveProductsModal';
 const LIFECYCLE_BADGE = {
   Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
   Demo: { background: '#fffbeb', color: '#b45309', border: '#fde68a', icon: Sparkles },
-  InProgress: { background: '#eef2ff', color: '#4338ca', border: '#c7d2fe', icon: Clock },
+  InProgress: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
   Inactive: { background: '#fef2f2', color: '#dc2626', border: '#fecaca', icon: AlertCircle }
 };
 
@@ -231,16 +231,28 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
     account?.company || account?.name || customer?.companyName || customer?.company || customer?.name || 'there';
 
   // Derive lifecycle stage:
-  // If account.status is explicitly Inactive (or customer.status is Inactive),
-  // OR if the customer has products but ZERO active products and ZERO demo products (e.g. all set to Inactive by admin),
-  // it MUST show as Inactive!
+  // 1. If explicitly suspended/paused, or if the customer has products but ZERO active/in-progress products
+  //    and ZERO demo products (e.g. all set to Inactive/DEMO-Inactive/Closed by admin), show Inactive.
+  // 2. If contract is in progress or active (activeCount > 0 or account status is active/inprogress), show Active.
+  // 3. If customer is running a demo trial (demoCount > 0), show Demo.
+  // 4. Otherwise, normalize status (e.g. Inactive).
   const rawStatus = account?.status || customer?.status;
-  const isExplicitInactive = ['inactive', 'suspended', 'paused'].includes(String(rawStatus || '').toLowerCase());
+  const isSuspended = ['suspended', 'paused'].includes(String(rawStatus || '').toLowerCase());
   const hasZeroLiveProducts = products.length > 0 && activeCount === 0 && demoCount === 0;
 
-  const lifecycleStage = (isExplicitInactive || hasZeroLiveProducts)
-    ? 'Inactive'
-    : normalizeCustomerLifecycle(rawStatus);
+  let lifecycleStage = 'Inactive';
+  if (isSuspended || hasZeroLiveProducts) {
+    lifecycleStage = 'Inactive';
+  } else if (activeCount > 0 || ['active', 'inprogress'].includes(String(account?.status || '').toLowerCase())) {
+    lifecycleStage = 'Active';
+  } else if (demoCount > 0 || String(account?.status || '').toLowerCase() === 'demo') {
+    lifecycleStage = 'Demo';
+  } else {
+    lifecycleStage = normalizeCustomerLifecycle(rawStatus);
+    if (lifecycleStage === 'InProgress') {
+      lifecycleStage = 'Active';
+    }
+  }
 
   const lifecycleBadge = LIFECYCLE_BADGE[lifecycleStage] || LIFECYCLE_BADGE.Inactive;
   const LifecycleIcon = lifecycleBadge.icon;
