@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import logoImg from '../../../assets/new_logo/BLACK.png';
+import logoImg from '../../../assets/new_logo/BLACK NEW.png';
 import ConsoleSidebar from './ConsoleSidebar';
 import AdminProfileMenu from './AdminProfileMenu';
 import NotificationPopover from './NotificationPopover';
@@ -263,7 +263,13 @@ export default function ConsoleShell({
           </button>
 
           <Link to={brandTo} className="adm-brand-link" title="Net Infotech System">
-            <img src={logoImg} alt="NISPL Cloud Tech" className="adm-brand-logo" />
+            <img 
+              src={logoImg} 
+              alt="NISPL Cloud Tech" 
+              className="adm-brand-logo" 
+              width="185" 
+              height="50" 
+            />
           </Link>
         </div>
 

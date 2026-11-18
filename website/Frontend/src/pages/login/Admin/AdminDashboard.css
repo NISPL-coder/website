@@ -139,7 +139,6 @@
 .adm-brand-link {
   display: flex;
   align-items: center;
-  gap: 10px;
   text-decoration: none;
   min-width: 0;
   overflow: hidden;
@@ -147,17 +146,18 @@
 }
 
 .adm-brand-logo {
-  height: 68px;
-  max-width: 240px;
+  height: 60px;
+  max-width: 220px;
   width: auto;
   object-fit: contain;
   flex-shrink: 0;
+  display: block;
 }
 
 /* Keep the mark legible when the sidebar collapses to icon width */
 .adm-header-left.collapsed .adm-brand-logo {
-  height: 40px;
-  max-width: 54px;
+  height: 38px;
+  max-width: 56px;
 }
 
 .adm-brand-portal-title {
@@ -3396,8 +3396,8 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    height: 40px;
-    max-width: 140px;
+    height: 38px;
+    max-width: 150px;
   }
 
   /* Icon-only header actions to save horizontal space */
@@ -3631,8 +3631,8 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    height: 40px;
-    max-width: 112px;
+    height: 34px;
+    max-width: 130px;
   }
 
   .adm-header-main {
@@ -3830,7 +3830,7 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    max-width: 96px;
+    max-width: 120px;
   }
 
   .adm-header-icon-btn,
