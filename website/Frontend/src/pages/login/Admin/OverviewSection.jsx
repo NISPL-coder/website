@@ -1097,10 +1097,10 @@ export default function OverviewSection({
               padding: '3px 9px',
               borderRadius: '20px'
             }}
-            title={cust.plan ? `Plan: ${cust.plan} (${count} Users)` : `${count} Users Allocated`}
+            title={cust.plan ? `Plan: ${cust.plan} (${count} ${count === 1 ? 'User' : 'Users'})` : `${count} ${count === 1 ? 'User' : 'Users'} Allocated`}
           >
             <Users size={12} />
-            <span>{count} Used</span>
+            <span>{count} {count === 1 ? 'User' : 'Users'}</span>
           </span>
         );
       }
@@ -1891,7 +1891,7 @@ export default function OverviewSection({
               <span className="adm-status-pill purple" style={{ fontWeight: 700 }}>
                 <Server size={12} />
                 <span>
-                  <CountUp end={usersMetrics.totalUsed} duration={1200} /> Users Used
+                  <CountUp end={usersMetrics.totalUsed} duration={1200} /> {usersMetrics.totalUsed === 1 ? 'User' : 'Users'}
                 </span>
               </span>
             </div>
@@ -2332,7 +2332,7 @@ export default function OverviewSection({
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Cloud Users</span>
             <div className="adm-finance-value purple-val">
-              <CountUp end={usersMetrics.totalUsed} duration={1200} /> Used
+              <CountUp end={usersMetrics.totalUsed} duration={1200} /> {usersMetrics.totalUsed === 1 ? 'User' : 'Users'}
             </div>
             <p className="adm-finance-caption">
               <strong style={{ color: '#059669' }}>
@@ -2352,7 +2352,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot purple" />
-              <span>Capacity taken based on customer plan (e.g. 3 users plan = 3 used)</span>
+              <span>Capacity taken based on customer plan (e.g. 3 users plan = 3 users)</span>
             </span>
             <button
               type="button"

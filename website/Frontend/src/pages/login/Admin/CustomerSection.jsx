@@ -440,10 +440,10 @@ export default function CustomerSection({
               padding: '3px 9px',
               borderRadius: '20px'
             }}
-            title={cust.plan ? `Plan: ${cust.plan} (${count} Users)` : `${count} Users Allocated`}
+            title={cust.plan ? `Plan: ${cust.plan} (${count} ${count === 1 ? 'User' : 'Users'})` : `${count} ${count === 1 ? 'User' : 'Users'} Allocated`}
           >
             <Users size={12} />
-            <span>{count} Used</span>
+            <span>{count} {count === 1 ? 'User' : 'Users'}</span>
           </span>
         );
       }
@@ -963,7 +963,7 @@ export default function CustomerSection({
             <Server size={18} className="adm-cust-stat-icon purple" style={{ color: '#7c3aed' }} />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#7c3aed' }}>
-            <CountUp end={totalUsersAllocated} duration={1200} /> Used
+            <CountUp end={totalUsersAllocated} duration={1200} /> {totalUsersAllocated === 1 ? 'User' : 'Users'}
           </span>
           <span className="adm-cust-stat-desc">
             Allocated across customer cloud plans
