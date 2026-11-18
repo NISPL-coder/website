@@ -7,6 +7,7 @@ import { authApi } from '../../../services/authApi';
 import { describePermissions } from './PermissionsContext';
 import { getProfileCompletion } from '../../../utils/profileCompletion';
 import ProfileCompletionCircle from '../../../components/common/ProfileCompletionCircle';
+import ProfileAvatarUploader from '../../../components/common/ProfileAvatarUploader';
 import toast from 'react-hot-toast';
 import './AdminTools.css';
 
@@ -139,6 +140,16 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
     }
   };
 
+  const handleAvatarChange = async (newAvatar) => {
+    const res = await authApi.updateOwnProfile({ avatar: newAvatar });
+    setProfile((prev) => ({
+      ...prev,
+      avatar: newAvatar,
+      companyLogo: newAvatar
+    }));
+    return res;
+  };
+
   const renderItems = (items) =>
     items.map((item) => (
       <div key={item.label} className="adm-profile-info-card">
@@ -229,27 +240,13 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
       </div>
 
       <div className="adm-profile-hero" style={{ marginTop: '14px' }}>
-        {(profile?.avatar || profile?.companyLogo) ? (
-          <img
-            src={profile?.avatar || profile?.companyLogo}
-            alt={name}
-            style={{
-              width: '58px',
-              height: '58px',
-              borderRadius: '14px',
-              objectFit: 'cover',
-              border: '2px solid #e2e8f0',
-              background: '#ffffff',
-              flexShrink: 0,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : (
-          <span className="adm-profile-hero-avatar">{initialsOf(name)}</span>
-        )}
+        <ProfileAvatarUploader
+          avatar={profile?.avatar || profile?.companyLogo || ''}
+          name={name}
+          size={74}
+          borderRadius={20}
+          onAvatarChange={handleAvatarChange}
+        />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="adm-profile-hero-name">{name}</h2>
           <p className="adm-profile-hero-email">{email}</p>

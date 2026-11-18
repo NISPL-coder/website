@@ -214,7 +214,8 @@ export default function DemoActiveSection({
       selector: (row) => row.customerId || row.id,
       sortable: true,
       sortFunction: compareText((row) => row.customerId || row.id),
-      minWidth: '140px',
+      minWidth: '150px',
+      width: '150px',
       cell: (cust) => (
         <span
           style={{
@@ -251,7 +252,7 @@ export default function DemoActiveSection({
       selector: (row) => row.company,
       sortable: true,
       sortFunction: compareText((row) => row.company),
-      minWidth: '170px',
+      minWidth: '180px',
       grow: 1,
       cell: (cust) => (
         <span style={{ fontWeight: 600, color: '#1e293b' }}>{cust.company || '—'}</span>
@@ -264,6 +265,7 @@ export default function DemoActiveSection({
       sortable: true,
       sortFunction: compareText((row) => row.email || row.loginEmail),
       minWidth: '220px',
+      width: '230px',
       cell: (cust) => {
         const mail = cust.email || cust.loginEmail || '—';
         const isCopied = copiedKey === `email-${cust.id}`;
@@ -302,6 +304,7 @@ export default function DemoActiveSection({
       sortable: true,
       sortFunction: compareText((row) => row.phone),
       minWidth: '150px',
+      width: '150px',
       cell: (cust) => (
         <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: '#334155' }}>
           {cust.phone || '—'}
@@ -314,7 +317,8 @@ export default function DemoActiveSection({
       selector: (row) => getCustomerPlan(row),
       sortable: true,
       sortFunction: compareText((row) => getCustomerPlan(row)),
-      minWidth: '170px',
+      minWidth: '180px',
+      width: '190px',
       cell: (cust) => (
         <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 500 }}>
           {getCustomerPlan(cust)}
@@ -327,13 +331,14 @@ export default function DemoActiveSection({
       selector: (row) => row.status,
       sortable: true,
       sortFunction: compareText((row) => row.status),
-      minWidth: '160px',
+      minWidth: '180px',
+      width: '185px',
       cell: (cust) => {
         const tone = customerLifecycleTone(cust.status);
         const label = customerLifecycleLabel(cust.status);
         const isDemo = normalizeCustomerLifecycle(cust.status) === 'Demo';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             <span className={`adm-status-pill ${tone}`}>
               {tone === 'active' && <CheckCircle2 size={12} />}
               {tone === 'demo' && <Clock size={12} />}
@@ -364,7 +369,8 @@ export default function DemoActiveSection({
       selector: (row) => row.orderCount || row.orders || 0,
       sortable: true,
       sortFunction: compareNumber((row) => row.orderCount || row.orders || 0),
-      width: '100px',
+      width: '95px',
+      minWidth: '95px',
       center: true,
       cell: (cust) => (
         <span className="adm-count-badge">
@@ -378,9 +384,10 @@ export default function DemoActiveSection({
       selector: (row) => row.createdAt || row.registered,
       sortable: true,
       sortFunction: compareDate((row) => row.createdAt || row.registered),
-      width: '140px',
+      minWidth: '190px',
+      width: '200px',
       cell: (cust) => (
-        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+        <span style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap', display: 'inline-block' }}>
           {formatStamp(cust.createdAt || cust.registered)}
         </span>
       )
@@ -389,13 +396,14 @@ export default function DemoActiveSection({
       id: 'actions',
       name: 'Action',
       center: true,
-      width: '170px',
+      minWidth: '220px',
+      width: '230px',
       button: true,
       allowOverflow: true,
       searchable: false,
       ignoreRowClick: true,
       cell: (cust) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
           <button
             type="button"
             className="adm-action-pill"
@@ -586,7 +594,7 @@ export default function DemoActiveSection({
         defaultSortFieldId="createdAt"
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
-        minWidth={1400}
+        minWidth={1950}
         noDataMessage="No demo or active accounts found"
         noDataHint={
           statusFilter !== 'all'

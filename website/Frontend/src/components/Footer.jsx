@@ -7,7 +7,7 @@ import {
   Clock 
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/NISPL Cloud Tech Logo (2).png';
+import logoImg from '../assets/new_logo/WHITE.png';
 import './Footer.css';
 
 export default function Footer() {

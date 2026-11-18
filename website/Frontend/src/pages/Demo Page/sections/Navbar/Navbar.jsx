@@ -15,7 +15,7 @@ import {
   Lock,
   Cloud
 } from 'lucide-react';
-import logoImg from '../../../../assets/NISPL Cloud Tech Logo (2).png';
+import logoImg from '../../../../assets/new_logo/WHITE.png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
 export default function Navbar({ onOpenContact, onOpenConsultation }) {
@@ -226,8 +226,8 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                 src={logoImg} 
                 alt="Net Infotech System Pvt. Ltd." 
                 className="demo-brand-logo-img" 
-                width="240"
-                height="80"
+                width="280"
+                height="104"
                 fetchPriority="high"
                 decoding="async"
               />

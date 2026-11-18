@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
+import logoImg from '../../assets/new_logo/BLACK.png';
 import { authApi } from '../../services/authApi';
 import { 
   KeyRound, 

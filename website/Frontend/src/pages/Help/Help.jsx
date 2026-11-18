@@ -18,7 +18,7 @@ import {
   Clock
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import logoImg from '../../assets/NISPL Cloud Tech Logo Black.png';
+import logoImg from '../../assets/new_logo/BLACK.png';
 import LinkedInQRCode from '../../components/LinkedInQRCode';
 import Footer from '../../components/Footer';
 

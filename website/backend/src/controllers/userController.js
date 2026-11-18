@@ -44,6 +44,8 @@ export async function getOwnProfile(req, res) {
         ? customerDoc.additionalPhones
         : (customerDoc.alternatePhone ? [customerDoc.alternatePhone] : safeUser.additionalPhones || []);
       safeUser.address = customerDoc.address || safeUser.address || null;
+      safeUser.avatar = safeUser.avatar || customerDoc.avatar || customerDoc.companyLogo || '';
+      safeUser.companyLogo = safeUser.companyLogo || customerDoc.companyLogo || customerDoc.avatar || '';
       if (customerDoc.customerId && !safeUser.customerId) {
         safeUser.customerId = customerDoc.customerId;
       }
@@ -149,9 +151,9 @@ export async function updateOwnProfile(req, res) {
   const customerUpdates = {};
   if (user.name) customerUpdates.name = user.name;
   if (user.phone) customerUpdates.phone = user.phone;
-  if (user.avatar) {
-    customerUpdates.avatar = user.avatar;
-    customerUpdates.companyLogo = user.companyLogo;
+  if (avatar !== undefined || companyLogo !== undefined) {
+    customerUpdates.avatar = user.avatar || '';
+    customerUpdates.companyLogo = user.companyLogo || '';
   }
   if (cleanAdditionalEmails !== undefined) customerUpdates.additionalEmails = cleanAdditionalEmails;
   if (cleanAdditionalPhones !== undefined) {

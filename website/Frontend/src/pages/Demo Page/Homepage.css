@@ -68,7 +68,7 @@
   pointer-events: auto;
   width: 100%;
   max-width: 1360px;
-  height: 70px;
+  height: 100px;
   background: var(--demo-glass-bg);
   -webkit-backdrop-filter: var(--demo-glass-blur);
   backdrop-filter: var(--demo-glass-blur);
@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px 0 24px;
+  padding: 0 16px 0 20px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -113,6 +113,7 @@
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
+  max-width: 340px;
 }
 
 .demo-brand:hover {
@@ -138,12 +139,14 @@
 }
 
 .demo-brand-logo-img {
-  height: 75px;
+  height: 92px;
   width: auto;
-  max-width: 350px;
+  min-width: 240px;
+  max-width: 320px;
   object-fit: contain;
   display: block;
-  transition: none;
+  transition: transform 0.2s ease;
+  margin-left: 22px;
 }
 
 /* Navigation Links (Center) */
@@ -2149,7 +2152,7 @@
   }
 
   .demo-pill-navbar {
-    height: 68px;
+    height: 70px;
     padding: 0 10px 0 16px;
     background: var(--demo-glass-bg);
     -webkit-backdrop-filter: var(--demo-glass-blur);
@@ -2157,13 +2160,14 @@
   }
 
   .demo-brand {
-    max-width: 220px;
+    max-width: 270px;
   }
 
   .demo-brand-logo-img {
-    height: 60px;
+    height: 78px;
     width: auto;
-    max-width: 300px;
+    min-width: 200px;
+    max-width: 260px;
     object-fit: contain;
   }
 
@@ -2204,7 +2208,7 @@
   }
 
   .demo-brand {
-    max-width: 190px;
+    max-width: 215px;
     flex-shrink: 1;
   }
 
@@ -2213,9 +2217,10 @@
   }
 
   .demo-brand-logo-img {
-    height: 60px;
+    height: 64px;
     width: auto;
-    max-width: 175px;
+    min-width: 170px;
+    max-width: 195px;
     object-fit: contain;
   }
 

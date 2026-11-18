@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
+import logoImg from '../../../assets/new_logo/BLACK.png';
 import ConsoleSidebar from './ConsoleSidebar';
 import AdminProfileMenu from './AdminProfileMenu';
 import NotificationPopover from './NotificationPopover';

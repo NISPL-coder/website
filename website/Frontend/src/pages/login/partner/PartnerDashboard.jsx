@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../../../assets/NISPL Cloud Tech Logo Black.png';
+import logoImg from '../../../assets/new_logo/BLACK.png';
 import { authApi } from '../../../services/authApi';
 import { useIsMobile } from '../../../utils/useResponsive';
 import {
@@ -51,11 +51,11 @@ import './PartnerDashboard.css';
 /* =========================================================================
    1. TOP HEADER COMPONENT
    ========================================================================= */
-export function DashboardHeader({ 
-  userSession, 
-  onSignOut, 
-  onToggleSidebar, 
-  isSidebarOpen 
+export function DashboardHeader({
+  userSession,
+  onSignOut,
+  onToggleSidebar,
+  isSidebarOpen
 }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,8 +72,8 @@ export function DashboardHeader({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const partnerName = userSession?.user 
-    ? userSession.user.split('@')[0].replace('.', ' ') 
+  const partnerName = userSession?.user
+    ? userSession.user.split('@')[0].replace('.', ' ')
     : 'Authorized Partner';
   const partnerEmail = userSession?.user || 'partner@netinfotechsystem.in';
 
@@ -81,8 +81,8 @@ export function DashboardHeader({
     <header className="pnd-header" role="banner">
       {/* 1. Header Left: Mobile Button + Brand Logo + Company Tagline */}
       <div className="pnd-header-left">
-        <button 
-          type="button" 
+        <button
+          type="button"
           className="pnd-mobile-menu-btn"
           onClick={onToggleSidebar}
           aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
@@ -91,10 +91,10 @@ export function DashboardHeader({
         </button>
 
         <Link to="/" className="pnd-brand-link" title="Net Infotech System Pvt. Ltd.">
-          <img 
-            src={logoImg} 
-            alt="Net Infotech System Pvt. Ltd." 
-            className="pnd-brand-logo" 
+          <img
+            src={logoImg}
+            alt="Net Infotech System Pvt. Ltd."
+            className="pnd-brand-logo"
           />
         </Link>
 
@@ -104,8 +104,8 @@ export function DashboardHeader({
       <div className="pnd-header-center">
         <div className="pnd-global-search">
           <Search size={15} className="pnd-search-icon" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search subscriptions, customers, plans..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -118,9 +118,9 @@ export function DashboardHeader({
       {/* 3. Header Right: Live Node Status + Notifications + Help + Portal Badge + User Profile */}
       <div className="pnd-header-right">
         {/* Notifications Quick Icon */}
-        <button 
-          type="button" 
-          className="pnd-header-icon-btn" 
+        <button
+          type="button"
+          className="pnd-header-icon-btn"
           title="Notifications (2 unread)"
           onClick={() => alert("You have 2 upcoming subscription renewals scheduled this week.")}
         >
@@ -130,8 +130,8 @@ export function DashboardHeader({
 
         {/* Profile Pill & Dropdown */}
         <div className="pnd-profile-container" ref={dropdownRef}>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className={`pnd-profile-trigger ${isProfileOpen ? 'open' : ''}`}
             onClick={() => setIsProfileOpen(prev => !prev)}
             aria-expanded={isProfileOpen}
@@ -167,9 +167,9 @@ export function DashboardHeader({
                 </div>
               </div>
               <div className="pnd-dropdown-divider" />
-              <button 
-                type="button" 
-                className="pnd-dropdown-item" 
+              <button
+                type="button"
+                className="pnd-dropdown-item"
                 role="menuitem"
                 onClick={() => {
                   setIsProfileOpen(false);
@@ -179,9 +179,9 @@ export function DashboardHeader({
                 <User size={15} />
                 <span>Partner Profile</span>
               </button>
-              <button 
-                type="button" 
-                className="pnd-dropdown-item" 
+              <button
+                type="button"
+                className="pnd-dropdown-item"
                 role="menuitem"
                 onClick={() => {
                   setIsProfileOpen(false);
@@ -192,9 +192,9 @@ export function DashboardHeader({
                 <span>Account &amp; Payout Settings</span>
               </button>
               <div className="pnd-dropdown-divider" />
-              <button 
-                type="button" 
-                className="pnd-dropdown-item danger" 
+              <button
+                type="button"
+                className="pnd-dropdown-item danger"
                 role="menuitem"
                 onClick={() => {
                   setIsProfileOpen(false);
@@ -236,7 +236,7 @@ export function DashboardSidebar({ activeNav, setActiveNav, isOpen, onClose }) {
       <aside className={`pnd-sidebar ${isOpen ? 'mobile-open' : ''}`} aria-label="Sidebar Navigation">
         {/* Navigation Groups Container */}
         <div className="pnd-sidebar-nav-container">
-          
+
           {/* Section 1: Main Menu */}
           <div className="pnd-nav-section">
             <nav className="pnd-nav-menu">
@@ -426,7 +426,7 @@ export function DashboardFilters({
 
   return (
     <div className="pnd-filter-toolbar" role="region" aria-label="Dashboard Filters">
-      
+
       {/* 1. TIMELINE FILTER */}
       <div className="pnd-filter-field" ref={timelineRef}>
         <label className="pnd-filter-label" id="timeline-label">Timeline</label>
@@ -467,7 +467,7 @@ export function DashboardFilters({
       {/* 2. CUSTOMER DATA DATE PICKER */}
       <div className="pnd-filter-field" ref={calRef}>
         <label className="pnd-filter-label" id="cust-data-label">Customer Data</label>
-        <div 
+        <div
           className={`pnd-filter-control pnd-date-control ${isCalendarOpen ? 'active' : ''}`}
           onClick={() => setIsCalendarOpen(prev => !prev)}
           role="button"
@@ -502,8 +502,8 @@ export function DashboardFilters({
         {isCalendarOpen && (
           <div className="pnd-calendar-popover animate-fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="pnd-cal-header">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="pnd-cal-nav"
                 onClick={() => {
                   if (calMonth === 0) {
@@ -520,8 +520,8 @@ export function DashboardFilters({
               <span className="pnd-cal-title">
                 {monthNames[calMonth]} {calYear}
               </span>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="pnd-cal-nav"
                 onClick={() => {
                   if (calMonth === 11) {
@@ -563,8 +563,8 @@ export function DashboardFilters({
             </div>
 
             <div className="pnd-cal-footer">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="pnd-cal-action-btn secondary"
                 onClick={() => {
                   setCustomerDate('');
@@ -573,8 +573,8 @@ export function DashboardFilters({
               >
                 Clear
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="pnd-cal-action-btn primary"
                 onClick={() => {
                   const today = new Date();
@@ -747,7 +747,7 @@ export function RenewalsStats({
       </div>
 
       {/* Stat 3: Upgrades (Light Purple with toggle button) */}
-      <div 
+      <div
         className="pnd-stat-pill purple clickable"
         onClick={onToggleUpgrades}
         role="button"
@@ -767,7 +767,7 @@ export function RenewalsStats({
       </div>
 
       {/* Stat 4: Downgrades (Light Red with toggle button) */}
-      <div 
+      <div
         className="pnd-stat-pill red clickable"
         onClick={onToggleDowngrades}
         role="button"
@@ -849,7 +849,7 @@ export function SubscriptionSummaryTable({
           </tr>
 
           {/* Row 3: Upgrades (Expandable) */}
-          <tr 
+          <tr
             className={`pnd-row pnd-expandable-row ${isUpgradesExpanded ? 'expanded' : ''}`}
             onClick={() => setIsUpgradesExpanded(prev => !prev)}
             role="button"
@@ -930,7 +930,7 @@ export function SubscriptionSummaryTable({
           )}
 
           {/* Row 4: Downgrades (Expandable) */}
-          <tr 
+          <tr
             className={`pnd-row pnd-expandable-row ${isDowngradesExpanded ? 'expanded' : ''}`}
             onClick={() => setIsDowngradesExpanded(prev => !prev)}
             role="button"
@@ -1220,7 +1220,7 @@ export function DashboardChartsSection() {
 
   const currentPoints = timeframeData[activeTimeframe] || timeframeData.Monthly;
   const safeActiveIndex = (activePointIndex !== null && activePointIndex < currentPoints.length)
-    ? activePointIndex 
+    ? activePointIndex
     : Math.floor(currentPoints.length / 2);
   const activePoint = currentPoints[safeActiveIndex] || currentPoints[0];
 
@@ -1257,7 +1257,7 @@ export function DashboardChartsSection() {
 
       {/* Top Charts Row: Spline Area Chart (62%) + Pie/Donut Chart (38%) */}
       <div className="pnd-charts-dual-grid">
-        
+
         {/* CHART 1: Subscription & Revenue Trend Area Chart */}
         <div className="pnd-chart-panel pnd-trend-panel">
           <div className="pnd-chart-panel-header">
@@ -1322,9 +1322,9 @@ export function DashboardChartsSection() {
               {currentPoints.map((pt, idx) => {
                 const isSelected = safeActiveIndex === idx;
                 return (
-                  <g 
-                    key={pt.label} 
-                    className="pnd-point-group" 
+                  <g
+                    key={pt.label}
+                    className="pnd-point-group"
                     onMouseEnter={() => setActivePointIndex(idx)}
                     tabIndex={0}
                   >
@@ -1355,9 +1355,9 @@ export function DashboardChartsSection() {
 
             {/* Dynamic Floating Tooltip positioned smoothly */}
             {activePoint && (
-              <div 
+              <div
                 className="pnd-graph-tooltip animate-fade-in"
-                style={{ 
+                style={{
                   left: `${(activePoint.x / 520) * 100}%`,
                   top: `${Math.max(activePoint.y - 48, 8)}px`
                 }}
@@ -1432,10 +1432,10 @@ export function DashboardChartsSection() {
               {/* Dynamic Center Badge */}
               <div className="pnd-donut-center">
                 <span className="donut-center-val">
-                  <CountUp 
-                    end={hoveredSlice !== null ? pieSlices[hoveredSlice].count : 1280} 
-                    separator="," 
-                    duration={1000} 
+                  <CountUp
+                    end={hoveredSlice !== null ? pieSlices[hoveredSlice].count : 1280}
+                    separator=","
+                    duration={1000}
                   />
                 </span>
                 <span className="donut-center-lbl">
@@ -1489,8 +1489,8 @@ export function DashboardChartsSection() {
           {barData.map((bar, idx) => {
             const isHovered = hoveredBarIndex === idx;
             return (
-              <div 
-                key={bar.label} 
+              <div
+                key={bar.label}
                 className="pnd-bar-col"
                 onMouseEnter={() => setHoveredBarIndex(idx)}
                 onMouseLeave={() => setHoveredBarIndex(null)}
@@ -1498,18 +1498,18 @@ export function DashboardChartsSection() {
                 <div className={`pnd-bar-popover ${isHovered ? 'visible' : ''}`}>
                   <span><CountUp end={bar.count} duration={1000} /> Subs</span>
                 </div>
-                
+
                 <span className="pnd-bar-count">
                   <CountUp end={bar.count} duration={1200} />
                 </span>
-                
+
                 <div className="pnd-bar-track">
-                  <div 
-                    className={`pnd-bar-fill ${bar.bgClass} ${isHovered ? 'highlight' : ''}`} 
-                    style={{ height: bar.height }} 
+                  <div
+                    className={`pnd-bar-fill ${bar.bgClass} ${isHovered ? 'highlight' : ''}`}
+                    style={{ height: bar.height }}
                   />
                 </div>
-                
+
                 <span className="pnd-bar-label">{bar.label}</span>
               </div>
             );
@@ -2180,7 +2180,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
   return (
     <div className="pnd-layout">
       {/* Top Header */}
-      <DashboardHeader 
+      <DashboardHeader
         userSession={userSession}
         onSignOut={handleSignOut}
         onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
@@ -2189,9 +2189,9 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
 
       {/* Main App Workspace (Sidebar + Scrollable Content) */}
       <div className="pnd-workspace">
-        
+
         {/* Left Sidebar */}
-        <DashboardSidebar 
+        <DashboardSidebar
           activeNav={activeNav}
           setActiveNav={setActiveNav}
           isOpen={isMobileSidebarOpen}
@@ -2216,7 +2216,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
                 </div>
 
                 {/* 2. Filter Toolbar (4 interactive controls) */}
-                <DashboardFilters 
+                <DashboardFilters
                   timeline={timeline}
                   setTimeline={setTimeline}
                   customerDate={customerDate}
@@ -2237,7 +2237,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
                   </h2>
 
                   <div className="pnd-summary-grid">
-                    
+
                     {/* Left Card: Total Paid Subscription (~25% width on desktop) */}
                     <div className="pnd-summary-left">
                       <TotalPaidSubscriptionCard />
@@ -2246,7 +2246,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
                     {/* Right Panel: Renewals Details Card (~75% width on desktop) */}
                     <div className="pnd-summary-right">
                       <div className="pnd-renewals-panel">
-                        
+
                         {/* Renewals Header */}
                         <div className="pnd-renewals-panel-header">
                           <div className="pnd-renewals-title-group">
@@ -2256,7 +2256,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
                         </div>
 
                         {/* Compact 4 Stats Pills */}
-                        <RenewalsStats 
+                        <RenewalsStats
                           isUpgradesExpanded={isUpgradesExpanded}
                           onToggleUpgrades={() => setIsUpgradesExpanded(prev => !prev)}
                           isDowngradesExpanded={isDowngradesExpanded}
@@ -2264,7 +2264,7 @@ export default function PartnerDashboard({ userSession, onSignOut }) {
                         />
 
                         {/* Structured Subscription Details Table */}
-                        <SubscriptionSummaryTable 
+                        <SubscriptionSummaryTable
                           isUpgradesExpanded={isUpgradesExpanded}
                           setIsUpgradesExpanded={setIsUpgradesExpanded}
                           isDowngradesExpanded={isDowngradesExpanded}

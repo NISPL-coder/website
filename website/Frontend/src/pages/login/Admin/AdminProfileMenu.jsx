@@ -59,13 +59,31 @@ export default function AdminProfileMenu({
   const [isOpen, setIsOpen] = useState(false);
   const wrapRef = useRef(null);
 
-  const effectiveUser = user || authApi.getCurrentUser() || { name, email, role };
+  const [sessionUser, setSessionUser] = useState(() => authApi.getCurrentUser());
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setSessionUser(authApi.getCurrentUser());
+    };
+    window.addEventListener('nispl_auth_change', handleAuthChange);
+    return () => window.removeEventListener('nispl_auth_change', handleAuthChange);
+  }, []);
+
+  const effectiveUser = {
+    ...(user || {}),
+    ...(sessionUser || {}),
+    ...(name ? { name } : {}),
+    ...(email ? { email } : {}),
+    ...(role ? { role } : {})
+  };
   const completion = getProfileCompletion(effectiveUser);
   const avatarUrl =
-    effectiveUser?.avatar ||
-    effectiveUser?.companyLogo ||
+    sessionUser?.avatar ||
+    sessionUser?.companyLogo ||
     user?.avatar ||
-    user?.companyLogo;
+    user?.companyLogo ||
+    effectiveUser?.avatar ||
+    effectiveUser?.companyLogo;
 
   useEffect(() => {
     if (!isOpen) return undefined;

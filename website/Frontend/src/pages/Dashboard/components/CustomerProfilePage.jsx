@@ -25,6 +25,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { authApi } from '../../../services/authApi';
+import ProfileAvatarUploader from '../../../components/common/ProfileAvatarUploader';
 import toast from 'react-hot-toast';
 import '../../login/Admin/AdminTools.css';
 import './CustomerProfilePage.css';
@@ -232,6 +233,16 @@ export default function CustomerProfilePage({ customer: initialCustomer, onSignO
     }
   };
 
+  const handleAvatarChange = async (newAvatar) => {
+    const res = await authApi.updateOwnProfile({ avatar: newAvatar });
+    setProfile((prev) => ({
+      ...prev,
+      avatar: newAvatar,
+      companyLogo: newAvatar
+    }));
+    return res;
+  };
+
   // Change Password Handler
   const handleChangePassword = async (event) => {
     event.preventDefault();
@@ -354,7 +365,13 @@ export default function CustomerProfilePage({ customer: initialCustomer, onSignO
 
       {/* Hero Card */}
       <div className="adm-profile-hero" style={{ marginTop: '16px' }}>
-        <span className="adm-profile-hero-avatar">{initialsOf(name || profile?.name)}</span>
+        <ProfileAvatarUploader
+          avatar={profile?.avatar || profile?.companyLogo || initialCustomer?.avatar || initialCustomer?.companyLogo || ''}
+          name={name || profile?.name || initialCustomer?.name}
+          size={74}
+          borderRadius={20}
+          onAvatarChange={handleAvatarChange}
+        />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="adm-profile-hero-name">{name || profile?.name || 'Customer Account'}</h2>
           <p className="adm-profile-hero-email" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>

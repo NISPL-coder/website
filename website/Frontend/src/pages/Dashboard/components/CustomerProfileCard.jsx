@@ -34,7 +34,16 @@ export default function CustomerProfileCard({ customer }) {
         {/* Left: Avatar & Identity */}
         <div className="cust-profile-hero-left">
           <div className="cust-hero-avatar-box">
-            <span>{customer.name ? customer.name.charAt(0).toUpperCase() : 'C'}</span>
+            {(customer.avatar || customer.companyLogo) ? (
+              <img
+                src={customer.avatar || customer.companyLogo}
+                alt={customer.name || customer.companyName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <span>{customer.name ? customer.name.charAt(0).toUpperCase() : 'C'}</span>
+            )}
           </div>
 
           <div className="cust-hero-titles">

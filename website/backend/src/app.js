@@ -100,6 +100,11 @@ const manualPaymentParser = express.json({ limit: '8mb' });
 app.use('/api/payments/manual', manualPaymentParser);
 app.use('/api/v1/payments/manual', manualPaymentParser);
 
+// Profile pictures travel as base64 images, so users endpoints need a parser up to 10 MB.
+const userProfileParser = express.json({ limit: '10mb' });
+app.use('/api/users', userProfileParser);
+app.use('/api/v1/users', userProfileParser);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
