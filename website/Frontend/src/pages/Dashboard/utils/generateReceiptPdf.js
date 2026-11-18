@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { NISPL_HEADER_LOGO_BASE64, NISPL_FOOTER_BANNER_BASE64 } from './receiptAssets';
+import { NISPL_HEADER_LOGO_BASE64, NISPL_FOOTER_BANNER_BASE64 } from './receiptAssets.js';
 
 /**
  * Format numeric value in standard Indian currency style (e.g. 10,000.00)
@@ -328,11 +328,17 @@ export function generateReceiptPdf(rec, customer) {
   doc.text('Authorized Signatory / Finance Desk', marginX + contentWidth, currentY + 7, { align: 'right' });
 
   // 13. Stamp Header and Footer Banner on EVERY page (Zero Watermark)
+  // Official NISPL corporate header logo (BLACK.png: 1716 x 635, aspect ratio ~2.702)
+  const headerLogoWidth = 115;
+  const headerLogoHeight = 42.55;
+  const headerLogoX = (210 - headerLogoWidth) / 2; // Centered horizontally
+  const headerLogoY = 6;
+
   const totalPages = doc.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
-    // Header Logo (Top)
-    doc.addImage(NISPL_HEADER_LOGO_BASE64, 'PNG', marginX, 5, contentWidth, 49.65);
+    // Header Logo (Top, centered with preserved aspect ratio)
+    doc.addImage(NISPL_HEADER_LOGO_BASE64, 'PNG', headerLogoX, headerLogoY, headerLogoWidth, headerLogoHeight);
     // Footer Banner (Bottom)
     doc.addImage(NISPL_FOOTER_BANNER_BASE64, 'PNG', marginX, 297 - 66.65, contentWidth, 66.65);
   }
