@@ -1,14 +1,9 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import DataTable from 'react-data-table-component';
-import { ArrowUp, SearchX, Loader2, X } from 'lucide-react';
+import { ArrowUp, SearchX, Loader2 } from 'lucide-react';
 import { useIsNarrow, useIsPhone } from '../../../utils/useResponsive';
 import './AdminDataTable.css';
 
-const TOOLTIP_MAX_WIDTH = 384;
-const TOOLTIP_HOVER_DELAY = 200;
-const TOOLTIP_EDGE_GAP = 8;
-const TOOLTIP_ROW_GAP = 10;
 
 /* Column auto-sizing: horizontal cell padding + the sort arrow + a glyph safety margin. */
 const CELL_PADDING_PX = 40;
@@ -164,17 +159,11 @@ export default function AdminDataTable({
   }, [paginationPerPage]);
 
   const [columnFilters, setColumnFilters] = useState({});
-  const [rowTip, setRowTip] = useState(null); // { row, rowEl }
-  const [tipSize, setTipSize] = useState({ width: 0, height: 0 });
-  const [positionTick, setPositionTick] = useState(0);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const isNarrow = useIsNarrow();
   const isPhone = useIsPhone();
-  const hoverTimerRef = useRef(null);
-  const hoveredRowKeyRef = useRef(null);
   const tableWrapRef = useRef(null);
-  const tipRef = useRef(null);
   const actionMenuOpenRef = useRef(false);
 
   // The scroll container's own width is what the columns have to fill.
@@ -237,33 +226,7 @@ export default function AdminDataTable({
     return [snoCol, ...(columns || [])];
   }, [columns, showSno, pagination, currentPage, perPage]);
 
-  useEffect(
-    () => () => {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    },
-    []
-  );
-
-  const clearRowTip = useCallback(() => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    hoveredRowKeyRef.current = null;
-    // A tapped sheet survives the synthetic mouseleave a touch produces.
-    setRowTip((current) => (current?.pinned ? current : null));
-  }, []);
-
-  const closeRowTip = useCallback(() => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    hoveredRowKeyRef.current = null;
-    setRowTip(null);
-  }, []);
-
-  // RowActionMenu broadcasts its open state; while open, row hover is disabled.
+  // RowActionMenu broadcasts its open state
   useEffect(() => {
     const handleMenuToggle = (event) => {
       const detail = event.detail || {};
@@ -271,39 +234,10 @@ export default function AdminDataTable({
       const open = Boolean(detail.open) && targetsThisTable;
       actionMenuOpenRef.current = open;
       setActionMenuOpen(open);
-      if (open) closeRowTip();
     };
     window.addEventListener('nispl_row_action_menu', handleMenuToggle);
     return () => window.removeEventListener('nispl_row_action_menu', handleMenuToggle);
-  }, [closeRowTip]);
-
-  // Keep the anchored popup glued to its row while scrolling or resizing.
-  useEffect(() => {
-    if (!rowTip) return undefined;
-    const reposition = () => setPositionTick((tick) => tick + 1);
-    window.addEventListener('scroll', reposition, true);
-    window.addEventListener('resize', reposition);
-    return () => {
-      window.removeEventListener('scroll', reposition, true);
-      window.removeEventListener('resize', reposition);
-    };
-  }, [rowTip]);
-
-  // A sheet opened by a tap only belongs to the narrow layout.
-  useEffect(() => {
-    if (!isNarrow) closeRowTip();
-  }, [isNarrow, closeRowTip]);
-
-  useEffect(() => {
-    if (!rowTip?.pinned) return undefined;
-
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') closeRowTip();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [rowTip, closeRowTip]);
+  }, []);
 
   // Return to the first page whenever the parent search or filters change.
   useEffect(() => {
@@ -352,51 +286,11 @@ export default function AdminDataTable({
     );
   }, [data, tableColumns, activeFilters]);
 
-  // Show a full-row detail popup when hovering a data row (body rows have id="row-<keyField>").
-  const handleTableMouseOver = useCallback(
-    (event) => {
-      if (actionMenuOpenRef.current) {
-        clearRowTip();
-        return;
-      }
-
-      const rowEl = event.target.closest?.('div[id^="row-"]');
-      if (!rowEl || !tableWrapRef.current?.contains(rowEl)) {
-        clearRowTip();
-        return;
-      }
-
-      const key = rowEl.id.slice('row-'.length);
-      if (hoveredRowKeyRef.current === key) return;
-
-      const row = filteredData.find((item) => String(item[keyField]) === key);
-      if (!row) {
-        clearRowTip();
-        return;
-      }
-
-      hoveredRowKeyRef.current = key;
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = setTimeout(() => {
-        setRowTip({ row, rowEl });
-      }, TOOLTIP_HOVER_DELAY);
-    },
-    [filteredData, keyField, clearRowTip]
-  );
-
-  // Tapping a row is how a phone opens the detail panel a desktop reader
-  // gets from hovering it.
   const handleRowClick = useCallback(
     (row, event) => {
-      const interactive = event?.target?.closest?.('button, a, input, select, .adm-action-menu-wrap');
-
-      if (isNarrow && !interactive) {
-        setRowTip({ row, rowEl: null, pinned: true });
-      }
-
       if (onRowClicked) onRowClicked(row, event);
     },
-    [isNarrow, onRowClicked]
+    [onRowClicked]
   );
 
   // Cells can still need more room than the raw text implies (badges, chips,
@@ -516,44 +410,6 @@ export default function AdminDataTable({
     }
   }, [healKey, sizedColumns]);
 
-  const tipItems = useMemo(() => {
-    if (!rowTip) return [];
-    return tableColumns
-      .filter((column) => !isActionColumn(column))
-      .map((column) => {
-        const label =
-          typeof column.name === 'string' || typeof column.name === 'number'
-            ? String(column.name)
-            : String(column.id ?? '');
-        return { label, value: formatTipValue(getRowValue(column, rowTip.row)) };
-      });
-  }, [rowTip, tableColumns]);
-
-  useLayoutEffect(() => {
-    if (rowTip && tipRef.current) {
-      const rect = tipRef.current.getBoundingClientRect();
-      setTipSize({ width: rect.width, height: rect.height });
-    }
-  }, [rowTip, tipItems, positionTick]);
-
-  const tipStyle = useMemo(() => {
-    if (!rowTip || !tipItems.length || !rowTip.rowEl) return null;
-    const rect = rowTip.rowEl.getBoundingClientRect();
-    const width = Math.min(TOOLTIP_MAX_WIDTH, Math.max(tipSize.width, 240));
-    const height =
-      tipSize.height || Math.min(tipItems.length * 24 + 52, window.innerHeight * 0.6);
-
-    let left = rect.left + rect.width / 2 - width / 2;
-    left = Math.max(TOOLTIP_EDGE_GAP, Math.min(left, window.innerWidth - width - TOOLTIP_EDGE_GAP));
-
-    let top = rect.top - height - TOOLTIP_ROW_GAP;
-    if (top < TOOLTIP_EDGE_GAP) {
-      top = rect.bottom + TOOLTIP_ROW_GAP;
-    }
-    top = Math.max(TOOLTIP_EDGE_GAP, Math.min(top, window.innerHeight - height - TOOLTIP_EDGE_GAP));
-
-    return { left, top, maxWidth: TOOLTIP_MAX_WIDTH };
-  }, [rowTip, tipItems, tipSize, positionTick]);
 
   const searchableColumns = useMemo(
     () => sizedColumns.sized.map((column) => {
@@ -656,15 +512,11 @@ export default function AdminDataTable({
     </div>
   );
 
-  const sheetOpen = isNarrow && Boolean(rowTip?.pinned);
-
   return (
     <div
       ref={tableWrapRef}
       className={`admin-datatable${actionMenuOpen ? ' action-menu-open' : ''}`}
       style={{ '--admin-datatable-min-width': `${calculatedMinWidth}px` }}
-      onMouseOver={handleTableMouseOver}
-      onMouseLeave={clearRowTip}
     >
       <DataTable
         columns={searchableColumns}
@@ -698,49 +550,13 @@ export default function AdminDataTable({
         responsive
         dense={dense}
         highlightOnHover
-        pointerOnHover={rowClickable || isNarrow}
+        pointerOnHover={rowClickable}
         onRowClicked={handleRowClick}
         noDataComponent={noDataComponent}
         progressPending={progressPending}
         progressComponent={progressComponent}
         conditionalRowStyles={conditionalRowStyles}
       />
-
-      {(sheetOpen || (rowTip && tipStyle)) &&
-        createPortal(
-          <>
-            {sheetOpen && <div className="adm-row-tooltip-scrim" onClick={closeRowTip} />}
-            <div
-              ref={tipRef}
-              className={`adm-row-tooltip${sheetOpen ? ' is-sheet' : ''}`}
-              style={sheetOpen ? undefined : tipStyle}
-              role="tooltip"
-            >
-              <div className="adm-row-tooltip-title">
-                Row Details
-                {sheetOpen && (
-                  <button
-                    type="button"
-                    className="adm-row-tooltip-close"
-                    onClick={closeRowTip}
-                    aria-label="Close row details"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-              <div className="adm-row-tooltip-grid">
-                {tipItems.map((item, index) => (
-                  <React.Fragment key={`${item.label}-${index}`}>
-                    <span className="adm-row-tooltip-label">{item.label}</span>
-                    <span className="adm-row-tooltip-value">{item.value}</span>
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          </>,
-          document.body
-        )}
     </div>
   );
 }

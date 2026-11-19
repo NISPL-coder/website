@@ -72,7 +72,7 @@ export function formatCustomersForExport(customers) {
     'Email': c.email || c.loginEmail || '—',
     'Password': c.password || c.portalPassword || '—',
     'Phone No.': c.phone || '—',
-    'Orders': c.orderCount || 0,
+    'Orders': c.orderBreakdown ? `${c.orderCount || 0} (${c.orderBreakdown})` : (c.orderCount || 0),
     'City': c.address?.city || c.city || '—',
     'State': c.address?.state || c.state || '—',
     'Status': c.status ? customerLifecycleLabel(c.status) : '—',

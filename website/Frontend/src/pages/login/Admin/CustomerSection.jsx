@@ -41,7 +41,7 @@ import {
   customerLifecycleLabel,
   customerLifecycleTone
 } from '../../../utils/customerLifecycle';
-import { getCustomerUserCount } from '../../../utils/customerUsers';
+import { getCustomerUserCount, getCustomerOrderBreakdown } from '../../../utils/customerUsers';
 
 // Rows saved before the address became structured hold one joined string, so
 // the city and state may only exist on the top level or not at all.
@@ -201,6 +201,7 @@ export default function CustomerSection({
     return customers.filter((c) => {
       const q = searchQuery.toLowerCase();
       const userCount = getCustomerUserCount(c, contracts, products);
+      const orderInfo = getCustomerOrderBreakdown(c, contracts);
 
       const searchable = [
         c.id,
@@ -213,6 +214,8 @@ export default function CustomerSection({
         c.plan,
         userCount ? `${userCount} user` : '',
         userCount ? `${userCount} users` : '',
+        orderInfo.text,
+        orderInfo.total ? `${orderInfo.total} orders` : '',
         addressPart(c, 'city'),
         addressPart(c, 'state'),
         c.status
@@ -241,7 +244,7 @@ export default function CustomerSection({
       if (dateB !== dateA) return dateB - dateA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
-  }, [customers, searchQuery, statusFilter, dateFrom, dateTo]);
+  }, [customers, searchQuery, statusFilter, dateFrom, dateTo, contracts, products]);
 
   const handleCustomerUpdated = (updated) => {
     const cId = updated.id || updated.customerId;
@@ -713,16 +716,27 @@ export default function CustomerSection({
     {
       id: 'orders',
       name: 'Orders',
-      selector: (row) => row.orderCount || 0,
+      selector: (row) => getCustomerOrderBreakdown(row, contracts).total,
       sortable: true,
-      sortFunction: compareNumber((row) => row.orderCount || 0),
-      width: '90px',
+      sortFunction: compareNumber((row) => getCustomerOrderBreakdown(row, contracts).total),
+      minWidth: '150px',
+      width: '160px',
       center: true,
-      cell: (cust) => (
-        <span style={{ fontWeight: 700, color: cust.orderCount ? '#0f172a' : '#94a3b8' }}>
-          {cust.orderCount || 0}
-        </span>
-      )
+      cell: (cust) => {
+        const { total, text } = getCustomerOrderBreakdown(cust, contracts);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.25, padding: '3px 0' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: total ? '#0f172a' : '#94a3b8' }}>
+              {total}
+            </span>
+            {total > 0 && text ? (
+              <span style={{ fontSize: '0.67rem', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                ({text})
+              </span>
+            ) : null}
+          </div>
+        );
+      }
     },
     {
       id: 'city',

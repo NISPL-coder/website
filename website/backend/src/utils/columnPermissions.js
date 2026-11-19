@@ -20,7 +20,7 @@ export const MODULE_COLUMNS = {
     { id: 'email', label: 'Email', fields: ['email', 'loginEmail'] },
     { id: 'password', label: 'Password', fields: ['password', 'portalPassword'] },
     { id: 'phone', label: 'Phone No.', fields: ['phone', 'alternatePhone'] },
-    { id: 'orders', label: 'Orders', fields: ['orderCount'] },
+    { id: 'orders', label: 'Orders', fields: ['orderCount', 'demoOrderCount', 'activeProductCount', 'orderBreakdown'] },
     { id: 'city', label: 'City', fields: ['address.city', 'city'] },
     { id: 'state', label: 'State', fields: ['address.state', 'state'] },
     { id: 'status', label: 'Status', fields: ['status'] },

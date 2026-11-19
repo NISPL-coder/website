@@ -1,5 +1,44 @@
 [
   {
+    "contractId": "CTR-2026-1002",
+    "name": "Enterprise Cloud Server — 3 User",
+    "company": "TimD",
+    "customer": "Debanga",
+    "customerId": "CUST-1272",
+    "accountId": "2f3cabf6-10e4-4419-a9d3-b02bc095f98c",
+    "email": "debanga@gmail.com",
+    "service": "Subscription (1 Month)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Month",
+    "productCategory": "Software",
+    "totalContractValue": "₹1,770",
+    "value": "₹1,770 / 1 month",
+    "orderDate": "2026-11-19",
+    "startDate": "2026-11-19",
+    "endDate": "2026-12-19",
+    "expiryDate": "2026-12-19",
+    "status": "In Progress",
+    "paymentStatus": "Yes",
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (4core/4GB/100GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1656 (PAY-2026-1656).",
+    "productId": "PROD-1794817278104",
+    "salesPerson": "Siddhartha Bandopaddhya",
+    "paymentInvoiceNumber": "INV-2026-1656",
+    "createdBy": {
+      "name": "Debanga",
+      "email": "debanga@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "synced",
+      "recordId": "c74231a4-75b0-4954-9017-bd8ee08be9ca",
+      "lastSyncedAt": "2026-11-19T07:46:33.798Z",
+      "syncError": null
+    },
+    "id": "CTR-2026-1002",
+    "createdAt": "2026-11-19T07:46:32.734Z"
+  },
+  {
     "contractId": "CTR-2026-1000",
     "name": "Cloud Services - 1 User (2 core/3 GB/50 GB) (1 Month)",
     "company": "Indware Technologies Pvt Ltd",

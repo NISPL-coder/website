@@ -137,30 +137,95 @@ const attachOrderCounts = async (list) => {
       hasDemoOrder
     );
 
-    // Compute user capacity taken by customer
-    let users = Number(customer.users) || 0;
-    if (!users) {
-      const matchingContracts = orders.filter((ctr) => isCustomerMatch(customer, ctr));
-      for (const ctr of matchingContracts) {
-        const text = `${ctr.name || ''} ${ctr.service || ''} ${ctr.description || ''}`;
+    // Compute total user capacity taken by customer across all purchased contracts & plans (excluding demo trials)
+    const matchingContracts = orders.filter((ctr) => isCustomerMatch(customer, ctr));
+    let paidUsersSum = 0;
+    let demoUsersSum = 0;
+    let demoOrderCount = 0;
+    let activeProductCount = 0;
+
+    for (const ctr of matchingContracts) {
+      const isDemo = Boolean(
+        ctr.isDemoTrial ||
+        ctr.contractType === 'Trial' ||
+        ctr.productCategory === 'Trial' ||
+        String(ctr.status).toUpperCase() === 'DEMO' ||
+        String(ctr.status).toUpperCase() === 'DEMO-INACTIVE' ||
+        ctr.convertedToContractId ||
+        /demo|trial/i.test(ctr.name || '') ||
+        /demo|trial/i.test(ctr.service || '')
+      );
+
+      const text = `${ctr.name || ''} ${ctr.service || ''} ${ctr.description || ''}`;
+      let u = 0;
+      const plusMatch = text.match(/(\d+)\s*\+\s*(\d+)\s*(?:user|users|usr)/i);
+      if (plusMatch) {
+        u = Number(plusMatch[1]) + Number(plusMatch[2]);
+      } else {
         const match = text.match(/(\d+)\s*(?:user|users|usr)/i);
         if (match && Number(match[1]) > 0) {
-          users = Number(match[1]);
-          break;
+          u = Number(match[1]);
         }
       }
-    }
-    if (!users && customer.plan) {
-      const match = String(customer.plan).match(/(\d+)\s*(?:user|users|usr)/i);
-      if (match && Number(match[1]) > 0) {
-        users = Number(match[1]);
+
+      if (isDemo) {
+        demoOrderCount += 1;
+        if (String(ctr.status).toUpperCase() === 'DEMO' && !ctr.convertedToContractId) {
+          demoUsersSum += u;
+        }
       } else {
-        const num = Number(customer.plan);
-        if (!Number.isNaN(num) && num > 0 && num < 1000) users = num;
+        activeProductCount += 1;
+        paidUsersSum += u;
       }
     }
 
-    return { ...customer, orderCount: count, demoTrialUsed, users };
+    const orderCount = matchingContracts.length > 0 ? matchingContracts.length : count;
+    if (matchingContracts.length === 0 && count > 0) {
+      if (hasDemoOrder) {
+        demoOrderCount = 1;
+        activeProductCount = Math.max(0, count - 1);
+      } else {
+        activeProductCount = count;
+      }
+    }
+
+    let orderBreakdown = '';
+    if (demoOrderCount > 0 && activeProductCount > 0) {
+      orderBreakdown = `${demoOrderCount} demo + ${activeProductCount} active product`;
+    } else if (demoOrderCount > 0) {
+      orderBreakdown = `${demoOrderCount} demo`;
+    } else if (activeProductCount > 0) {
+      orderBreakdown = `${activeProductCount} active product`;
+    }
+
+    let planUsers = 0;
+    if (customer.plan && !/demo|trial/i.test(customer.plan)) {
+      const plusMatch = String(customer.plan).match(/(\d+)\s*\+\s*(\d+)\s*(?:user|users|usr)/i);
+      if (plusMatch) {
+        planUsers = Number(plusMatch[1]) + Number(plusMatch[2]);
+      } else {
+        const match = String(customer.plan).match(/(\d+)\s*(?:user|users|usr)/i);
+        if (match && Number(match[1]) > 0) {
+          planUsers = Number(match[1]);
+        } else {
+          const num = Number(customer.plan);
+          if (!Number.isNaN(num) && num > 0 && num < 1000) planUsers = num;
+        }
+      }
+    }
+
+    const storedUsers = Number(customer.users) || 0;
+    const users = paidUsersSum > 0 ? paidUsersSum : (demoUsersSum > 0 ? demoUsersSum : Math.max(storedUsers, planUsers));
+
+    return {
+      ...customer,
+      orderCount,
+      demoOrderCount,
+      activeProductCount,
+      orderBreakdown,
+      demoTrialUsed,
+      users
+    };
   });
 
   return { list: updated, orders };

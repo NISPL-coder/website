@@ -73,7 +73,7 @@ import {
   customerLifecycleLabel,
   customerLifecycleTone
 } from '../../../utils/customerLifecycle';
-import { getCustomerUserCount } from '../../../utils/customerUsers';
+import { getCustomerUserCount, getCustomerOrderBreakdown } from '../../../utils/customerUsers';
 
 function addressPart(cust, key) {
   const fromAddress = cust.address && typeof cust.address === 'object' ? cust.address[key] : '';
@@ -345,6 +345,8 @@ export default function OverviewSection({
         (c.plan || '').toLowerCase().includes(q) ||
         (String(getCustomerUserCount(c, contracts, products) || '') + ' user').includes(q) ||
         (String(getCustomerUserCount(c, contracts, products) || '') + ' users').includes(q) ||
+        (getCustomerOrderBreakdown(c, contracts).text || '').toLowerCase().includes(q) ||
+        (String(getCustomerOrderBreakdown(c, contracts).total || '') + ' orders').includes(q) ||
         addressPart(c, 'city').toLowerCase().includes(q) ||
         addressPart(c, 'state').toLowerCase().includes(q);
 
@@ -966,6 +968,79 @@ export default function OverviewSection({
     };
   }, [customers, contracts, products, apiOverview]);
 
+  // Card 6: Upcoming Renewals & Upcoming Payment Receive (Exclusively for NEXT MONTH based on Contract End Date)
+  // For example: if current month is November 2026, details are calculated exclusively for December 2026.
+  const upcomingRenewalsMetrics = useMemo(() => {
+    const now = new Date();
+    // Next calendar month boundaries
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const nextMonthName = monthNames[startOfNextMonth.getMonth()];
+    const nextMonthYear = startOfNextMonth.getFullYear();
+    const nextMonthLabel = `${nextMonthName} ${nextMonthYear}`;
+
+    // Prefer authoritative backend API data if returned
+    if (apiOverview?.upcomingRenewals?.count != null) {
+      return {
+        count: apiOverview.upcomingRenewals.count,
+        amount: apiOverview.upcomingRenewals.amount,
+        formattedAmount: apiOverview.upcomingRenewals.amountFormatted || ('₹' + Math.round(apiOverview.upcomingRenewals.amount).toLocaleString('en-IN')),
+        targetMonth: apiOverview.upcomingRenewals.targetMonth || nextMonthName,
+        windowLabel: apiOverview.upcomingRenewals.windowLabel || nextMonthLabel
+      };
+    }
+
+    // Client-side fallback calculation from contracts array
+    let count = 0;
+    let amount = 0;
+    const list = Array.isArray(contracts) ? contracts : [];
+
+    const parseContractDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+      const s = String(value).trim();
+      const ddmmyyyy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+      if (ddmmyyyy) {
+        return new Date(parseInt(ddmmyyyy[3], 10), parseInt(ddmmyyyy[2], 10) - 1, parseInt(ddmmyyyy[1], 10));
+      }
+      const yyyymmdd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (yyyymmdd) {
+        return new Date(parseInt(yyyymmdd[1], 10), parseInt(yyyymmdd[2], 10) - 1, parseInt(yyyymmdd[3], 10));
+      }
+      const d = new Date(s);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    list.forEach((ctr) => {
+      const isDemo = Boolean(ctr.isDemoTrial) || ctr.contractType === 'Trial' || String(ctr.status || '').toLowerCase() === 'demo';
+      if (isDemo) return;
+      const st = String(ctr.status || '').toLowerCase();
+      if (st === 'closed' || st === 'disabled' || st === 'cancelled' || st === 'terminated' || st === 'demo-inactive') return;
+
+      const rawEnd = ctr.endDate || ctr.expiryDate || ctr.renewalDate;
+      if (!rawEnd) return;
+
+      const d = parseContractDate(rawEnd);
+      if (!d) return;
+
+      if (d >= startOfNextMonth && d <= endOfNextMonth) {
+        const valDigits = String(ctr.totalContractValue || ctr.value || '').replace(/[^0-9.]/g, '');
+        const val = parseFloat(valDigits) || 0;
+        count += 1;
+        amount += val;
+      }
+    });
+
+    return {
+      count,
+      amount,
+      formattedAmount: '₹' + Math.round(amount).toLocaleString('en-IN'),
+      targetMonth: nextMonthName,
+      windowLabel: nextMonthLabel
+    };
+  }, [contracts, apiOverview]);
+
   const receivedTrend = formatTrend(
     activeOverviewData.kpi.trendValue,
     activeOverviewData.kpi.trendDirection,
@@ -1370,16 +1445,27 @@ export default function OverviewSection({
     {
       id: 'orders',
       name: 'Orders',
-      selector: (row) => row.orderCount || 0,
+      selector: (row) => getCustomerOrderBreakdown(row, contracts).total,
       sortable: true,
-      sortFunction: compareNumber((row) => row.orderCount || 0),
-      width: '90px',
+      sortFunction: compareNumber((row) => getCustomerOrderBreakdown(row, contracts).total),
+      minWidth: '150px',
+      width: '160px',
       center: true,
-      cell: (cust) => (
-        <span style={{ fontWeight: 700, color: cust.orderCount ? '#0f172a' : '#94a3b8' }}>
-          {cust.orderCount || 0}
-        </span>
-      )
+      cell: (cust) => {
+        const { total, text } = getCustomerOrderBreakdown(cust, contracts);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.25, padding: '3px 0' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: total ? '#0f172a' : '#94a3b8' }}>
+              {total}
+            </span>
+            {total > 0 && text ? (
+              <span style={{ fontSize: '0.67rem', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                ({text})
+              </span>
+            ) : null}
+          </div>
+        );
+      }
     },
     {
       id: 'city',
@@ -2361,6 +2447,70 @@ export default function OverviewSection({
               title="Navigate to Customer List to view plan users"
             >
               <span>Customer Users</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* CARD 6: UPCOMING RENEWALS & UPCOMING PAYMENT RECEIVE (ANALYSIS BASED ON CONTRACT END DATE) */}
+        <div className="adm-finance-card upcoming-renewals">
+          <div className="adm-finance-header">
+            <div className="adm-finance-badge cyan">
+              <RotateCw size={16} />
+              <span>Upcoming Renewals</span>
+            </div>
+            <span
+              className="adm-status-pill cyan"
+              style={{ fontWeight: 700, fontSize: '0.78rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+              title={`Exclusively analyzing next month (${upcomingRenewalsMetrics.windowLabel})`}
+            >
+              <Calendar size={13} />
+              <span>Next Month: {upcomingRenewalsMetrics.windowLabel}</span>
+            </span>
+          </div>
+
+          <div className="adm-finance-content">
+            <div className="adm-dual-metric-row">
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Upcoming Renewals</span>
+                <div className="adm-finance-value cyan-val compact-val">
+                  <CountUp end={upcomingRenewalsMetrics.count} duration={1200} />
+                </div>
+                <p className="adm-metric-hint">Renewals due in {upcomingRenewalsMetrics.targetMonth}</p>
+              </div>
+              <div className="adm-metric-divider" />
+              <div className="adm-metric-part">
+                <span className="adm-finance-label">Upcoming Payment Receive</span>
+                <div className="adm-finance-value emerald-val compact-val">
+                  ₹<CountUp end={upcomingRenewalsMetrics.amount} useIndianFormat={true} duration={1200} />
+                </div>
+                <p className="adm-metric-hint">Expected receivables from renewals</p>
+              </div>
+            </div>
+            <p className="adm-finance-caption">
+              Analysis based on contract end dates for next month (<strong>{upcomingRenewalsMetrics.windowLabel}</strong>):{' '}
+              <strong>
+                <CountUp end={upcomingRenewalsMetrics.count} duration={1200} /> contracts
+              </strong>{' '}
+              ending in {upcomingRenewalsMetrics.targetMonth} representing expected collections of{' '}
+              <strong>{upcomingRenewalsMetrics.formattedAmount}</strong>.
+            </p>
+          </div>
+
+          <div className="adm-finance-footer">
+            <span className="adm-finance-status-tag">
+              <span className="adm-dot cyan" />
+              <span>
+                <CountUp end={upcomingRenewalsMetrics.count} duration={1200} /> renewals due in {upcomingRenewalsMetrics.windowLabel}
+              </span>
+            </span>
+            <button
+              type="button"
+              className="adm-finance-link cyan-link"
+              onClick={() => navigate('/admin/customer/contract')}
+              title="Inspect customer contracts and renewals"
+            >
+              <span>Contracts</span>
               <ArrowRight size={14} />
             </button>
           </div>

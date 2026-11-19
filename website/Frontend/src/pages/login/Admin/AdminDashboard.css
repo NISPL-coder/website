@@ -1175,6 +1175,7 @@
 .adm-status-pill.pending { background: var(--adm-amber-soft); color: var(--adm-amber); border: 1px solid rgba(217, 119, 6, 0.2); }
 .adm-status-pill.suspended, .adm-status-pill.expiring { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid rgba(225, 29, 72, 0.2); }
 .adm-status-pill.info { background: var(--adm-purple-light); color: var(--adm-purple); border: 1px solid rgba(99, 102, 241, 0.15); }
+.adm-status-pill.cyan { background: #ecfeff; color: #0891b2; border: 1px solid #a5f3fc; }
 
 .adm-action-pill {
   background: #ffffff;
@@ -1862,6 +1863,10 @@ input:checked + .adm-slider:before {
   background: linear-gradient(90deg, #7c3aed, #a855f7);
 }
 
+.adm-finance-card.upcoming-renewals::after {
+  background: linear-gradient(90deg, #0284c7, #06b6d4);
+}
+
 .adm-finance-card:hover {
   box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
   border-color: #cbd5e1;
@@ -1902,6 +1907,11 @@ input:checked + .adm-slider:before {
 .adm-finance-badge.blue {
   background: #e0f2fe;
   color: #075985;
+}
+
+.adm-finance-badge.cyan {
+  background: #cffafe;
+  color: #0e7490;
 }
 
 .adm-finance-trend {
@@ -2079,6 +2089,10 @@ input:checked + .adm-slider:before {
   color: #0369a1;
 }
 
+.adm-finance-value.cyan-val {
+  color: #0e7490;
+}
+
 .adm-finance-caption {
   font-size: 0.92rem;
   color: #64748b;
@@ -2114,6 +2128,7 @@ input:checked + .adm-slider:before {
 .adm-dot.amber { background-color: #f59e0b; }
 .adm-dot.purple { background-color: #6366f1; }
 .adm-dot.blue { background-color: #0ea5e9; }
+.adm-dot.cyan { background-color: #06b6d4; }
 .adm-dot.rose, .adm-dot.red { background-color: #dc2626; }
 
 /* Interactive Bottom-Right Action Button */
@@ -2185,6 +2200,19 @@ input:checked + .adm-slider:before {
   color: #ffffff;
   border-color: #0284c7;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.adm-finance-link.cyan-link {
+  color: #0e7490;
+  background: #ecfeff;
+  border-color: #a5f3fc;
+}
+
+.adm-finance-link.cyan-link:hover {
+  background: #0891b2;
+  color: #ffffff;
+  border-color: #0891b2;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
 }
 
 /* =========================================================================

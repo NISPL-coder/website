@@ -15,7 +15,7 @@ import {
   Lock,
   Cloud
 } from 'lucide-react';
-import logoImg from '../../../../assets/new_logo/WHITE NEW.png';
+import logoImg from '../../../../assets/new_logo/3.png';
 import { NAV_ITEMS, MEGA_MENU_CONFIG } from './megaMenuData';
 
 export default function Navbar({ onOpenContact, onOpenConsultation }) {
@@ -226,8 +226,8 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                 src={logoImg} 
                 alt="Net Infotech System Pvt. Ltd." 
                 className="demo-brand-logo-img" 
-                width="184"
-                height="50"
+                width="256"
+                height="52"
                 fetchPriority="high"
                 decoding="async"
               />

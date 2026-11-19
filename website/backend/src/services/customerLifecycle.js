@@ -47,6 +47,13 @@ const rupees = (value) => {
 export const matchesCustomer = (customer, record) => {
   if (!customer || !record) return false;
 
+  const custCompany = String(customer.company || '').trim().toLowerCase();
+  const recCompany = String(record.company || record.accountName || '').trim().toLowerCase();
+  // If both have explicit, non-empty, different company names, they are not the same entity
+  if (custCompany && recCompany && custCompany !== recCompany) {
+    return false;
+  }
+
   // 1. Email match (exact case-insensitive)
   const custEmail = String(customer.email || customer.loginEmail || '').trim().toLowerCase();
   const recEmail = String(record.email || record.customerEmail || '').trim().toLowerCase();
@@ -63,8 +70,6 @@ export const matchesCustomer = (customer, record) => {
   if (custCrmId && recCrmId && custCrmId === recCrmId) return true;
 
   // 4. Company match (exact case-insensitive, must not be empty or generic)
-  const custCompany = String(customer.company || '').trim().toLowerCase();
-  const recCompany = String(record.company || record.accountName || '').trim().toLowerCase();
   if (custCompany && recCompany && custCompany === recCompany) return true;
 
   // 5. Name match: exact match only, never substring, and ignore generic words

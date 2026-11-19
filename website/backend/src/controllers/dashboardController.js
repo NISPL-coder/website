@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
-import { normalizeContractStatus } from '../utils/contractVocabulary.js';
+import { normalizeContractStatus, parseDateRobust } from '../utils/contractVocabulary.js';
 import { deriveCustomerLifecycle } from '../services/customerLifecycle.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -198,7 +198,10 @@ export const getDashboardOverview = async (req, res) => {
       accountsFrom,
       accountsTo,
       businessFrom,
-      businessTo
+      businessTo,
+      renewalsFrom,
+      renewalsTo,
+      renewalsTimeframe
     } = req.query;
 
     let customers = [];
@@ -243,29 +246,74 @@ export const getDashboardOverview = async (req, res) => {
     const inactiveCustomers = [];
 
     const extractUsers = (c) => {
-      if (c.users != null && !Number.isNaN(Number(c.users)) && Number(c.users) > 0) return Number(c.users);
       const cId = c.customerId || c.id || c._id;
       const cEmail = String(c.email || '').trim().toLowerCase();
       const cCompany = String(c.company || '').trim().toLowerCase();
       const matching = contracts.filter((ctr) => {
         if (!ctr) return false;
+        const ctrCompany = String(ctr.company || '').trim().toLowerCase();
+        if (cCompany && ctrCompany && cCompany !== ctrCompany) return false;
+
         const matchId = (ctr.customerId && cId && String(ctr.customerId).toUpperCase() === String(cId).toUpperCase());
         const matchEmail = (cEmail && ctr.email && String(ctr.email).trim().toLowerCase() === cEmail);
-        const matchCompany = (cCompany && ctr.company && String(ctr.company).trim().toLowerCase() === cCompany);
+        const matchCompany = (cCompany && ctrCompany && ctrCompany === cCompany);
         return matchId || matchEmail || matchCompany;
       });
+
+      let paidUsersSum = 0;
+      let demoUsersSum = 0;
+
       for (const ctr of matching) {
+        const isDemo = Boolean(
+          ctr.isDemoTrial ||
+          ctr.contractType === 'Trial' ||
+          ctr.productCategory === 'Trial' ||
+          String(ctr.status).toUpperCase() === 'DEMO' ||
+          String(ctr.status).toUpperCase() === 'DEMO-INACTIVE' ||
+          ctr.convertedToContractId ||
+          /demo|trial/i.test(ctr.name || '') ||
+          /demo|trial/i.test(ctr.service || '')
+        );
+
         const text = `${ctr.name || ''} ${ctr.service || ''} ${ctr.description || ''}`;
-        const match = text.match(/(\d+)\s*(?:user|users|usr)/i);
-        if (match && Number(match[1]) > 0) return Number(match[1]);
+        let u = 0;
+        const plusMatch = text.match(/(\d+)\s*\+\s*(\d+)\s*(?:user|users|usr)/i);
+        if (plusMatch) {
+          u = Number(plusMatch[1]) + Number(plusMatch[2]);
+        } else {
+          const match = text.match(/(\d+)\s*(?:user|users|usr)/i);
+          if (match && Number(match[1]) > 0) {
+            u = Number(match[1]);
+          }
+        }
+
+        if (isDemo) {
+          if (String(ctr.status).toUpperCase() === 'DEMO' && !ctr.convertedToContractId) {
+            demoUsersSum += u;
+          }
+        } else {
+          paidUsersSum += u;
+        }
       }
-      if (c.plan) {
-        const match = String(c.plan).match(/(\d+)\s*(?:user|users|usr)/i);
-        if (match && Number(match[1]) > 0) return Number(match[1]);
-        const num = Number(c.plan);
-        if (!Number.isNaN(num) && num > 0 && num < 1000) return num;
+
+      let planUsers = 0;
+      if (c.plan && !/demo|trial/i.test(c.plan)) {
+        const plusMatch = String(c.plan).match(/(\d+)\s*\+\s*(\d+)\s*(?:user|users|usr)/i);
+        if (plusMatch) {
+          planUsers = Number(plusMatch[1]) + Number(plusMatch[2]);
+        } else {
+          const match = String(c.plan).match(/(\d+)\s*(?:user|users|usr)/i);
+          if (match && Number(match[1]) > 0) {
+            planUsers = Number(match[1]);
+          } else {
+            const num = Number(c.plan);
+            if (!Number.isNaN(num) && num > 0 && num < 1000) planUsers = num;
+          }
+        }
       }
-      return 0;
+
+      const storedUsers = Number(c.users) || 0;
+      return paidUsersSum > 0 ? paidUsersSum : (demoUsersSum > 0 ? demoUsersSum : Math.max(storedUsers, planUsers));
     };
 
     targetAccounts.forEach((c) => {
@@ -367,6 +415,48 @@ export const getDashboardOverview = async (req, res) => {
     if (!effectiveBusinessFrom && !effectiveBusinessTo && totalAcquisition === 0) {
       totalAcquisition = activeCustomers.length + inProgressCustomers.length;
     }
+
+    // 3c. Upcoming Renewals and Upcoming Payment Receive (Exclusively for Next Month based on Contract End Date)
+    // E.g., if current month is November 2026, calculates details exclusively for December 2026
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+    const endOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
+    const nextMonthName = MONTH_LABELS[startOfNextMonth.getMonth()];
+    const nextMonthYear = startOfNextMonth.getFullYear();
+    const nextMonthLabel = `${nextMonthName} ${nextMonthYear}`;
+
+    let nextMonthRenewalsCount = 0;
+    let nextMonthPaymentAmount = 0;
+    const nextMonthExpiringContracts = [];
+
+    contracts.forEach((ctr) => {
+      const isDemo = Boolean(ctr.isDemoTrial) || ctr.contractType === 'Trial' || normalizeContractStatus(ctr.status) === 'DEMO';
+      if (isDemo) return;
+
+      const status = normalizeContractStatus(ctr.status);
+      if (status === 'Closed' || status === 'DISABLED' || status === 'DEMO-Inactive') return;
+
+      const endDate = parseDateRobust(ctr.endDate || ctr.expiryDate || ctr.renewalDate);
+      if (!endDate) return;
+
+      if (endDate >= startOfNextMonth && endDate <= endOfNextMonth) {
+        const val = parseRupee(ctr.totalContractValue || ctr.value);
+        nextMonthRenewalsCount += 1;
+        nextMonthPaymentAmount += val;
+        nextMonthExpiringContracts.push({
+          id: ctr.contractId || ctr.id || ctr._id,
+          name: ctr.name || 'Contract',
+          company: ctr.company || ctr.customer || '—',
+          customer: ctr.customer || ctr.company || '—',
+          endDate: ctr.endDate || ctr.expiryDate,
+          parsedEndDate: endDate.toISOString().split('T')[0],
+          value: val,
+          formattedValue: formatRupee(val),
+          status
+        });
+      }
+    });
+
+    nextMonthExpiringContracts.sort((a, b) => new Date(a.parsedEndDate) - new Date(b.parsedEndDate));
 
     // 4. Sales curve: money received per bucket, straight off the ledger
     const bucketTotals = buckets.map(() => 0);
@@ -504,7 +594,22 @@ export const getDashboardOverview = async (req, res) => {
           accountsAdded: accountsAddedInWindow,
           totalRenewals,
           totalAcquisition,
-          totalBusiness: totalRenewals + totalAcquisition
+          totalBusiness: totalRenewals + totalAcquisition,
+          upcomingRenewalsCount: nextMonthRenewalsCount,
+          upcomingPaymentNumeric: nextMonthPaymentAmount,
+          upcomingPaymentFormatted: formatRupee(nextMonthPaymentAmount),
+          upcomingRenewalsWindow: nextMonthLabel,
+          upcomingRenewalsMonth: nextMonthName,
+          upcomingRenewalsYear: nextMonthYear
+        },
+        upcomingRenewals: {
+          count: nextMonthRenewalsCount,
+          amount: nextMonthPaymentAmount,
+          amountFormatted: formatRupee(nextMonthPaymentAmount),
+          targetMonth: nextMonthName,
+          targetYear: nextMonthYear,
+          windowLabel: nextMonthLabel,
+          preview: nextMonthExpiringContracts.slice(0, 10)
         },
         salesChart: {
           points,
