@@ -17,7 +17,7 @@
     "startDate": "2026-11-19",
     "endDate": "2026-12-19",
     "expiryDate": "2026-12-19",
-    "status": "In Progress",
+    "status": "Active",
     "paymentStatus": "Yes",
     "slaTier": "",
     "description": "Enterprise Tier-4 Cloud Server (4core/4GB/100GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1656 (PAY-2026-1656).",
@@ -36,7 +36,10 @@
       "syncError": null
     },
     "id": "CTR-2026-1002",
-    "createdAt": "2026-11-19T07:46:32.734Z"
+    "createdAt": "2026-11-19T07:46:32.734Z",
+    "convertedToPaid": false,
+    "convertedAt": null,
+    "convertedToContractId": null
   },
   {
     "contractId": "CTR-2026-1000",
@@ -75,7 +78,8 @@
     "id": "CTR-2026-1000",
     "createdAt": "2026-11-14T11:43:38.910Z",
     "convertedToPaid": true,
-    "convertedAt": "2026-11-17T12:06:46.981Z",
-    "convertedToContractId": "CTR-2026-1001"
+    "convertedAt": "2026-11-19T09:08:28.596Z",
+    "convertedToContractId": "CTR-2026-1002",
+    "paymentStatus": "Yes"
   }
 ]

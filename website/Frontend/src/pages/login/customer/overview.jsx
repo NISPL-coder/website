@@ -175,34 +175,35 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
     : (data?.payments || []);
   const products = data?.products || [];
 
-  const activeCount = kpi.activeProducts ?? products.filter(
+  const isDemoProduct = (p) => Boolean(
+    p.isDemoTrial ||
+    p.contractType === 'Trial' ||
+    p.category === 'Trial' ||
+    String(p.status || '').toUpperCase() === 'DEMO' ||
+    String(p.status || '').toUpperCase() === 'DEMO-INACTIVE' ||
+    /demo|trial/i.test(p.name || '')
+  );
+
+  const regularProducts = products.filter((p) => !isDemoProduct(p));
+  const demoProductsList = products.filter(isDemoProduct);
+
+  const activePaidProducts = regularProducts.filter(
     (p) =>
       !p.expired &&
-      ['in progress', 'active'].includes(String(p.status || '').toLowerCase()) &&
-      String(p.status).toUpperCase() !== 'DEMO' &&
-      String(p.status).toUpperCase() !== 'CONVERTED' &&
-      !p.convertedToPaid &&
-      !p.isDemoTrial
-  ).length;
+      !['closed', 'disabled', 'inactive', 'suspended', 'paused'].includes(String(p.status || '').toLowerCase())
+  );
+
+  const activeCount = kpi.activeProducts ?? activePaidProducts.length;
 
   const hasPurchasedPaidProduct =
     activeCount > 0 ||
     (kpi.totalPaid && kpi.totalPaid > 0) ||
     Boolean(data?.hasConvertedDemo) ||
-    products.some((p) => p.convertedToPaid || String(p.status).toUpperCase() === 'CONVERTED');
+    payments.length > 0;
 
   const hasConvertedDemo =
     Boolean(data?.hasConvertedDemo) ||
-    (hasPurchasedPaidProduct &&
-      products.some(
-        (p) =>
-          p.isDemoTrial ||
-          p.contractType === 'Trial' ||
-          p.category === 'Trial' ||
-          String(p.status).toUpperCase() === 'DEMO' ||
-          p.convertedToPaid ||
-          String(p.status).toUpperCase() === 'CONVERTED'
-      ));
+    (hasPurchasedPaidProduct && demoProductsList.length > 0);
 
   // Rule: "once demo is issued and then purchased the products the demo will be convert.
   // both demo and active product cannot be there."
@@ -211,18 +212,30 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
     ? []
     : Array.isArray(data?.demoProducts)
     ? data.demoProducts
-    : products.filter(
+    : demoProductsList.filter(
         (p) =>
-          (p.isDemoTrial ||
-            p.contractType === 'Trial' ||
-            p.category === 'Trial' ||
-            String(p.status).toUpperCase() === 'DEMO') &&
-          String(p.status).toUpperCase() !== 'CONVERTED' &&
+          !p.expired &&
           !p.convertedToPaid &&
-          !p.expired
+          String(p.status || '').toUpperCase() === 'DEMO'
       );
 
   const demoCount = hasPurchasedPaidProduct ? 0 : (kpi.demoProducts ?? demoProducts.length);
+
+  // Dynamic products & orders breakdown (e.g. "1 demo + 3 active product")
+  const demoTotal = demoProductsList.length;
+  const activeTotal = activePaidProducts.length;
+  const totalOrders = kpi.totalProducts ?? (products.length > 0 ? products.length : (demoTotal + activeTotal));
+
+  let orderBreakdownText = kpi.orderBreakdown || '';
+  if (!orderBreakdownText) {
+    if (demoTotal > 0 && activeTotal > 0) {
+      orderBreakdownText = `${demoTotal} demo + ${activeTotal} active product`;
+    } else if (demoTotal > 0) {
+      orderBreakdownText = `${demoTotal} demo`;
+    } else if (activeTotal > 0) {
+      orderBreakdownText = `${activeTotal} active product`;
+    }
+  }
 
   const rawReminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders
@@ -568,8 +581,14 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
             <KpiCard
               icon={Package}
               label="Active Products"
-              value={activeCount}
-              note={activeCount > 0 ? `${activeCount} on this account` : 'Nothing subscribed yet'}
+              value={totalOrders > 0 ? totalOrders : activeCount}
+              note={
+                orderBreakdownText
+                  ? `(${orderBreakdownText})`
+                  : activeCount > 0
+                  ? `${activeCount} on this account`
+                  : 'Nothing subscribed yet'
+              }
               actionLabel="View products"
               onAction={() => setIsProductsModalOpen(true)}
               onClick={() => setIsProductsModalOpen(true)}
@@ -846,47 +865,43 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                   </p>
                 ) : (
                   products.map((product) => {
-                    const isRawDemo = Boolean(
-                      product.isDemoTrial ||
-                      product.contractType === 'Trial' ||
-                      product.category === 'Trial' ||
-                      String(product.status).toUpperCase() === 'DEMO' ||
-                      String(product.status).toUpperCase() === 'DEMO-INACTIVE'
-                    );
+                    const isRawDemo = isDemoProduct(product);
                     const isConverted =
-                      Boolean(product.convertedToPaid) ||
-                      String(product.status).toUpperCase() === 'CONVERTED' ||
-                      String(product.status).toUpperCase() === 'DEMO-INACTIVE' ||
-                      (hasPurchasedPaidProduct && isRawDemo);
+                      isRawDemo && (
+                        Boolean(product.convertedToPaid) ||
+                        String(product.status).toUpperCase() === 'CONVERTED' ||
+                        String(product.status).toUpperCase() === 'DEMO-INACTIVE' ||
+                        hasPurchasedPaidProduct
+                      );
                     const isDemo = !isConverted && isRawDemo && !product.expired;
                     const metaParts = [
-                      product.contractType || product.category || null,
+                      product.contractType || product.category || (isRawDemo ? 'Trial' : 'Subscription'),
                       isConverted
-                        ? (isRawDemo ? 'Converted to paid plan' : 'Upgraded to latest plan')
+                        ? 'Converted to paid plan'
                         : product.expiryDate
                         ? `Valid till ${formatDate(product.expiryDate)}`
-                        : 'Validity not recorded'
+                        : 'Active subscription'
                     ].filter(Boolean);
                     const normProductStatus = String(product.status || '').toLowerCase();
                     const isProductInactive = ['inactive', 'disabled', 'suspended', 'paused', 'closed'].includes(normProductStatus);
 
                     const displayStatus = isConverted
                       ? 'Converted'
+                      : isDemo
+                      ? 'Demo Trial'
                       : product.expired
                       ? 'Expired'
                       : isProductInactive
                       ? product.status || 'Inactive'
-                      : isDemo
-                      ? 'Demo Trial'
-                      : product.status || 'Active';
+                      : 'Active';
                     const badgeTone = isConverted
                       ? 'completed'
+                      : isDemo
+                      ? 'due'
                       : product.expired
                       ? 'overdue'
                       : isProductInactive
                       ? 'inactive'
-                      : isDemo
-                      ? 'due'
                       : 'active';
                     return (
                       <div key={product.id || product.name} className="flowmail-product-row">

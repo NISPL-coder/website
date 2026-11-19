@@ -904,83 +904,24 @@ export const getCustomerOverview = async (req, res) => {
 
     const regularProducts = products.filter((product) => !isDemoProduct(product));
 
-    // Reconcile product upgrades: If customer has multiple regular paid products,
-    // the newest active product is live ('In Progress'); older active products are marked as 'Converted'
-    if (regularProducts.length > 1) {
-      const sortedRegular = [...regularProducts].sort((a, b) => {
-        const dateA = a.orderDate || a.startDate || '';
-        const dateB = b.orderDate || b.startDate || '';
-        if (dateB !== dateA) return dateB.localeCompare(dateA);
-        return String(b.contractId || b.id || '').localeCompare(String(a.contractId || a.id || ''));
-      });
-
-      const latestContract = sortedRegular[0];
-      const olderContractsToConvert = sortedRegular.slice(1).filter((p) =>
-        ['in progress', 'active'].includes(String(p.status || '').toLowerCase()) &&
-        String(p.status).toUpperCase() !== 'CONVERTED'
-      );
-
-      if (olderContractsToConvert.length > 0) {
-        const olderIds = olderContractsToConvert.map((p) => p.contractId || p.id).filter(Boolean);
-        const conversionTimestamp = new Date().toISOString();
-
-        olderContractsToConvert.forEach((p) => {
-          p.status = 'Converted';
-          p.convertedToPaid = true;
-          p.convertedAt = conversionTimestamp;
-          p.convertedToContractId = latestContract.contractId || latestContract.id;
-        });
-
-        if (isMongoConnected() && olderIds.length > 0) {
-          try {
-            await Contract.updateMany(
-              { contractId: { $in: olderIds } },
-              {
-                $set: {
-                  status: 'Converted',
-                  convertedToPaid: true,
-                  convertedAt: new Date(),
-                  convertedToContractId: latestContract.contractId || latestContract.id
-                }
-              }
-            );
-          } catch (upgradeErr) {
-            console.warn('[PortalController] Product upgrade reconciliation note:', upgradeErr.message);
-          }
-        }
-
-        try {
-          const fileCtrs = getContractsFromFile();
-          let changed = false;
-          const updated = fileCtrs.map((c) => {
-            if (olderIds.includes(c.contractId) && c.status !== 'Converted') {
-              changed = true;
-              return {
-                ...c,
-                status: 'Converted',
-                convertedToPaid: true,
-                convertedAt: conversionTimestamp,
-                convertedToContractId: latestContract.contractId || latestContract.id
-              };
-            }
-            return c;
-          });
-          if (changed) saveContractsToFile(updated);
-        } catch (fileErr) {
-          console.warn('[PortalController] File fallback upgrade note:', fileErr.message);
-        }
-      }
-    }
-
     const activePaidCount = regularProducts.filter(
       (p) =>
         !p.expired &&
-        ['in progress', 'active'].includes(String(p.status || '').toLowerCase()) &&
-        String(p.status).toUpperCase() !== 'CONVERTED' &&
-        !p.convertedToPaid
+        !['closed', 'disabled', 'inactive', 'suspended', 'paused'].includes(String(p.status || '').toLowerCase())
     ).length;
 
     const demoProducts = products.filter((product) => isDemoProduct(product));
+    const demoTotal = demoProducts.length;
+    const totalOrders = products.length;
+
+    let orderBreakdown = '';
+    if (demoTotal > 0 && activePaidCount > 0) {
+      orderBreakdown = `${demoTotal} demo + ${activePaidCount} active product`;
+    } else if (demoTotal > 0) {
+      orderBreakdown = `${demoTotal} demo`;
+    } else if (activePaidCount > 0) {
+      orderBreakdown = `${activePaidCount} active product`;
+    }
 
     const hasPurchasedPaidProduct =
       activePaidCount > 0 ||
@@ -1136,9 +1077,11 @@ export const getCustomerOverview = async (req, res) => {
           emailVerifiedAt: customer?.emailVerifiedAt || user?.emailVerifiedAt || null
         },
         kpi: {
+          totalProducts: totalOrders,
           activeProducts: activePaidCount,
           demoProducts: activeDemoCount,
           activeDemoProducts: activeDemoCount,
+          orderBreakdown,
           totalPaid,
           totalPending,
           totalInvoicePending,

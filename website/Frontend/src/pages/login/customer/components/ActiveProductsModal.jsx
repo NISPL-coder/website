@@ -44,15 +44,29 @@ function dueInWords(daysLeft) {
 
 function productState(product) {
   const raw = String(product.status || '').toUpperCase();
-  const isConverted =
-    Boolean(product.convertedToPaid) || raw === 'CONVERTED' || raw === 'DEMO-INACTIVE';
-  if (isConverted) return { label: 'Converted', tone: 'completed' };
-  if (product.expired) return { label: 'Expired', tone: 'overdue' };
-  if (raw === 'INACTIVE') return { label: 'Inactive', tone: 'completed' };
-  if (product.isDemoTrial || raw === 'DEMO' || product.contractType === 'Trial') {
+  const isDemo = Boolean(
+    product.isDemoTrial ||
+    raw === 'DEMO' ||
+    raw === 'DEMO-INACTIVE' ||
+    product.contractType === 'Trial' ||
+    product.category === 'Trial' ||
+    /demo|trial/i.test(product.name || '')
+  );
+
+  if (isDemo) {
+    if (product.convertedToPaid || raw === 'CONVERTED' || raw === 'DEMO-INACTIVE') {
+      return { label: 'Converted', tone: 'completed' };
+    }
     return { label: 'Demo Trial', tone: 'due' };
   }
-  return { label: product.status || 'Active', tone: 'active' };
+
+  if (product.expired) return { label: 'Expired', tone: 'overdue' };
+  if (['INACTIVE', 'DISABLED', 'CLOSED', 'SUSPENDED', 'PAUSED'].includes(raw)) {
+    return { label: 'Inactive', tone: 'completed' };
+  }
+
+  // Except demo, all other purchased products are Active (remove "In Progress"!)
+  return { label: 'Active', tone: 'active' };
 }
 
 export default function ActiveProductsModal({
@@ -79,10 +93,18 @@ export default function ActiveProductsModal({
 
   if (!isOpen) return null;
 
+  const isDemoCheck = (p) => Boolean(
+    p.isDemoTrial ||
+    p.contractType === 'Trial' ||
+    p.category === 'Trial' ||
+    String(p.status || '').toUpperCase().startsWith('DEMO') ||
+    /demo|trial/i.test(p.name || '')
+  );
+
   const counts = {
     total: products.length,
-    active: products.filter((p) => !p.expired && !String(p.status || '').toUpperCase().startsWith('DEMO')).length,
-    demo: products.filter((p) => String(p.status || '').toUpperCase().startsWith('DEMO')).length,
+    active: products.filter((p) => !p.expired && !isDemoCheck(p) && !['inactive', 'disabled', 'closed'].includes(String(p.status || '').toLowerCase())).length,
+    demo: products.filter((p) => isDemoCheck(p)).length,
     expired: products.filter((p) => p.expired).length
   };
 
