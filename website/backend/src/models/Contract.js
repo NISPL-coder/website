@@ -146,7 +146,7 @@ const contractSchema = new mongoose.Schema(
         'DEMO-Inactive',
         'Converted'
       ],
-      default: 'In Progress'
+      default: 'Active'
     },
     paymentStatus: {
       type: String,

@@ -66,7 +66,9 @@ import {
   contractPersonMobile,
   contractActorName,
   formatContractStamp,
-  matchesStatusFilter
+  matchesStatusFilter,
+  isDemoContract,
+  customerHasPurchasedPlans
 } from './contractVocabulary';
 import {
   normalizeCustomerLifecycle,
@@ -82,10 +84,9 @@ function addressPart(cust, key) {
 
 const CUSTOMER_STATUS_FILTERS = [
   { value: 'all', label: 'All Statuses', countKey: 'total' },
-  { value: 'inactive', label: 'Inactive', countKey: 'inactive' },
+  { value: 'active', label: 'Active', countKey: 'active' },
   { value: 'demo', label: 'Demo / Trials', countKey: 'demo' },
-  { value: 'inprogress', label: 'In Progress', countKey: 'inprogress' },
-  { value: 'active', label: 'Active Only', countKey: 'active' }
+  { value: 'inactive', label: 'Inactive', countKey: 'inactive' }
 ];
 
 const CONTRACT_STATUS_FILTER_OPTIONS = [
@@ -256,12 +257,11 @@ export default function OverviewSection({
   // Customer status breakdown counts for current filtered view
   const customerCounts = useMemo(() => {
     const list = activeOverviewData.filteredCustomers || [];
-    const counts = { total: list.length, active: 0, demo: 0, inprogress: 0, inactive: 0 };
+    const counts = { total: list.length, active: 0, demo: 0, inactive: 0 };
     for (const c of list) {
       const stage = normalizeCustomerLifecycle(c.status);
       if (stage === 'Active') counts.active += 1;
       else if (stage === 'Demo') counts.demo += 1;
-      else if (stage === 'InProgress') counts.inprogress += 1;
       else counts.inactive += 1;
     }
     return counts;
@@ -354,7 +354,6 @@ export default function OverviewSection({
       let matchesStatus = true;
       if (custStatusFilter === 'active') matchesStatus = stage === 'Active';
       else if (custStatusFilter === 'demo') matchesStatus = stage === 'Demo';
-      else if (custStatusFilter === 'inprogress') matchesStatus = stage === 'InProgress';
       else if (custStatusFilter === 'inactive') matchesStatus = stage === 'Inactive';
 
       const matchesDateRange = isWithinDateRange(
@@ -912,7 +911,6 @@ export default function OverviewSection({
     filtered.forEach((c) => {
       const stage = normalizeCustomerLifecycle(c.status);
       if (stage === 'Active') active += 1;
-      else if (stage === 'InProgress') inProgress += 1;
       else if (stage === 'Demo') demo += 1;
       else inactive += 1;
     });
@@ -921,7 +919,6 @@ export default function OverviewSection({
     if (!accountsRange.from && !accountsRange.to && apiOverview?.kpi?.totalPipelineCount != null) {
       total = apiOverview.kpi.totalPipelineCount;
       active = apiOverview.kpi.activeCount ?? active;
-      inProgress = apiOverview.kpi.inProgressCount ?? inProgress;
       demo = apiOverview.kpi.demoCount ?? demo;
       inactive = apiOverview.kpi.inactiveCount ?? inactive;
     }
@@ -929,7 +926,6 @@ export default function OverviewSection({
     return {
       total,
       active,
-      inProgress,
       demo,
       inactive
     };
@@ -1499,8 +1495,6 @@ export default function OverviewSection({
             <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
               {stage === 'Active' && <CheckCircle2 size={12} />}
               {stage === 'Demo' && <Clock size={12} />}
-              {stage === 'DemoInactive' && <XCircle size={12} />}
-              {stage === 'InProgress' && <Activity size={12} />}
               {stage === 'Inactive' && <XCircle size={12} />}
               <span>{customerLifecycleLabel(cust.status)}</span>
             </span>
@@ -1509,10 +1503,9 @@ export default function OverviewSection({
       },
       searchType: 'select',
       searchOptions: [
-        { value: 'Inactive', label: 'Inactive' },
+        { value: 'Active', label: 'Active' },
         { value: 'Demo', label: 'Demo Trial' },
-        { value: 'InProgress', label: 'In Progress' },
-        { value: 'Active', label: 'Active' }
+        { value: 'Inactive', label: 'Inactive' }
       ]
     },
     {
@@ -1705,7 +1698,7 @@ export default function OverviewSection({
             <span className={`adm-status-pill ${tone}`}>
               {status || '—'}
             </span>
-            {can('contract', 'edit') && status === 'In Progress' && (
+            {can('contract', 'edit') && (status === 'Active' || status === 'In Progress') && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -1731,12 +1724,12 @@ export default function OverviewSection({
                 {isUpdating ? 'Updating...' : '+ Set Inactive'}
               </button>
             )}
-            {can('contract', 'edit') && status === 'Inactive' && (
+            {can('contract', 'edit') && status === 'Inactive' && !(isDemoContract(c) && customerHasPurchasedPlans(c, contracts)) && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleQuickContractStatusChange(c, 'In Progress');
+                  handleQuickContractStatusChange(c, 'Active');
                 }}
                 disabled={isUpdating}
                 style={{
@@ -1752,9 +1745,9 @@ export default function OverviewSection({
                   gap: '3px',
                   textDecoration: 'underline'
                 }}
-                title="Mark this contract as In Progress and update in Sangam CRM"
+                title="Mark this contract as Active and update in Sangam CRM"
               >
-                {isUpdating ? 'Updating...' : '+ Set In Progress'}
+                {isUpdating ? 'Updating...' : '+ Set Active'}
               </button>
             )}
           </div>
@@ -1899,15 +1892,18 @@ export default function OverviewSection({
                 label: 'Set Inactive',
                 icon: Power,
                 tone: 'red',
-                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'In Progress',
+                hidden: !can('contract', 'edit') || !['Active', 'In Progress'].includes(normalizeContractStatus(c.status, c)),
                 onClick: () => handleQuickContractStatusChange(c, 'Inactive')
               },
               {
-                label: 'Set In Progress',
+                label: 'Set Active',
                 icon: CheckCircle2,
                 tone: 'green',
-                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'Inactive',
-                onClick: () => handleQuickContractStatusChange(c, 'In Progress')
+                hidden:
+                  !can('contract', 'edit') ||
+                  normalizeContractStatus(c.status, c) !== 'Inactive' ||
+                  (isDemoContract(c) && customerHasPurchasedPlans(c, contracts)),
+                onClick: () => handleQuickContractStatusChange(c, 'Active')
               },
               {
                 label: 'Print (PDF)',
@@ -2368,10 +2364,6 @@ export default function OverviewSection({
                 <CountUp end={accountsMetrics.active} duration={1200} /> Active
               </strong>{' '}
               •{' '}
-              <strong style={{ color: '#6366f1' }}>
-                <CountUp end={accountsMetrics.inProgress} duration={1200} /> In Progress
-              </strong>{' '}
-              •{' '}
               <strong style={{ color: '#d97706' }}>
                 <CountUp end={accountsMetrics.demo} duration={1200} /> Demo Trial
               </strong>{' '}
@@ -2411,7 +2403,7 @@ export default function OverviewSection({
               style={{ fontWeight: 700, fontSize: '0.72rem', padding: '3px 8px' }}
             >
               <Users size={12} />
-              <span>{usersMetrics.customersWithUsers} {usersMetrics.customersWithUsers === 1 ? 'Client' : 'Clients'}</span>
+              <span>{usersMetrics.customersWithUsers} {usersMetrics.customersWithUsers === 1 ? 'Customer' : 'Customers'}</span>
             </span>
           </div>
 
@@ -2420,19 +2412,6 @@ export default function OverviewSection({
             <div className="adm-finance-value purple-val">
               <CountUp end={usersMetrics.totalUsed} duration={1200} /> {usersMetrics.totalUsed === 1 ? 'User' : 'Users'}
             </div>
-            <p className="adm-finance-caption">
-              <strong style={{ color: '#059669' }}>
-                <CountUp end={usersMetrics.activeUsers} duration={1200} /> Active
-              </strong>{' '}
-              •{' '}
-              <strong style={{ color: '#d97706' }}>
-                <CountUp end={usersMetrics.demoUsers} duration={1200} /> Demo Trial
-              </strong>{' '}
-              •{' '}
-              <strong style={{ color: '#6366f1' }}>
-                {usersMetrics.totalPlans} Cloud {usersMetrics.totalPlans === 1 ? 'Plan' : 'Plans'} Provisioned
-              </strong>
-            </p>
           </div>
 
           <div className="adm-finance-footer">

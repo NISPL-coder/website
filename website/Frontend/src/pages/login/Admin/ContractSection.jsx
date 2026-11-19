@@ -37,7 +37,9 @@ import {
   contractPersonMobile,
   contractActorName,
   formatContractStamp,
-  matchesStatusFilter
+  matchesStatusFilter,
+  isDemoContract,
+  customerHasPurchasedPlans
 } from './contractVocabulary';
 import { usePermissions } from './PermissionsContext';
 
@@ -424,7 +426,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
             <span className={`adm-status-pill ${tone}`}>
               {status || '—'}
             </span>
-            {can('contract', 'edit') && status === 'In Progress' && (
+            {can('contract', 'edit') && (status === 'Active' || status === 'In Progress') && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -450,12 +452,12 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 {isUpdating ? 'Updating...' : '+ Set Inactive'}
               </button>
             )}
-            {can('contract', 'edit') && status === 'Inactive' && (
+            {can('contract', 'edit') && status === 'Inactive' && !(isDemoContract(c) && customerHasPurchasedPlans(c, contracts)) && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleQuickStatusChange(c, 'In Progress');
+                  handleQuickStatusChange(c, 'Active');
                 }}
                 disabled={isUpdating}
                 style={{
@@ -471,9 +473,9 @@ export default function ContractSection({ contracts, setContracts, customers = [
                   gap: '3px',
                   textDecoration: 'underline'
                 }}
-                title="Mark this contract as In Progress and update in Sangam CRM"
+                title="Mark this contract as Active and update in Sangam CRM"
               >
-                {isUpdating ? 'Updating...' : '+ Set In Progress'}
+                {isUpdating ? 'Updating...' : '+ Set Active'}
               </button>
             )}
           </div>
@@ -484,15 +486,15 @@ export default function ContractSection({ contracts, setContracts, customers = [
     {
       id: 'paymentStatus',
       name: 'Payment Status',
-      selector: (row) => row.paymentStatus || 'No',
+      selector: (row) => (['yes', 'true', '1', 'paid'].includes(String(row.paymentStatus || '').toLowerCase()) ? 'Yes' : 'No'),
       sortable: true,
-      sortFunction: compareText((row) => row.paymentStatus || 'No'),
+      sortFunction: compareText((row) => (['yes', 'true', '1', 'paid'].includes(String(row.paymentStatus || '').toLowerCase()) ? 'Yes' : 'No')),
       width: '135px',
       cell: (c) => {
         const isPaid = ['yes', 'true', '1', 'paid'].includes(String(c.paymentStatus || '').toLowerCase());
         return (
           <span className={`adm-status-pill ${isPaid ? 'active' : 'inactive'}`}>
-            {isPaid ? 'Yes (Active)' : 'No (Demo)'}
+            {isPaid ? 'Yes' : 'No'}
           </span>
         );
       },
@@ -635,15 +637,18 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 label: 'Set Inactive',
                 icon: Power,
                 tone: 'red',
-                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'In Progress',
+                hidden: !can('contract', 'edit') || !['Active', 'In Progress'].includes(normalizeContractStatus(c.status, c)),
                 onClick: () => handleQuickStatusChange(c, 'Inactive')
               },
               {
-                label: 'Set In Progress',
+                label: 'Set Active',
                 icon: CheckCircle2,
                 tone: 'green',
-                hidden: !can('contract', 'edit') || normalizeContractStatus(c.status, c) !== 'Inactive',
-                onClick: () => handleQuickStatusChange(c, 'In Progress')
+                hidden:
+                  !can('contract', 'edit') ||
+                  normalizeContractStatus(c.status, c) !== 'Inactive' ||
+                  (isDemoContract(c) && customerHasPurchasedPlans(c, contracts)),
+                onClick: () => handleQuickStatusChange(c, 'Active')
               },
               {
                 label: 'Print (PDF)',

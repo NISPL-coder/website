@@ -1899,14 +1899,16 @@ const runMasterImport = async (req, rows, onProgress) => {
       } else if (
         rawPaymentStatus === 'in progress' ||
         rawContractStatus === 'in progress' ||
+        rawContractStatus === 'active' ||
         (numValue > 0 && !rawContractStatus.includes('demo') && !rawContractStatus.includes('trial'))
       ) {
         isPaid = true;
       }
 
+      const isDemo = rawContractStatus.includes('demo') || rawContractStatus.includes('trial') || rawPaymentStatus === 'demo';
       const paymentStatus = isPaid ? 'Yes' : 'No';
-      const customerStatus = isPaid ? 'Active' : 'Demo';
-      const contractStatus = isPaid ? 'In Progress' : 'DEMO';
+      const customerStatus = isPaid ? 'Active' : (isDemo ? 'Demo' : 'Inactive');
+      const contractStatus = isPaid ? 'Active' : (isDemo ? 'DEMO' : 'Active');
 
       // 4. Payment Details (Section C)
       const paymentMethod = (item.paymentMode || item.paymentMethod || item.method || 'NEFT Wire').trim();

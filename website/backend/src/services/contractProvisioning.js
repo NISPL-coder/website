@@ -380,7 +380,7 @@ export const activateAccountAfterPayment = async ({
     ]
   };
   const conversionSet = {
-    status: 'DEMO-Inactive',
+    status: 'Inactive',
     convertedToPaid: true,
     isDemoTrial: false,
     convertedAt: new Date().toISOString(),

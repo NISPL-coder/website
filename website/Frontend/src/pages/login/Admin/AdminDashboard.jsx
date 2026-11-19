@@ -401,7 +401,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
     contracts.forEach((c) => {
       // Only a term that is actually running can be renewed.
-      if (normalizeContractStatus(c.status) !== 'In Progress') return;
+      if (!['Active', 'In Progress'].includes(normalizeContractStatus(c.status))) return;
 
       let isNearExpiry = false;
 

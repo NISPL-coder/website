@@ -8,7 +8,7 @@
  * spelling.
  */
 
-export const CONTRACT_STATUSES = ['In Progress', 'Inactive', 'Not Started', 'Closed', 'Converted', 'DEMO', 'DEMO-Inactive', 'DISABLED'];
+export const CONTRACT_STATUSES = ['Active', 'Inactive', 'DEMO', 'Not Started', 'Closed', 'DISABLED'];
 
 export const CONTRACT_TYPES = ['Comprehensive', 'Non Comprehensive Rental', 'SHARED', 'DEDICATED'];
 
@@ -23,22 +23,22 @@ const squash = (value) =>
 
 const STATUS_LOOKUP = {
   notstarted: 'Not Started',
-  inprogress: 'In Progress',
+  inprogress: 'Active',
   closed: 'Closed',
-  converted: 'Converted',
+  converted: 'Active',
   demo: 'DEMO',
-  demoinactive: 'DEMO-Inactive',
-  'demo-inactive': 'DEMO-Inactive',
+  demoinactive: 'Inactive',
+  'demo-inactive': 'Inactive',
   disabled: 'DISABLED',
   // Previous vocabulary.
-  active: 'In Progress',
-  signed: 'In Progress',
-  expiring: 'In Progress',
-  live: 'In Progress',
+  active: 'Active',
+  signed: 'Active',
+  expiring: 'Active',
+  live: 'Active',
   draft: 'Not Started',
   pending: 'Not Started',
   inactive: 'Inactive',
-  expired: 'Closed',
+  expired: 'Inactive',
   completed: 'Closed',
   cancelled: 'Closed',
   suspended: 'DISABLED'
@@ -61,7 +61,7 @@ export const normalizeContractStatus = (value, contract = null) => {
 
   const squashed = squash(raw);
   if (squashed === 'demoinactive') {
-    return 'DEMO-Inactive';
+    return 'Inactive';
   }
 
   const isDemo =
@@ -74,16 +74,28 @@ export const normalizeContractStatus = (value, contract = null) => {
     const isExpired = ctx.endDate || ctx.expiryDate
       ? new Date(ctx.endDate || ctx.expiryDate).getTime() < Date.now()
       : false;
-    const isConverted = Boolean(ctx.convertedToPaid) || squashed === 'converted';
+    const isConverted = Boolean(ctx.convertedToPaid) || squashed === 'converted' || squashed === 'demoinactive';
 
     if (isConverted || isExpired) {
-      return 'DEMO-Inactive';
+      return 'Inactive';
     }
     return 'DEMO';
   }
 
-  if (squashed === 'converted') {
-    return 'Converted';
+  if (['inactive', 'closed', 'expired'].includes(squashed)) {
+    return squashed === 'closed' ? 'Closed' : 'Inactive';
+  }
+
+  if (squashed === 'disabled' || squashed === 'suspended') {
+    return 'DISABLED';
+  }
+
+  if (squashed === 'notstarted' || squashed === 'draft' || squashed === 'pending') {
+    return 'Not Started';
+  }
+
+  if (['active', 'inprogress', 'in progress', 'converted', 'signed', 'live', 'expiring'].includes(squashed)) {
+    return 'Active';
   }
 
   return STATUS_LOOKUP[squashed] || raw;
@@ -149,4 +161,47 @@ export const periodFromDates = (startDate, endDate) => {
     return years === 1 ? '1 Year' : `${years} Years`;
   }
   return months === 1 ? '1 Month' : `${months} Months`;
+};
+
+/**
+ * Checks if a contract record represents a Demo / Trial contract
+ */
+export const isDemoContract = (ctr) => {
+  if (!ctr) return false;
+  return Boolean(
+    ctr.isDemoTrial ||
+    ctr.contractType === 'Trial' ||
+    ctr.productCategory === 'Trial' ||
+    String(ctr.contractId || ctr.id || '').toUpperCase().includes('DEMO') ||
+    String(ctr.name || '').toLowerCase().includes('demo') ||
+    ctr.convertedToPaid
+  );
+};
+
+/**
+ * Checks if the customer associated with this contract has purchased any active/paid plans.
+ * Once a customer purchases plans, demo trials are permanently converted and cannot be set back to Active.
+ */
+export const customerHasPurchasedPlans = (ctr, allContracts = []) => {
+  if (!ctr) return false;
+  if (ctr.convertedToPaid || ctr.convertedToContractId) return true;
+  if (!Array.isArray(allContracts) || allContracts.length === 0) return false;
+
+  const targetCustId = String(ctr.customerId || '').trim().toLowerCase();
+  const targetEmail = String(ctr.email || ctr.personEmail || '').trim().toLowerCase();
+  const targetCompany = String(ctr.company || '').trim().toLowerCase();
+
+  return allContracts.some((other) => {
+    if (isDemoContract(other)) return false;
+
+    const otherCustId = String(other.customerId || '').trim().toLowerCase();
+    const otherEmail = String(other.email || other.personEmail || '').trim().toLowerCase();
+    const otherCompany = String(other.company || '').trim().toLowerCase();
+
+    return (
+      (targetCustId && otherCustId && targetCustId === otherCustId) ||
+      (targetEmail && otherEmail && targetEmail === otherEmail) ||
+      (targetCompany && otherCompany && targetCompany === otherCompany)
+    );
+  });
 };

@@ -256,7 +256,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
       const formattedValue = String(val).startsWith('₹') ? val : `₹${val}`;
 
       const sType = normalizeContractType(contract.contractType) || 'Comprehensive';
-      const sStatus = normalizeContractStatus(contract.status, contract) || 'In Progress';
+      const sStatus = normalizeContractStatus(contract.status, contract) || 'Active';
       const pStatus = ['yes', 'true', '1', 'paid'].includes(String(contract.paymentStatus || '').toLowerCase())
         ? 'Yes'
         : 'No';
@@ -1115,8 +1115,8 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                       value={formData.paymentStatus}
                       onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
                     >
-                      <option value="Yes">Yes (Active Client &amp; Paid)</option>
-                      <option value="No">No (Demo Trial / Unpaid)</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
                     </select>
                   </div>
                 </div>

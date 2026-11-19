@@ -30,9 +30,10 @@ const LOOKUP = {
   paused: 'Inactive',
   demo: 'Demo',
   trial: 'Demo',
-  demoinactive: 'DemoInactive',
-  'demo-inactive': 'DemoInactive',
-  inprogress: 'InProgress',
+  demoinactive: 'Inactive',
+  'demo-inactive': 'Inactive',
+  inprogress: 'Active',
+  'in progress': 'Active',
   active: 'Active'
 };
 
@@ -123,6 +124,7 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
   const settled = (payments || []).some((p) => isSettledPayment(p) && matchesCustomer(customer, p));
 
   // Helper to check if a paid contract is actively running (not Inactive, Closed, DISABLED, Not Started, or Draft)
+  // Note: If status is 'In Progress' or 'Active', it is considered Active.
   const isContractLive = (ctr) => {
     if (isDemoContract(ctr)) return false;
     const s = normalizeContractStatus(ctr.status);
@@ -139,10 +141,10 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
     ['yes', 'true', '1', 'paid', 'y', 'active'].includes(String(ctr.paymentStatus || '').trim().toLowerCase())
   );
 
-  // A live in-progress or active contract is also considered Active
+  // A live in-progress or active contract is considered Active
   const hasLiveInProgressContract = paid.some((ctr) =>
     isContractLive(ctr) &&
-    ['In Progress', 'Active'].includes(normalizeContractStatus(ctr.status))
+    ['In Progress', 'Active', 'active', 'in progress', 'inprogress'].includes(normalizeContractStatus(ctr.status) || ctr.status)
   );
 
   // 1. If customer has a live, active paid contract -> Active
@@ -159,15 +161,7 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
     return 'Inactive';
   }
 
-  // 3. Check explicit demo contract status ONLY IF customer has NO settled payments and NO paid contracts
-  const hasExplicitDemoContract = own.some((ctr) =>
-    ['no', 'false', '0', 'unpaid', 'n', 'demo'].includes(String(ctr.paymentStatus || '').trim().toLowerCase())
-  );
-  if (hasExplicitDemoContract && !settled && paid.length === 0) {
-    return 'Demo';
-  }
-
-  // 4. If customer is in demo section -> Demo listing (active unexpired trial with no purchases or settled payments)
+  // 3. If customer has taken a demo pack and it is live/unexpired and no active plans purchased -> Demo
   const hasLiveDemo = own.some(
     (ctr) =>
       isDemoContract(ctr) &&
@@ -179,29 +173,11 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
     return 'Demo';
   }
 
-  // 5. If customer has not paid the amount / after demo ends customer not paid -> In Progress section
-  const hasUnpaidContract = paid.length > 0 && !settled && paid.some(c => !['Inactive', 'Closed', 'DISABLED'].includes(normalizeContractStatus(c.status)));
-  const hasEndedDemoWithoutPayment = (own.some(
-    (ctr) =>
-      isDemoContract(ctr) &&
-      (ctr.convertedToPaid ||
-       ['Converted', 'DEMO-Inactive'].includes(normalizeContractStatus(ctr.status, ctr)) ||
-       (ctr.endDate && String(ctr.endDate).split('T')[0] < today))
-  ) || Boolean(customer?.demoTrialUsed)) && paid.length === 0 && !settled;
-
-  if (hasUnpaidContract || hasEndedDemoWithoutPayment || stored === 'inprogress') {
-    return 'InProgress';
-  }
-
-  // 6. Fallback to customer's own stored status if no contracts contradict it
-  if (stored === 'active') {
+  // 4. If demo trial expired / ended without purchasing active plans -> Inactive
+  // 5. If customer logged in for first time without demo/active plans -> Inactive
+  // 6. If customer has not purchased any active product -> Inactive
+  if (stored === 'active' && paid.length > 0) {
     return 'Active';
-  }
-  if (stored === 'demo' || stored === 'trial') {
-    return 'Demo';
-  }
-  if (stored === 'demoinactive') {
-    return 'DemoInactive';
   }
 
   return 'Inactive';

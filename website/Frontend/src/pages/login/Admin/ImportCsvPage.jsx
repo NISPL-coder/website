@@ -299,7 +299,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
 
   const handleSetAllPaymentStatus = (status) => {
     setRecords((prev) => prev.map((r) => ({ ...r, paymentStatus: status })));
-    toast.success(`Set all ${records.length} records to Payment Status: ${status === 'Yes' ? 'Yes (Active)' : 'No (Demo)'}`);
+    toast.success(`Set all ${records.length} records to Payment Status: ${status === 'Yes' ? 'Yes' : 'No'}`);
   };
 
   const handleResetPaymentStatus = () => {
@@ -1237,7 +1237,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                   title="Mark all rows as Paid Active clients"
                 >
                   <CheckCircle2 size={12} />
-                  <span>Set All: Yes (Active)</span>
+                  <span>Set All: Yes</span>
                 </button>
 
                 <button
@@ -1248,7 +1248,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                   title="Mark all rows as Unpaid Demo trials"
                 >
                   <Clock size={12} />
-                  <span>Set All: No (Demo)</span>
+                  <span>Set All: No</span>
                 </button>
 
                 <button
@@ -1462,8 +1462,8 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                               }}
                               title="Click to manually toggle between Active (Yes) and Demo (No)"
                             >
-                              <option value="Yes">Yes (Active)</option>
-                              <option value="No">No (Demo)</option>
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
                             </select>
                           </td>
                           <td style={{ fontSize: '0.76rem' }}>

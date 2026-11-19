@@ -286,7 +286,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                 className="vcm-metric-value"
                 style={{ color: contractStatusColor(contract.status, contract) }}
               >
-                {normalizeContractStatus(contract.status, contract) === 'In Progress' ? (
+                {['Active', 'In Progress'].includes(normalizeContractStatus(contract.status, contract)) ? (
                   <CheckCircle2 size={16} />
                 ) : (
                   <Clock size={16} />
@@ -303,7 +303,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                 style={{ color: isPaid ? '#059669' : '#d97706' }}
               >
                 <CheckCircle2 size={16} />
-                <span>{isPaid ? 'Yes (Active & Paid)' : 'No (Demo Trial)'}</span>
+                <span>{isPaid ? 'Yes' : 'No'}</span>
               </div>
             </div>
 

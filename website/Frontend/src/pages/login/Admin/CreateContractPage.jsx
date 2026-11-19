@@ -474,12 +474,12 @@ export default function CreateContractPage({ contracts, setContracts }) {
                   styles={customSelectStyles}
                   isSearchable={false}
                   options={[
-                    { value: 'Yes', label: 'Yes (Active Client)' },
-                    { value: 'No', label: 'No (Demo Trial)' }
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' }
                   ]}
                   value={{
                     value: formState.paymentStatus || 'Yes',
-                    label: formState.paymentStatus === 'No' ? 'No (Demo Trial)' : 'Yes (Active Client)'
+                    label: formState.paymentStatus === 'No' ? 'No' : 'Yes'
                   }}
                   onChange={(opt) => setField('paymentStatus')(opt ? opt.value : 'Yes')}
                   classNamePrefix="react-select"

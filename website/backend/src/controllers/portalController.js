@@ -941,7 +941,7 @@ export const getCustomerOverview = async (req, res) => {
       products.forEach((p) => {
         if (isDemoProduct(p)) {
           hasConvertedDemo = true;
-          p.status = 'DEMO-Inactive';
+          p.status = 'Inactive';
           p.convertedToPaid = true;
           p.isDemoTrial = false;
           p.convertedAt = p.convertedAt || conversionTimestamp;
@@ -960,11 +960,11 @@ export const getCustomerOverview = async (req, res) => {
                 { _id: { $in: objectIds } },
                 { contractId: { $in: unconvertedDemoIds } }
               ],
-              status: { $ne: 'DEMO-Inactive' }
+              status: { $nin: ['Inactive', 'Closed', 'DISABLED'] }
             },
             {
               $set: {
-                status: 'DEMO-Inactive',
+                status: 'Inactive',
                 convertedToPaid: true,
                 convertedAt: new Date(),
                 convertedToContractId: regularProducts[0]?.id || regularProducts[0]?.contractId || ''
@@ -1013,9 +1013,9 @@ export const getCustomerOverview = async (req, res) => {
           const matches =
             filterByIdentity([c], identity).length > 0 &&
             (Boolean(c.isDemoTrial) || c.contractType === 'Trial' || c.productCategory === 'Trial' || String(c.status).toUpperCase() === 'DEMO' || String(c.status).toUpperCase() === 'DEMO-INACTIVE');
-          if (matches && c.status !== 'DEMO-Inactive') {
+          if (matches && c.status !== 'Inactive') {
             changed = true;
-            return { ...c, status: 'DEMO-Inactive', convertedToPaid: true, convertedAt: conversionTimestamp };
+            return { ...c, status: 'Inactive', convertedToPaid: true, convertedAt: conversionTimestamp };
           }
           return c;
         });

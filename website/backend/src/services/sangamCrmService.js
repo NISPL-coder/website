@@ -128,7 +128,9 @@ class SangamCrmService {
 
     // Sangam keeps three states; the console's five collapse onto them.
     const CRM_STATUS = {
+      Active: 'Active',
       'In Progress': 'Active',
+      Inactive: 'InActive',
       'Not Started': 'NotStarted',
       DEMO: 'NotStarted',
       Closed: 'InActive',

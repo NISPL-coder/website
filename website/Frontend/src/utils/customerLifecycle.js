@@ -1,7 +1,7 @@
 // Mirrors Backend/src/services/customerLifecycle.js: the stage is derived from
 // the contract and payment registers, so legacy stored words still translate.
 
-export const CUSTOMER_LIFECYCLE = ['Inactive', 'Demo', 'DemoInactive', 'InProgress', 'Active'];
+export const CUSTOMER_LIFECYCLE = ['Active', 'Demo', 'Inactive'];
 
 const squash = (value) =>
   String(value ?? '')
@@ -13,30 +13,28 @@ const LOOKUP = {
   inactive: 'Inactive',
   suspended: 'Inactive',
   paused: 'Inactive',
+  closed: 'Inactive',
+  demoinactive: 'Inactive',
+  'demo-inactive': 'Inactive',
   demo: 'Demo',
   trial: 'Demo',
-  demoinactive: 'DemoInactive',
-  'demo-inactive': 'DemoInactive',
-  inprogress: 'InProgress',
+  inprogress: 'Active',
+  'in progress': 'Active',
   active: 'Active'
 };
 
 export const normalizeCustomerLifecycle = (value) => LOOKUP[squash(value)] || 'Inactive';
 
 const LABEL = {
-  Inactive: 'Inactive',
+  Active: 'Active',
   Demo: 'Demo Trial',
-  DemoInactive: 'DEMO-Inactive',
-  InProgress: 'In Progress',
-  Active: 'Active'
+  Inactive: 'Inactive'
 };
 
 const TONE = {
-  Inactive: 'inactive',
+  Active: 'active',
   Demo: 'demo',
-  DemoInactive: 'demoinactive',
-  InProgress: 'info',
-  Active: 'active'
+  Inactive: 'inactive'
 };
 
 export const customerLifecycleLabel = (value) => LABEL[normalizeCustomerLifecycle(value)] || value;

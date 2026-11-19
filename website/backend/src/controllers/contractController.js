@@ -48,7 +48,9 @@ export const getContracts = async (req, res) => {
 
       let effectiveStatus = c.status;
       if (isDemo && (isExpired || isConverted)) {
-        effectiveStatus = 'DEMO-Inactive';
+        effectiveStatus = 'Inactive';
+      } else if (!isDemo && ['inprogress', 'in progress', 'converted', 'signed', 'live', 'expiring'].includes(String(c.status || '').toLowerCase().trim())) {
+        effectiveStatus = 'Active';
       }
 
       return {
@@ -130,7 +132,7 @@ export const createContract = async (req, res) => {
     // had before this vocabulary existed, so sheets and the trial flow still land
     // on a readable row.
     const effectiveContractType = normalizeContractType(contractType) || 'Subscription';
-    const effectiveStatus = normalizeContractStatus(status) || 'In Progress';
+    const effectiveStatus = normalizeContractStatus(status) || 'Active';
     // The term is read off the validity dates rather than typed beside them.
     const effectiveSubPeriod =
       String(subscriptionPeriod || '').trim() || periodFromDates(startDate, endDate) || '1 Year';
@@ -766,18 +768,21 @@ const toImportType = (value) => {
 };
 
 const toImportStatus = (value) => {
-  const recognised = normalizeContractStatus(value);
-  if (CONTRACT_STATUSES.includes(recognised)) return recognised;
-
   const raw = String(value ?? '').toLowerCase();
+  if (raw.includes('demo') || raw.includes('trial')) return 'DEMO';
   if (raw.includes('inactiv') || raw.includes('closed') || raw.includes('expired') || raw.includes('completed')) {
-    return 'Closed';
+    return raw.includes('closed') ? 'Closed' : 'Inactive';
   }
-  if (raw.includes('draft')) return 'Not Started';
-  if (raw.includes('notstarted') || raw.includes('not started') || raw.includes('pending') || raw.includes('progress')) {
+  if (raw.includes('draft') || raw.includes('notstarted') || raw.includes('not started') || raw.includes('pending')) {
     return 'Not Started';
   }
-  return 'In Progress';
+  if (raw.includes('progress') || raw.includes('active')) {
+    return 'Active';
+  }
+  const recognised = normalizeContractStatus(value);
+  if (recognised === 'In Progress') return 'Active';
+  if (CONTRACT_STATUSES.includes(recognised)) return recognised;
+  return 'Active';
 };
 
 const toImportCategory = (contractType, value) => {
@@ -998,8 +1003,11 @@ export const importContracts = async (req, res) => {
         const effectiveCompany = company || customer;
 
         const rawPaymentStatus = String(item.paymentStatus || item.payment || item.isPaid || '').trim();
-        const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus.toLowerCase());
-        const paymentStatus = rawPaymentStatus ? (isPaid ? 'Yes' : 'No') : (toImportStatus(item.status) === 'DEMO' ? 'No' : 'Yes');
+        const importStatus = toImportStatus(item.status);
+        const isPaid = ['yes', 'true', '1', 'paid', 'y', 'active'].includes(rawPaymentStatus.toLowerCase()) ||
+          importStatus === 'Active' ||
+          String(item.status || '').toLowerCase().includes('progress');
+        const paymentStatus = rawPaymentStatus ? (isPaid ? 'Yes' : 'No') : (importStatus === 'DEMO' ? 'No' : 'Yes');
 
         // Check if matching customer exists or auto-link/provision
         let targetCustomer = null;
@@ -1026,7 +1034,7 @@ export const importContracts = async (req, res) => {
         }
 
         let customerId = targetCustomer?.customerId || targetCustomer?.id || '';
-        const initialStatus = isPaid ? 'Active' : 'Demo';
+        const initialStatus = isPaid ? 'Active' : (importStatus === 'DEMO' ? 'Demo' : 'Inactive');
 
         if (!targetCustomer && (effectiveCompany || customer)) {
           // Provision customer record so they appear in Active or Demo section immediately

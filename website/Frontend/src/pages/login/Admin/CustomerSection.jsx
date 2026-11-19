@@ -145,7 +145,7 @@ export default function CustomerSection({
   // Dynamic card stats and status counts computed directly from live customer records
   const dynamicCards = useMemo(() => {
     const list = Array.isArray(customers) ? customers : [];
-    const counts = { total: list.length, active: 0, demo: 0, inprogress: 0, inactive: 0 };
+    const counts = { total: list.length, active: 0, demo: 0, inactive: 0 };
     let mrrNum = 0;
     for (const c of list) {
       const stage = normalizeCustomerLifecycle(c.status);
@@ -154,8 +154,6 @@ export default function CustomerSection({
         mrrNum += parseInt(String(c.mrr || '').replace(/[^0-9]/g, ''), 10) || 0;
       } else if (stage === 'Demo') {
         counts.demo += 1;
-      } else if (stage === 'InProgress') {
-        counts.inprogress += 1;
       } else {
         counts.inactive += 1;
       }
@@ -169,7 +167,6 @@ export default function CustomerSection({
       formattedMrr,
       totalDesc: 'All customer records',
       activeDesc: `Monthly MRR: ${formattedMrr}`,
-      inprogressDesc: 'Demo ended or purchase unpaid',
       demoDesc: 'Trials running, nothing purchased yet',
       inactiveDesc: 'Registered without demo or purchase'
     };
@@ -184,16 +181,14 @@ export default function CustomerSection({
     all: dynamicCards.total,
     active: dynamicCards.active,
     demo: dynamicCards.demo,
-    inprogress: dynamicCards.inprogress,
     inactive: dynamicCards.inactive
   }), [dynamicCards]);
 
   const statusOptions = useMemo(() => [
     { value: 'all', label: `All Statuses (${counts.all})` },
-    { value: 'inactive', label: `Inactive (${counts.inactive})` },
+    { value: 'active', label: `Active Only (${counts.active})` },
     { value: 'demo', label: `Demo / Trials (${counts.demo})` },
-    { value: 'inprogress', label: `In Progress (${counts.inprogress})` },
-    { value: 'active', label: `Active Only (${counts.active})` }
+    { value: 'inactive', label: `Inactive (${counts.inactive})` }
   ], [counts]);
 
   // Filtered customer listing
@@ -229,10 +224,8 @@ export default function CustomerSection({
         matchesStatus = stage === 'Active';
       } else if (statusFilter === 'demo') {
         matchesStatus = stage === 'Demo';
-      } else if (statusFilter === 'inprogress') {
-        matchesStatus = stage === 'InProgress';
       } else if (statusFilter === 'inactive') {
-        matchesStatus = stage === 'Inactive' || stage === 'DemoInactive';
+        matchesStatus = stage === 'Inactive';
       }
 
       const matchesDateRange = isWithinDateRange(c.createdAt || c.registered, dateFrom, dateTo);
@@ -770,8 +763,6 @@ export default function CustomerSection({
             <span className={`adm-status-pill ${customerLifecycleTone(cust.status)}`}>
               {stage === 'Active' && <CheckCircle2 size={12} />}
               {stage === 'Demo' && <Clock size={12} />}
-              {stage === 'DemoInactive' && <XCircle size={12} />}
-              {stage === 'InProgress' && <Activity size={12} />}
               {stage === 'Inactive' && <XCircle size={12} />}
               <span>{customerLifecycleLabel(cust.status)}</span>
             </span>
@@ -780,10 +771,9 @@ export default function CustomerSection({
       },
       searchType: 'select',
       searchOptions: [
-        { value: 'Inactive', label: 'Inactive' },
+        { value: 'Active', label: 'Active' },
         { value: 'Demo', label: 'Demo Trial' },
-        { value: 'InProgress', label: 'In Progress' },
-        { value: 'Active', label: 'Active' }
+        { value: 'Inactive', label: 'Inactive' }
       ]
     },
     {
@@ -907,7 +897,10 @@ export default function CustomerSection({
 
         <div
           className={`adm-cust-stat-card ${statusFilter === 'active' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => setStatusFilter((prev) => (prev === 'active' ? 'all' : 'active'))}
+          role="button"
+          tabIndex={0}
+          title="Click to filter Active clients only"
         >
           <div className="adm-cust-stat-top">
             <span className="adm-cust-stat-label">Active Clients</span>
@@ -927,22 +920,11 @@ export default function CustomerSection({
         </div>
 
         <div
-          className={`adm-cust-stat-card ${statusFilter === 'inprogress' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('inprogress')}
-        >
-          <div className="adm-cust-stat-top">
-            <span className="adm-cust-stat-label">In Progress</span>
-            <Activity size={18} className="adm-cust-stat-icon purple" />
-          </div>
-          <span className="adm-cust-stat-val" style={{ color: '#6366f1' }}>
-            <CountUp end={dynamicCards.inprogress} duration={1200} />
-          </span>
-          <span className="adm-cust-stat-desc">{dynamicCards.inprogressDesc}</span>
-        </div>
-
-        <div
           className={`adm-cust-stat-card ${statusFilter === 'demo' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('demo')}
+          onClick={() => setStatusFilter((prev) => (prev === 'demo' ? 'all' : 'demo'))}
+          role="button"
+          tabIndex={0}
+          title="Click to filter Demo trials only"
         >
           <div className="adm-cust-stat-top">
             <span className="adm-cust-stat-label">Demo / Trials</span>
@@ -956,7 +938,10 @@ export default function CustomerSection({
 
         <div
           className={`adm-cust-stat-card ${statusFilter === 'inactive' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('inactive')}
+          onClick={() => setStatusFilter((prev) => (prev === 'inactive' ? 'all' : 'inactive'))}
+          role="button"
+          tabIndex={0}
+          title="Click to filter Inactive clients only"
         >
           <div className="adm-cust-stat-top">
             <span className="adm-cust-stat-label">Inactive / Paused</span>
