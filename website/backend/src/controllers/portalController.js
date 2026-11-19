@@ -223,6 +223,9 @@ const mapContract = async (contract) => {
     expired: Boolean(expiry) && daysUntil(expiry) < 0,
     source: 'contract',
     isDemoTrial: isDemo,
+    confirmationStatus: contract.confirmationStatus || null,
+    adminConfirmed: contract.adminConfirmed !== false,
+    paymentStatus: contract.paymentStatus || null,
     subscriptionPeriod: contract.subscriptionPeriod || null,
     description: contract.description || null,
     slaTier: contract.slaTier || null,
@@ -907,8 +910,15 @@ export const getCustomerOverview = async (req, res) => {
     const activePaidCount = regularProducts.filter(
       (p) =>
         !p.expired &&
+        p.adminConfirmed !== false &&
+        p.confirmationStatus !== 'Pending' &&
         !['closed', 'disabled', 'inactive', 'suspended', 'paused'].includes(String(p.status || '').toLowerCase())
     ).length;
+
+    const hasPendingConfirmation = Boolean(
+      customer?.pendingPaymentConfirmation ||
+      products.some((p) => p.confirmationStatus === 'Pending' || p.adminConfirmed === false)
+    );
 
     const demoProducts = products.filter((product) => isDemoProduct(product));
     const demoTotal = demoProducts.length;
@@ -1074,13 +1084,16 @@ export const getCustomerOverview = async (req, res) => {
           demoExtensionAllowed: Boolean(customer?.demoExtensionAllowed),
           demoExtensionDays: Number(customer?.demoExtensionDays || 0),
           isEmailVerified: Boolean(customer?.isEmailVerified || user?.isEmailVerified),
-          emailVerifiedAt: customer?.emailVerifiedAt || user?.emailVerifiedAt || null
+          emailVerifiedAt: customer?.emailVerifiedAt || user?.emailVerifiedAt || null,
+          pendingPaymentConfirmation: hasPendingConfirmation
         },
         kpi: {
           totalProducts: totalOrders,
           activeProducts: activePaidCount,
           demoProducts: activeDemoCount,
           activeDemoProducts: activeDemoCount,
+          hasPendingConfirmation,
+          pendingPaymentConfirmation: hasPendingConfirmation,
           orderBreakdown,
           totalPaid,
           totalPending,

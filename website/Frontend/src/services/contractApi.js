@@ -160,6 +160,32 @@ export const contractApi = {
   },
 
   /**
+   * Admin payment confirmation for customer online purchases:
+   * Sets paymentStatus = 'Yes', status = 'Active', and activates services for customer.
+   */
+  async confirmPayment(contractId) {
+    const res = await fetch(`${API_BASE_URL}/${encodeURIComponent(contractId)}/confirm-payment`, {
+      method: 'POST',
+      headers: withAuth({
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      })
+    });
+
+    if (!res.ok) {
+      throw await readApiError(res, 'Failed to confirm customer payment.');
+    }
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to confirm customer payment.');
+    }
+    notifyDataChanged('contracts');
+    notifyDataChanged('customers');
+    notifyDataChanged('notifications');
+    return data;
+  },
+
+  /**
    * Helper to build deep link to the Contract record inside Sangam CRM
    * @param {string} recordId
    */

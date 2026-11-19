@@ -227,6 +227,23 @@ const contractSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    confirmationStatus: {
+      type: String,
+      enum: ['Pending', 'Confirmed', 'None', 'pending', 'confirmed', 'none', ''],
+      default: 'None'
+    },
+    adminConfirmed: {
+      type: Boolean,
+      default: true
+    },
+    confirmedAt: {
+      type: Date,
+      default: null
+    },
+    confirmedBy: {
+      name: { type: String, default: '' },
+      email: { type: String, default: '' }
+    },
     sangamCrm: {
       status: {
         type: String,

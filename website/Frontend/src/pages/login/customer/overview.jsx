@@ -576,6 +576,47 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
       {view.status === 'ready' && (
         <>
+          {/* ── Pending Confirmation Banner ── */}
+          {(account?.pendingPaymentConfirmation || kpi?.pendingPaymentConfirmation || products.some(p => p.confirmationStatus === 'Pending')) && (
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)',
+                border: '1px solid #a7f3d0',
+                borderRadius: '16px',
+                padding: '18px 24px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.08)'
+              }}
+            >
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '10px',
+                  background: '#10b981',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <CheckCircle2 size={22} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>
+                  Thank you for the payment , Services will be resumes shortly
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#047857' }}>
+                  Your transaction has been recorded. Our administrative team is reviewing the confirmation and your cloud subscription will be activated shortly.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ── 2. Account KPIs ── */}
           <section className="flowmail-kpi-grid" aria-label="Account key figures">
             <KpiCard
@@ -884,8 +925,11 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                     ].filter(Boolean);
                     const normProductStatus = String(product.status || '').toLowerCase();
                     const isProductInactive = ['inactive', 'disabled', 'suspended', 'paused', 'closed'].includes(normProductStatus);
+                    const isPendingConfirmation = product.confirmationStatus === 'Pending' || product.adminConfirmed === false;
 
-                    const displayStatus = isConverted
+                    const displayStatus = isPendingConfirmation
+                      ? 'Pending Activation'
+                      : isConverted
                       ? 'Converted'
                       : isDemo
                       ? 'Demo Trial'
@@ -894,7 +938,9 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                       : isProductInactive
                       ? product.status || 'Inactive'
                       : 'Active';
-                    const badgeTone = isConverted
+                    const badgeTone = isPendingConfirmation
+                      ? 'due'
+                      : isConverted
                       ? 'completed'
                       : isDemo
                       ? 'due'

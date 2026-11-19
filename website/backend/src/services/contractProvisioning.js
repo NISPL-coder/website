@@ -248,6 +248,8 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
         const value = inr(line.finalPrice);
         const contractCode = await nextContractCode();
 
+        const isOnlineCustomerPurchase = Boolean(user && (user.role === 'customer' || !user.role || user.role === 'user'));
+
         const record = {
           contractId: contractCode,
           name: String(line.name || '').trim() || subscriptionPeriod,
@@ -268,8 +270,10 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
           startDate,
           endDate,
           expiryDate: endDate,
-          status: startDate > paidOn ? 'Not Started' : 'In Progress',
-          paymentStatus: 'Yes',
+          status: isOnlineCustomerPurchase ? 'Inactive' : (startDate > paidOn ? 'Not Started' : 'Active'),
+          paymentStatus: isOnlineCustomerPurchase ? 'No' : 'Yes',
+          confirmationStatus: isOnlineCustomerPurchase ? 'Pending' : 'Confirmed',
+          adminConfirmed: !isOnlineCustomerPurchase,
           // No support cover was sold with the plan, so none is claimed here.
           slaTier: '',
           description: [
@@ -288,23 +292,47 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
         const saved = await syncContractToCrm(await writeContract(record));
         created.push(saved);
 
-        await logNotification({
-          type: 'contract_created',
-          title: 'Contract Created',
-          message: `Contract "${record.name}" (${company || person}) was raised automatically from payment ${invoiceNumber}.`,
-          severity: 'success',
-          entityType: 'contract',
-          entityId: contractCode,
-          user: { name: person, email, role: raisedBy.role, company },
-          metadata: {
-            contractId: contractCode,
-            invoiceNumber,
-            paymentId: payment.paymentId || '',
-            source: 'customer_portal',
-            value,
-            expiryDate: endDate
-          }
-        });
+        if (isOnlineCustomerPurchase) {
+          await logNotification({
+            type: 'payment_confirmation_required',
+            title: 'Payment Confirmation Required',
+            message: `Customer "${company || person}" has paid ${value} for "${record.name}" (${invoiceNumber}). Services pending activation until confirmation is set to Yes.`,
+            severity: 'warning',
+            entityType: 'contract',
+            entityId: contractCode,
+            user: { name: person, email, role: raisedBy.role, company },
+            metadata: {
+              contractId: contractCode,
+              invoiceNumber,
+              paymentId: payment.paymentId || '',
+              amount: value,
+              customerName: person,
+              company,
+              customerId: record.customerId,
+              planName: record.name,
+              confirmationStatus: 'Pending',
+              actionRequired: true
+            }
+          });
+        } else {
+          await logNotification({
+            type: 'contract_created',
+            title: 'Contract Created',
+            message: `Contract "${record.name}" (${company || person}) was raised automatically from payment ${invoiceNumber}.`,
+            severity: 'success',
+            entityType: 'contract',
+            entityId: contractCode,
+            user: { name: person, email, role: raisedBy.role, company },
+            metadata: {
+              contractId: contractCode,
+              invoiceNumber,
+              paymentId: payment.paymentId || '',
+              source: 'customer_portal',
+              value,
+              expiryDate: endDate
+            }
+          });
+        }
       } catch (lineErr) {
         console.error(
           `[ContractProvisioning] ${invoiceNumber}: could not raise a contract for "${line.name}":`,
@@ -313,20 +341,42 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
       }
     }
 
-    // A settled payment is the only event that turns a demo into a paid account.
-    if (created.length > 0) {
+    const isOnlineCustomerPurchase = Boolean(user && (user.role === 'customer' || !user.role || user.role === 'user'));
+
+    if (isOnlineCustomerPurchase) {
+      // Customer paid online: flag customer for pending confirmation until admin sets to Yes
       try {
-        await activateAccountAfterPayment({
-          email,
-          company,
-          person,
-          accountId,
-          customerId: customer?.customerId,
-          planName: created[0]?.name || lines[0]?.name || 'Active Cloud Subscription',
-          contractId: created[0]?.contractId || ''
-        });
-      } catch (autoConvertErr) {
-        console.warn('[ContractProvisioning] Auto-converting demo status warning:', autoConvertErr.message);
+        const custId = customer?.customerId || user?.customerId;
+        const custQuery = custId ? { $or: [{ customerId: custId }, { email }] } : { email };
+        if (isMongoConnected()) {
+          await Customer.updateMany(custQuery, { $set: { pendingPaymentConfirmation: true } });
+        } else {
+          const custs = getCustomersFromFile().map((c) =>
+            (c.customerId === custId || c.email === email)
+              ? { ...c, pendingPaymentConfirmation: true }
+              : c
+          );
+          saveCustomersToFile(custs);
+        }
+      } catch (custErr) {
+        console.warn('[ContractProvisioning] Customer pending flag update note:', custErr.message);
+      }
+    } else {
+      // For staff/admin direct creation, activate immediately
+      if (created.length > 0) {
+        try {
+          await activateAccountAfterPayment({
+            email,
+            company,
+            person,
+            accountId,
+            customerId: customer?.customerId,
+            planName: created[0]?.name || lines[0]?.name || 'Active Cloud Subscription',
+            contractId: created[0]?.contractId || ''
+          });
+        } catch (autoConvertErr) {
+          console.warn('[ContractProvisioning] Auto-converting demo status warning:', autoConvertErr.message);
+        }
       }
     }
 

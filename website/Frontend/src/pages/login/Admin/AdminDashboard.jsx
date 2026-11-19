@@ -492,6 +492,10 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
   useEffect(() => {
     refreshAdminData();
+    const interval = setInterval(() => {
+      refreshAdminData(['contracts', 'payments', 'customers']);
+    }, 15000);
+    return () => clearInterval(interval);
   }, [refreshAdminData]);
 
   // Mutations anywhere in the app (create/edit/delete/import) broadcast through

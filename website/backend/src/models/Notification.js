@@ -7,6 +7,8 @@ const notificationSchema = new mongoose.Schema(
       required: true,
       enum: [
         'payment_received',
+        'payment_confirmation_required',
+        'payment_confirmed',
         'payment_created',
         'payment_updated',
         'payment_deleted',

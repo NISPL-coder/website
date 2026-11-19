@@ -12,6 +12,7 @@ import {
   RotateCw,
   Power,
   CheckCircle2,
+  Clock,
   ArrowUpRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -24,6 +25,7 @@ import RowActionMenu from './RowActionMenu';
 import ViewContractModal from './ViewContractModal';
 import EditContractModal from './EditContractModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import AwaitingConfirmationModal from './AwaitingConfirmationModal';
 import { generateContractPdf } from './utils/generateContractPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
@@ -129,11 +131,51 @@ export default function ContractSection({ contracts, setContracts, customers = [
     }
   };
 
+  const handleConfirmPayment = async (contract) => {
+    const cId = getContractId(contract);
+    setUpdatingStatusIds((prev) => ({ ...prev, [cId]: true }));
+    const toastId = toast.loading(`Confirming payment and activating services for "${contract.name || cId}"...`);
+    try {
+      await contractApi.confirmPayment(cId);
+      toast.success(`Payment confirmed! Status set to Active and customer account activated.`, { id: toastId });
+      setContracts((prev) =>
+        prev.map((item) =>
+          getContractId(item) === cId
+            ? {
+                ...item,
+                status: 'Active',
+                paymentStatus: 'Yes',
+                confirmationStatus: 'Confirmed',
+                adminConfirmed: true
+              }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error('Failed to confirm payment:', err);
+      toast.error(`Confirmation failed: ${err.message}`, { id: toastId });
+    } finally {
+      setUpdatingStatusIds((prev) => ({ ...prev, [cId]: false }));
+    }
+  };
+
   // Modals state
   const [viewingContract, setViewingContract] = useState(null);
   const [editingContract, setEditingContract] = useState(null);
   const [deletingContract, setDeletingContract] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAwaitingModalOpen, setIsAwaitingModalOpen] = useState(false);
+
+  // Contracts awaiting payment confirmation
+  const awaitingConfirmationContracts = useMemo(() => {
+    return (contracts || []).filter((c) => {
+      if (!c) return false;
+      const conf = String(c.confirmationStatus || '').trim().toLowerCase();
+      if (conf === 'pending') return true;
+      if (c.adminConfirmed === false && conf !== 'none' && conf !== 'confirmed') return true;
+      return false;
+    });
+  }, [contracts]);
 
   const handleRetrySync = async (e, contract) => {
     e.stopPropagation();
@@ -410,23 +452,55 @@ export default function ContractSection({ contracts, setContracts, customers = [
     {
       id: 'status',
       name: 'Status',
-      selector: (row) => normalizeContractStatus(row.status, row),
+      selector: (row) => (row.confirmationStatus === 'Pending' ? 'Confirmation Pending' : normalizeContractStatus(row.status, row)),
       sortable: true,
-      sortFunction: compareText((row) => normalizeContractStatus(row.status, row)),
+      sortFunction: compareText((row) => (row.confirmationStatus === 'Pending' ? 'Confirmation Pending' : normalizeContractStatus(row.status, row))),
       minWidth: '170px',
       width: '185px',
       cell: (c) => {
-        const status = normalizeContractStatus(c.status, c);
-        const tone = contractStatusTone(status, c);
+        const isPending = c.confirmationStatus === 'Pending';
+        const status = isPending ? 'Confirmation Pending' : normalizeContractStatus(c.status, c);
+        const tone = isPending ? 'in-progress' : contractStatusTone(status, c);
         const cId = getContractId(c);
         const isUpdating = !!updatingStatusIds[cId];
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'flex-start' }}>
-            <span className={`adm-status-pill ${tone}`}>
+            <span
+              className={`adm-status-pill ${tone}`}
+              style={isPending ? { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', fontWeight: 600 } : undefined}
+            >
               {status || '—'}
             </span>
-            {can('contract', 'edit') && (status === 'Active' || status === 'In Progress') && (
+            {isPending && can('contract', 'edit') && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleConfirmPayment(c);
+                }}
+                disabled={isUpdating}
+                style={{
+                  background: '#10b981',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  color: '#fff',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: isUpdating ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  marginTop: '2px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                }}
+                title="Confirm customer payment and activate services"
+              >
+                {isUpdating ? 'Activating...' : '✓ Set Confirmation: Yes'}
+              </button>
+            )}
+            {!isPending && can('contract', 'edit') && (status === 'Active' || status === 'In Progress') && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -452,7 +526,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 {isUpdating ? 'Updating...' : '+ Set Inactive'}
               </button>
             )}
-            {can('contract', 'edit') && status === 'Inactive' && !(isDemoContract(c) && customerHasPurchasedPlans(c, contracts)) && (
+            {!isPending && can('contract', 'edit') && status === 'Inactive' && !(isDemoContract(c) && customerHasPurchasedPlans(c, contracts)) && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -627,6 +701,13 @@ export default function ContractSection({ contracts, setContracts, customers = [
             items={[
               { label: 'View', icon: Eye, tone: 'blue', onClick: () => setViewingContract(c) },
               {
+                label: 'Confirm Payment (Set to Yes)',
+                icon: CheckCircle2,
+                tone: 'green',
+                hidden: !can('contract', 'edit') || c.confirmationStatus !== 'Pending',
+                onClick: () => handleConfirmPayment(c)
+              },
+              {
                 label: 'Edit',
                 icon: Edit3,
                 tone: 'purple',
@@ -694,6 +775,53 @@ export default function ContractSection({ contracts, setContracts, customers = [
         </div>
 
         <div className="adm-card-header-action">
+          {awaitingConfirmationContracts.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsAwaitingModalOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#facc15',
+                color: '#713f12',
+                border: '1.5px solid #eab308',
+                borderRadius: '8px',
+                padding: '8px 14px',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(234, 179, 8, 0.3)',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#eab308';
+                e.currentTarget.style.color = '#451a03';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#facc15';
+                e.currentTarget.style.color = '#713f12';
+              }}
+              title="Review and confirm customer online payments"
+            >
+              <Clock size={15} strokeWidth={2.5} />
+              <span>Awaiting Payment Confirmation</span>
+              <span
+                style={{
+                  background: '#713f12',
+                  color: '#fef08a',
+                  padding: '1px 7px',
+                  borderRadius: '12px',
+                  fontSize: '0.72rem',
+                  fontWeight: 800
+                }}
+              >
+                {awaitingConfirmationContracts.length}
+              </span>
+            </button>
+          )}
+
           <ExportDropdown
             data={filteredContracts}
             formatter={formatContractsForExport}
@@ -808,6 +936,28 @@ export default function ContractSection({ contracts, setContracts, customers = [
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeletingContract(null)}
         isDeleting={isDeleting}
+      />
+
+      {/* Awaiting Payment Confirmation Modal */}
+      <AwaitingConfirmationModal
+        isOpen={isAwaitingModalOpen}
+        onClose={() => setIsAwaitingModalOpen(false)}
+        contracts={awaitingConfirmationContracts}
+        onContractConfirmed={(cId) => {
+          setContracts((prev) =>
+            prev.map((item) =>
+              getContractId(item) === cId
+                ? {
+                    ...item,
+                    status: 'Active',
+                    paymentStatus: 'Yes',
+                    confirmationStatus: 'Confirmed',
+                    adminConfirmed: true
+                  }
+                : item
+            )
+          );
+        }}
       />
     </div>
   );

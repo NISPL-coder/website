@@ -60,7 +60,7 @@ export default function FixedFooter() {
               target="_blank"
               rel="noopener noreferrer"
               className="nis-fixed-footer-ctrls-link"
-              title="CtrlS Datacenter Kolkata (opens in new tab)"
+              title="CtrlS Datacenter Kolkata"
               aria-label="CtrlS Datacenter Kolkata"
             >
               <img 

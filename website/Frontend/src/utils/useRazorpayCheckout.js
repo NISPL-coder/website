@@ -79,13 +79,17 @@ export function useRazorpayCheckout({ onSuccess } = {}) {
             if (data?.alreadySettled) {
               toast.success('That invoice was already settled.');
             } else {
-              toast.success(`${inr(total)} received — your receipt is ready.`);
+              toast.success('Thank you for the payment , Services will be resumes shortly', {
+                duration: 7000
+              });
             }
             await onSuccess?.(data);
           } catch (err) {
             if (err?.statusCode === 202) {
               // Captured at Razorpay, ledger still being written by the webhook.
-              toast('Payment successful — your receipt is being generated.');
+              toast.success('Thank you for the payment , Services will be resumes shortly', {
+                duration: 7000
+              });
               await onSuccess?.(null);
             } else {
               toast.error('We could not confirm this payment. Please contact support before trying again.');

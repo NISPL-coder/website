@@ -229,6 +229,10 @@ const customerSchema = new mongoose.Schema(
         type: String,
         default: null
       }
+    },
+    pendingPaymentConfirmation: {
+      type: Boolean,
+      default: false
     }
   },
   {

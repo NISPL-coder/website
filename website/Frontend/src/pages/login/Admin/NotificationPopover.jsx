@@ -3,6 +3,7 @@ import {
   Bell,
   Check,
   CheckCheck,
+  CheckCircle2,
   Trash2,
   X,
   CreditCard,
@@ -19,6 +20,7 @@ import {
   AlertTriangle,
   MessageSquare
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './NotificationPopover.css';
 
 export const formatTimeAgo = (dateStr) => {
@@ -46,6 +48,22 @@ export const getNotificationMeta = (item) => {
   const type = item.type || 'system';
 
   switch (type) {
+    case 'payment_confirmation_required':
+      return {
+        icon: AlertTriangle,
+        color: '#d97706',
+        bg: '#fef3c7',
+        badge: 'Confirmation Required',
+        badgeClass: 'adm-notif-tag-amber'
+      };
+    case 'payment_confirmed':
+      return {
+        icon: CheckCircle2,
+        color: '#10b981',
+        bg: '#ecfdf5',
+        badge: 'Payment Confirmed',
+        badgeClass: 'adm-notif-tag-payment'
+      };
     case 'payment_received':
     case 'payment_created':
       return {
@@ -440,6 +458,46 @@ export default function NotificationPopover({
                       <span className="adm-notif-chip" style={{ color: '#d97706', background: '#fffbeb' }}>
                         {item.metadata.expiryDate}
                       </span>
+                    )}
+                    {item.type === 'payment_confirmation_required' && (
+                      <button
+                        type="button"
+                        style={{
+                          background: '#10b981',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '4px'
+                        }}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const cId = item.metadata?.contractId || item.entityId;
+                          if (!cId) {
+                            toast.error('No contract ID found for confirmation.');
+                            return;
+                          }
+                          const toastId = toast.loading('Confirming payment and activating services...');
+                          try {
+                            const { contractApi } = await import('../../../services/contractApi');
+                            await contractApi.confirmPayment(cId);
+                            toast.success('Payment confirmed! Contract and customer account activated.', { id: toastId });
+                            if (onMarkAsRead) onMarkAsRead(item._id || item.id);
+                            if (onRefresh) onRefresh();
+                          } catch (err) {
+                            toast.error(err?.message || 'Failed to confirm payment', { id: toastId });
+                          }
+                        }}
+                      >
+                        <CheckCircle2 size={12} />
+                        Set Confirmation: Yes
+                      </button>
                     )}
                   </div>
                 </div>

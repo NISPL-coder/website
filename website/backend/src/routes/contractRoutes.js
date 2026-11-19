@@ -7,7 +7,8 @@ import {
   updateContract,
   deleteContract,
   importContracts,
-  syncContractToSangam
+  syncContractToSangam,
+  confirmContractPayment
 } from '../controllers/contractController.js';
 
 const router = express.Router();
@@ -22,6 +23,9 @@ router.post('/', requirePermission('contract', 'create'), createContract);
 
 // POST /api/contracts/import - Bulk import contracts from CSV and sync each to Sangam CRM
 router.post('/import', requirePermission('contract', 'create'), importContracts);
+
+// POST /api/contracts/:id/confirm-payment - Confirm customer payment and activate services
+router.post('/:id/confirm-payment', requirePermission('contract', 'edit'), confirmContractPayment);
 
 // PUT /api/contracts/:id - Update contract and sync to Sangam CRM Contracts
 router.put('/:id', requirePermission('contract', 'edit'), updateContract);

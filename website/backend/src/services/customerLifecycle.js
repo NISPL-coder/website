@@ -127,6 +127,7 @@ export const deriveCustomerLifecycle = (customer, contracts = [], payments = [])
   // Note: If status is 'In Progress' or 'Active', it is considered Active.
   const isContractLive = (ctr) => {
     if (isDemoContract(ctr)) return false;
+    if (ctr.confirmationStatus === 'Pending' || ctr.adminConfirmed === false) return false;
     const s = normalizeContractStatus(ctr.status);
     if (['Inactive', 'Closed', 'DISABLED', 'Not Started', 'Draft'].includes(s)) return false;
     const end = String(ctr.endDate || ctr.expiryDate || '').trim();

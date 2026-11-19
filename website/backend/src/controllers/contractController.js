@@ -1,8 +1,9 @@
 import { logNotification } from '../services/notificationService.js';
 import Contract, { getContractsFromFile, saveContractsToFile } from '../models/Contract.js';
-import Customer, { getCustomersFromFile } from '../models/Customer.js';
+import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
+import Notification from '../models/Notification.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
-import { nextContractCode } from '../services/contractProvisioning.js';
+import { nextContractCode, activateAccountAfterPayment } from '../services/contractProvisioning.js';
 import { refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
@@ -49,6 +50,8 @@ export const getContracts = async (req, res) => {
       let effectiveStatus = c.status;
       if (isDemo && (isExpired || isConverted)) {
         effectiveStatus = 'Inactive';
+      } else if (c.confirmationStatus === 'Pending' || c.adminConfirmed === false) {
+        effectiveStatus = 'Inactive';
       } else if (!isDemo && ['inprogress', 'in progress', 'converted', 'signed', 'live', 'expiring'].includes(String(c.status || '').toLowerCase().trim())) {
         effectiveStatus = 'Active';
       }
@@ -58,6 +61,8 @@ export const getContracts = async (req, res) => {
         id: c.contractId || c._id || c.id,
         customerId: c.customerId || '',
         status: effectiveStatus,
+        confirmationStatus: c.confirmationStatus || (c.adminConfirmed === false ? 'Pending' : 'None'),
+        adminConfirmed: c.adminConfirmed !== false,
         sangamCrm: c.sangamCrm || { status: 'pending', recordId: null, lastSyncedAt: null }
       };
     }));
@@ -467,6 +472,137 @@ export const syncContractToSangam = async (req, res) => {
       success: false,
       error: err.message || 'Failed to sync contract to Sangam CRM.'
     });
+  }
+};
+
+/**
+ * Confirm customer payment and activate services (Admin sets confirmation to Yes)
+ */
+export const confirmContractPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const query = mongoose.Types.ObjectId.isValid(id)
+      ? { $or: [{ contractId: id }, { _id: id }] }
+      : { contractId: id };
+
+    let contract = null;
+    if (isMongoConnected()) {
+      contract = await Contract.findOne(query);
+    } else {
+      const fileList = getContractsFromFile();
+      contract = fileList.find((c) => c.contractId === id || c._id === id || c.id === id);
+    }
+
+    if (!contract) {
+      return res.status(404).json({ success: false, error: `Contract "${id}" not found.` });
+    }
+
+    const adminName = req.user?.name || 'Admin';
+    const adminEmail = req.user?.email || '';
+
+    // 1. Update contract to Active and paymentStatus to Yes
+    if (isMongoConnected()) {
+      contract.paymentStatus = 'Yes';
+      contract.status = 'Active';
+      contract.confirmationStatus = 'Confirmed';
+      contract.adminConfirmed = true;
+      contract.confirmedAt = new Date();
+      contract.confirmedBy = { name: adminName, email: adminEmail };
+      await contract.save();
+    } else {
+      const list = getContractsFromFile();
+      const idx = list.findIndex((c) => c.contractId === id || c._id === id || c.id === id);
+      if (idx !== -1) {
+        list[idx].paymentStatus = 'Yes';
+        list[idx].status = 'Active';
+        list[idx].confirmationStatus = 'Confirmed';
+        list[idx].adminConfirmed = true;
+        list[idx].confirmedAt = new Date().toISOString();
+        list[idx].confirmedBy = { name: adminName, email: adminEmail };
+        saveContractsToFile(list);
+      }
+    }
+
+    // 2. Activate customer and convert any demo trials
+    try {
+      await activateAccountAfterPayment({
+        email: contract.email,
+        company: contract.company,
+        person: contract.customer,
+        accountId: contract.accountId,
+        customerId: contract.customerId,
+        planName: contract.name || 'Active Cloud Subscription',
+        contractId: contract.contractId || id
+      });
+    } catch (actErr) {
+      console.warn('[confirmContractPayment] activateAccountAfterPayment note:', actErr.message);
+    }
+
+    // Clear pendingPaymentConfirmation on customer
+    try {
+      if (isMongoConnected()) {
+        await Customer.updateMany(
+          { $or: [{ customerId: contract.customerId }, { email: contract.email }] },
+          { $set: { status: 'Active', pendingPaymentConfirmation: false } }
+        );
+      } else {
+        const custs = getCustomersFromFile().map((c) =>
+          (c.customerId === contract.customerId || c.email === contract.email)
+            ? { ...c, status: 'Active', pendingPaymentConfirmation: false }
+            : c
+        );
+        saveCustomersToFile(custs);
+      }
+    } catch (custUpdateErr) {
+      console.warn('[confirmContractPayment] Customer update note:', custUpdateErr.message);
+    }
+
+    // 3. Mark related notifications as read/resolved
+    try {
+      if (isMongoConnected()) {
+        await Notification.updateMany(
+          {
+            $or: [
+              { entityId: contract.contractId || id },
+              { 'metadata.contractId': contract.contractId || id }
+            ],
+            type: { $in: ['payment_confirmation_required', 'payment_confirmation'] }
+          },
+          { $set: { read: true, 'metadata.confirmationStatus': 'Confirmed' } }
+        );
+      }
+    } catch (notifErr) {
+      console.warn('[confirmContractPayment] Notification update note:', notifErr.message);
+    }
+
+    // 4. Log confirmation activity & notification
+    await logActivity({
+      type: 'contract_payment_confirmed',
+      user: req.user,
+      description: `Confirmed payment for contract ${contract.contractId || id} (${contract.company || contract.customer}). Services set to Active.`,
+      entityType: 'contract',
+      entityId: contract.contractId || id
+    });
+
+    await logNotification({
+      type: 'payment_confirmed',
+      title: 'Payment Confirmed & Services Resumed',
+      message: `Admin ${adminName} confirmed payment for ${contract.company || contract.customer} (${contract.contractId || id}). Services are now Active.`,
+      severity: 'success',
+      entityType: 'contract',
+      entityId: contract.contractId || id,
+      user: { name: contract.customer, email: contract.email, role: 'customer', company: contract.company },
+      metadata: { contractId: contract.contractId || id, customerId: contract.customerId, confirmedBy: adminName }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Payment confirmed for contract ${contract.contractId || id}. Customer and services are now Active.`,
+      contract
+    });
+  } catch (err) {
+    console.error('[ContractController] confirmContractPayment error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Could not confirm payment.' });
   }
 };
 

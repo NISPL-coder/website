@@ -1416,20 +1416,7 @@ export default function NewSubscriptionView({
                 <span>
                   End Date <span style={starStyle}>*</span>
                 </span>
-                {endDate && (
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      color: '#4f46e5',
-                      background: '#eef2ff',
-                      padding: '1px 6px',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    Auto
-                  </span>
-                )}
+                
               </label>
               <input
                 type="text"

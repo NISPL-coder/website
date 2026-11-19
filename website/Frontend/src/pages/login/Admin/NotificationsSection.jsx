@@ -5,6 +5,7 @@ import {
   Search,
   RefreshCw,
   Check,
+  CheckCircle2,
   RotateCcw,
   Trash2,
   X,
@@ -499,6 +500,48 @@ export default function NotificationsSection({ focusId }) {
                           {chip}
                         </span>
                       ))}
+                    </div>
+                  )}
+
+                  {item.type === 'payment_confirmation_required' && (
+                    <div style={{ marginTop: '8px' }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        style={{
+                          background: '#10b981',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '5px',
+                          padding: '4px 12px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                        }}
+                        onClick={async () => {
+                          const cId = item.metadata?.contractId || item.entityId;
+                          if (!cId) {
+                            toast.error('No contract ID found for confirmation.');
+                            return;
+                          }
+                          const toastId = toast.loading('Confirming payment and activating services...');
+                          try {
+                            const { contractApi } = await import('../../../services/contractApi');
+                            await contractApi.confirmPayment(cId);
+                            toast.success('Payment confirmed! Contract and customer account activated.', { id: toastId });
+                            handleMarkRead(item, true);
+                            fetchNotifications();
+                          } catch (err) {
+                            toast.error(err?.message || 'Failed to confirm payment', { id: toastId });
+                          }
+                        }}
+                      >
+                        <CheckCircle2 size={14} />
+                        Set Confirmation: Yes
+                      </button>
                     </div>
                   )}
 
