@@ -411,6 +411,7 @@ export default function ConsoleShell({
                 onOpenItem={notificationsPath ? handleOpenNotification : undefined}
                 onViewAll={notificationsPath ? () => navigate(notificationsPath) : undefined}
                 isLoading={isNotifLoading}
+                userRole={profile?.role || authApi.getCurrentUser()?.role || 'admin'}
               />
             </div>
 

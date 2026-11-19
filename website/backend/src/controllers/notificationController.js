@@ -3,6 +3,9 @@ import Notification from '../models/Notification.js';
 import { logNotification } from '../services/notificationService.js';
 import { verifyAccessToken } from '../utils/tokens.js';
 import User from '../models/User.js';
+import Customer from '../models/Customer.js';
+import Contract from '../models/Contract.js';
+import Payment from '../models/Payment.js';
 
 export const MANAGER_ALLOWED_TYPES = [
   'customer_created',
@@ -79,6 +82,10 @@ async function resolveCaller(req) {
     };
   }
 
+  const headerEmail = req.headers['x-user-email'] || req.headers['x-customer-email'] || '';
+  const queryEmail = req.query.email || req.query.userEmail || '';
+  const fallbackEmail = String(headerEmail || queryEmail || '').trim().toLowerCase();
+
   try {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -89,7 +96,7 @@ async function resolveCaller(req) {
         if (user) {
           return {
             role: user.role,
-            email: String(user.email || '').toLowerCase(),
+            email: String(user.email || fallbackEmail || '').toLowerCase(),
             trusted: true
           };
         }
@@ -100,12 +107,24 @@ async function resolveCaller(req) {
   }
 
   const headerRole = req.headers['x-user-role'];
-  if (headerRole) return { role: String(headerRole).toLowerCase(), email: '', trusted: false };
+  if (headerRole) {
+    return {
+      role: String(headerRole).toLowerCase(),
+      email: fallbackEmail,
+      trusted: false
+    };
+  }
 
   const queryRole = req.query.role;
-  if (queryRole) return { role: String(queryRole).toLowerCase(), email: '', trusted: false };
+  if (queryRole) {
+    return {
+      role: String(queryRole).toLowerCase(),
+      email: fallbackEmail,
+      trusted: false
+    };
+  }
 
-  return { role: 'anonymous', email: '', trusted: false };
+  return { role: 'anonymous', email: fallbackEmail, trusted: false };
 }
 
 const escapeForRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -222,10 +241,336 @@ function emptyResult(res, caller) {
 }
 
 /**
+ * Dynamically compile customer-centric notifications from the customer's live portal data:
+ * - Online purchases pending admin confirmation
+ * - Active subscriptions and user allocation
+ * - Upcoming renewal / expiry notices
+ * - Demo status (active / expired)
+ * - Tax invoices ready for download
+ * - Email verification state
+ * Excludes internal admin audit logs.
+ */
+export async function buildDynamicCustomerNotifications(caller, query = {}) {
+  const targetEmail = String(caller.email || '').trim().toLowerCase();
+  if (!targetEmail) return { notifications: [], total: 0, unreadCount: 0 };
+
+  const custDoc = await Customer.findOne({
+    $or: [
+      { email: targetEmail },
+      { loginEmail: targetEmail },
+      { email: new RegExp(`^${escapeForRegex(targetEmail)}$`, 'i') }
+    ]
+  }).lean();
+
+  const custId = custDoc?.customerId || custDoc?._id;
+  const custCompany = custDoc?.company;
+
+  const contractMatch = [
+    { email: targetEmail },
+    { personEmail: targetEmail },
+    { 'createdBy.email': targetEmail }
+  ];
+  if (custId) contractMatch.push({ customerId: custId });
+  if (custDoc?.accountId) contractMatch.push({ accountId: custDoc.accountId });
+  if (custCompany) contractMatch.push({ company: custCompany });
+
+  const contracts = await Contract.find({ $or: contractMatch }).lean();
+
+  const paymentMatch = [
+    { email: targetEmail },
+    { customerEmail: targetEmail }
+  ];
+  if (custId) paymentMatch.push({ customerId: custId });
+  if (custCompany) paymentMatch.push({ company: custCompany });
+
+  const payments = await Payment.find({ $or: paymentMatch }).sort({ createdAt: -1 }).lean();
+
+  const notifUser = {
+    name: custDoc?.name || custDoc?.customer || custDoc?.company || 'Customer',
+    email: targetEmail,
+    company: custCompany || ''
+  };
+
+  const dynamicList = [];
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  const isDemo = (c) => {
+    const name = String(c?.name || c?.planName || '').toLowerCase();
+    const type = String(c?.contractType || '').toLowerCase();
+    const cat = String(c?.productCategory || '').toLowerCase();
+    return name.includes('demo') || name.includes('trial') || type.includes('demo') || type.includes('trial') || cat.includes('trial');
+  };
+
+  // 1. Pending payment confirmation
+  const pendingContracts = contracts.filter((c) =>
+    c.confirmationStatus === 'Pending' || (c.adminConfirmed === false && c.confirmationStatus !== 'None' && c.confirmationStatus !== 'Confirmed')
+  );
+  for (const c of pendingContracts) {
+    dynamicList.push({
+      _id: `dyn_pending_${c.contractId || c._id}`,
+      id: `dyn_pending_${c.contractId || c._id}`,
+      type: 'payment_received',
+      title: 'Payment Received — Confirmation Pending',
+      message: `Thank you for your payment of ${c.totalContractValue || c.value || '₹' + c.amount} for ${c.name || 'your plan'}. Services will resume shortly once verified by our team.`,
+      severity: 'info',
+      entityType: 'payment',
+      entityId: c.paymentInvoiceNumber || c.contractId,
+      user: notifUser,
+      read: false,
+      metadata: {
+        contractId: c.contractId,
+        amount: c.totalContractValue || c.value,
+        status: 'Confirmation Pending'
+      },
+      createdAt: c.createdAt || new Date().toISOString()
+    });
+  }
+
+  // 2. Active subscriptions
+  const activeContracts = contracts.filter((c) => {
+    if (isDemo(c)) return false;
+    if (c.confirmationStatus === 'Pending' || c.adminConfirmed === false) return false;
+    const s = String(c.status || '').toLowerCase().trim();
+    if (s !== 'active' && s !== 'in progress' && s !== 'inprogress') return false;
+    const end = String(c.endDate || c.expiryDate || '').trim();
+    return !end || end >= todayStr;
+  });
+
+  for (const c of activeContracts) {
+    dynamicList.push({
+      _id: `dyn_active_${c.contractId || c._id}`,
+      id: `dyn_active_${c.contractId || c._id}`,
+      type: 'payment_confirmed',
+      title: 'Subscription Active',
+      message: `Your ${c.name} subscription is active and running. Valid until ${c.endDate || c.expiryDate}.`,
+      severity: 'success',
+      entityType: 'contract',
+      entityId: c.contractId,
+      user: notifUser,
+      read: true,
+      metadata: {
+        contractId: c.contractId,
+        expiryDate: c.endDate || c.expiryDate,
+        users: c.users || c.userCount
+      },
+      createdAt: c.updatedAt || c.startDate || c.createdAt
+    });
+
+    // 3. Upcoming renewals within 30 days
+    const end = c.endDate || c.expiryDate;
+    if (end) {
+      const expDate = new Date(end);
+      const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      if (diffDays >= 0 && diffDays <= 30) {
+        dynamicList.push({
+          _id: `dyn_renewal_${c.contractId || c._id}`,
+          id: `dyn_renewal_${c.contractId || c._id}`,
+          type: 'contract_renewal',
+          title: diffDays <= 5 ? 'Subscription Expiring Soon' : 'Subscription Renewal Due',
+          message: `Your ${c.name} subscription is due for renewal on ${end} (in ${diffDays} days). Renew online in Products.`,
+          severity: diffDays <= 5 ? 'warning' : 'info',
+          entityType: 'contract',
+          entityId: c.contractId,
+          user: notifUser,
+          read: diffDays > 7,
+          metadata: {
+            contractId: c.contractId,
+            expiryDate: end
+          },
+          createdAt: c.updatedAt || new Date().toISOString()
+        });
+      }
+    }
+  }
+
+  // 4. Demo trial status
+  const demoContracts = contracts.filter(isDemo);
+  for (const demo of demoContracts) {
+    const end = demo.endDate || demo.expiryDate;
+    const isExpired = end ? new Date(end).getTime() < today.getTime() : false;
+    if (!isExpired && activeContracts.length === 0) {
+      dynamicList.push({
+        _id: `dyn_demo_${demo.contractId || demo._id}`,
+        id: `dyn_demo_${demo.contractId || demo._id}`,
+        type: 'contract_created',
+        title: 'Free Demo Trial Active',
+        message: `Your free trial for ${demo.name} is running until ${end}. Choose a plan in Products to upgrade without interruption.`,
+        severity: 'info',
+        entityType: 'contract',
+        entityId: demo.contractId,
+        user: notifUser,
+        read: true,
+        metadata: { expiryDate: end },
+        createdAt: demo.createdAt
+      });
+    } else if (isExpired && activeContracts.length === 0) {
+      dynamicList.push({
+        _id: `dyn_demo_exp_${demo.contractId || demo._id}`,
+        id: `dyn_demo_exp_${demo.contractId || demo._id}`,
+        type: 'payment_due',
+        title: 'Demo Trial Expired',
+        message: `Your demo trial has ended. Select an active plan from Products to continue cloud services.`,
+        severity: 'warning',
+        entityType: 'contract',
+        entityId: demo.contractId,
+        user: notifUser,
+        read: false,
+        createdAt: demo.endDate || demo.createdAt
+      });
+    } else if (activeContracts.length > 0) {
+      dynamicList.push({
+        _id: `dyn_demo_conv_${demo.contractId || demo._id}`,
+        id: `dyn_demo_conv_${demo.contractId || demo._id}`,
+        type: 'payment_confirmed',
+        title: 'Demo Trial Converted',
+        message: `Your demo trial has been converted to an active cloud subscription.`,
+        severity: 'success',
+        entityType: 'contract',
+        entityId: demo.contractId,
+        user: notifUser,
+        read: true,
+        metadata: { status: 'Converted' },
+        createdAt: demo.updatedAt || demo.createdAt
+      });
+    }
+  }
+
+  // 5. Invoices & Receipts
+  const seenInvoices = new Set();
+  for (const p of payments) {
+    const isSettled = ['settled', 'paid', 'success', 'received', 'yes'].includes(String(p.status || p.paymentStatus || '').toLowerCase());
+    const invNum = p.paymentInvoiceNumber || p.receiptNumber || p.invoiceNumber || p.invoiceRef || p.receiptId;
+    if (isSettled && invNum && !seenInvoices.has(invNum)) {
+      seenInvoices.add(invNum);
+      dynamicList.push({
+        _id: `dyn_rcpt_${p._id || invNum}`,
+        id: `dyn_rcpt_${p._id || invNum}`,
+        type: 'payment_received',
+        title: 'Tax Invoice Available',
+        message: `Tax invoice ${invNum} for ${p.amount || ('₹' + p.totalPaidAmount)} is settled and ready for download in Receipts.`,
+        severity: 'success',
+        entityType: 'receipt',
+        entityId: invNum,
+        user: notifUser,
+        read: true,
+        metadata: {
+          amount: p.amount || ('₹' + p.totalPaidAmount),
+          method: p.paymentMethod || 'Razorpay',
+          invoiceRef: invNum
+        },
+        createdAt: p.paymentDate || p.createdAt
+      });
+    }
+  }
+
+  // 6. Email verification notice
+  if (custDoc && !custDoc.isEmailVerified) {
+    dynamicList.push({
+      _id: 'dyn_verify_email',
+      id: 'dyn_verify_email',
+      type: 'customer_updated',
+      title: 'Verify Primary Email Address',
+      message: `Your email address (${targetEmail}) is not yet verified. Please verify in your Profile to ensure account security.`,
+      severity: 'warning',
+      entityType: 'customer',
+      entityId: custDoc.customerId || '',
+      user: notifUser,
+      read: false,
+      createdAt: custDoc.createdAt || new Date().toISOString()
+    });
+  }
+
+  // 7. Fallback welcome notice if customer has no contracts or payments
+  if (dynamicList.length === 0) {
+    dynamicList.push({
+      _id: 'dyn_welcome_customer',
+      id: 'dyn_welcome_customer',
+      type: 'system',
+      title: 'Welcome to NISPL Cloud Portal',
+      message: 'Explore high-performance cloud servers, activate your free trial, or choose a plan from the Products catalogue to get started.',
+      severity: 'info',
+      entityType: 'customer',
+      entityId: custId || targetEmail,
+      user: notifUser,
+      read: true,
+      createdAt: custDoc?.createdAt || new Date().toISOString()
+    });
+  }
+
+  // 7. Any customer-targeted notifications in DB (support tickets, custom admin messages to customer)
+  const customerAllowedDbTypes = [
+    'support_ticket',
+    'customer_query',
+    'system',
+    'email_verified',
+    'demo_extended'
+  ];
+  const dbNotifs = await Notification.find({
+    'user.email': new RegExp(`^${escapeForRegex(targetEmail)}$`, 'i'),
+    type: { $in: customerAllowedDbTypes }
+  }).sort({ createdAt: -1 }).limit(20).lean();
+
+  for (const n of dbNotifs) {
+    const exists = dynamicList.some(d => d.entityId && d.entityId === n.entityId && d.type === n.type);
+    if (!exists) {
+      dynamicList.push({
+        ...n,
+        _id: n._id.toString(),
+        id: n._id.toString()
+      });
+    }
+  }
+
+  // Sort newest first
+  dynamicList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  let filtered = dynamicList;
+  if (query.type && query.type !== 'all') {
+    filtered = filtered.filter(n => n.type === query.type);
+  } else if (query.category && query.category !== 'all' && NOTIFICATION_CATEGORIES[query.category]) {
+    filtered = filtered.filter(n => NOTIFICATION_CATEGORIES[query.category].includes(n.type));
+  }
+  if (query.read === 'true') {
+    filtered = filtered.filter(n => n.read);
+  } else if (query.read === 'false') {
+    filtered = filtered.filter(n => !n.read);
+  }
+
+  const unreadCount = filtered.filter(n => !n.read).length;
+
+  return {
+    notifications: filtered,
+    total: filtered.length,
+    unreadCount
+  };
+}
+
+/**
  * Fetch live dynamic notifications with strict role-based isolation
  */
 export const getNotifications = async (req, res) => {
   const caller = await resolveCaller(req);
+
+  // For customer role: dynamically generate notifications from their live portal data
+  if (caller.role === 'customer') {
+    const dyn = await buildDynamicCustomerNotifications(caller, req.query);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const paged = dyn.notifications.slice((page - 1) * limit, page * limit);
+    return res.json({
+      success: true,
+      count: paged.length,
+      total: dyn.total,
+      page,
+      pages: Math.max(1, Math.ceil(dyn.total / limit)),
+      limit,
+      unreadCount: dyn.unreadCount,
+      role: 'customer',
+      notifications: paged
+    });
+  }
+
   const { filter } = buildListFilter(caller, req.query);
 
   if (!filter) return emptyResult(res, caller);
@@ -262,6 +607,20 @@ export const getNotifications = async (req, res) => {
  */
 export const getNotificationStats = async (req, res) => {
   const caller = await resolveCaller(req);
+
+  if (caller.role === 'customer') {
+    const dyn = await buildDynamicCustomerNotifications(caller, {});
+    const byCategory = {};
+    Object.entries(NOTIFICATION_CATEGORIES).forEach(([name, types]) => {
+      byCategory[name] = dyn.notifications.filter(n => types.includes(n.type)).length;
+    });
+    return res.json({
+      success: true,
+      role: 'customer',
+      stats: { total: dyn.total, unread: dyn.unreadCount, byCategory }
+    });
+  }
+
   const roleFilter = buildRoleFilter(caller);
   const allowlist = roleTypeAllowlist(roleFilter);
 
@@ -364,6 +723,13 @@ export const createNotification = async (req, res) => {
 
 export const markAsRead = async (req, res) => {
   const { id } = req.params;
+  if (String(id).startsWith('dyn_')) {
+    return res.json({
+      success: true,
+      notification: { _id: id, id, read: true, readAt: new Date() },
+      unreadCount: 0
+    });
+  }
   if (!mongoose.isValidObjectId(id)) {
     return res.status(404).json({ success: false, message: 'Notification not found.' });
   }
@@ -448,6 +814,13 @@ export const markAllAsRead = async (req, res) => {  const caller = await resolve
 
 export const deleteNotification = async (req, res) => {
   const { id } = req.params;
+  if (String(id).startsWith('dyn_')) {
+    return res.json({
+      success: true,
+      message: 'Notification dismissed.',
+      unreadCount: 0
+    });
+  }
   if (!mongoose.isValidObjectId(id)) {
     return res.status(404).json({ success: false, message: 'Notification not found.' });
   }

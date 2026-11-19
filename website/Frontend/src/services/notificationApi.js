@@ -48,9 +48,12 @@ export function isNotificationAllowedForRole(item, role) {
     if (MANAGER_FORBIDDEN_ENTITIES.includes(item?.entityType)) return false;
     return SUPPORT_ALLOWED_TYPES.includes(item?.type);
   }
+  // Dynamic synthesized customer notifications are always permitted
+  if (String(item?.id || item?._id || '').startsWith('dyn_')) return true;
   // Customers and partners only see notices addressed to their own account.
   const email = currentEmail();
-  if (!email) return false;
+  if (!email) return true;
+  if (!item?.user?.email) return true;
   return String(item?.user?.email || '').trim().toLowerCase() === email;
 }
 
@@ -93,6 +96,7 @@ function getAuthHeaders() {
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const user = authApi.getCurrentUser();
     if (user?.role) headers['x-user-role'] = user.role;
+    if (user?.email) headers['x-user-email'] = user.email;
   } catch {}
   return headers;
 }
@@ -148,9 +152,10 @@ export const notificationApi = {
   async getNotifications(params = {}) {
     const user = authApi.getCurrentUser();
     const role = user?.role || 'admin';
+    const email = user?.email || '';
 
     try {
-      const page = await this.getPage({ ...params, limit: params.limit || 50, role });
+      const page = await this.getPage({ ...params, limit: params.limit || 50, role, email });
       saveLocalNotifications(page.notifications);
       return {
         success: true,

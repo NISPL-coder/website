@@ -1,1 +1,134 @@
-[]
+[
+  {
+    "paymentId": "PAY-2026-1001",
+    "id": "PAY-2026-1001",
+    "invoiceNumber": "INV-2026-1001",
+    "invoiceRef": "INV-2026-1001",
+    "customer": "Debanga",
+    "company": "TimD",
+    "accountName": "TimD",
+    "email": "debanga@gmail.com",
+    "customerId": "CUST-1272",
+    "amount": "₹1,770",
+    "receivedAmount": "₹1,770",
+    "pendingPayment": "₹0",
+    "paymentMethod": "NEFT Wire",
+    "method": "NEFT Wire",
+    "invoiceDate": "2026-11-19",
+    "date": "2026-11-19",
+    "paymentReceivedDate": "2026-11-19",
+    "status": "Received",
+    "solutionCategory": "Subscription (1 Month)",
+    "contractId": "CTR-2026-1003",
+    "contractIds": [
+      "CTR-2026-1003"
+    ],
+    "taxableAmount": "₹1,500",
+    "gstAmount": "₹270",
+    "gstBasis": "Synchronized from contract ledger with standard 18% GST",
+    "salesPerson": "Siddhartha Bandopaddhya",
+    "source": "sync",
+    "items": [
+      {
+        "name": "Subscription (1 Month)",
+        "quantity": 1,
+        "basePrice": 1500,
+        "gstAmount": 270,
+        "finalPrice": 1770,
+        "durationMonths": 12,
+        "startDate": "2026-11-19",
+        "endDate": "2026-12-19",
+        "description": "Enterprise Tier-4 Cloud Server (4core/4GB/100GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1658 (PAY-2026-1658)."
+      }
+    ],
+    "createdAt": "2026-11-19T12:02:00.494Z"
+  },
+  {
+    "paymentId": "PAY-2026-1001",
+    "id": "PAY-2026-1001",
+    "invoiceNumber": "INV-2026-1001",
+    "invoiceRef": "INV-2026-1001",
+    "customer": "Debanga",
+    "company": "TimD",
+    "accountName": "TimD",
+    "email": "debanga@gmail.com",
+    "customerId": "CUST-1272",
+    "amount": "₹1,770",
+    "receivedAmount": "₹1,770",
+    "pendingPayment": "₹0",
+    "paymentMethod": "NEFT Wire",
+    "method": "NEFT Wire",
+    "invoiceDate": "2026-11-19",
+    "date": "2026-11-19",
+    "paymentReceivedDate": "2026-11-19",
+    "status": "Received",
+    "solutionCategory": "Subscription (1 Month)",
+    "contractId": "CTR-2026-1002",
+    "contractIds": [
+      "CTR-2026-1002"
+    ],
+    "taxableAmount": "₹1,500",
+    "gstAmount": "₹270",
+    "gstBasis": "Synchronized from contract ledger with standard 18% GST",
+    "salesPerson": "Siddhartha Bandopaddhya",
+    "source": "sync",
+    "items": [
+      {
+        "name": "Subscription (1 Month)",
+        "quantity": 1,
+        "basePrice": 1500,
+        "gstAmount": 270,
+        "finalPrice": 1770,
+        "durationMonths": 12,
+        "startDate": "2026-11-19",
+        "endDate": "2026-12-19",
+        "description": "Enterprise Tier-4 Cloud Server (4core/4GB/100GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1656 (PAY-2026-1656)."
+      }
+    ],
+    "createdAt": "2026-11-19T12:02:00.494Z"
+  },
+  {
+    "paymentId": "PAY-2026-1001",
+    "id": "PAY-2026-1001",
+    "invoiceNumber": "INV-2026-1001",
+    "invoiceRef": "INV-2026-1001",
+    "customer": "Indware Drabhu",
+    "company": "Indware Technologies Pvt Ltd",
+    "accountName": "Indware Technologies Pvt Ltd",
+    "email": "dj@indware.com",
+    "customerId": "",
+    "amount": "₹590",
+    "receivedAmount": "₹590",
+    "pendingPayment": "₹0",
+    "paymentMethod": "NEFT Wire",
+    "method": "NEFT Wire",
+    "invoiceDate": "2026-11-14",
+    "date": "2026-11-14",
+    "paymentReceivedDate": "2026-11-14",
+    "status": "Received",
+    "solutionCategory": "Subscription (1 Month)",
+    "contractId": "CTR-2026-1000",
+    "contractIds": [
+      "CTR-2026-1000"
+    ],
+    "taxableAmount": "₹500",
+    "gstAmount": "₹90",
+    "gstBasis": "Synchronized from contract ledger with standard 18% GST",
+    "salesPerson": "Deba",
+    "source": "sync",
+    "items": [
+      {
+        "name": "Subscription (1 Month)",
+        "quantity": 1,
+        "basePrice": 500,
+        "gstAmount": 90,
+        "finalPrice": 590,
+        "durationMonths": 12,
+        "startDate": "2026-11-14",
+        "endDate": "2026-12-14",
+        "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1468 (PAY-2026-1468)."
+      }
+    ],
+    "createdAt": "2026-11-19T12:02:00.494Z"
+  }
+]

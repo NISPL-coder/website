@@ -213,10 +213,12 @@ export default function NotificationPopover({
   onRefresh,
   onOpenItem,
   onViewAll,
-  isLoading = false
+  isLoading = false,
+  userRole = 'admin'
 }) {
   const popoverRef = useRef(null);
   const [activeTab, setActiveTab] = useState('all');
+  const isCustomer = userRole === 'customer';
 
   // Close on outside click
   useEffect(() => {
@@ -245,7 +247,9 @@ export default function NotificationPopover({
       case 'unread':
         return notifications.filter((n) => !n.read);
       case 'payment':
-        return notifications.filter((n) => (n.type || '').includes('payment'));
+        return notifications.filter((n) => (n.type || '').includes('payment') || (n.entityType || '') === 'receipt' || (n.title || '').toLowerCase().includes('invoice'));
+      case 'subscription':
+        return notifications.filter((n) => (n.type || '').includes('contract') || (n.type || '').includes('demo') || n.type === 'payment_confirmed');
       case 'customer':
         return notifications.filter((n) => (n.type || '').includes('customer'));
       case 'contract':
@@ -335,34 +339,62 @@ export default function NotificationPopover({
         >
           Unread ({unreadCount})
         </button>
-        <button
-          type="button"
-          className={`adm-notif-tab ${activeTab === 'payment' ? 'active' : ''}`}
-          onClick={() => setActiveTab('payment')}
-        >
-          Payments
-        </button>
-        <button
-          type="button"
-          className={`adm-notif-tab ${activeTab === 'customer' ? 'active' : ''}`}
-          onClick={() => setActiveTab('customer')}
-        >
-          Customers
-        </button>
-        <button
-          type="button"
-          className={`adm-notif-tab ${activeTab === 'contract' ? 'active' : ''}`}
-          onClick={() => setActiveTab('contract')}
-        >
-          Contracts
-        </button>
-        <button
-          type="button"
-          className={`adm-notif-tab ${activeTab === 'renewal' ? 'active' : ''}`}
-          onClick={() => setActiveTab('renewal')}
-        >
-          Renewals
-        </button>
+        {isCustomer ? (
+          <>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'subscription' ? 'active' : ''}`}
+              onClick={() => setActiveTab('subscription')}
+            >
+              Subscriptions
+            </button>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'payment' ? 'active' : ''}`}
+              onClick={() => setActiveTab('payment')}
+            >
+              Payments
+            </button>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'renewal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('renewal')}
+            >
+              Renewals
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'payment' ? 'active' : ''}`}
+              onClick={() => setActiveTab('payment')}
+            >
+              Payments
+            </button>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'customer' ? 'active' : ''}`}
+              onClick={() => setActiveTab('customer')}
+            >
+              Customers
+            </button>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'contract' ? 'active' : ''}`}
+              onClick={() => setActiveTab('contract')}
+            >
+              Contracts
+            </button>
+            <button
+              type="button"
+              className={`adm-notif-tab ${activeTab === 'renewal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('renewal')}
+            >
+              Renewals
+            </button>
+          </>
+        )}
       </div>
 
       {/* Notifications List */}
@@ -424,17 +456,17 @@ export default function NotificationPopover({
 
                   {/* Metadata Chips (e.g. from which user / customer, amount, ref) */}
                   <div className="adm-notif-item-meta-chips">
-                    {item.user?.company && (
+                    {!isCustomer && item.user?.company && (
                       <span className="adm-notif-chip">
                         {item.user.company}
                       </span>
                     )}
-                    {item.user?.name && !item.user.company && (
+                    {!isCustomer && item.user?.name && !item.user.company && (
                       <span className="adm-notif-chip">
                         {item.user.name}
                       </span>
                     )}
-                    {item.user?.email && (
+                    {!isCustomer && item.user?.email && (
                       <span className="adm-notif-chip adm-notif-chip-email">
                         {item.user.email}
                       </span>
@@ -456,10 +488,10 @@ export default function NotificationPopover({
                     )}
                     {item.metadata?.expiryDate && (
                       <span className="adm-notif-chip" style={{ color: '#d97706', background: '#fffbeb' }}>
-                        {item.metadata.expiryDate}
+                        Exp: {item.metadata.expiryDate}
                       </span>
                     )}
-                    {item.type === 'payment_confirmation_required' && (
+                    {!isCustomer && item.type === 'payment_confirmation_required' && (
                       <button
                         type="button"
                         style={{
