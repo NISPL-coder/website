@@ -2491,6 +2491,210 @@ input:checked + .adm-slider:before {
   color: #475569;
 }
 
+/* =========================================================================
+   DEMO AND ACTIVE CUSTOMER BAR GRAPH CSS TRANSITIONS & STYLES
+   ========================================================================= */
+.adm-bar-chart-wrap {
+  width: 100%;
+  position: relative;
+  overflow: visible;
+}
+
+.adm-bar-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+@keyframes admBarGrowUp {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.adm-bar-rect {
+  transform-origin: bottom;
+  animation: admBarGrowUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, filter 0.25s ease;
+  cursor: pointer;
+}
+
+.adm-bar-rect:hover {
+  transform: scaleY(1.045);
+  filter: brightness(1.15) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+}
+
+.adm-bar-col-group {
+  transition: opacity 0.25s ease;
+}
+
+.adm-bar-col-group.dimmed {
+  opacity: 0.35;
+}
+
+.adm-bar-col-highlight {
+  transition: opacity 0.2s ease, fill 0.2s ease;
+  pointer-events: none;
+}
+
+.adm-bar-grid-line {
+  stroke: #f1f5f9;
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.adm-bar-x-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: #64748b;
+  text-anchor: middle;
+  transition: fill 0.2s ease, font-weight 0.2s ease;
+  user-select: none;
+}
+
+.adm-bar-x-label.active {
+  fill: #0f172a;
+  font-weight: 700;
+}
+
+.adm-bar-y-label {
+  font-size: 10px;
+  font-weight: 600;
+  fill: #94a3b8;
+  text-anchor: end;
+  user-select: none;
+}
+
+.adm-bar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--adm-border-light);
+  flex-wrap: wrap;
+}
+
+.adm-bar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.adm-bar-legend-item:hover,
+.adm-bar-legend-item.highlighted {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.adm-bar-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.adm-bar-tooltip-box {
+  pointer-events: none;
+  filter: drop-shadow(0 6px 16px rgba(15, 23, 42, 0.16));
+  animation: admFadeIn 0.15s ease;
+}
+
+.adm-chart-view-toggle {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.adm-chart-view-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.adm-chart-view-btn:hover {
+  color: #1e293b;
+}
+
+.adm-chart-view-btn.active {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.adm-bar-metrics-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.adm-bar-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.adm-bar-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.adm-bar-chip-dot.green {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.adm-bar-chip-dot.amber {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.adm-bar-metric-chip strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
 /* Placeholder when the payment ledger holds nothing for the chosen window */
 .adm-chart-empty {
   flex: 1;

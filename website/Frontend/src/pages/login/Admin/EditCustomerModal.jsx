@@ -1,10 +1,25 @@
-import { notificationApi } from '../../../services/notificationApi';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Check, Save, User, Building2, Mail, Phone, MapPin } from 'lucide-react';
+import {
+  X,
+  Save,
+  User,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  Plus,
+  Trash2,
+  FileText,
+  ShieldCheck,
+  Server
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+import { notificationApi } from '../../../services/notificationApi';
 import { customerApi } from '../../../services/customerApi';
 import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
+import './EditCustomerModal.css';
 
 const RELATIONSHIP_OPTIONS = ['Customer', 'Partner', 'Prospect', 'Competitor', 'Integrator', 'Other'];
 const INDUSTRY_OPTIONS = [
@@ -29,6 +44,8 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
     company: '',
     email: '',
     phone: '',
+    designation: '',
+    tallySerialNo: '',
     alternatePhone: '',
     website: '',
     industry: 'Technology',
@@ -58,12 +75,19 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
         company: customer.company || customer.name || '',
         email: customer.email || '',
         phone: customer.phone || '',
+        designation: customer.designation || '',
+        tallySerialNo: customer.tallySerialNo || '',
         alternatePhone: customer.alternatePhone || '',
         website: customer.website || '',
         industry: customer.industry || 'Technology',
         accountRelationship: customer.accountRelationship || 'Customer',
         plan: customer.plan || '',
-        users: customer.users != null ? Number(customer.users) : (customer.plan ? Number(customer.plan.match(/(\d+)\s*(?:user|users|usr)/i)?.[1] || 0) : 0),
+        users:
+          customer.users != null
+            ? Number(customer.users)
+            : customer.plan
+            ? Number(customer.plan.match(/(\d+)\s*(?:user|users|usr)/i)?.[1] || 0)
+            : 0,
         serverNode: customer.serverNode || '',
         status: customer.status || 'Inactive',
         mrr: customer.mrr || '',
@@ -121,7 +145,6 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       }
     }
 
-    // A row saved before the field was capped can still hold a longer PIN.
     if (formData.postalCode.trim().length > 6) {
       toast.error('PIN code must be at most 6 digits.');
       return;
@@ -134,6 +157,8 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
       name: formData.name.trim(),
       company: formData.company.trim(),
       email: formData.email.trim(),
+      designation: formData.designation.trim(),
+      tallySerialNo: formData.tallySerialNo.trim(),
       additionalEmails: additionalEmails.map((e) => e.trim()).filter(Boolean),
       phone: cleanPhone,
       additionalPhones: additionalPhones.map((p) => p.trim().replace(/\D/g, '')).filter(Boolean),
@@ -192,472 +217,526 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
   };
 
   const modalContent = (
-    <div
-      className="adm-modal-backdrop-portal"
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'rgba(15, 23, 42, 0.65)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 999999,
-        padding: '20px',
-        boxSizing: 'border-box'
-      }}
-    >
+    <div className="adm-modal-backdrop-portal" onClick={onClose}>
       <div
-        className="adm-modal-container animate-fade-in"
+        className="edit-cust-container"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: '720px',
-          width: '100%',
-          borderRadius: '18px',
-          background: '#ffffff',
-          padding: '28px 32px',
-          boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.25)',
-          maxHeight: '90vh',
-          overflowY: 'auto'
-        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-cust-title"
       >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid #f1f5f9',
-            paddingBottom: '16px',
-            marginBottom: '20px'
-          }}
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}
         >
-          <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              Edit Customer Profile
-            </h2>
-            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '4px 0 0 0' }}>
-              Customer ID: <strong style={{ fontFamily: 'monospace' }}>{customer.customerId || customer.id}</strong>
-            </p>
+          {/* ── Fixed Header ── */}
+          <div className="edit-cust-header">
+            <div className="edit-cust-header-left">
+              <div className="edit-cust-icon-wrap">
+                <User size={22} />
+              </div>
+              <div>
+                <h2 id="edit-cust-title" className="edit-cust-title">
+                  Edit Customer Profile
+                </h2>
+                <div className="edit-cust-meta">
+                  <span className="edit-cust-chip">
+                    Customer ID: {customer.customerId || customer.id}
+                  </span>
+                  <span className="edit-cust-status-badge">
+                    Status: {customerLifecycleLabel(formData.status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="edit-cust-close-btn"
+              onClick={onClose}
+              disabled={isSubmitting}
+              title="Close modal"
+              aria-label="Close modal"
+            >
+              <X size={16} />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            style={{
-              border: 'none',
-              background: '#f1f5f9',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#64748b',
-              cursor: 'pointer'
-            }}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Name & Company */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Contact Person Name *</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="adm-form-label">Company Name *</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email & Phone */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Corporate Email (Primary Login) *</label>
-                <input
-                  type="email"
-                  className="adm-form-input"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="adm-form-label">Primary Phone (10 digits) *</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={10}
-                  className="adm-form-input"
-                  placeholder="10-digit mobile number"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Additional Secondary Emails */}
-            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
-                  Secondary / Additional Emails ({additionalEmails.length})
+          {/* ── Scrollable Body ── */}
+          <div className="edit-cust-body">
+            {/* CARD 1: Contact Overview */}
+            <div className="edit-cust-card">
+              <div className="edit-cust-card-header">
+                <span className="edit-cust-card-title">
+                  <User size={15} color="#4f46e5" />
+                  <span>Contact Overview</span>
                 </span>
-                <button
-                  type="button"
-                  style={{
-                    background: '#ede9fe',
-                    color: '#6d28d9',
-                    border: '1px solid #ddd6fe',
-                    borderRadius: '6px',
-                    padding: '3px 8px',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setAdditionalEmails((prev) => [...prev, ''])}
-                >
-                  + Add Email
-                </button>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {additionalEmails.map((extraEm, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="edit-cust-grid-2">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">
+                      <span>Contact Person Name</span>
+                      <span className="edit-cust-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Rahul Sarkar"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">
+                      <span>Company Name</span>
+                      <span className="edit-cust-required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. ABC Pvt Ltd"
+                      value={formData.company}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="edit-cust-grid-2">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">
+                      <span>Corporate Email (Primary Login)</span>
+                      <span className="edit-cust-required">*</span>
+                    </label>
                     <input
                       type="email"
-                      className="adm-form-input"
-                      placeholder={`Secondary email ${idx + 1}`}
-                      value={extraEm}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setAdditionalEmails((prev) => {
-                          const copy = [...prev];
-                          copy[idx] = val;
-                          return copy;
-                        });
-                      }}
-                      style={{ flex: 1, padding: '5px 10px', fontSize: '0.82rem' }}
+                      className="edit-cust-input"
+                      placeholder="user@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                     />
-                    <button
-                      type="button"
-                      style={{
-                        background: '#fee2e2',
-                        color: '#ef4444',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '6px 10px',
-                        cursor: 'pointer',
-                        fontSize: '0.76rem',
-                        fontWeight: 700
-                      }}
-                      onClick={() => setAdditionalEmails((prev) => prev.filter((_, i) => i !== idx))}
-                      title="Remove email"
-                    >
-                      ✕
-                    </button>
                   </div>
-                ))}
-                {additionalEmails.length === 0 && (
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                    No secondary emails added. Click "+ Add Email" to add one.
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* Additional Secondary Phones */}
-            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
-                  Secondary / Additional Phones ({additionalPhones.length})
-                </span>
-                <button
-                  type="button"
-                  style={{
-                    background: '#ede9fe',
-                    color: '#6d28d9',
-                    border: '1px solid #ddd6fe',
-                    borderRadius: '6px',
-                    padding: '3px 8px',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setAdditionalPhones((prev) => [...prev, ''])}
-                >
-                  + Add Phone
-                </button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {additionalPhones.map((extraPh, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">
+                      <span>Primary Phone (10 digits)</span>
+                      <span className="edit-cust-required">*</span>
+                    </label>
                     <input
                       type="tel"
                       inputMode="numeric"
                       maxLength={10}
-                      className="adm-form-input"
-                      placeholder={`10-digit secondary phone ${idx + 1}`}
-                      value={extraPh}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setAdditionalPhones((prev) => {
-                          const copy = [...prev];
-                          copy[idx] = val;
-                          return copy;
-                        });
-                      }}
-                      style={{ flex: 1, padding: '5px 10px', fontSize: '0.82rem' }}
+                      className="edit-cust-input"
+                      placeholder="10-digit mobile number"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })
+                      }
+                      required
                     />
+                  </div>
+                </div>
+
+                <div className="edit-cust-grid-2">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Designation / Role</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Finance Manager / Director"
+                      value={formData.designation}
+                      onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">GSTIN (Tax ID)</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="15-character GSTIN"
+                      value={formData.gstNo}
+                      onChange={(e) => setFormData({ ...formData, gstNo: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+                </div>
+
+                <div className="edit-cust-grid-2">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Tally Serial Number</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. 753421890"
+                      value={formData.tallySerialNo}
+                      onChange={(e) => setFormData({ ...formData, tallySerialNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Website</label>
+                    <input
+                      type="url"
+                      className="edit-cust-input"
+                      placeholder="https://example.com"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 2: Additional Communication Channels (Side by Side) */}
+            <div className="edit-cust-card">
+              <div className="edit-cust-card-header">
+                <span className="edit-cust-card-title">
+                  <Mail size={15} color="#4f46e5" />
+                  <span>Secondary Communication Channels</span>
+                </span>
+              </div>
+
+              <div className="edit-cust-grid-2">
+                {/* Column 1: Secondary Emails */}
+                <div className="edit-cust-channel-subcard">
+                  <div className="edit-cust-channel-header">
+                    <span className="edit-cust-channel-title">
+                      <Mail size={13} color="#6366f1" />
+                      <span>Secondary Emails ({additionalEmails.length})</span>
+                    </span>
                     <button
                       type="button"
-                      style={{
-                        background: '#fee2e2',
-                        color: '#ef4444',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '6px 10px',
-                        cursor: 'pointer',
-                        fontSize: '0.76rem',
-                        fontWeight: 700
-                      }}
-                      onClick={() => setAdditionalPhones((prev) => prev.filter((_, i) => i !== idx))}
-                      title="Remove phone"
+                      className="edit-cust-add-btn"
+                      onClick={() => setAdditionalEmails((prev) => [...prev, ''])}
                     >
-                      ✕
+                      <Plus size={11} />
+                      <span>Add Email</span>
                     </button>
                   </div>
-                ))}
-                {additionalPhones.length === 0 && (
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                    No secondary phones added. Click "+ Add Phone" to add one.
-                  </span>
-                )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {additionalEmails.map((extraEm, idx) => (
+                      <div key={idx} className="edit-cust-item-row">
+                        <input
+                          type="email"
+                          className="edit-cust-item-input"
+                          placeholder={`Secondary email ${idx + 1}`}
+                          value={extraEm}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setAdditionalEmails((prev) => {
+                              const copy = [...prev];
+                              copy[idx] = val;
+                              return copy;
+                            });
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="edit-cust-del-btn"
+                          onClick={() => setAdditionalEmails((prev) => prev.filter((_, i) => i !== idx))}
+                          title="Remove email"
+                          aria-label="Remove email"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                    {additionalEmails.length === 0 && (
+                      <span className="edit-cust-empty-hint">
+                        No secondary emails added. Click "+ Add Email" to add one.
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 2: Secondary Phones & Alternate */}
+                <div className="edit-cust-channel-subcard">
+                  <div className="edit-cust-channel-header">
+                    <span className="edit-cust-channel-title">
+                      <Phone size={13} color="#6366f1" />
+                      <span>Secondary Phones ({additionalPhones.length})</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="edit-cust-add-btn"
+                      onClick={() => setAdditionalPhones((prev) => [...prev, ''])}
+                    >
+                      <Plus size={11} />
+                      <span>Add Phone</span>
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {additionalPhones.map((extraPh, idx) => (
+                      <div key={idx} className="edit-cust-item-row">
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          className="edit-cust-item-input"
+                          placeholder={`10-digit secondary phone ${idx + 1}`}
+                          value={extraPh}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setAdditionalPhones((prev) => {
+                              const copy = [...prev];
+                              copy[idx] = val;
+                              return copy;
+                            });
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="edit-cust-del-btn"
+                          onClick={() => setAdditionalPhones((prev) => prev.filter((_, i) => i !== idx))}
+                          title="Remove phone"
+                          aria-label="Remove phone"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                    {additionalPhones.length === 0 && (
+                      <span className="edit-cust-empty-hint">
+                        No secondary phones added. Click "+ Add Phone" to add one.
+                      </span>
+                    )}
+
+                    <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '8px', marginTop: '4px' }}>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                        Alternate / Landline Phone
+                      </label>
+                      <input
+                        type="tel"
+                        className="edit-cust-item-input"
+                        style={{ width: '100%' }}
+                        placeholder="e.g. 033-24567890"
+                        value={formData.alternatePhone}
+                        onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Alternate Phone & Website */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Alternate Phone</label>
-                <input
-                  type="tel"
-                  className="adm-form-input"
-                  value={formData.alternatePhone}
-                  onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
-                />
+            {/* CARD 3: Physical Address Information */}
+            <div className="edit-cust-card">
+              <div className="edit-cust-card-header">
+                <span className="edit-cust-card-title">
+                  <MapPin size={15} color="#4f46e5" />
+                  <span>Address Information</span>
+                </span>
               </div>
 
-              <div>
-                <label className="adm-form-label">Website</label>
-                <input
-                  type="url"
-                  className="adm-form-input"
-                  value={formData.website}
-                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://example.com"
-                />
-              </div>
-            </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="edit-cust-grid-2">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Street / Location</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Sector 5, Salt Lake"
+                      value={formData.street}
+                      onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                    />
+                  </div>
 
-            {/* Industry, Relationship, Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Industry</label>
-                <select
-                  className="adm-form-input"
-                  value={formData.industry}
-                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                >
-                  {INDUSTRY_OPTIONS.map((ind) => (
-                    <option key={ind} value={ind}>{ind}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Area / Locality</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Bidhannagar"
+                      value={formData.area}
+                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="adm-form-label">Account Relationship</label>
-                <select
-                  className="adm-form-input"
-                  value={formData.accountRelationship}
-                  onChange={(e) => setFormData({ ...formData, accountRelationship: e.target.value })}
-                >
-                  {RELATIONSHIP_OPTIONS.map((rel) => (
-                    <option key={rel} value={rel}>{rel}</option>
-                  ))}
-                </select>
-              </div>
+                <div className="edit-cust-grid-4">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">City</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Kolkata"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    />
+                  </div>
 
-              <div>
-                <label className="adm-form-label">Lifecycle Status</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={customerLifecycleLabel(formData.status)}
-                  readOnly
-                  title="Derived automatically from demo, purchase, payment and activation records"
-                  style={{ background: '#f8fafc', color: '#475569', cursor: 'default' }}
-                />
-              </div>
-            </div>
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">State</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. West Bengal"
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    />
+                  </div>
 
-            {/* Address Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Street / Location</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.street}
-                  onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                />
-              </div>
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Country</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. India"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    />
+                  </div>
 
-              <div>
-                <label className="adm-form-label">Area / Locality</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.area}
-                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">City</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="adm-form-label">State</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="adm-form-label">Country</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="adm-form-label">PIN / Postal Code</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  className="adm-form-input"
-                  placeholder="6-digit PIN code"
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                />
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">PIN / Postal Code</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      className="edit-cust-input"
+                      placeholder="6-digit PIN"
+                      value={formData.postalCode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          postalCode: e.target.value.replace(/\D/g, '').slice(0, 6)
+                        })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Plan, Users & MRR */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-              <div>
-                <label className="adm-form-label">Cloud Plan</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  placeholder="e.g. Enterprise Cloud Server — 3 User"
-                  value={formData.plan}
-                  onChange={(e) => {
-                    const newPlan = e.target.value;
-                    const match = newPlan.match(/(\d+)\s*(?:user|users|usr)/i);
-                    const autoUsers = match ? Number(match[1]) : formData.users;
-                    setFormData({ ...formData, plan: newPlan, users: autoUsers });
-                  }}
-                />
+            {/* CARD 4: Account, CRM & Subscription Details */}
+            <div className="edit-cust-card">
+              <div className="edit-cust-card-header">
+                <span className="edit-cust-card-title">
+                  <Building2 size={15} color="#4f46e5" />
+                  <span>Account & Subscription Details</span>
+                </span>
               </div>
 
-              <div>
-                <label className="adm-form-label">Users Taken (Capacity)</label>
-                <input
-                  type="number"
-                  min="0"
-                  className="adm-form-input"
-                  placeholder="e.g. 3"
-                  value={formData.users || ''}
-                  onChange={(e) => setFormData({ ...formData, users: Number(e.target.value) || 0 })}
-                />
-              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="edit-cust-grid-3">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Industry</label>
+                    <select
+                      className="edit-cust-select"
+                      value={formData.industry}
+                      onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    >
+                      {INDUSTRY_OPTIONS.map((ind) => (
+                        <option key={ind} value={ind}>
+                          {ind}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="adm-form-label">MRR</label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  value={formData.mrr}
-                  onChange={(e) => setFormData({ ...formData, mrr: e.target.value })}
-                />
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Account Relationship</label>
+                    <select
+                      className="edit-cust-select"
+                      value={formData.accountRelationship}
+                      onChange={(e) => setFormData({ ...formData, accountRelationship: e.target.value })}
+                    >
+                      {RELATIONSHIP_OPTIONS.map((rel) => (
+                        <option key={rel} value={rel}>
+                          {rel}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Lifecycle Status</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      value={customerLifecycleLabel(formData.status)}
+                      readOnly
+                      title="Derived automatically from demo, purchase, payment and activation records"
+                    />
+                  </div>
+                </div>
+
+                <div className="edit-cust-grid-3">
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Cloud Plan</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. Enterprise Cloud Server — 3 User"
+                      value={formData.plan}
+                      onChange={(e) => {
+                        const newPlan = e.target.value;
+                        const match = newPlan.match(/(\d+)\s*(?:user|users|usr)/i);
+                        const autoUsers = match ? Number(match[1]) : formData.users;
+                        setFormData({ ...formData, plan: newPlan, users: autoUsers });
+                      }}
+                    />
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">Users Taken (Capacity)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="edit-cust-input"
+                      placeholder="e.g. 3"
+                      value={formData.users || ''}
+                      onChange={(e) => setFormData({ ...formData, users: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div className="edit-cust-field">
+                    <label className="edit-cust-label">MRR (Monthly Recurring)</label>
+                    <input
+                      type="text"
+                      className="edit-cust-input"
+                      placeholder="e.g. ₹5,000"
+                      value={formData.mrr}
+                      onChange={(e) => setFormData({ ...formData, mrr: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-            <button
-              type="button"
-              className="adm-btn-secondary"
-              onClick={onClose}
-              disabled={isSubmitting}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="adm-btn-primary"
-              disabled={isSubmitting}
-              style={{ padding: '8px 20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Save size={15} />
-              <span>{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
-            </button>
+          {/* ── Fixed Footer ── */}
+          <div className="edit-cust-footer">
+            <div className="edit-cust-sync-badge">
+              <span className="edit-cust-sync-dot" />
+              <span>Sangam CRM Auto-Sync Active</span>
+            </div>
+
+            <div className="edit-cust-actions">
+              <button
+                type="button"
+                className="edit-cust-btn-cancel"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="edit-cust-btn-save"
+                disabled={isSubmitting}
+              >
+                <Save size={15} />
+                <span>{isSubmitting ? 'Saving Changes...' : 'Save Changes'}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

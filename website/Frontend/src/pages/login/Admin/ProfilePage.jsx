@@ -259,36 +259,38 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
           </div>
         </div>
 
-        {/* Small Circle: How much percent profile is being completed */}
-        <div
-          className="adm-profile-hero-completion"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '10px 16px',
-            background: '#ffffff',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 8px -2px rgba(0,0,0,0.06)'
-          }}
-          title={`${getProfileCompletion(profile || { name, email, role }).completedCount} of ${getProfileCompletion(profile || { name, email, role }).totalCount} profile fields completed`}
-        >
-          <ProfileCompletionCircle
-            percentage={getProfileCompletion(profile || { name, email, role }).percentage}
-            size={46}
-            strokeWidth={3.8}
-            showPercentageInside={true}
-          />
-          <div>
-            <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-              {getProfileCompletion(profile || { name, email, role }).percentage}% Completed
-            </div>
-            <div style={{ fontSize: '0.70rem', color: '#64748b', marginTop: '3px' }}>
-              Profile Status
+        {/* Small Circle: How much percent profile is being completed (Hidden when 100% complete) */}
+        {getProfileCompletion(profile || { name, email, role }).percentage < 100 && (
+          <div
+            className="adm-profile-hero-completion"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '10px 16px',
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px -2px rgba(0,0,0,0.06)'
+            }}
+            title={`${getProfileCompletion(profile || { name, email, role }).completedCount} of ${getProfileCompletion(profile || { name, email, role }).totalCount} profile fields completed`}
+          >
+            <ProfileCompletionCircle
+              percentage={getProfileCompletion(profile || { name, email, role }).percentage}
+              size={46}
+              strokeWidth={3.8}
+              showPercentageInside={true}
+            />
+            <div>
+              <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                {getProfileCompletion(profile || { name, email, role }).percentage}% Completed
+              </div>
+              <div style={{ fontSize: '0.70rem', color: '#64748b', marginTop: '3px' }}>
+                Profile Status
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="adm-profile-hero-side">
           <div className="adm-profile-hero-side-item">

@@ -229,7 +229,7 @@ export const authApi = {
   /**
    * Persist token and user in localStorage
    */
-  setAuthSession(token, user, policy = null) {
+  setAuthSession(token, user, policy = null, options = {}) {
     try {
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
@@ -238,7 +238,7 @@ export const authApi = {
     } catch (e) {
       console.error('Failed to store auth session:', e);
     }
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !options?.silent) {
       window.dispatchEvent(new Event('nispl_auth_change'));
     }
   },
@@ -399,7 +399,9 @@ export const authApi = {
         });
         const data = await res.json();
         if (res.ok && data.success && data.user) {
-          this.setAuthSession(token, data.user);
+          const current = this.getCurrentUser();
+          const isSame = current && JSON.stringify(current) === JSON.stringify(data.user);
+          this.setAuthSession(token, data.user, null, { silent: isSame });
           return data.user;
         }
       } catch (e) {
@@ -415,7 +417,9 @@ export const authApi = {
         });
         const dataAuth = await resAuth.json();
         if (resAuth.ok && dataAuth.success && dataAuth.user) {
-          this.setAuthSession(token, dataAuth.user);
+          const current = this.getCurrentUser();
+          const isSame = current && JSON.stringify(current) === JSON.stringify(dataAuth.user);
+          this.setAuthSession(token, dataAuth.user, null, { silent: isSame });
           return dataAuth.user;
         }
       } catch (e) {

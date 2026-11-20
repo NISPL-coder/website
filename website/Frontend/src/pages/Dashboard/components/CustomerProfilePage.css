@@ -38,6 +38,99 @@
   color: #0f172a;
 }
 
+/* ── Form Section and Grid to match Create Customer ── */
+.cust-profile-wrapper .adm-form-section {
+  padding: 0 0 28px;
+  border-bottom: 1px solid var(--adm-border-light);
+  margin-bottom: 28px;
+}
+
+.cust-profile-wrapper .adm-form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+}
+
+.cust-profile-wrapper .adm-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.10rem;
+  font-weight: 700;
+  color: var(--adm-text-main);
+  margin-bottom: 22px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #f8fafc;
+}
+
+.cust-profile-wrapper .adm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.cust-profile-wrapper .adm-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cust-profile-wrapper .adm-form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.cust-profile-wrapper .adm-form-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.cust-profile-wrapper .adm-required-star {
+  color: #ef4444 !important;
+  font-weight: 700;
+  margin-left: 3px;
+  font-size: 0.95em;
+  display: inline-block;
+}
+
+.cust-profile-wrapper .adm-form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.cust-profile-wrapper .adm-form-input:hover {
+  border-color: #cbd5e1;
+}
+
+.cust-profile-wrapper .adm-form-input:focus {
+  border-color: var(--adm-purple);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.cust-profile-wrapper .adm-form-input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.cust-profile-wrapper .adm-form-input::placeholder {
+  color: #94a3b8;
+  font-size: 0.90rem;
+}
+
+/* ── Section Boxes for Additional Channels ── */
 .cust-section-box {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -124,16 +217,6 @@
   background: #ffffff;
 }
 
-.cust-input-row.primary-locked {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-}
-
-.cust-input-row.primary-row {
-  background: #faf5ff;
-  border-color: #e9d5ff;
-}
-
 .cust-input-prefix {
   width: 32px;
   height: 32px;
@@ -210,33 +293,6 @@
   text-align: center;
 }
 
-.cust-details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.cust-save-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
-  transition: all 0.2s ease;
-}
-
-.cust-save-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
-}
-
 .cust-change-pw-btn {
   display: inline-flex;
   align-items: center;
@@ -253,6 +309,13 @@
 }
 
 /* ── Mobile refinements ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cust-profile-wrapper .adm-form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
 @media (max-width: 480px) {
   .cust-section-box {
     padding: 16px 14px;
@@ -269,10 +332,6 @@
     align-self: flex-start;
   }
 
-  .cust-details-grid {
-    grid-template-columns: 1fr;
-  }
-
   /* Badge + remove button wrap under the field instead of squeezing it */
   .cust-input-row {
     flex-wrap: wrap;
@@ -283,10 +342,8 @@
     min-width: 160px;
   }
 
-  .cust-save-btn,
   .cust-change-pw-btn {
     width: 100%;
     justify-content: center;
   }
 }
-

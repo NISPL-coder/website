@@ -72,6 +72,10 @@ export default function AdminProfileMenu({
   const effectiveUser = {
     ...(user || {}),
     ...(sessionUser || {}),
+    address: {
+      ...(user?.address || {}),
+      ...(sessionUser?.address || {})
+    },
     ...(name ? { name } : {}),
     ...(email ? { email } : {}),
     ...(role ? { role } : {})
@@ -191,88 +195,90 @@ export default function AdminProfileMenu({
             </span>
           </div>
 
-          {/* Profile Completion Overview Card */}
-          <div
-            style={{
-              margin: '8px 12px 10px',
-              padding: '10px 12px',
-              background: '#f8fafc',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-          >
-            <ProfileCompletionCircle
-              percentage={completion.percentage}
-              size={40}
-              strokeWidth={3.5}
-              showPercentageInside={true}
-            />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '2px'
-                }}
-              >
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
-                  Profile Completion
-                </span>
-                <span
+          {/* Profile Completion Overview Card (Hidden when 100% complete) */}
+          {completion.percentage < 100 && (
+            <div
+              style={{
+                margin: '8px 12px 10px',
+                padding: '10px 12px',
+                background: '#f8fafc',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}
+            >
+              <ProfileCompletionCircle
+                percentage={completion.percentage}
+                size={40}
+                strokeWidth={3.5}
+                showPercentageInside={true}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
                   style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    color:
-                      completion.percentage === 100
-                        ? '#059669'
-                        : completion.percentage >= 60
-                        ? '#4f46e5'
-                        : '#d97706'
-                  }}
-                >
-                  {completion.percentage}%
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: '0.68rem',
-                  color: '#64748b',
-                  margin: 0,
-                  lineHeight: 1.3
-                }}
-              >
-                {completion.percentage === 100
-                  ? 'All details verified & completed'
-                  : `${completion.completedCount} of ${completion.totalCount} details verified`}
-              </p>
-              {completion.percentage < 100 && profilePath && (
-                <button
-                  type="button"
-                  onClick={() => handleNavigate(profilePath)}
-                  style={{
-                    marginTop: '5px',
-                    padding: 0,
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '0.68rem',
-                    fontWeight: 600,
-                    color: '#4f46e5',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    gap: '3px'
+                    marginBottom: '2px'
                   }}
                 >
-                  <span>Complete your profile</span>
-                  <span>&rarr;</span>
-                </button>
-              )}
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                    Profile Completion
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color:
+                        completion.percentage === 100
+                          ? '#059669'
+                          : completion.percentage >= 60
+                          ? '#4f46e5'
+                          : '#d97706'
+                    }}
+                  >
+                    {completion.percentage}%
+                  </span>
+                </div>
+                <p
+                  style={{
+                    fontSize: '0.68rem',
+                    color: '#64748b',
+                    margin: 0,
+                    lineHeight: 1.3
+                  }}
+                >
+                  {completion.percentage === 100
+                    ? 'All details verified & completed'
+                    : `${completion.completedCount} of ${completion.totalCount} details completed`}
+                </p>
+                {completion.percentage < 100 && profilePath && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate(profilePath)}
+                    style={{
+                      marginTop: '5px',
+                      padding: 0,
+                      border: 'none',
+                      background: 'transparent',
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      color: '#4f46e5',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}
+                  >
+                    <span>Complete your profile</span>
+                    <span>&rarr;</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {profilePath && (
             <button

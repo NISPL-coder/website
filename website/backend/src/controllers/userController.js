@@ -33,8 +33,12 @@ export async function getOwnProfile(req, res) {
     }
 
     if (customerDoc) {
+      const nameParts = (customerDoc.name || safeUser.name || '').trim().split(' ');
+      safeUser.firstName = customerDoc.firstName || nameParts[0] || '';
+      safeUser.lastName = customerDoc.lastName || nameParts.slice(1).join(' ') || '';
       safeUser.company = customerDoc.company || safeUser.company || '';
       safeUser.gstNo = customerDoc.gstNo || safeUser.gstNo || '';
+      safeUser.tallySerialNo = customerDoc.tallySerialNo || safeUser.tallySerialNo || '';
       safeUser.designation = customerDoc.designation || safeUser.designation || '';
       safeUser.phone = customerDoc.phone || safeUser.phone || '';
       safeUser.additionalEmails = Array.isArray(customerDoc.additionalEmails) && customerDoc.additionalEmails.length > 0
@@ -61,21 +65,29 @@ export async function updateOwnProfile(req, res) {
 
   const {
     name,
+    firstName,
+    lastName,
     phone,
     additionalEmails,
     additionalPhones,
     company,
     gstNo,
+    tallySerialNo,
     designation,
     address,
     avatar,
     companyLogo
   } = req.body;
 
-  if (name !== undefined) {
-    const cleanName = String(name).trim();
-    if (!cleanName) throw new HttpError(400, 'Name cannot be empty.');
-    user.name = cleanName;
+  let computedName = '';
+  if (firstName !== undefined || lastName !== undefined) {
+    computedName = [firstName, lastName].filter(Boolean).map((s) => String(s).trim()).join(' ');
+  }
+  if (!computedName && name !== undefined) {
+    computedName = String(name).trim();
+  }
+  if (computedName) {
+    user.name = computedName;
   }
 
   if (phone !== undefined) {
@@ -132,7 +144,9 @@ export async function updateOwnProfile(req, res) {
 
   if (company !== undefined) user.company = String(company).trim();
   if (gstNo !== undefined) user.gstNo = String(gstNo).trim().toUpperCase();
+  if (tallySerialNo !== undefined) user.tallySerialNo = String(tallySerialNo).trim();
   if (designation !== undefined) user.designation = String(designation).trim();
+  if (address && typeof address === 'object') user.address = address;
   if (avatar !== undefined) {
     user.avatar = String(avatar).trim();
     user.companyLogo = String(avatar).trim();
@@ -149,6 +163,8 @@ export async function updateOwnProfile(req, res) {
   const primaryEmail = user.email;
 
   const customerUpdates = {};
+  if (firstName !== undefined) customerUpdates.firstName = String(firstName).trim();
+  if (lastName !== undefined) customerUpdates.lastName = String(lastName).trim();
   if (user.name) customerUpdates.name = user.name;
   if (user.phone) customerUpdates.phone = user.phone;
   if (avatar !== undefined || companyLogo !== undefined) {
@@ -162,8 +178,19 @@ export async function updateOwnProfile(req, res) {
   }
   if (company !== undefined) customerUpdates.company = String(company).trim();
   if (gstNo !== undefined) customerUpdates.gstNo = String(gstNo).trim().toUpperCase();
+  if (tallySerialNo !== undefined) customerUpdates.tallySerialNo = String(tallySerialNo).trim();
   if (designation !== undefined) customerUpdates.designation = String(designation).trim();
-  if (address && typeof address === 'object') customerUpdates.address = address;
+  if (address && typeof address === 'object') {
+    customerUpdates.address = {
+      country: address.country ? String(address.country).trim() : 'India',
+      state: address.state ? String(address.state).trim() : 'West Bengal',
+      city: address.city ? String(address.city).trim() : 'Kolkata',
+      postalCode: address.postalCode ? String(address.postalCode).replace(/\D/g, '').slice(0, 6) : '',
+      street: address.street ? String(address.street).trim() : '',
+      area: address.area ? String(address.area).trim() : '',
+      addressType: address.addressType || 'Office / Billing'
+    };
+  }
 
   if (Object.keys(customerUpdates).length > 0) {
     const custQuery = custId ? { customerId: custId } : { email: primaryEmail };
@@ -187,12 +214,17 @@ export async function updateOwnProfile(req, res) {
 
   const safeUser = user.toSafeJSON();
   if (updatedCustomerDoc) {
+    const nameParts = (updatedCustomerDoc.name || safeUser.name || '').trim().split(' ');
+    safeUser.firstName = updatedCustomerDoc.firstName || nameParts[0] || '';
+    safeUser.lastName = updatedCustomerDoc.lastName || nameParts.slice(1).join(' ') || '';
     safeUser.company = updatedCustomerDoc.company || safeUser.company || '';
+    safeUser.designation = updatedCustomerDoc.designation || safeUser.designation || '';
     safeUser.gstNo = updatedCustomerDoc.gstNo || safeUser.gstNo || '';
+    safeUser.tallySerialNo = updatedCustomerDoc.tallySerialNo || safeUser.tallySerialNo || '';
     safeUser.additionalEmails = updatedCustomerDoc.additionalEmails || safeUser.additionalEmails || [];
     safeUser.additionalPhones = updatedCustomerDoc.additionalPhones || safeUser.additionalPhones || [];
     safeUser.phone = updatedCustomerDoc.phone || safeUser.phone || '';
-    safeUser.address = updatedCustomerDoc.address || null;
+    safeUser.address = updatedCustomerDoc.address || safeUser.address || null;
   }
 
   await logActivity(req, {

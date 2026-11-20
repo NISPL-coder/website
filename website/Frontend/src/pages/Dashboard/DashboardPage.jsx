@@ -259,7 +259,12 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     }
     if (wants('account')) {
       tasks.push(authApi.getMe().then((freshUser) => {
-        if (freshUser) setCustomer(freshUser);
+        if (freshUser) {
+          setCustomer((prev) => {
+            if (prev && JSON.stringify(prev) === JSON.stringify(freshUser)) return prev;
+            return freshUser;
+          });
+        }
       }).catch((err) => {
         console.warn('Profile re-sync fallback:', err?.message);
       }));
@@ -291,11 +296,25 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     // Dynamic sync with backend API profile
     authApi.getMe().then((freshUser) => {
       if (freshUser) {
-        setCustomer(freshUser);
+        setCustomer((prev) => {
+          if (prev && JSON.stringify(prev) === JSON.stringify(freshUser)) return prev;
+          return freshUser;
+        });
       }
     }).catch((err) => {
       console.warn('Backend API profile sync fallback:', err?.message);
     });
+
+    const handleAuthChange = () => {
+      const freshSession = customerAuthService.getCurrentCustomer() || authApi.getCurrentUser();
+      if (freshSession) {
+        setCustomer((prev) => {
+          if (prev && JSON.stringify(prev) === JSON.stringify(freshSession)) return prev;
+          return freshSession;
+        });
+      }
+    };
+    window.addEventListener('nispl_auth_change', handleAuthChange);
 
     const syncInitialCart = async () => {
       try {
@@ -307,6 +326,8 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
 
     syncInitialCart();
     syncPortal();
+
+    return () => window.removeEventListener('nispl_auth_change', handleAuthChange);
   }, [applyCartPayload, syncPortal]);
 
   // A payment the finance desk books in from a cheque or bank transfer is not
@@ -539,6 +560,14 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
     [cartItems.length]
   );
 
+  const consoleProfile = useMemo(() => ({
+    name: customer?.name || portal?.account?.name || portal?.account?.company || 'NISPL Customer',
+    email: customer?.email || portal?.account?.email || '',
+    role: customer?.role || 'customer',
+    profilePath: '/customer/profile',
+    user: { ...portal?.account, ...customer }
+  }), [customer, portal?.account]);
+
   return (
     <>
       {/* React Hot Toast — positioned top-right, wide enough for renewal cards */}
@@ -564,13 +593,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
         activeNav={activeNav}
         onNavigate={(item) => handleSelectNav(item.id)}
         sidebarAriaLabel="Customer Portal Navigation"
-        profile={{
-          name: customer?.name || portal?.account?.name || portal?.account?.company || 'NISPL Customer',
-          email: customer?.email || portal?.account?.email || '',
-          role: customer?.role || 'customer',
-          profilePath: '/customer/profile',
-          user: { ...portal?.account, ...customer }
-        }}
+        profile={consoleProfile}
         onSignOut={handleSignOut}
       >
           {/* TAB 1: OVERVIEW */}
@@ -645,6 +668,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
             <CustomerProfilePage
               customer={customer}
               onSignOut={propOnSignOut}
+              onProfileUpdated={(fresh) => setCustomer(fresh)}
             />
           )}
       </ConsoleShell>
