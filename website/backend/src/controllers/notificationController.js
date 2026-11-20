@@ -512,23 +512,6 @@ export async function buildDynamicCustomerNotifications(caller, query = {}) {
     });
   }
 
-  // 7. Fallback welcome notice if customer has no contracts or payments
-  if (dynamicList.length === 0) {
-    dynamicList.push({
-      _id: 'dyn_welcome_customer',
-      id: 'dyn_welcome_customer',
-      type: 'system',
-      title: 'Welcome to NISPL Cloud Portal',
-      message: 'Explore high-performance cloud servers, activate your free trial, or choose a plan from the Products catalogue to get started.',
-      severity: 'info',
-      entityType: 'customer',
-      entityId: custId || targetEmail,
-      user: notifUser,
-      read: true,
-      createdAt: custDoc?.createdAt || new Date().toISOString()
-    });
-  }
-
   // 7. Any customer-targeted notifications in DB (support tickets, custom admin messages to customer)
   const customerAllowedDbTypes = [
     'support_ticket',
@@ -577,126 +560,6 @@ export async function buildDynamicCustomerNotifications(caller, query = {}) {
   };
 }
 
-async function ensureAdminSeedNotifications() {
-  try {
-    const existing = await Notification.countDocuments();
-    if (existing > 1) return;
-
-    const seed = [];
-
-    // Contracts (DB or JSON file)
-    let contracts = await Contract.find().lean();
-    if (!contracts || contracts.length === 0) {
-      contracts = getContractsFromFile();
-    }
-
-    // Payments (DB or JSON file)
-    let payments = await Payment.find().sort({ createdAt: -1 }).limit(10).lean();
-    if (!payments || payments.length === 0) {
-      payments = getPaymentsFromFile();
-    }
-
-    // 1. Pending payment confirmations
-    const pendingContracts = (contracts || []).filter((c) =>
-      c.confirmationStatus === 'Pending' || (c.adminConfirmed === false && c.confirmationStatus !== 'None' && c.confirmationStatus !== 'Confirmed')
-    );
-
-    for (const c of pendingContracts) {
-      seed.push({
-        type: 'payment_confirmation_required',
-        title: 'Payment Confirmation Required',
-        message: `Customer "${c.company || c.customer}" has paid ${c.totalContractValue || c.value} for "${c.name}". Services pending activation until confirmation is set to Yes.`,
-        severity: 'warning',
-        entityType: 'contract',
-        entityId: c.contractId,
-        user: { name: c.customer, email: c.email, role: 'customer', company: c.company },
-        read: false,
-        metadata: {
-          contractId: c.contractId,
-          amount: c.totalContractValue || c.value,
-          confirmationStatus: 'Pending',
-          actionRequired: true
-        },
-        createdAt: c.createdAt || new Date()
-      });
-    }
-
-    // 2. Recent payments
-    for (const p of (payments || []).slice(0, 10)) {
-      seed.push({
-        type: 'payment_received',
-        title: 'Payment Received',
-        message: `Received ${p.amount || ('₹' + (p.totalPaidAmount || 0))} from ${p.company || p.customer} (${p.paymentInvoiceNumber || p.invoiceNumber || 'online'}).`,
-        severity: 'success',
-        entityType: 'payment',
-        entityId: p.paymentInvoiceNumber || p.invoiceNumber,
-        user: { name: p.customer, email: p.email, company: p.company },
-        read: true,
-        metadata: {
-          amount: p.amount || ('₹' + (p.totalPaidAmount || 0)),
-          invoiceRef: p.paymentInvoiceNumber || p.invoiceNumber
-        },
-        createdAt: p.paymentDate || p.createdAt || new Date()
-      });
-    }
-
-    // 3. Renewals due
-    for (const nc of (contracts || []).slice(0, 5)) {
-      seed.push({
-        type: 'contract_renewal',
-        title: 'Contract Renewal Due',
-        message: `Contract "${nc.name}" for ${nc.company} is due for renewal on ${nc.endDate || nc.expiryDate || 'upcoming cycle'}.`,
-        severity: 'warning',
-        entityType: 'contract',
-        entityId: nc.contractId,
-        user: { name: nc.customer, email: nc.email, company: nc.company },
-        read: false,
-        metadata: {
-          contractId: nc.contractId,
-          expiryDate: nc.endDate || nc.expiryDate
-        },
-        createdAt: nc.updatedAt || nc.createdAt || new Date()
-      });
-    }
-
-    // 4. Recent registered customers
-    let customers = await Customer.find().sort({ createdAt: -1 }).limit(6).lean();
-    if (!customers || customers.length === 0) {
-      customers = getCustomersFromFile();
-    }
-    for (const cust of (customers || []).slice(0, 6)) {
-      seed.push({
-        type: 'customer_registered',
-        title: 'New Customer Registered',
-        message: `Customer ${cust.name || cust.company} (${cust.email}) registered on the portal.`,
-        severity: 'info',
-        entityType: 'customer',
-        entityId: cust.customerId || cust._id?.toString() || 'CUST',
-        user: { name: cust.name, email: cust.email, company: cust.company },
-        read: true,
-        createdAt: cust.createdAt || new Date()
-      });
-    }
-
-    // 5. System operational status
-    seed.push({
-      type: 'system',
-      title: 'Platform Services Operational',
-      message: 'Cloud infrastructure telemetry, billing engines and Sangam CRM sync are operational.',
-      severity: 'info',
-      entityType: 'system',
-      read: true,
-      createdAt: new Date()
-    });
-
-    if (seed.length > 0) {
-      await Notification.insertMany(seed, { ordered: false });
-    }
-  } catch (err) {
-    console.warn('[ensureAdminSeedNotifications] Warning:', err.message);
-  }
-}
-
 /**
  * Fetch live dynamic notifications with strict role-based isolation
  */
@@ -721,8 +584,6 @@ export const getNotifications = async (req, res) => {
       notifications: paged
     });
   }
-
-  await ensureAdminSeedNotifications();
 
   const { filter } = buildListFilter(caller, req.query);
 
@@ -773,8 +634,6 @@ export const getNotificationStats = async (req, res) => {
       stats: { total: dyn.total, unread: dyn.unreadCount, byCategory }
     });
   }
-
-  await ensureAdminSeedNotifications();
 
   const roleFilter = buildRoleFilter(caller);
   const allowlist = roleTypeAllowlist(roleFilter);
