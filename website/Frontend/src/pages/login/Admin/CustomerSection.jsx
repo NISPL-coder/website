@@ -70,6 +70,14 @@ export default function CustomerSection({
   const [searchQuery, setSearchQuery] = useState(
     () => location.state?.search || externalSearch || ''
   );
+  const [onlyWithUsers, setOnlyWithUsers] = useState(() => {
+    const urlParams = new URLSearchParams(location.search);
+    return (
+      location.state?.onlyWithUsers === true ||
+      urlParams.get('hasUsers') === 'true' ||
+      urlParams.get('filter') === 'hasUsers'
+    );
+  });
 
   useEffect(() => {
     const stateSearch = location.state?.search;
@@ -77,6 +85,13 @@ export default function CustomerSection({
     const urlParams = new URLSearchParams(location.search);
     const querySearch = urlParams.get('search') || urlParams.get('id') || urlParams.get('customerId');
     const target = stateSearch || querySearch;
+
+    const hasUsersParam =
+      location.state?.onlyWithUsers === true ||
+      urlParams.get('hasUsers') === 'true' ||
+      urlParams.get('filter') === 'hasUsers';
+
+    setOnlyWithUsers(Boolean(hasUsersParam));
 
     if (target) {
       setSearchQuery(target);
@@ -176,26 +191,38 @@ export default function CustomerSection({
     return customers.reduce((sum, c) => sum + getCustomerUserCount(c, contracts, products), 0);
   }, [customers, contracts, products]);
 
+  const customersWithUsersCount = useMemo(() => {
+    return customers.filter((c) => getCustomerUserCount(c, contracts, products) > 0).length;
+  }, [customers, contracts, products]);
+
   // Backward-compatible counts object for filters
   const counts = useMemo(() => ({
     all: dynamicCards.total,
     active: dynamicCards.active,
     demo: dynamicCards.demo,
-    inactive: dynamicCards.inactive
-  }), [dynamicCards]);
+    inactive: dynamicCards.inactive,
+    users: customersWithUsersCount
+  }), [dynamicCards, customersWithUsersCount]);
 
   const statusOptions = useMemo(() => [
     { value: 'all', label: `All Statuses (${counts.all})` },
     { value: 'active', label: `Active Only (${counts.active})` },
     { value: 'demo', label: `Demo / Trials (${counts.demo})` },
-    { value: 'inactive', label: `Inactive (${counts.inactive})` }
+    { value: 'inactive', label: `Inactive (${counts.inactive})` },
+    { value: 'users', label: `With Cloud Users (${counts.users})` }
   ], [counts]);
 
   // Filtered customer listing
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
-      const q = searchQuery.toLowerCase();
       const userCount = getCustomerUserCount(c, contracts, products);
+
+      // If statusFilter is 'users' OR onlyWithUsers filter is active, only include customers who have users (> 0)
+      if ((statusFilter === 'users' || onlyWithUsers) && userCount <= 0) {
+        return false;
+      }
+
+      const q = searchQuery.toLowerCase();
       const orderInfo = getCustomerOrderBreakdown(c, contracts);
 
       const searchable = [
@@ -226,6 +253,9 @@ export default function CustomerSection({
         matchesStatus = stage === 'Demo';
       } else if (statusFilter === 'inactive') {
         matchesStatus = stage === 'Inactive';
+      } else if (statusFilter === 'users') {
+        // Handled above via userCount > 0
+        matchesStatus = true;
       }
 
       const matchesDateRange = isWithinDateRange(c.createdAt || c.registered, dateFrom, dateTo);
@@ -237,7 +267,7 @@ export default function CustomerSection({
       if (dateB !== dateA) return dateB - dateA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
-  }, [customers, searchQuery, statusFilter, dateFrom, dateTo, contracts, products]);
+  }, [customers, searchQuery, statusFilter, dateFrom, dateTo, contracts, products, onlyWithUsers]);
 
   const handleCustomerUpdated = (updated) => {
     const cId = updated.id || updated.customerId;
@@ -855,7 +885,9 @@ export default function CustomerSection({
         <div className="adm-card-header-info">
           <h1 className="adm-section-title">Customer List</h1>
           <p className="adm-section-sub">
-            View and manage all registered customer accounts.
+            {statusFilter === 'users' || onlyWithUsers
+              ? `Showing ${filteredCustomers.length} customer accounts with allocated cloud users.`
+              : 'View and manage all registered customer accounts.'}
           </p>
         </div>
 
@@ -879,11 +911,17 @@ export default function CustomerSection({
         </div>
       </div>
 
-      {/* 2. Customer Quick Stat Cards (Total, Active, In Progress, Demo, Inactive) */}
+      {/* 2. Customer Quick Stat Cards (Total, Active, In Progress, Demo, Inactive, Cloud Users) */}
       <div className="adm-customer-summary-grid">
         <div
-          className={`adm-cust-stat-card ${statusFilter === 'all' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter('all')}
+          className={`adm-cust-stat-card ${statusFilter === 'all' && !onlyWithUsers ? 'selected' : ''}`}
+          onClick={() => {
+            setStatusFilter('all');
+            setOnlyWithUsers(false);
+          }}
+          role="button"
+          tabIndex={0}
+          title="Click to show all customer records"
         >
           <div className="adm-cust-stat-top">
             <span className="adm-cust-stat-label">Total Accounts</span>
@@ -897,7 +935,10 @@ export default function CustomerSection({
 
         <div
           className={`adm-cust-stat-card ${statusFilter === 'active' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter((prev) => (prev === 'active' ? 'all' : 'active'))}
+          onClick={() => {
+            setStatusFilter((prev) => (prev === 'active' ? 'all' : 'active'));
+            setOnlyWithUsers(false);
+          }}
           role="button"
           tabIndex={0}
           title="Click to filter Active clients only"
@@ -921,7 +962,10 @@ export default function CustomerSection({
 
         <div
           className={`adm-cust-stat-card ${statusFilter === 'demo' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter((prev) => (prev === 'demo' ? 'all' : 'demo'))}
+          onClick={() => {
+            setStatusFilter((prev) => (prev === 'demo' ? 'all' : 'demo'));
+            setOnlyWithUsers(false);
+          }}
           role="button"
           tabIndex={0}
           title="Click to filter Demo trials only"
@@ -938,7 +982,10 @@ export default function CustomerSection({
 
         <div
           className={`adm-cust-stat-card ${statusFilter === 'inactive' ? 'selected' : ''}`}
-          onClick={() => setStatusFilter((prev) => (prev === 'inactive' ? 'all' : 'inactive'))}
+          onClick={() => {
+            setStatusFilter((prev) => (prev === 'inactive' ? 'all' : 'inactive'));
+            setOnlyWithUsers(false);
+          }}
           role="button"
           tabIndex={0}
           title="Click to filter Inactive clients only"
@@ -954,8 +1001,18 @@ export default function CustomerSection({
         </div>
 
         <div
-          className="adm-cust-stat-card"
-          style={{ borderColor: '#ddd6fe', background: '#faf5ff' }}
+          className={`adm-cust-stat-card ${statusFilter === 'users' || onlyWithUsers ? 'selected' : ''}`}
+          style={{
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            const next = (statusFilter === 'users' || onlyWithUsers) ? 'all' : 'users';
+            setStatusFilter(next);
+            setOnlyWithUsers(next === 'users');
+          }}
+          role="button"
+          tabIndex={0}
+          title={statusFilter === 'users' || onlyWithUsers ? 'Click to show all customers' : 'Click to filter customers who have cloud users'}
         >
           <div className="adm-cust-stat-top">
             <span className="adm-cust-stat-label" style={{ color: '#7c3aed' }}>Cloud Users</span>
@@ -965,12 +1022,14 @@ export default function CustomerSection({
             <CountUp end={totalUsersAllocated} duration={1200} /> {totalUsersAllocated === 1 ? 'User' : 'Users'}
           </span>
           <span className="adm-cust-stat-desc">
-            Allocated across customer cloud plans
+            {statusFilter === 'users' || onlyWithUsers
+              ? `Filtered: ${counts.users} customers with users`
+              : `${counts.users} customers with allocated plans`}
           </span>
         </div>
       </div>
 
-      {/* 3. Filter Section of Demo, Active, and Inactive + Search */}
+      {/* 3. Filter Section of Demo, Active, Inactive, Users + Search */}
       <div className="adm-table-toolbar">
         {/* Search Box */}
         <div className="adm-search-box adm-search-box-toolbar">
@@ -1001,6 +1060,36 @@ export default function CustomerSection({
         </div>
 
         <div className="adm-table-filters">
+          {(statusFilter === 'users' || onlyWithUsers) && (
+            <button
+              type="button"
+              className="adm-status-pill purple"
+              onClick={() => {
+                setOnlyWithUsers(false);
+                if (statusFilter === 'users') setStatusFilter('all');
+              }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: '1px solid #c4b5fd',
+                background: '#ede9fe',
+                color: '#6d28d9',
+                borderRadius: '8px',
+                transition: 'all 0.15s ease'
+              }}
+              title="Click to remove Cloud Users filter and show all customers"
+            >
+              <Server size={13} />
+              <span>With Users Only ({filteredCustomers.length})</span>
+              <X size={13} style={{ marginLeft: '2px' }} />
+            </button>
+          )}
+
           <DateRangeFilter
             from={dateFrom}
             to={dateTo}
@@ -1019,7 +1108,11 @@ export default function CustomerSection({
               value={
                 statusOptions.find((option) => option.value === statusFilter) || statusOptions[0]
               }
-              onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
+              onChange={(opt) => {
+                const val = opt ? opt.value : 'all';
+                setStatusFilter(val);
+                setOnlyWithUsers(val === 'users');
+              }}
               classNamePrefix="react-select"
             />
           </div>
@@ -1033,10 +1126,10 @@ export default function CustomerSection({
         keyField="id"
         defaultSortFieldId="createdAt"
         defaultSortAsc={false}
-        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
+        resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}|${onlyWithUsers}`}
         minWidth={2100}
-        noDataMessage="No customer records found"
-        noDataHint="Try a different search term or account status."
+        noDataMessage={statusFilter === 'users' || onlyWithUsers ? "No customer records have cloud users allocated" : "No customer records found"}
+        noDataHint={statusFilter === 'users' || onlyWithUsers ? "Try clearing the 'With Users Only' filter or assigning cloud plans." : "Try a different search term or account status."}
         ariaLabel="Customer accounts"
         scrollHeight="600px"
         conditionalRowStyles={conditionalRowStyles}

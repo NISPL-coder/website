@@ -2440,7 +2440,7 @@ export default function OverviewSection({
                 <div className="adm-finance-value amber-val compact-val">
                   <CountUp end={businessMetrics.totalRenewals} duration={1200} />
                 </div>
-                <p className="adm-metric-hint">Renewals done by customers</p>
+                <p className="adm-metric-hint">Renewals need to be done by customers</p>
               </div>
               <div className="adm-metric-divider" />
               <div className="adm-metric-part">
@@ -2612,7 +2612,12 @@ export default function OverviewSection({
         </div>
 
         {/* CARD 5: CLOUD USERS ALLOCATED (USERS USED) */}
-        <div className="adm-finance-card cloud-users">
+        <div
+          className="adm-finance-card cloud-users"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/admin/customer?hasUsers=true', { state: { onlyWithUsers: true } })}
+          title="Click to view customers with cloud users"
+        >
           <div className="adm-finance-header">
             <div className="adm-finance-badge purple">
               <Server size={16} />
@@ -2642,8 +2647,11 @@ export default function OverviewSection({
             <button
               type="button"
               className="adm-finance-link purple-link"
-              onClick={() => navigate('/admin/customer')}
-              title="Navigate to Customer List to view plan users"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/admin/customer?hasUsers=true', { state: { onlyWithUsers: true } });
+              }}
+              title="Navigate to Customer List showing customers with cloud users"
             >
               <span>Customer Users</span>
               <ArrowRight size={14} />
