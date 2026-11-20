@@ -129,8 +129,17 @@ export const notificationApi = {
   },
 
   /** Live counts for the stat cards and filter tabs. */
-  async getStats() {
-    const res = await fetch(`${BASE_URL}/stats`, { headers: getAuthHeaders() });
+  async getStats(params = {}) {
+    const user = authApi.getCurrentUser();
+    const query = new URLSearchParams(
+      Object.entries({
+        role: user?.role,
+        email: user?.email,
+        ...params
+      }).filter(([, v]) => v !== undefined && v !== null && v !== '')
+    ).toString();
+
+    const res = await fetch(`${BASE_URL}/stats${query ? `?${query}` : ''}`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error(`Failed to load notification stats (Status ${res.status})`);
     const data = await res.json();
     return data.stats || { total: 0, unread: 0, byCategory: {} };

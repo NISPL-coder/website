@@ -52,7 +52,7 @@ const notificationSchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ['customer', 'contract', 'payment', 'product', 'receipt', 'user', 'admin', 'other'],
+      enum: ['customer', 'contract', 'payment', 'product', 'receipt', 'user', 'admin', 'system', 'other'],
       default: 'other'
     },
     entityId: {

@@ -78,6 +78,10 @@ const corsOptions = {
     'x-session-id',
     'X-User-Role',
     'x-user-role',
+    'X-User-Email',
+    'x-user-email',
+    'X-Customer-Email',
+    'x-customer-email',
     'X-Refreshed-Token',
     'x-refreshed-token'
   ],
