@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import logoImg from '../../assets/new_logo/WHITE.png';
 import onboardingVideo from '../../assets/Net Infotech System (NISPL) _ Tally 3-Star Partner, Cloud Hosting, IT Infrastructure & Cybersecurity.mp4';
-import PartnerDashboard from './partner/PartnerDashboard';
-import AdminDashboard from './Admin/AdminDashboard';
 import { authApi } from '../../services/authApi';
 import {
   Mail,

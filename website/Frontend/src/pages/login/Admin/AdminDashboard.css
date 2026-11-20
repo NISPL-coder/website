@@ -96,7 +96,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 16px;
+  padding: 0 13px;
   flex-shrink: 0;
   box-sizing: border-box;
   background: #ffffff;
@@ -146,8 +146,7 @@
 }
 
 .adm-brand-logo {
-  height: 60px;
-  max-width: 220px;
+  height: 65px;
   width: auto;
   object-fit: contain;
   flex-shrink: 0;

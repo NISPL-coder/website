@@ -7,7 +7,7 @@ import {
   Clock 
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/mockData';
-import logoImg from '../assets/new_logo/WHITE.png';
+import logoImg from '../assets/new_logo/3.png';
 import './Footer.css';
 
 export default function Footer() {

@@ -265,10 +265,10 @@ export default function ConsoleShell({
           <Link to={brandTo} className="adm-brand-link" title="Net Infotech System">
             <img 
               src={logoImg} 
-              alt="NISPL Cloud Tech" 
+              alt="Net Infotech System Pvt. Ltd." 
               className="adm-brand-logo" 
-              width="185" 
-              height="50" 
+              width="175" 
+              height="48" 
             />
           </Link>
         </div>

@@ -139,14 +139,12 @@
 }
 
 .demo-brand-logo-img {
-  height: 52px;
+  height: 75px;
   width: auto;
-  max-height: 56px;
-  max-width: 270px;
   object-fit: contain;
   display: block;
   transition: transform 0.2s ease, filter 0.2s ease;
-  margin-left: 0;
+  margin-left: 15px;
 }
 
 /* Navigation Links (Center) */
