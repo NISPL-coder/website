@@ -1709,3 +1709,243 @@
     padding: 16px 14px;
   }
 }
+
+/* =========================================================================
+   PRODUCTION MOBILE POLISH — profile menu, profile page & bulk import
+   Additive layer; desktop declarations above are untouched.
+   ========================================================================= */
+
+/* The profile page content used to sit flush against the card border. Match
+   the 28px gutter already used by the card header so the hero, info cards
+   and password card line up on every screen. */
+.adm-profile-page {
+  padding: 0 28px 28px;
+}
+
+.adm-profile-hero-completion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  /* The dropdown is anchored to the header chip, so it must never be wider
+     or taller than what the phone can show. */
+  .adm-profile-dropdown {
+    width: min(256px, calc(100vw - 16px));
+    max-width: none;
+    max-height: calc(100vh - var(--adm-header-height, 70px) - 20px);
+    max-height: calc(100dvh - var(--adm-header-height, 70px) - 20px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .adm-profile-page {
+    padding: 0 20px 24px;
+  }
+
+  /* ---------- Bulk import ---------- */
+  .adm-import-header-card {
+    padding: 20px;
+  }
+
+  .adm-import-header-top {
+    gap: 14px;
+  }
+
+  .adm-import-header-title-box,
+  .adm-import-title-text {
+    min-width: 0;
+  }
+
+  .adm-import-title-text h1 {
+    font-size: clamp(1.05rem, 4.2vw, 1.35rem);
+    overflow-wrap: anywhere;
+  }
+
+  .adm-import-title-text p {
+    max-width: none;
+  }
+
+  .adm-import-guide-header {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  .adm-import-file-card {
+    padding: 18px 16px;
+    align-items: flex-start;
+  }
+
+  .adm-import-file-details {
+    min-width: 0;
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .adm-import-file-text {
+    min-width: 0;
+  }
+
+  .adm-import-file-text h4 {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .adm-import-file-text p {
+    overflow-wrap: anywhere;
+  }
+
+  .adm-import-file-actions {
+    width: 100%;
+  }
+
+  .adm-import-file-actions > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .adm-import-progress-card {
+    padding: 14px;
+  }
+
+  .adm-import-progress-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .adm-import-progress-heading {
+    align-items: flex-start;
+  }
+
+  .adm-import-progress-title {
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+  }
+
+  .adm-import-preview-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-profile-hero {
+    padding: 18px 16px;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .adm-profile-hero-completion {
+    width: 100%;
+  }
+
+  .adm-profile-hero-side {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .adm-profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-profile-pw-card {
+    padding: 16px 14px;
+  }
+
+  .adm-profile-pw-form {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-profile-pw-actions {
+    justify-content: stretch;
+  }
+
+  .adm-profile-pw-actions .adm-btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-profile-page {
+    padding: 0 14px 20px;
+  }
+
+  .adm-profile-hero {
+    padding: 16px 14px;
+  }
+
+  .adm-profile-hero-name {
+    font-size: 1.12rem;
+    overflow-wrap: anywhere;
+  }
+
+  .adm-profile-pw-head-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .adm-import-header-card {
+    padding: 16px 14px;
+  }
+
+  .adm-import-header-title-box {
+    gap: 12px;
+  }
+
+  .adm-import-header-icon-badge {
+    width: 40px;
+    height: 40px;
+  }
+
+  .adm-import-dropzone {
+    padding: 30px 16px;
+  }
+
+  .adm-import-guide-card {
+    padding: 18px 14px;
+  }
+
+  .adm-import-btn-browse {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .adm-import-file-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .adm-import-file-actions > button {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  .adm-import-progress-badge {
+    width: 32px;
+    height: 32px;
+  }
+
+  .adm-import-progress-percent {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .adm-import-header-title-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+

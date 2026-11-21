@@ -1611,11 +1611,7 @@ export default function NewSubscriptionView({
                 <span>
                   End Date <span style={starStyle}>*</span>
                 </span>
-                {hidePlanDuration && (
-                  <span style={{ fontSize: '0.72rem', color: '#2563eb', fontWeight: 600 }}>
-                    Master Expiry
-                  </span>
-                )}
+               
               </label>
               <input
                 type="text"

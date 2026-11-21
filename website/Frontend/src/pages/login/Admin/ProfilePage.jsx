@@ -229,7 +229,7 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
   );
 
   return (
-    <div className="adm-table-card animate-fade-in">
+    <div className="adm-table-card adm-profile-page animate-fade-in">
       <div className="adm-card-header">
         <div className="adm-card-header-info">
           <h1 className="adm-section-title">Admin Profile</h1>
@@ -263,16 +263,6 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
         {getProfileCompletion(profile || { name, email, role }).percentage < 100 && (
           <div
             className="adm-profile-hero-completion"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '10px 16px',
-              background: '#ffffff',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 8px -2px rgba(0,0,0,0.06)'
-            }}
             title={`${getProfileCompletion(profile || { name, email, role }).completedCount} of ${getProfileCompletion(profile || { name, email, role }).totalCount} profile fields completed`}
           >
             <ProfileCompletionCircle

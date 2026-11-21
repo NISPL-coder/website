@@ -375,7 +375,7 @@ export default function AddonSection({ onBack, externalSearch }) {
       </div>
 
       {/* MASTER TOGGLE SWITCH BANNER */}
-      <div style={{
+      <div className="adm-addon-toggle-banner" style={{
         margin: '16px 24px',
         padding: '18px 22px',
         borderRadius: '14px',
