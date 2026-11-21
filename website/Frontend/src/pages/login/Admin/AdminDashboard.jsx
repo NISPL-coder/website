@@ -43,6 +43,7 @@ import CreatePaymentPage from './CreatePaymentPage';
 import CreateProductPage from './CreateProductPage';
 import CreateCustomPlanPage from './CreateCustomPlanPage';
 import CreateIpPage from './CreateIpPage';
+import CreateSalesPersonPage from './CreateSalesPersonPage';
 
 // Admin Tools: Profile Page, CSV Import & Sangam CRM Sync
 import ProfilePage from './ProfilePage';
@@ -92,7 +93,8 @@ const ADMIN_PAGES = [
   { path: '/admin/activity-logs', title: 'Activity Logs', subtitle: 'Audit trail and security event logs', keywords: 'activity logs audit security trail event history' },
   { path: '/admin/customer/create', title: 'Create Customer', subtitle: 'Onboard a new customer account', keywords: 'create customer add new customer' },
   { path: '/admin/customer/contract/create', title: 'Create Contract', subtitle: 'Generate a new contract agreement', keywords: 'create contract new contract add agreement' },
-  { path: '/admin/customer/payment/create', title: 'Create Payment', subtitle: 'Log a new payment receipt', keywords: 'create payment add payment new invoice' }
+  { path: '/admin/customer/payment/create', title: 'Create Payment', subtitle: 'Log a new payment receipt', keywords: 'create payment add payment new invoice' },
+  { path: '/admin/sales-person/create', title: 'Add Sales Person', subtitle: 'Add a new sales representative', keywords: 'sales person representative create add new rep' }
 ];
 
 const pageRelevance = (page, needle) => {
@@ -667,6 +669,10 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
               {location.pathname === '/admin/ip-monitor/create' && (
                 <CreateIpPage />
+              )}
+
+              {location.pathname === '/admin/sales-person/create' && (
+                <CreateSalesPersonPage />
               )}
             </>
           )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import Select from 'react-select';
 import {
@@ -278,6 +279,7 @@ function SalesPersonModal({ isOpen, onClose, onSave, person = null, isSaving = f
 }
 
 export default function SalesPersonSection({ externalSearch = '' }) {
+  const navigate = useNavigate();
   const [salesPersons, setSalesPersons] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -346,8 +348,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
   };
 
   const handleOpenAddModal = () => {
-    setEditingPerson(null);
-    setIsModalOpen(true);
+    navigate('/admin/sales-person/create');
   };
 
   const handleOpenEditModal = (person) => {
