@@ -125,6 +125,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [isAdditionalModalOpen, setIsAdditionalModalOpen] = useState(false);
 
   const load = useCallback(async () => {
@@ -688,7 +689,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                   : 'No future expiry recorded'
               }
               actionLabel="View products"
-              onAction={() => goTo('products')}
+              onAction={() => {
+                setSelectedProductId(null);
+                setIsProductsModalOpen(true);
+              }}
+              onClick={() => {
+                setSelectedProductId(null);
+                setIsProductsModalOpen(true);
+              }}
+              isClickable
             />
             <KpiCard
               icon={AlertTriangle}
@@ -915,7 +924,14 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                   <p className="flowmail-card-subtitle">Subscriptions & contracts</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button type="button" className="flowmail-view-all-link" onClick={() => goTo('products')}>
+                  <button
+                    type="button"
+                    className="flowmail-view-all-link"
+                    onClick={() => {
+                      setSelectedProductId(null);
+                      setIsProductsModalOpen(true);
+                    }}
+                  >
                     View All
                   </button>
                 </div>
@@ -999,7 +1015,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                       ? 'inactive'
                       : 'active';
                     return (
-                      <div key={product.id || product.name} className="flowmail-product-row">
+                      <div
+                        key={product.id || product.contractId || product.name}
+                        className="flowmail-product-row"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setSelectedProductId(product.id || product.contractId);
+                          setIsProductsModalOpen(true);
+                        }}
+                      >
                         <span className="flowmail-product-icon">
                           <Package size={16} />
                         </span>
@@ -1013,7 +1037,11 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                         <button
                           type="button"
                           className="flowmail-product-open"
-                          onClick={() => goTo('products')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProductId(product.id || product.contractId);
+                            setIsProductsModalOpen(true);
+                          }}
                           aria-label={`Open ${product.name}`}
                         >
                           <ChevronRight size={16} />
@@ -1071,11 +1099,14 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       {/* ── Active Products Inventory Modal (all API product rows) ── */}
       <ActiveProductsModal
         isOpen={isProductsModalOpen}
-        onClose={() => setIsProductsModalOpen(false)}
+        onClose={() => {
+          setIsProductsModalOpen(false);
+          setSelectedProductId(null);
+        }}
         products={data?.products || []}
         account={account}
         onNavigateTab={goTo}
-        onOpenAdditionalProduct={() => setIsAdditionalModalOpen(true)}
+        initialExpandedId={selectedProductId}
       />
 
       {/* ── Additional Product Purchase Modal (15-Day Cut-off Protection) ── */}
