@@ -8,6 +8,11 @@ import { Addon, getAddonsFromFile } from '../models/Addon.js';
 import { logNotification } from '../services/notificationService.js';
 import { crmRecordId, provisionContractsForPayment, syncContractToCrm } from '../services/contractProvisioning.js';
 import { deriveCustomerLifecycle, refreshCustomerLifecycle } from '../services/customerLifecycle.js';
+import {
+  checkAdditionalProductEligibility,
+  findPrimaryContract,
+  RESTRICTION_MESSAGE
+} from '../services/contractEligibilityService.js';
 import { hasPermission } from '../middleware/permission.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
@@ -1055,6 +1060,25 @@ export const getCustomerOverview = async (req, res) => {
     const reminders = collectAllReminders(payments, regularProducts.length > 0 ? regularProducts : products);
     const reminder = pickReminder(payments, regularProducts.length > 0 ? regularProducts : products);
 
+    // Calculate strict 15-day Additional Product Purchase Cut-off Rule
+    const activeProductsForEligibility = regularProducts.length > 0 ? regularProducts : products;
+    const additionalProductEligibility = checkAdditionalProductEligibility({
+      contracts: activeProductsForEligibility
+    });
+
+    // Unified contract synchronization: all remaining products inherit the Primary Contract's Master Expiry Date!
+    const masterExp = additionalProductEligibility.masterExpiryDate;
+    if (masterExp) {
+      products.forEach((p) => {
+        if (!isDemoProduct(p)) {
+          p.expiryDate = masterExp;
+          p.endDate = masterExp;
+          p.daysLeft = daysUntil(toDate(masterExp));
+          p.expired = Boolean(masterExp) && daysUntil(toDate(masterExp)) < 0;
+        }
+      });
+    }
+
     res.json({
       success: true,
       data: {
@@ -1113,6 +1137,9 @@ export const getCustomerOverview = async (req, res) => {
         hasConvertedDemo,
         payments,
         entitlements,
+        additionalProductEligibility,
+        masterExpiryDate: additionalProductEligibility.masterExpiryDate,
+        primaryContract: additionalProductEligibility.primaryContract,
         recentPayments: payments.slice(0, 50),
         reminders,
         reminder,
@@ -1436,6 +1463,24 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   const cart = await findAccountCart(user, req);
   if (!cart || !cart.items.length) throw checkoutError(400, 'Your cart is empty.');
 
+  // Validate 15-day restriction cut-off if cart contains additional products
+  const hasAdditional = cart.items.some(
+    (item) => item.isAdditional || item.isAdditionalProduct || /additional/i.test(item.name || '')
+  );
+  if (hasAdditional) {
+    let customerContracts = [];
+    if (isMongoConnected()) {
+      customerContracts = await Contract.find(scope).lean();
+    } else {
+      customerContracts = filterByIdentity(getContractsFromFile(), collectIdentityValues(user));
+    }
+    const primary = findPrimaryContract(customerContracts);
+    const eligibility = checkAdditionalProductEligibility({ primaryContract: primary, contracts: customerContracts });
+    if (!eligibility.eligible) {
+      throw checkoutError(403, eligibility.message || RESTRICTION_MESSAGE);
+    }
+  }
+
   const lines = await Promise.all(
     cart.items.map(async (item) => {
       // A subscription line keeps its own catalogue id, because the cart line id
@@ -1593,6 +1638,37 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
               list[idx].paymentStatus = 'Yes';
               list[idx].status = 'In Progress';
               saveContractsToFile(list);
+            }
+          }
+
+          // Unified contract renewal: synchronize associated child contracts to the new common Expiry Date
+          const renewedCid = existingCtr.contractId || snapshot.contractId;
+          if (renewedCid && nextEndIso) {
+            if (isMongoConnected()) {
+              await Contract.updateMany(
+                { $or: [{ parentContractId: renewedCid }, { primaryContractId: renewedCid }] },
+                {
+                  $set: {
+                    endDate: nextEndIso,
+                    expiryDate: nextEndIso,
+                    paymentStatus: 'Yes',
+                    status: 'In Progress'
+                  }
+                }
+              );
+            } else {
+              const list = getContractsFromFile();
+              let childUpdated = false;
+              list.forEach((c) => {
+                if (c.parentContractId === renewedCid || c.primaryContractId === renewedCid) {
+                  c.endDate = nextEndIso;
+                  c.expiryDate = nextEndIso;
+                  c.paymentStatus = 'Yes';
+                  c.status = 'In Progress';
+                  childUpdated = true;
+                }
+              });
+              if (childUpdated) saveContractsToFile(list);
             }
           }
         }

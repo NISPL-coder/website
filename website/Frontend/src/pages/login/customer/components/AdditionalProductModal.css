@@ -1,0 +1,511 @@
+/* AdditionalProductModal.css — Modern styling for Additional Product Purchase Modal */
+
+.apm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: apmFadeIn 0.2s ease-out;
+}
+
+.apm-modal-box {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: apmSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes apmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apmSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.apm-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  background: #f8fafc;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.apm-modal-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.apm-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.apm-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apm-modal-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.apm-modal-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.apm-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.apm-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Primary Contract Status Card */
+.apm-contract-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apm-contract-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apm-contract-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.apm-contract-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.88rem;
+}
+
+.apm-contract-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
+}
+
+.apm-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.apm-meta-title {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.apm-meta-val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.apm-sync-notice {
+  font-size: 0.8rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+}
+
+/* Restricted Warning Banner */
+.apm-restriction-banner {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apm-restriction-banner.is-expired {
+  background: #fef2f2;
+  border-color: #fee2e2;
+  border-left-color: #ef4444;
+}
+
+.apm-restriction-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b45309;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.apm-restriction-banner.is-expired .apm-restriction-header {
+  color: #b91c1c;
+}
+
+.apm-restriction-message {
+  font-size: 0.88rem;
+  color: #78350f;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.apm-restriction-banner.is-expired .apm-restriction-message {
+  color: #7f1d1d;
+}
+
+.apm-restriction-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px dashed #fcd34d;
+}
+
+.apm-restriction-banner.is-expired .apm-restriction-dates {
+  border-color: #fca5a5;
+}
+
+.apm-date-pill {
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.apm-date-pill strong {
+  color: #0f172a;
+}
+
+.apm-renew-action-btn {
+  background: #d97706;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  transition: all 0.15s ease;
+}
+
+.apm-renew-action-btn:hover {
+  background: #b45309;
+}
+
+/* Product Selection Section */
+.apm-product-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apm-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apm-product-options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.apm-product-option-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #ffffff;
+}
+
+.apm-product-option-card:hover {
+  border-color: #6366f1;
+  background: #faf5ff;
+}
+
+.apm-product-option-card.is-selected {
+  border-color: #6366f1;
+  background: #f5f3ff;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.apm-option-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.apm-option-radio {
+  width: 18px;
+  height: 18px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.apm-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.apm-option-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.apm-option-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.apm-option-price {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #4338ca;
+  text-align: right;
+}
+
+.apm-option-cycle {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* Modal Footer */
+.apm-modal-footer {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.apm-footer-total {
+  display: flex;
+  flex-direction: column;
+}
+
+.apm-total-label {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.apm-total-amount {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.apm-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.apm-btn-cancel {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apm-btn-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.apm-btn-submit {
+  background: #6366f1;
+  border: none;
+  color: #ffffff;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.apm-btn-submit:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.apm-btn-submit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Inline Warning in Overview */
+.flowmail-cutoff-warning-banner {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: apmFadeIn 0.2s ease-out;
+}
+
+.flowmail-cutoff-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #92400e;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.flowmail-cutoff-warning-msg {
+  font-size: 0.86rem;
+  color: #78350f;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.flowmail-cutoff-dates-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: #451a03;
+  background: rgba(254, 243, 199, 0.6);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.flowmail-cutoff-dates-row strong {
+  color: #78350f;
+}
+
+.flowmail-renew-shortcut {
+  width: fit-content;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+}
+
+/* Add Additional Product Button in Section Header */
+.flowmail-btn-additional {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.flowmail-btn-additional:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.flowmail-btn-additional:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border: 1px solid #cbd5e1;
+}

@@ -10,6 +10,10 @@ import { salesPersonApi } from '../../../services/salesPersonApi';
 import { formatINR } from '../utils/pricingUtils';
 import { useIsMobile, useIsPhone } from '../../../utils/useResponsive';
 import { normalizeCustomerLifecycle } from '../../../utils/customerLifecycle';
+import {
+  findPrimaryContract,
+  checkClientAdditionalProductEligibility
+} from '../../../utils/contractEligibility';
 
 /** Customers choose by capacity, so the brand prefix is dropped from the label. */
 const stripProviderBrand = (name = '') =>
@@ -23,6 +27,13 @@ const toNumber = (value) => {
   if (typeof value === 'number') return value;
   const digits = String(value ?? '').replace(/[^0-9.]/g, '');
   return digits ? Number(digits) : NaN;
+};
+
+const formatDate = (val) => {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (Number.isNaN(d.getTime())) return String(val);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 /** CPU / RAM / SSD can arrive as flat fields, spec rows, or a "2 core/3 GB/50 GB" string. */
@@ -132,9 +143,57 @@ const getTodayDateString = () => {
 // an ISO day so the ledger and the contract dates stay sortable.
 const toIsoDate = (value) => {
   const raw = String(value || '').trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-  const parts = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-  return parts ? `${parts[3]}-${parts[2]}-${parts[1]}` : '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  const parts = raw.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (parts) return `${parts[3]}-${parts[2]}-${parts[1]}`;
+  const d = new Date(value);
+  if (!Number.isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return '';
+};
+
+// Format any ISO date or Date instance into DD-MM-YYYY for display in input fields
+const toDisplayDate = (value) => {
+  if (!value) return '';
+  const raw = String(value).trim();
+  if (/^\d{2}-\d{2}-\d{4}$/.test(raw)) return raw;
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const [y, m, d] = raw.slice(0, 10).split('-');
+    return `${d}-${m}-${y}`;
+  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return raw;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+// Calculate approximate calendar months between two dates for contract sync
+const calculateMonthsBetween = (startStr, endStr) => {
+  if (!startStr || !endStr) return 1;
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 1;
+  if (end <= start) return 1;
+
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  const approxMonths = Math.round(diffDays / 30.4375);
+  return Math.max(1, approxMonths);
+};
+
+const formatTermLabel = (months) => {
+  if (!months || months <= 0) return '1 Month';
+  if (months >= 12 && months % 12 === 0) {
+    const yrs = months / 12;
+    return `${yrs} Year${yrs > 1 ? 's' : ''}`;
+  }
+  return `${months} Month${months > 1 ? 's' : ''}`;
 };
 
 // Helper: Auto calculate end date (DD-MM-YYYY) from start date (YYYY-MM-DD) and duration (months)
@@ -528,6 +587,27 @@ export default function NewSubscriptionView({
     return opts;
   }, [currentEmail, currentName, customersList]);
 
+  // Primary Contract and 15-Day Additional Product Cut-off Eligibility
+  const primaryContract = useMemo(() => {
+    if (portalData?.primaryContract) return portalData.primaryContract;
+    const email = (selectedCustomer || currentEmail || '').toLowerCase();
+    const filtered = (contractsList || []).filter((c) => String(c.email || '').toLowerCase() === email);
+    return findPrimaryContract(filtered.length > 0 ? filtered : (portalData?.products || []));
+  }, [portalData, selectedCustomer, currentEmail, contractsList]);
+
+  const additionalProductEligibility = useMemo(() => {
+    return portalData?.additionalProductEligibility || checkClientAdditionalProductEligibility({
+      primaryContract,
+      contracts: contractsList
+    });
+  }, [portalData, primaryContract, contractsList]);
+
+  const isAdditionalRestricted = Boolean(
+    primaryContract && (additionalProductEligibility?.isRestricted || additionalProductEligibility?.eligible === false)
+  );
+  const masterExpiryDate = additionalProductEligibility?.masterExpiryDate || primaryContract?.expiryDate || primaryContract?.endDate;
+  const cutOffDate = additionalProductEligibility?.cutOffDate;
+
   // Auto-selected product: "Cloud Services" (Read only)
   const product = 'Cloud Services';
 
@@ -790,6 +870,8 @@ export default function NewSubscriptionView({
     }
   }, [selectedPlanId]);
 
+  const hidePlanDuration = Boolean(primaryContract && selectedPlan && !selectedPlan.isDemoPlan);
+
   const selectedDuration = useMemo(() => {
     if (selectedPlan?.isDemoPlan) {
       return {
@@ -798,19 +880,38 @@ export default function NewSubscriptionView({
         months: 0
       };
     }
+    // If synchronized to active Primary Contract, inherit term to Master Expiry Date
+    if (primaryContract && masterExpiryDate && selectedPlan) {
+      const months = calculateMonthsBetween(startDate, masterExpiryDate);
+      const termText = formatTermLabel(months);
+      return {
+        value: `synced_${months}_months`,
+        label: `${termText} (Synchronized with Primary Contract)`,
+        shortLabel: termText,
+        months,
+        isSynced: true
+      };
+    }
     return (
       SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
     );
-  }, [selectedDurationKey, selectedPlan]);
+  }, [selectedDurationKey, selectedPlan, primaryContract, masterExpiryDate, startDate]);
 
   // Auto-calculated End Date (DD-MM-YYYY) once duration is selected
   const endDate = useMemo(() => {
     if (selectedPlan?.isDemoPlan) {
       return calculateDemoEndDate(startDate, selectedPlan.duration || '7 Days');
     }
+    // Unified contract logic: inherit Master Expiry Date when plan is selected
+    if (primaryContract && masterExpiryDate) {
+      if (selectedPlan) {
+        return toDisplayDate(masterExpiryDate);
+      }
+      return '';
+    }
     if (!selectedDuration) return '';
     return calculateEndDate(startDate, selectedDuration.months);
-  }, [startDate, selectedDuration, selectedPlan]);
+  }, [startDate, selectedDuration, selectedPlan, primaryContract, masterExpiryDate]);
 
   // Sales Person state: starts empty, error starts FALSE (no warning by default)
   const [salesPerson, setSalesPerson] = useState('');
@@ -862,13 +963,15 @@ export default function NewSubscriptionView({
     if (selectedPlan?.isDemoPlan) {
       return Number(selectedPlan.monthlyPrice) || 0;
     }
-    if (!unitPrice || !selectedDuration) return 0;
+    if (!unitPrice) return 0;
+    if (!selectedDuration && !primaryContract) return 0;
+    const months = selectedDuration?.months ?? 1;
     return (
       (Number(unitPrice) || 0) *
       (Number(quantity) || 1) *
-      (Number(selectedDuration.months) || 1)
+      (Number(months) || 1)
     );
-  }, [unitPrice, quantity, selectedDuration, selectedPlan]);
+  }, [unitPrice, quantity, selectedDuration, selectedPlan, primaryContract]);
 
   const planLabel = selectedPlan
     ? `${selectedPlan.name}${selectedPlan.cores ? ` (${[selectedPlan.cores, selectedPlan.ram, selectedPlan.storage].filter(Boolean).join('/')})` : ''}`
@@ -931,7 +1034,14 @@ export default function NewSubscriptionView({
     }
 
     // Standard / Custom order branch
-    if (!selectedDurationKey || !selectedDuration) {
+    if (primaryContract && isAdditionalRestricted) {
+      toast.error(
+        'Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products.'
+      );
+      return;
+    }
+
+    if (!primaryContract && (!selectedDurationKey || !selectedDuration)) {
       toast.error('Please select a plan duration from dropdown.');
       return;
     }
@@ -939,10 +1049,11 @@ export default function NewSubscriptionView({
     setIsSubmitting(true);
 
     if (onAddToCart) {
+      const durationLabel = selectedDuration?.label || 'Contract Term';
       onAddToCart({
         id: `sub-cloud-service-${Date.now()}`,
         productId: selectedPlan.id,
-        name: `${product} - ${planLabel} (${selectedDuration.label})`,
+        name: `${product} - ${planLabel} (${selectedDuration?.shortLabel || durationLabel})`,
         planName: planLabel,
         product,
         price: amount,
@@ -956,13 +1067,17 @@ export default function NewSubscriptionView({
         users: selectedPlan.users,
         serverConfiguration: selectedPlan.serverConfiguration,
         description,
-        period: selectedDuration.label,
-        duration: selectedDuration.label,
-        durationMonths: selectedDuration.months,
+        period: durationLabel,
+        duration: durationLabel,
+        durationMonths: selectedDuration?.months || 1,
         startDate,
-        endDate: toIsoDate(endDate)
+        endDate: masterExpiryDate ? toIsoDate(masterExpiryDate) : toIsoDate(endDate),
+        isAdditional: Boolean(primaryContract),
+        isAdditionalProduct: Boolean(primaryContract),
+        parentContractId: primaryContract?.contractId || null,
+        primaryContractId: primaryContract?.contractId || null
       });
-      toast.success(`Order for ${planLabel} (${selectedDuration.label}) added to cart!`);
+      toast.success(`Order for ${planLabel} added to cart!`);
       if (onGoToCart) {
         onGoToCart();
       }
@@ -1049,6 +1164,59 @@ export default function NewSubscriptionView({
           padding: isMobile ? '18px 16px' : '28px 32px'
         }}
       >
+        {/* 15-Day Cut-off Purchase Restriction Alert Banner */}
+        {primaryContract && isAdditionalRestricted && (
+          <div
+            style={{
+              background: '#fffbeb',
+              border: '1.5px solid #fef3c7',
+              borderLeft: '4px solid #f59e0b',
+              borderRadius: '8px',
+              padding: '14px 18px',
+              marginBottom: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontWeight: 700, fontSize: '0.95rem' }}>
+              <AlertTriangle size={18} />
+              <span>Additional Product Purchases Restricted (15-Day Cut-off)</span>
+            </div>
+            <p style={{ margin: 0, color: '#78350f', fontSize: '0.88rem', lineHeight: 1.5 }}>
+              Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.82rem', color: '#92400e', background: 'rgba(254, 243, 199, 0.6)', padding: '6px 12px', borderRadius: '6px' }}>
+              <span><strong>Contract Expiry Date:</strong> {formatDate(masterExpiryDate)}</span>
+              {cutOffDate && <span><strong>Purchases Restricted From:</strong> {formatDate(cutOffDate)}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Primary Contract Synchronization Notice when eligible */}
+        {primaryContract && !isAdditionalRestricted && masterExpiryDate && (
+          <div
+            style={{
+              background: '#eff6ff',
+              border: '1px solid #dbeafe',
+              borderLeft: '4px solid #3b82f6',
+              borderRadius: '8px',
+              padding: '10px 16px',
+              marginBottom: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              fontSize: '0.84rem',
+              color: '#1e40af'
+            }}
+          >
+            <CheckCircle2 size={16} color="#2563eb" style={{ flexShrink: 0 }} />
+            <span>
+              This order will synchronize with your Primary Contract (<strong>{primaryContract.contractId}</strong>) and inherit the <strong>{formatDate(masterExpiryDate)}</strong> Expiry Date.
+            </span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '18px' : '22px' }}>
           {/* Row 1: Select Customer & Product */}
           <div style={{ display: 'grid', gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: isMobile ? '16px' : '20px' }}>
@@ -1313,78 +1481,105 @@ export default function NewSubscriptionView({
 
           {/* Section: Order Term */}
           <div style={{ marginTop: '6px' }}>
-            <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 600, color: '#1e293b' }}>
-              Order Term
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 600, color: '#1e293b' }}>
+                Order Term
+              </h3>
+              {hidePlanDuration && (
+                <span
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2563eb',
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    padding: '3px 10px',
+                    borderRadius: '999px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <CheckCircle2 size={13} color="#2563eb" />
+                  Synchronized with Primary Contract ({selectedDuration?.label || 'Term'})
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Term Row: Plan Duration, Start Date, End Date, Sales Person */}
+          {/* Term Row: Plan Duration (hidden when plan selected for primary contract), Start Date, End Date, Sales Person */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: isPhone ? 'minmax(0, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: isPhone
+                ? 'minmax(0, 1fr)'
+                : hidePlanDuration
+                ? 'repeat(3, minmax(0, 1fr))'
+                : 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: isMobile ? '16px' : '20px'
             }}
           >
-            {/* Plan Duration / Term (React Select with search) */}
-            <div>
-              <label style={labelStyle}>
-                Plan Duration <span style={starStyle}>*</span>
-              </label>
-              <Select
-                value={
-                  selectedPlan?.isDemoPlan
-                    ? { value: 'demo_term', label: `${selectedPlan.duration || '7 Days'} (Demo Trial)` }
-                    : SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
-                }
-                onChange={(opt) => setSelectedDurationKey(opt ? opt.value : '')}
-                options={SUBSCRIPTION_DURATIONS}
-                isDisabled={Boolean(selectedPlan?.isDemoPlan)}
-                placeholder="Select Duration"
-                isSearchable={true}
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    height: '44px',
-                    minHeight: '44px',
-                    borderRadius: '8px',
-                    borderColor: state.isFocused ? '#4f46e5' : '#cbd5e1',
-                    borderWidth: '1.5px',
-                    boxShadow: state.isFocused ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
-                    fontSize: '0.92rem',
-                    fontWeight: 400,
-                    cursor: selectedPlan?.isDemoPlan ? 'not-allowed' : 'pointer',
-                    backgroundColor: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
-                  }),
-                  valueContainer: (base) => ({
-                    ...base,
-                    padding: '0 12px'
-                  }),
-                  placeholder: (base) => ({
-                    ...base,
-                    color: '#94a3b8',
-                    fontSize: '0.90rem'
-                  }),
-                  singleValue: (base) => ({
-                    ...base,
-                    color: '#0f172a',
-                    fontSize: '0.92rem',
-                    fontWeight: 500
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    fontSize: '0.88rem',
-                    padding: '9px 12px',
-                    backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f1f5f9' : 'transparent',
-                    color: state.isSelected ? '#ffffff' : '#0f172a',
-                    cursor: 'pointer'
-                  }),
-                  menuPortal: (base) => ({ ...base, zIndex: 999999 })
-                }}
-                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-                classNamePrefix="react-select"
-              />
-            </div>
+            {/* Plan Duration / Term (React Select with search) - Hidden when customer selects a plan under an active Primary Contract */}
+            {!hidePlanDuration && (
+              <div>
+                <label style={labelStyle}>
+                  Plan Duration <span style={starStyle}>*</span>
+                </label>
+                <Select
+                  value={
+                    selectedPlan?.isDemoPlan
+                      ? { value: 'demo_term', label: `${selectedPlan.duration || '7 Days'} (Demo Trial)` }
+                      : SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
+                  }
+                  onChange={(opt) => setSelectedDurationKey(opt ? opt.value : '')}
+                  options={SUBSCRIPTION_DURATIONS}
+                  isDisabled={Boolean(selectedPlan?.isDemoPlan)}
+                  placeholder="Select Duration"
+                  isSearchable={true}
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      height: '44px',
+                      minHeight: '44px',
+                      borderRadius: '8px',
+                      borderColor: state.isFocused ? '#4f46e5' : '#cbd5e1',
+                      borderWidth: '1.5px',
+                      boxShadow: state.isFocused ? '0 0 0 3px rgba(79, 70, 229, 0.12)' : 'none',
+                      fontSize: '0.92rem',
+                      fontWeight: 400,
+                      cursor: selectedPlan?.isDemoPlan ? 'not-allowed' : 'pointer',
+                      backgroundColor: selectedPlan?.isDemoPlan ? '#f8fafc' : '#ffffff'
+                    }),
+                    valueContainer: (base) => ({
+                      ...base,
+                      padding: '0 12px'
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: '#94a3b8',
+                      fontSize: '0.90rem'
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: '#0f172a',
+                      fontSize: '0.92rem',
+                      fontWeight: 500
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      fontSize: '0.88rem',
+                      padding: '9px 12px',
+                      backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#f1f5f9' : 'transparent',
+                      color: state.isSelected ? '#ffffff' : '#0f172a',
+                      cursor: 'pointer'
+                    }),
+                    menuPortal: (base) => ({ ...base, zIndex: 999999 })
+                  }}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  classNamePrefix="react-select"
+                />
+              </div>
+            )}
 
             {/* Start Date (Editable) */}
             <div>
@@ -1403,7 +1598,7 @@ export default function NewSubscriptionView({
               />
             </div>
 
-            {/* End Date (Auto calculated based on Duration & Start Date) */}
+            {/* End Date (Auto calculated based on Duration & Start Date or inherited from Primary Contract) */}
             <div>
               <label
                 style={{
@@ -1416,7 +1611,11 @@ export default function NewSubscriptionView({
                 <span>
                   End Date <span style={starStyle}>*</span>
                 </span>
-                
+                {hidePlanDuration && (
+                  <span style={{ fontSize: '0.72rem', color: '#2563eb', fontWeight: 600 }}>
+                    Master Expiry
+                  </span>
+                )}
               </label>
               <input
                 type="text"
@@ -1523,9 +1722,9 @@ export default function NewSubscriptionView({
           >
             <button
               type="submit"
-              disabled={isSubmitting || plans.length === 0 || isDemoBlocked}
+              disabled={isSubmitting || plans.length === 0 || isDemoBlocked || Boolean(primaryContract && isAdditionalRestricted)}
               style={{
-                background: plans.length === 0 || isDemoBlocked ? '#cbd5e1' : '#4f46e5',
+                background: plans.length === 0 || isDemoBlocked || Boolean(primaryContract && isAdditionalRestricted) ? '#cbd5e1' : '#4f46e5',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
@@ -1533,12 +1732,12 @@ export default function NewSubscriptionView({
                 width: isPhone ? '100%' : undefined,
                 fontSize: '0.92rem',
                 fontWeight: 600,
-                cursor: plans.length === 0 || isDemoBlocked ? 'not-allowed' : 'pointer',
+                cursor: plans.length === 0 || isDemoBlocked || Boolean(primaryContract && isAdditionalRestricted) ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: plans.length === 0 || isDemoBlocked ? 'none' : '0 1px 2px rgba(79, 70, 229, 0.2)'
+                boxShadow: plans.length === 0 || isDemoBlocked || Boolean(primaryContract && isAdditionalRestricted) ? 'none' : '0 1px 2px rgba(79, 70, 229, 0.2)'
               }}
             >
               <span>
@@ -1546,12 +1745,16 @@ export default function NewSubscriptionView({
                   ? selectedPlan?.isDemoPlan
                     ? 'Activating Demo...'
                     : 'Submitting...'
+                  : primaryContract && isAdditionalRestricted
+                  ? 'Additional Purchases Restricted (15-Day Cut-off)'
                   : isDemoBlocked
                   ? 'Demo Trial Already Used'
                   : selectedPlan?.isDemoPlan
                   ? demoExtensionAllowed
                     ? `Extend Demo Trial (+${demoExtensionDays} Days)`
                     : 'Activate Demo Trial'
+                  : primaryContract
+                  ? 'Create Order (Add to Contract)'
                   : 'Create Order'}
               </span>
             </button>

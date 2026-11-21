@@ -4,6 +4,7 @@ import { requirePermission } from '../middleware/permission.js';
 import {
   getContracts,
   getNextContractId,
+  getAdditionalProductEligibility,
   createContract,
   updateContract,
   deleteContract,
@@ -15,6 +16,9 @@ import {
 const router = express.Router();
 
 router.use(authenticate);
+
+// GET /api/contracts/additional-product-eligibility - Check 15-day restriction cut-off eligibility
+router.get('/additional-product-eligibility', getAdditionalProductEligibility);
 
 // GET /api/contracts/next-id - Get dynamically generated next auto-increment contract ID
 router.get('/next-id', requirePermission('contract', 'view'), getNextContractId);

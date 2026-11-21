@@ -73,7 +73,11 @@ function orderDetails(body = {}) {
     description: text(body.description, 500),
     salesPerson: text(body.salesPerson, 120),
     users: Math.max(round(body.users), 0),
-    serverConfiguration: text(body.serverConfiguration, 120)
+    serverConfiguration: text(body.serverConfiguration, 120),
+    isAdditional: Boolean(body.isAdditional || body.isAdditionalProduct),
+    isAdditionalProduct: Boolean(body.isAdditional || body.isAdditionalProduct),
+    parentContractId: text(body.parentContractId, 60),
+    primaryContractId: text(body.primaryContractId || body.parentContractId, 60)
   };
 }
 
@@ -101,7 +105,11 @@ function withTotals(cart) {
     description: item.description,
     salesPerson: item.salesPerson,
     users: item.users,
-    serverConfiguration: item.serverConfiguration
+    serverConfiguration: item.serverConfiguration,
+    isAdditional: Boolean(item.isAdditional || item.isAdditionalProduct),
+    isAdditionalProduct: Boolean(item.isAdditional || item.isAdditionalProduct),
+    parentContractId: item.parentContractId,
+    primaryContractId: item.primaryContractId
   }));
 
   const subtotal = round(items.reduce((sum, item) => sum + item.basePrice * item.quantity, 0));

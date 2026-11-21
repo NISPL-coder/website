@@ -1,5 +1,46 @@
 [
   {
+    "contractId": "NISPL/2026-27/00025",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "TIMD",
+    "customer": "Sudip Kumar",
+    "customerId": "CUST-3470",
+    "accountId": "58d2f120-fca5-41f5-93b5-a296bd7e7ca8",
+    "email": "sudip@gmail.com",
+    "service": "Subscription (1 Year)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Year",
+    "productCategory": "Software",
+    "totalContractValue": "₹7,080",
+    "value": "₹7,080 / 1 year",
+    "orderDate": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2027-11-21",
+    "expiryDate": "2027-11-21",
+    "status": "Inactive",
+    "paymentStatus": "No",
+    "confirmationStatus": "Pending",
+    "adminConfirmed": false,
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1017 (PAY-2026-1017).",
+    "productId": "PROD-1795173182449",
+    "salesPerson": "Siddhartha",
+    "paymentInvoiceNumber": "INV-2026-1017",
+    "createdBy": {
+      "name": "Sudip Kumar",
+      "email": "sudip@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": "Sangam CRM synchronization disabled in configuration."
+    },
+    "id": "NISPL/2026-27/00025",
+    "createdAt": "2026-11-21T10:09:46.997Z"
+  },
+  {
     "contractId": "NISPL/2026-27/00024",
     "name": "Enterprise Cloud Server — 1 User",
     "company": "TIMD",
@@ -15,8 +56,8 @@
     "value": "₹14,160 / 2 years",
     "orderDate": "2026-11-21",
     "startDate": "2026-11-21",
-    "endDate": "2028-11-21",
-    "expiryDate": "2028-11-21",
+    "endDate": "2027-11-21",
+    "expiryDate": "2027-11-21",
     "status": "Inactive",
     "paymentStatus": "No",
     "confirmationStatus": "Pending",
@@ -38,7 +79,10 @@
       "syncError": "Sangam CRM synchronization disabled in configuration."
     },
     "id": "NISPL/2026-27/00024",
-    "createdAt": "2026-11-21T07:29:21.118Z"
+    "createdAt": "2026-11-21T07:29:21.118Z",
+    "isPrimary": false,
+    "parentContractId": "NISPL/2026-27/00022",
+    "primaryContractId": "NISPL/2026-27/00022"
   },
   {
     "contractId": "NISPL/2026-27/00023",
@@ -123,7 +167,10 @@
       "syncError": "Sangam CRM synchronization disabled in configuration."
     },
     "id": "NISPL/2026-27/00022",
-    "createdAt": "2026-11-21T06:49:12.095Z"
+    "createdAt": "2026-11-21T06:49:12.095Z",
+    "isPrimary": true,
+    "parentContractId": null,
+    "primaryContractId": "NISPL/2026-27/00022"
   },
   {
     "contractId": "NISPL/2026-27/00007",

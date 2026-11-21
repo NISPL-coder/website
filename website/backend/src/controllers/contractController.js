@@ -5,6 +5,13 @@ import Notification from '../models/Notification.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
 import { nextContractCode, getFinancialYear, isContractIdExists, activateAccountAfterPayment } from '../services/contractProvisioning.js';
 import { refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
+import {
+  checkAdditionalProductEligibility,
+  findPrimaryContract,
+  getKolkataDateString,
+  RESTRICTION_MESSAGE,
+  subtractCalendarDays
+} from '../services/contractEligibilityService.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import {
@@ -79,6 +86,49 @@ export const getContracts = async (req, res) => {
       success: true,
       count: fileList.length,
       contracts: fileList
+    });
+  }
+};
+
+/**
+ * GET /api/contracts/additional-product-eligibility
+ * Retrieve the customer's Primary Contract and check 15-day restriction cut-off eligibility
+ */
+export const getAdditionalProductEligibility = async (req, res) => {
+  try {
+    const user = req.user;
+    const queryEmail = String(req.query.email || user?.email || '').trim().toLowerCase();
+    const queryCustomerId = String(req.query.customerId || user?.customerId || '').trim();
+
+    let contracts = [];
+    if (isMongoConnected()) {
+      const matchCriteria = [];
+      if (queryEmail) matchCriteria.push({ email: new RegExp(`^${queryEmail}$`, 'i') });
+      if (queryCustomerId) matchCriteria.push({ customerId: queryCustomerId });
+      if (matchCriteria.length > 0) {
+        contracts = await Contract.find({ $or: matchCriteria }).lean();
+      }
+    } else {
+      const all = getContractsFromFile();
+      contracts = all.filter((c) => {
+        const cEmail = String(c.email || '').trim().toLowerCase();
+        const cCustId = String(c.customerId || '').trim();
+        return (queryEmail && cEmail === queryEmail) || (queryCustomerId && cCustId === queryCustomerId);
+      });
+    }
+
+    const primaryContract = findPrimaryContract(contracts);
+    const eligibility = checkAdditionalProductEligibility({ primaryContract, contracts });
+
+    return res.status(200).json({
+      success: true,
+      ...eligibility
+    });
+  } catch (err) {
+    console.error('[ContractController] getAdditionalProductEligibility error:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to verify additional product eligibility.'
     });
   }
 };
@@ -166,6 +216,62 @@ export const createContract = async (req, res) => {
     const rawVal = String(totalContractValue || value).trim();
     const formattedVal = rawVal.startsWith('₹') ? rawVal : `₹${rawVal}`;
 
+    const isAdditional = Boolean(
+      req.body.isAdditionalContract ||
+      req.body.parentContractId ||
+      req.body.isAdditionalProduct ||
+      /additional/i.test(cleanName || '') ||
+      /additional/i.test(service || '')
+    );
+
+    let effectiveEndDate = endDate;
+    let primaryContract = null;
+
+    if (isAdditional) {
+      let customerContracts = [];
+      const custEmail = String(email || requestedEmail || '').trim().toLowerCase();
+      const custId = String(customerId || '').trim();
+
+      if (isMongoConnected()) {
+        const queryList = [];
+        if (custEmail) queryList.push({ email: new RegExp(`^${custEmail}$`, 'i') });
+        if (custId) queryList.push({ customerId: custId });
+        if (queryList.length > 0) {
+          customerContracts = await Contract.find({ $or: queryList }).lean();
+        }
+      } else {
+        const fileList = getContractsFromFile();
+        customerContracts = fileList.filter((c) => {
+          const cEmail = String(c.email || '').trim().toLowerCase();
+          const cCustId = String(c.customerId || '').trim();
+          return (custEmail && cEmail === custEmail) || (custId && cCustId === custId);
+        });
+      }
+
+      primaryContract = req.body.parentContractId
+        ? customerContracts.find((c) => c.contractId === req.body.parentContractId || c.id === req.body.parentContractId)
+        : findPrimaryContract(customerContracts);
+
+      const eligibility = checkAdditionalProductEligibility({
+        primaryContract,
+        contracts: customerContracts
+      });
+
+      if (!eligibility.eligible) {
+        return res.status(403).json({
+          success: false,
+          error: eligibility.message || RESTRICTION_MESSAGE,
+          code: 'ADDITIONAL_PRODUCT_RESTRICTED',
+          details: eligibility
+        });
+      }
+
+      // If eligible: assign the existing Expiry Date to newly added product
+      if (eligibility.masterExpiryDate) {
+        effectiveEndDate = eligibility.masterExpiryDate;
+      }
+    }
+
     const raisedBy = req.user
       ? {
           name: req.user.name || '',
@@ -252,12 +358,17 @@ export const createContract = async (req, res) => {
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
         orderDate: String(orderDate || '').trim(),
         startDate,
-        endDate,
-        expiryDate: endDate,
+        endDate: effectiveEndDate,
+        expiryDate: effectiveEndDate,
         status: effectiveStatus,
         paymentStatus,
+        parentContractId: primaryContract?.contractId || req.body.parentContractId || null,
+        primaryContractId: primaryContract?.contractId || req.body.parentContractId || null,
+        isAdditionalContract: isAdditional,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
-        description: description || '',
+        description: isAdditional && primaryContract?.contractId
+          ? `${description || ''} (Synchronized with Primary Contract ${primaryContract.contractId}, Master Expiry: ${effectiveEndDate})`.trim()
+          : (description || ''),
         productId: String(productId || '').trim(),
         salesPerson: effectiveSalesPerson,
         createdBy: raisedBy,
@@ -289,12 +400,17 @@ export const createContract = async (req, res) => {
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
         orderDate: String(orderDate || '').trim(),
         startDate,
-        endDate,
-        expiryDate: endDate,
+        endDate: effectiveEndDate,
+        expiryDate: effectiveEndDate,
         status: effectiveStatus,
         paymentStatus,
+        parentContractId: primaryContract?.contractId || req.body.parentContractId || null,
+        primaryContractId: primaryContract?.contractId || req.body.parentContractId || null,
+        isAdditionalContract: isAdditional,
         slaTier: slaTier || 'Tier-1 Priority NOC 99.99%',
-        description: description || '',
+        description: isAdditional && primaryContract?.contractId
+          ? `${description || ''} (Synchronized with Primary Contract ${primaryContract.contractId}, Master Expiry: ${effectiveEndDate})`.trim()
+          : (description || ''),
         productId: String(productId || '').trim(),
         salesPerson: effectiveSalesPerson,
         createdBy: raisedBy,
@@ -788,6 +904,41 @@ export const updateContract = async (req, res) => {
 
     if (!savedContract) {
       savedContract = { ...contract.toObject?.() || contract, ...updatedData };
+    }
+
+    // Unified Contract Synchronization: When Primary Contract renewal date changes,
+    // synchronize all associated child additional products with the new common Expiry Date.
+    const newMasterExpiry = updatedData.expiryDate || updatedData.endDate;
+    if (newMasterExpiry) {
+      try {
+        const cId = savedContract.contractId || id;
+        if (isMongoConnected()) {
+          await Contract.updateMany(
+            { $or: [{ parentContractId: cId }, { primaryContractId: cId }] },
+            {
+              $set: {
+                endDate: newMasterExpiry,
+                expiryDate: newMasterExpiry,
+                ...(status && { status: normalizeContractStatus(status) })
+              }
+            }
+          );
+        } else {
+          const fileList = getContractsFromFile();
+          let childSynced = false;
+          fileList.forEach((c) => {
+            if (c.parentContractId === cId || c.primaryContractId === cId) {
+              c.endDate = newMasterExpiry;
+              c.expiryDate = newMasterExpiry;
+              if (status) c.status = normalizeContractStatus(status);
+              childSynced = true;
+            }
+          });
+          if (childSynced) saveContractsToFile(fileList);
+        }
+      } catch (syncErr) {
+        console.warn('[ContractController] Error syncing child contracts on renewal:', syncErr.message);
+      }
     }
 
     // Synchronize updates to Sangam CRM Contracts API

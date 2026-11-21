@@ -15,7 +15,9 @@ import {
   ShieldAlert,
   ShieldCheck,
   MailCheck,
-  AlertCircle
+  AlertCircle,
+  PackagePlus,
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { dashboardApi } from '../../../services/dashboardApi';
@@ -27,6 +29,8 @@ import { getProfileCompletion } from '../../../utils/profileCompletion';
 import ProfileCompletionCircle from '../../../components/common/ProfileCompletionCircle';
 import DemoProductDetailsModal from './components/DemoProductDetailsModal';
 import ActiveProductsModal from './components/ActiveProductsModal';
+import AdditionalProductModal from './components/AdditionalProductModal';
+import { checkClientAdditionalProductEligibility, findPrimaryContract } from '../../../utils/contractEligibility';
 
 const LIFECYCLE_BADGE = {
   Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
@@ -112,7 +116,7 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction, onClic
   );
 }
 
-export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onPay, onOpenSupport, onOpenVerifyEmail }) {
+export default function CloudPortalOverview({ customer, portalData = null, onNavigateTab, onPay, onOpenSupport, onOpenVerifyEmail, onAddToCart = null }) {
   const [view, setView] = useState(() => ({
     status: portalData ? 'ready' : 'loading',
     data: portalData || null,
@@ -121,6 +125,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
 
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
+  const [isAdditionalModalOpen, setIsAdditionalModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!portalData) {
@@ -190,8 +195,14 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const activePaidProducts = regularProducts.filter(
     (p) =>
       !p.expired &&
+      p.adminConfirmed !== false &&
+      p.confirmationStatus !== 'Pending' &&
       !['closed', 'disabled', 'inactive', 'suspended', 'paused'].includes(String(p.status || '').toLowerCase())
   );
+
+  const pendingConfirmationCount = products.filter(
+    (p) => p.confirmationStatus === 'Pending' || p.adminConfirmed === false
+  ).length;
 
   const activeCount = kpi.activeProducts ?? activePaidProducts.length;
 
@@ -236,6 +247,16 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       orderBreakdownText = `${activeTotal} active product`;
     }
   }
+
+  // Centralized Primary Contract and 15-Day Additional Product Cut-off Eligibility
+  const primaryContract = data?.primaryContract || findPrimaryContract(products);
+  const additionalProductEligibility = data?.additionalProductEligibility || checkClientAdditionalProductEligibility({
+    primaryContract,
+    contracts: products
+  });
+  const isAdditionalRestricted = Boolean(additionalProductEligibility?.isRestricted || additionalProductEligibility?.eligible === false);
+  const masterExpiryDate = data?.masterExpiryDate || additionalProductEligibility?.masterExpiryDate || primaryContract?.expiryDate || primaryContract?.endDate;
+  const cutOffDate = additionalProductEligibility?.cutOffDate;
 
   const rawReminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders
@@ -622,10 +643,10 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
             <KpiCard
               icon={Package}
               label="Active Products"
-              value={totalOrders > 0 ? totalOrders : activeCount}
+              value={activeCount}
               note={
-                orderBreakdownText
-                  ? `(${orderBreakdownText})`
+                pendingConfirmationCount > 0
+                  ? `${activeCount} active · ${pendingConfirmationCount} pending confirmation`
                   : activeCount > 0
                   ? `${activeCount} on this account`
                   : 'Nothing subscribed yet'
@@ -893,10 +914,38 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                   <h3 className="flowmail-card-title">Your Products</h3>
                   <p className="flowmail-card-subtitle">Subscriptions & contracts</p>
                 </div>
-                <button type="button" className="flowmail-view-all-link" onClick={() => goTo('products')}>
-                  View All
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button type="button" className="flowmail-view-all-link" onClick={() => goTo('products')}>
+                    View All
+                  </button>
+                </div>
               </div>
+
+              {/* 15-Day Cut-off Purchase Restriction Banner */}
+              {primaryContract && isAdditionalRestricted && (
+                <div className="flowmail-cutoff-warning-banner">
+                  <div className="flowmail-cutoff-warning-header">
+                    <AlertTriangle size={18} color="#d97706" />
+                    <strong>Additional Product Purchases Restricted (15-Day Cut-off)</strong>
+                  </div>
+                  <p className="flowmail-cutoff-warning-msg">
+                    Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products.
+                  </p>
+                  <div className="flowmail-cutoff-dates-row">
+                    <span><strong>Contract Expiry Date:</strong> {formatDate(masterExpiryDate)}</span>
+                    {cutOffDate && <span><strong>Purchases Restricted From:</strong> {formatDate(cutOffDate)}</span>}
+                  </div>
+                  {onPay && (
+                    <button
+                      type="button"
+                      className="flowmail-btn-primary flowmail-renew-shortcut"
+                      onClick={() => onPay({ mode: 'renewal', contractId: primaryContract?.contractId })}
+                    >
+                      Renew Contract Now
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="flowmail-product-list">
                 {products.length === 0 ? (
@@ -1026,6 +1075,20 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         products={data?.products || []}
         account={account}
         onNavigateTab={goTo}
+        onOpenAdditionalProduct={() => setIsAdditionalModalOpen(true)}
+      />
+
+      {/* ── Additional Product Purchase Modal (15-Day Cut-off Protection) ── */}
+      <AdditionalProductModal
+        isOpen={isAdditionalModalOpen}
+        onClose={() => setIsAdditionalModalOpen(false)}
+        primaryContract={primaryContract}
+        masterExpiryDate={masterExpiryDate}
+        eligibility={additionalProductEligibility}
+        customer={customer}
+        onAddToCart={onAddToCart}
+        onGoToCart={() => goTo('cart')}
+        onRenew={() => onPay?.({ mode: 'renewal', contractId: primaryContract?.contractId })}
       />
     </div>
   );

@@ -605,6 +605,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
               onPay={startPayment}
               onOpenSupport={() => setIsSupportModalOpen(true)}
               onOpenVerifyEmail={() => setIsEmailOtpModalOpen(true)}
+              onAddToCart={handleAddToCart}
             />
           )}
 
@@ -641,6 +642,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
                 isCheckingOut={isPaying}
                 onBrowseProducts={() => handleSelectNav('products')}
                 onAddToCart={handleAddToCart}
+                portalData={portal}
               />
             </div>
           )}

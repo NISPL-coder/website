@@ -11,7 +11,8 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi } from '../../../services/cartApi';
@@ -27,7 +28,8 @@ export default function CartSection({
   onProceedToPayment,
   isCheckingOut = false,
   onBrowseProducts,
-  onAddToCart
+  onAddToCart,
+  portalData = null
 }) {
   const isLocked = Boolean(isReadOnly);
   const [justAddedAddonId, setJustAddedAddonId] = useState(null);
@@ -37,6 +39,14 @@ export default function CartSection({
   const [isAddonHovered, setIsAddonHovered] = useState(false);
   const isMobile = useIsMobile();
   const isPhone = useIsPhone();
+
+  // 15-Day Purchase Restriction validation for additional products
+  const hasAdditionalItems = cartItems.some(
+    (item) => item.isAdditional || item.isAdditionalProduct || /additional/i.test(item.name || '')
+  );
+  const isAdditionalRestricted = Boolean(
+    hasAdditionalItems && (portalData?.additionalProductEligibility?.isRestricted || portalData?.additionalProductEligibility?.eligible === false)
+  );
 
   const displayAddons = useMemo(() => addonsList, [addonsList]);
 
@@ -370,16 +380,42 @@ export default function CartSection({
                   </span>
                 </div>
 
+                {/* 15-Day Cut-off Purchase Restriction Alert */}
+                {isAdditionalRestricted && (
+                  <div
+                    style={{
+                      background: '#fffbeb',
+                      border: '1px solid #fef3c7',
+                      borderLeft: '4px solid #f59e0b',
+                      borderRadius: '8px',
+                      padding: '12px 14px',
+                      marginTop: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#b45309', fontWeight: 700, fontSize: '0.85rem' }}>
+                      <AlertTriangle size={15} />
+                      <span>Additional Product Purchases Restricted</span>
+                    </div>
+                    <p style={{ margin: 0, color: '#78350f', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                      Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products.
+                    </p>
+                  </div>
+                )}
+
                 {/* Primary Proceed Button */}
                 <button
                   type="button"
                   className="flowmail-btn-primary"
                   onClick={onProceedToPayment}
-                  disabled={isCheckingOut}
-                  style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '13px 20px', fontSize: '0.94rem' }}
+                  disabled={isCheckingOut || isAdditionalRestricted}
+                  title={isAdditionalRestricted ? "Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products." : ""}
+                  style={{ width: '100%', justifyContent: 'center', marginTop: '16px', padding: '13px 20px', fontSize: '0.94rem', ...(isAdditionalRestricted ? { background: '#94a3b8', cursor: 'not-allowed' } : {}) }}
                 >
                   <Lock size={15} />
-                  <span>{isCheckingOut ? 'Opening Razorpay…' : 'Proceed to Payment'}</span>
+                  <span>{isCheckingOut ? 'Opening Razorpay…' : isAdditionalRestricted ? 'Purchase Blocked' : 'Proceed to Payment'}</span>
                   <ArrowRight size={16} />
                 </button>
 

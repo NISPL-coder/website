@@ -16,8 +16,12 @@ import {
   MemoryStick,
   HardDrive,
   Inbox,
-  ArrowRight
+  ArrowRight,
+  PackagePlus,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
+import { findPrimaryContract, checkClientAdditionalProductEligibility } from '../../../../utils/contractEligibility';
 import './ActiveProductsModal.css';
 
 /**
@@ -60,12 +64,16 @@ function productState(product) {
     return { label: 'Demo Trial', tone: 'due' };
   }
 
+  if (product.confirmationStatus === 'Pending' || product.adminConfirmed === false) {
+    return { label: 'Pending Confirmation', tone: 'due' };
+  }
+
   if (product.expired) return { label: 'Expired', tone: 'overdue' };
   if (['INACTIVE', 'DISABLED', 'CLOSED', 'SUSPENDED', 'PAUSED'].includes(raw)) {
     return { label: 'Inactive', tone: 'completed' };
   }
 
-  // Except demo, all other purchased products are Active (remove "In Progress"!)
+  // Except demo, all other confirmed purchased products are Active
   return { label: 'Active', tone: 'active' };
 }
 
@@ -74,9 +82,19 @@ export default function ActiveProductsModal({
   onClose,
   products = [],
   account = null,
-  onNavigateTab = null
+  onNavigateTab = null,
+  onOpenAdditionalProduct = null
 }) {
   const [expandedId, setExpandedId] = useState(null);
+
+  const primaryContract = findPrimaryContract(products);
+  const eligibility = checkClientAdditionalProductEligibility({
+    primaryContract,
+    contracts: products
+  });
+  const isRestricted = Boolean(eligibility?.isRestricted || eligibility?.eligible === false);
+  const masterExpiryDate = eligibility?.masterExpiryDate || primaryContract?.expiryDate || primaryContract?.endDate;
+  const cutOffDate = eligibility?.cutOffDate;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -101,9 +119,17 @@ export default function ActiveProductsModal({
     /demo|trial/i.test(p.name || '')
   );
 
+  const isConfirmedActive = (p) =>
+    !p.expired &&
+    !isDemoCheck(p) &&
+    p.adminConfirmed !== false &&
+    p.confirmationStatus !== 'Pending' &&
+    !['inactive', 'disabled', 'closed', 'suspended', 'paused'].includes(String(p.status || '').toLowerCase());
+
   const counts = {
     total: products.length,
-    active: products.filter((p) => !p.expired && !isDemoCheck(p) && !['inactive', 'disabled', 'closed'].includes(String(p.status || '').toLowerCase())).length,
+    active: products.filter(isConfirmedActive).length,
+    pending: products.filter((p) => !isDemoCheck(p) && (p.confirmationStatus === 'Pending' || p.adminConfirmed === false)).length,
     demo: products.filter((p) => isDemoCheck(p)).length,
     expired: products.filter((p) => p.expired).length
   };
@@ -148,12 +174,34 @@ export default function ActiveProductsModal({
             <span className="apm-summary-chip is-ok">
               <strong>{counts.active}</strong> Active
             </span>
+            {counts.pending > 0 && (
+              <span className="apm-summary-chip is-pending" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>
+                <strong>{counts.pending}</strong> Pending Confirmation
+              </span>
+            )}
             <span className="apm-summary-chip is-demo">
               <strong>{counts.demo}</strong> Demo
             </span>
             <span className="apm-summary-chip is-expired">
               <strong>{counts.expired}</strong> Expired
             </span>
+          </div>
+        )}
+
+        {/* 15-Day Cut-off Purchase Restriction Banner */}
+        {primaryContract && isRestricted && (
+          <div className="flowmail-cutoff-warning-banner" style={{ margin: '16px 24px 0' }}>
+            <div className="flowmail-cutoff-warning-header">
+              <AlertTriangle size={18} color="#d97706" />
+              <strong>Additional Product Purchases Restricted (15-Day Cut-off)</strong>
+            </div>
+            <p className="flowmail-cutoff-warning-msg">
+              Additional product purchases are unavailable during the last 15 days of your current contract. Please renew your existing contract to add more products.
+            </p>
+            <div className="flowmail-cutoff-dates-row">
+              <span><strong>Contract Expiry Date:</strong> {formatDate(masterExpiryDate)}</span>
+              {cutOffDate && <span><strong>Purchases Restricted From:</strong> {formatDate(cutOffDate)}</span>}
+            </div>
           </div>
         )}
 
@@ -178,11 +226,12 @@ export default function ActiveProductsModal({
               {products.map((product, index) => {
                 const state = productState(product);
                 const isExpanded = expandedId === (product.id || product.contractId || index);
+                const effectiveExpiry = (!isDemoCheck(product) && masterExpiryDate) ? masterExpiryDate : product.expiryDate;
                 const specCount = [
                   product.contractId,
                   product.contractType || product.category,
                   product.startDate,
-                  product.expiryDate,
+                  effectiveExpiry,
                   product.cores,
                   product.ram,
                   product.storage,
@@ -194,9 +243,8 @@ export default function ActiveProductsModal({
                 return (
                   <div
                     key={product.id || product.contractId || index}
-                    className={`apm-product-card ${isExpanded ? 'is-expanded' : ''} ${
-                      product.expired ? 'is-expired' : ''
-                    }`}
+                    className={`apm-product-card ${isExpanded ? 'is-expanded' : ''} ${product.expired ? 'is-expired' : ''
+                      }`}
                   >
                     {/* Collapsed header row */}
                     <button
@@ -214,7 +262,7 @@ export default function ActiveProductsModal({
                           {product.subscriptionPeriod
                             ? `${product.subscriptionPeriod} · `
                             : ''}
-                          {product.expiryDate ? `Valid till ${formatDate(product.expiryDate)}` : 'Validity not recorded'}
+                          {effectiveExpiry ? `Valid till ${formatDate(effectiveExpiry)}` : 'Validity not recorded'}
                           {' · '}
                           {specCount} details
                         </span>
@@ -274,12 +322,12 @@ export default function ActiveProductsModal({
                               </span>
                             </div>
                           )}
-                          {product.expiryDate && (
+                          {effectiveExpiry && (
                             <div className="demo-spec-item">
                               <span className="demo-spec-label">Expiry / Valid Till</span>
                               <span className="demo-spec-value">
                                 <Calendar size={13} style={{ verticalAlign: '-2px', marginRight: 4 }} />
-                                {formatDate(product.rawExpiryDate || product.expiryDate)}
+                                {formatDate(effectiveExpiry)}
                               </span>
                             </div>
                           )}
@@ -368,8 +416,24 @@ export default function ActiveProductsModal({
             <button type="button" className="demo-btn-secondary" onClick={onClose}>
               Close
             </button>
+            {primaryContract && onOpenAdditionalProduct && (
+              <button
+                type="button"
+                className="demo-btn-primary"
+                disabled={isRestricted}
+                onClick={() => {
+                  onClose();
+                  onOpenAdditionalProduct();
+                }}
+                style={isRestricted ? { opacity: 0.6, cursor: 'not-allowed', background: '#94a3b8' } : {}}
+                title={isRestricted ? 'Unavailable during the last 15 days of your contract' : 'Add Additional Product'}
+              >
+                {isRestricted ? <Lock size={15} /> : <PackagePlus size={15} />}
+                <span>Add Additional Product</span>
+              </button>
+            )}
             {products.length > 0 && (
-              <button type="button" className="demo-btn-primary" onClick={handleUpgrade}>
+              <button type="button" className="demo-btn-secondary" onClick={handleUpgrade}>
                 <span>Manage Products</span>
                 <ArrowRight size={15} />
               </button>

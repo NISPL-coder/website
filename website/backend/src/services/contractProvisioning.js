@@ -7,6 +7,7 @@ import { sangamCrmService } from './sangamCrmService.js';
 import { logNotification } from './notificationService.js';
 import { contractTypeCategory, normalizeContractType, periodFromDates } from '../utils/contractVocabulary.js';
 import { refreshCustomerLifecycle } from './customerLifecycle.js';
+import { findPrimaryContract } from './contractEligibilityService.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -231,8 +232,8 @@ export const syncContractToCrm = async (contract) => {
       syncError: result.success
         ? null
         : result.disabled
-        ? 'Sangam CRM synchronization disabled in configuration.'
-        : result.message
+          ? 'Sangam CRM synchronization disabled in configuration.'
+          : result.message
     });
   } catch (err) {
     console.warn('[SangamCRM] contract sync failed:', err.message);
@@ -301,9 +302,38 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
         const product = await findCatalogueProduct(line);
         const term = soldTerm(line, product);
         const startDate = isoDay(line.startDate) || paidOn;
-        const endDate =
+        let endDate =
           isoDay(line.endDate) ||
           (term ? addDays(addMonths(startDate, term.months), term.days) : '');
+
+        const isAdditionalLine = Boolean(
+          line.isAdditional ||
+          line.isAdditionalProduct ||
+          /additional/i.test(line.name || '') ||
+          line.parentContractId
+        );
+        let parentContractId = line.parentContractId || null;
+
+        if (isAdditionalLine) {
+          let existingCustContracts = [];
+          const matchCriteria = [];
+          if (email) matchCriteria.push({ email: new RegExp(`^${email}$`, 'i') });
+          if (customer?.customerId) matchCriteria.push({ customerId: customer.customerId });
+          if (isMongoConnected() && matchCriteria.length > 0) {
+            existingCustContracts = await Contract.find({ $or: matchCriteria }).lean().catch(() => []);
+          } else {
+            existingCustContracts = getContractsFromFile().filter((c) =>
+              (email && String(c.email).toLowerCase() === email.toLowerCase()) ||
+              (customer?.customerId && c.customerId === customer.customerId)
+            );
+          }
+          const primary = findPrimaryContract(existingCustContracts);
+          if (primary) {
+            const masterExp = primary.expiryDate || primary.endDate;
+            if (masterExp) endDate = masterExp;
+            parentContractId = primary.contractId;
+          }
+        }
 
         if (!endDate || endDate <= startDate) {
           console.warn(
@@ -339,6 +369,9 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
           startDate,
           endDate,
           expiryDate: endDate,
+          parentContractId,
+          primaryContractId: parentContractId,
+          isAdditionalContract: isAdditionalLine,
           status: isOnlineCustomerPurchase ? 'Inactive' : (startDate > paidOn ? 'Not Started' : 'Active'),
           paymentStatus: isOnlineCustomerPurchase ? 'No' : 'Yes',
           confirmationStatus: isOnlineCustomerPurchase ? 'Pending' : 'Confirmed',
