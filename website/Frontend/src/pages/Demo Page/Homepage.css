@@ -2216,10 +2216,8 @@
   }
 
   .demo-brand-logo-img {
-    height: 35px;
+    height: 45px;
     width: auto;
-    max-height: 38px;
-    max-width: 165px;
     object-fit: contain;
     margin-left: 0;
   }

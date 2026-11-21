@@ -34,6 +34,27 @@ export const contractApi = {
   },
 
   /**
+   * Fetch dynamically generated next sequential Contract ID from the API
+   * Format: NISPL/{financial_year}/00001 (auto-incrementing, collision-free)
+   */
+  async getNextContractId() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/next-id`, {
+        method: 'GET',
+        headers: withAuth({ Accept: 'application/json' })
+      });
+      if (!res.ok) {
+        throw await readApiError(res, `Server returned HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      console.warn('[contractApi] Could not fetch next contract ID from backend:', err.message);
+      return null;
+    }
+  },
+
+  /**
    * Create a new contract locally and automatically synchronize to Sangam CRM -> Contracts
    * @param {Object} contractData
    */

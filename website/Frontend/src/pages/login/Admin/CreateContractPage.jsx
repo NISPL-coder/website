@@ -6,7 +6,8 @@ import {
   Check,
   X,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
@@ -89,6 +90,7 @@ export default function CreateContractPage({ contracts, setContracts }) {
   }, []);
 
   const [formState, setFormState] = useState({
+    contractId: '',
     name: '',
     status: 'In Progress',
     orderDate: today,
@@ -100,6 +102,33 @@ export default function CreateContractPage({ contracts, setContracts }) {
     contractValue: '',
     paymentStatus: 'Yes'
   });
+
+  const [isLoadingNextId, setIsLoadingNextId] = useState(false);
+
+  const loadNextContractId = async (showToast = false) => {
+    setIsLoadingNextId(true);
+    try {
+      const data = await contractApi.getNextContractId();
+      if (data?.contractId) {
+        setFormState((prev) => ({
+          ...prev,
+          contractId: data.contractId,
+          name: !prev.name || prev.name.startsWith('NISPL/') ? data.contractId : prev.name
+        }));
+        if (showToast) {
+          toast.success(`Generated Next Contract ID: ${data.contractId}`);
+        }
+      }
+    } catch (err) {
+      console.warn('[CreateContractPage] Next ID load error:', err);
+    } finally {
+      setIsLoadingNextId(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNextContractId(false);
+  }, []);
 
   const setField = (field) => (value) => setFormState((prev) => ({ ...prev, [field]: value }));
 
@@ -139,12 +168,13 @@ export default function CreateContractPage({ contracts, setContracts }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const name = formState.name.trim();
+    const contractId = (formState.contractId || formState.name || '').trim();
+    const name = (formState.name || formState.contractId || '').trim();
     const person = formState.person.trim();
     const company = formState.company.trim();
     const contractValue = formState.contractValue.trim();
 
-    if (!name || !person || !company || !contractValue) {
+    if (!contractId || !person || !company || !contractValue) {
       toast.error('Please complete the contract ID, person, company name and value.');
       return;
     }
@@ -163,9 +193,9 @@ export default function CreateContractPage({ contracts, setContracts }) {
 
     // The term, the service line and the Sangam account link are all worked out
     // from these dates and this company name by the register, so the form sends
-    // only what the desk actually typed. The Contract ID travels as `name`,
-    // which is the field Sangam CRM labels Contract Name.
+    // only what the desk actually typed. The Contract ID travels as `contractId` and `name`.
     const payload = {
+      contractId,
       name,
       status: formState.status,
       orderDate: formState.orderDate,
@@ -182,7 +212,8 @@ export default function CreateContractPage({ contracts, setContracts }) {
     try {
       const res = await contractApi.createContract(payload);
       const createdContract = res.contract || {
-        id: `CTR-${new Date().getFullYear()}-0000`,
+        id: contractId,
+        contractId,
         ...payload
       };
 
@@ -307,17 +338,66 @@ export default function CreateContractPage({ contracts, setContracts }) {
             >
               {/* 1. Contract ID */}
               <div className="adm-form-field">
-                <label className="adm-form-label">
-                  Contract Name/ID <span className="adm-required-star">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="adm-form-input"
-                  placeholder="Enter the contract ID"
-                  value={formState.name}
-                  onChange={(e) => setField('name')(e.target.value)}
-                  required
-                />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="adm-form-label" style={{ marginBottom: 0 }}>
+                    Contract ID <span className="adm-required-star">*</span>
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    
+                    <button
+                      type="button"
+                      onClick={() => loadNextContractId(true)}
+                      disabled={isLoadingNextId}
+                      style={{
+                        background: '#f1f5f9',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        cursor: isLoadingNextId ? 'not-allowed' : 'pointer',
+                        color: '#475569',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '24px',
+                        height: '24px',
+                        padding: 0
+                      }}
+                    >
+                      <RefreshCw size={12} className={isLoadingNextId ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    className="adm-form-input"
+                    placeholder="Generating Contract ID"
+                    value={formState.contractId || formState.name}
+                    readOnly={true}
+                    required
+                    style={{
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      letterSpacing: '0.03em',
+                      color: '#0f172a',
+                      backgroundColor: '#f8fafc',
+                      cursor: 'not-allowed',
+                      border: '1px solid #cbd5e1',
+                      paddingRight: '36px',
+                      userSelect: 'all'
+                    }}
+                  />
+                  <Lock
+                    size={15}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#64748b',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                </div>
               </div>
 
               {/* 2. Status */}

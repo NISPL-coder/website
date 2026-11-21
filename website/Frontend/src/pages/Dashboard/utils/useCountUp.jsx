@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatAutoCompactNumber } from '../../../utils/formatters';
+
+export { formatAutoCompactNumber };
 
 /**
  * Custom hook for smooth count-up animation from 0 to a target number.
@@ -56,6 +59,8 @@ export function CountUp({
   suffix = '',
   separator = ',',
   useIndianFormat = false,
+  useCompact = false,
+  compactShort = false,
   className = ''
 }) {
   const [displayValue, setDisplayValue] = useState(start);
@@ -91,6 +96,9 @@ export function CountUp({
   }, [end, start, duration]);
 
   const formatNumber = (num) => {
+    if (useCompact) {
+      return formatAutoCompactNumber(num, { short: compactShort });
+    }
     if (useIndianFormat) {
       const rounded = decimals > 0 ? parseFloat(num.toFixed(decimals)) : Math.round(num);
       return rounded.toLocaleString('en-IN', {

@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/authenticate.js';
 import { requirePermission } from '../middleware/permission.js';
 import {
   getContracts,
+  getNextContractId,
   createContract,
   updateContract,
   deleteContract,
@@ -14,6 +15,9 @@ import {
 const router = express.Router();
 
 router.use(authenticate);
+
+// GET /api/contracts/next-id - Get dynamically generated next auto-increment contract ID
+router.get('/next-id', requirePermission('contract', 'view'), getNextContractId);
 
 // GET /api/contracts - List all contracts with Sangam CRM sync status
 router.get('/', requirePermission('contract', 'view'), getContracts);

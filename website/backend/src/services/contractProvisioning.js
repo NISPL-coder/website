@@ -11,25 +11,94 @@ import { refreshCustomerLifecycle } from './customerLifecycle.js';
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
 /**
- * The next CTR code. Random four-digit codes collide, and a duplicate
- * contractId would make every downstream lookup — payments and receipts
- * included — resolve to the wrong subscription.
+ * Calculate Indian Financial Year (e.g., '2026-27' for Nov 2026).
+ * Financial year runs from April 1 (month 3, 0-indexed) to March 31.
  */
-export const nextContractCode = async () => {
-  const prefix = `CTR-${new Date().getFullYear()}-`;
-  const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+export const getFinancialYear = (date = new Date()) => {
+  const d = date instanceof Date ? date : new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth(); // 0 = Jan, 3 = Apr, 11 = Dec
+  const startYear = month >= 3 ? year : year - 1;
+  const endYearShort = String(startYear + 1).slice(-2);
+  return `${startYear}-${endYearShort}`;
+};
 
-  let latest = null;
+/**
+ * Check if a contractId already exists in MongoDB or local fallback JSON file.
+ */
+export const isContractIdExists = async (contractId) => {
+  if (!contractId || !String(contractId).trim()) return false;
+  const targetId = String(contractId).trim().toLowerCase();
+  const escaped = targetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   if (isMongoConnected()) {
-    latest = await Contract.findOne({ contractId: pattern }).sort({ contractId: -1 }).lean();
-  } else {
-    latest = getContractsFromFile()
-      .filter((c) => String(c.contractId || '').startsWith(prefix))
-      .sort((a, b) => String(b.contractId).localeCompare(String(a.contractId)))[0] || null;
+    const exists = await Contract.exists({
+      $or: [
+        { contractId: new RegExp(`^${escaped}$`, 'i') },
+        { id: new RegExp(`^${escaped}$`, 'i') }
+      ]
+    });
+    if (exists) return true;
   }
 
-  const tail = parseInt(String(latest?.contractId || '').split('-').pop(), 10);
-  return `${prefix}${Number.isFinite(tail) ? tail + 1 : 1000}`;
+  const fileList = getContractsFromFile();
+  return fileList.some((c) => {
+    const cid = String(c.contractId || c.id || '').trim().toLowerCase();
+    return cid === targetId;
+  });
+};
+
+/**
+ * Generates the next sequential Contract ID in the format:
+ * NISPL/{financial_year}/00001 (auto-incrementing 5-digit number).
+ * Guarantees uniqueness, prevents duplicate IDs, and handles financial year boundaries.
+ */
+export const nextContractCode = async (date = new Date()) => {
+  const fy = getFinancialYear(date);
+  const prefix = `NISPL/${fy}/`;
+  const escapedFy = fy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`^NISPL/${escapedFy}/(\\d+)`, 'i');
+
+  let maxSeq = 0;
+
+  if (isMongoConnected()) {
+    const list = await Contract.find(
+      { contractId: pattern },
+      { contractId: 1 }
+    ).lean();
+    for (const c of list) {
+      const match = String(c.contractId || '').match(pattern);
+      if (match && match[1]) {
+        const num = parseInt(match[1], 10);
+        if (Number.isFinite(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    }
+  }
+
+  const fileList = getContractsFromFile();
+  for (const c of fileList) {
+    const match = String(c.contractId || '').match(pattern);
+    if (match && match[1]) {
+      const num = parseInt(match[1], 10);
+      if (Number.isFinite(num) && num > maxSeq) {
+        maxSeq = num;
+      }
+    }
+  }
+
+  // Next sequential number starting at 1 (00001)
+  let nextSeq = maxSeq + 1;
+  let candidate = `${prefix}${String(nextSeq).padStart(5, '0')}`;
+
+  // Double-check existence to ensure absolutely no collision
+  while (await isContractIdExists(candidate)) {
+    nextSeq += 1;
+    candidate = `${prefix}${String(nextSeq).padStart(5, '0')}`;
+  }
+
+  return candidate;
 };
 
 const PRODUCT_CATEGORIES = ['Software', 'Service', 'Hardware', 'Trial'];

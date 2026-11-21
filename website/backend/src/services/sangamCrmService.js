@@ -124,7 +124,7 @@ class SangamCrmService {
   mapContractData(contract) {
     // The console labels this value "Contract ID"; Sangam's Contract module
     // calls the same field the contract name, so it travels unchanged.
-    const contractName = contract.name || contract.contractName || 'NISPL Cloud Services Agreement';
+    const contractName = contract.contractId || contract.name || contract.contractName || 'NISPL Cloud Services Agreement';
 
     // Sangam keeps three states; the console's five collapse onto them.
     const CRM_STATUS = {

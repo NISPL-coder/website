@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { CountUp } from '../../Dashboard/utils/useCountUp';
+import { CountUp, formatAutoCompactNumber } from '../../Dashboard/utils/useCountUp';
 import { compactSelectStyles } from './reactSelectStyles';
 import ExportDropdown from './ExportDropdown';
 import { formatCustomersForExport } from './exportUtils';
@@ -205,11 +205,11 @@ export default function CustomerSection({
   }), [dynamicCards, customersWithUsersCount]);
 
   const statusOptions = useMemo(() => [
-    { value: 'all', label: `All Statuses (${counts.all})` },
-    { value: 'active', label: `Active Only (${counts.active})` },
-    { value: 'demo', label: `Demo / Trials (${counts.demo})` },
-    { value: 'inactive', label: `Inactive (${counts.inactive})` },
-    { value: 'users', label: `With Cloud Users (${counts.users})` }
+    { value: 'all', label: `All Statuses (${formatAutoCompactNumber(counts.all)})` },
+    { value: 'active', label: `Active Only (${formatAutoCompactNumber(counts.active)})` },
+    { value: 'demo', label: `Demo / Trials (${formatAutoCompactNumber(counts.demo)})` },
+    { value: 'inactive', label: `Inactive (${formatAutoCompactNumber(counts.inactive)})` },
+    { value: 'users', label: `With Cloud Users (${formatAutoCompactNumber(counts.users)})` }
   ], [counts]);
 
   // Filtered customer listing
@@ -886,7 +886,7 @@ export default function CustomerSection({
           <h1 className="adm-section-title">Customer List</h1>
           <p className="adm-section-sub">
             {statusFilter === 'users' || onlyWithUsers
-              ? `Showing ${filteredCustomers.length} customer accounts with allocated cloud users.`
+              ? `Showing ${formatAutoCompactNumber(filteredCustomers.length)} customer accounts with allocated cloud users.`
               : 'View and manage all registered customer accounts.'}
           </p>
         </div>
@@ -928,7 +928,7 @@ export default function CustomerSection({
             <Users size={18} className="adm-cust-stat-icon purple" />
           </div>
           <span className="adm-cust-stat-val">
-            <CountUp end={dynamicCards.total} duration={1200} />
+            <CountUp end={dynamicCards.total} duration={1200} useCompact={true} />
           </span>
           <span className="adm-cust-stat-desc">{dynamicCards.totalDesc}</span>
         </div>
@@ -948,7 +948,7 @@ export default function CustomerSection({
             <CheckCircle2 size={18} className="adm-cust-stat-icon emerald" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#059669' }}>
-            <CountUp end={dynamicCards.active} duration={1200} />
+            <CountUp end={dynamicCards.active} duration={1200} useCompact={true} />
           </span>
           <span className="adm-cust-stat-desc">
             Monthly MRR: ₹
@@ -975,7 +975,7 @@ export default function CustomerSection({
             <Clock size={18} className="adm-cust-stat-icon amber" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#d97706' }}>
-            <CountUp end={dynamicCards.demo} duration={1200} />
+            <CountUp end={dynamicCards.demo} duration={1200} useCompact={true} />
           </span>
           <span className="adm-cust-stat-desc">{dynamicCards.demoDesc}</span>
         </div>
@@ -995,7 +995,7 @@ export default function CustomerSection({
             <XCircle size={18} className="adm-cust-stat-icon slate" />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#64748b' }}>
-            <CountUp end={dynamicCards.inactive} duration={1200} />
+            <CountUp end={dynamicCards.inactive} duration={1200} useCompact={true} />
           </span>
           <span className="adm-cust-stat-desc">{dynamicCards.inactiveDesc}</span>
         </div>
@@ -1019,12 +1019,12 @@ export default function CustomerSection({
             <Server size={18} className="adm-cust-stat-icon purple" style={{ color: '#7c3aed' }} />
           </div>
           <span className="adm-cust-stat-val" style={{ color: '#7c3aed' }}>
-            <CountUp end={totalUsersAllocated} duration={1200} /> {totalUsersAllocated === 1 ? 'User' : 'Users'}
+            <CountUp end={totalUsersAllocated} duration={1200} useCompact={true} /> {totalUsersAllocated === 1 ? 'User' : 'Users'}
           </span>
           <span className="adm-cust-stat-desc">
             {statusFilter === 'users' || onlyWithUsers
-              ? `Filtered: ${counts.users} customers with users`
-              : `${counts.users} customers with allocated plans`}
+              ? `Filtered: ${formatAutoCompactNumber(counts.users)} customers with users`
+              : `${formatAutoCompactNumber(counts.users)} customers with allocated plans`}
           </span>
         </div>
       </div>
@@ -1085,7 +1085,7 @@ export default function CustomerSection({
               title="Click to remove Cloud Users filter and show all customers"
             >
               <Server size={13} />
-              <span>With Users Only ({filteredCustomers.length})</span>
+              <span>With Users Only ({formatAutoCompactNumber(filteredCustomers.length)})</span>
               <X size={13} style={{ marginLeft: '2px' }} />
             </button>
           )}

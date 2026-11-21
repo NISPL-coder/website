@@ -3,7 +3,7 @@ import Contract, { getContractsFromFile, saveContractsToFile } from '../models/C
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import Notification from '../models/Notification.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
-import { nextContractCode, activateAccountAfterPayment } from '../services/contractProvisioning.js';
+import { nextContractCode, getFinancialYear, isContractIdExists, activateAccountAfterPayment } from '../services/contractProvisioning.js';
 import { refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
@@ -116,8 +116,11 @@ export const createContract = async (req, res) => {
     } = req.body;
 
     // 1. Mandatory field validation
-    if (!name || !name.trim()) {
-      return res.status(400).json({ success: false, error: 'Contract ID is required.' });
+    const rawContractId = String(req.body.contractId || '').trim();
+    const cleanName = String(name || '').trim();
+
+    if (!cleanName && !rawContractId) {
+      return res.status(400).json({ success: false, error: 'Contract ID or Name is required.' });
     }
     if (!startDate) {
       return res.status(400).json({ success: false, error: 'Start date is required.' });
@@ -129,8 +132,24 @@ export const createContract = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Total contract value is required.' });
     }
 
-    const cleanName = name.trim();
-    const effectiveCustomer = (accountName || customer || company || cleanName).trim();
+    // Determine target contract code:
+    // If explicitly provided or if name starts with NISPL/, use that.
+    // Otherwise, generate the next auto-increment sequence based on financial year.
+    let contractCode = rawContractId || (/^NISPL\//i.test(cleanName) ? cleanName : '');
+    if (!contractCode) {
+      contractCode = await nextContractCode(startDate ? new Date(startDate) : new Date());
+    }
+
+    // Strict duplicate check: prevent any duplicate contract ID
+    const duplicate = await isContractIdExists(contractCode);
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        error: `Contract ID "${contractCode}" already exists. Duplicate contract entries are not allowed.`
+      });
+    }
+
+    const effectiveCustomer = (accountName || customer || company || cleanName || contractCode).trim();
     const effectiveCompany = (company || accountName || effectiveCustomer).trim();
     const requestedEmail = String(email || '').trim();
     // Anything the console no longer recognises keeps the historical meaning it
@@ -155,8 +174,6 @@ export const createContract = async (req, res) => {
         }
       : { name: '', email: '', role: '' };
     const effectiveSalesPerson = String(salesPerson || '').trim() || raisedBy.name || raisedBy.email || '';
-
-    const contractCode = await nextContractCode();
 
     // 2. Resolve Account ID in Sangam CRM if linked customer is selected
     let resolvedAccountId = accountId || null;
@@ -387,9 +404,43 @@ export const createContract = async (req, res) => {
     });
   } catch (err) {
     console.error('[ContractController] createContract error:', err);
+    if (err.code === 11000 || (err.name === 'MongoServerError' && err.message?.includes('duplicate key'))) {
+      return res.status(409).json({
+        success: false,
+        error: 'Duplicate contract ID detected. Contract IDs must be unique.'
+      });
+    }
     return res.status(500).json({
       success: false,
       error: err.message || 'Failed to create contract.'
+    });
+  }
+};
+
+/**
+ * GET /api/contracts/next-id
+ * Dynamically generate and return the next auto-increment contract ID
+ * Format: NISPL/{financial_year}/00001
+ */
+export const getNextContractId = async (req, res) => {
+  try {
+    const fy = getFinancialYear();
+    const contractId = await nextContractCode();
+    const parts = contractId.split('/');
+    const seq = parseInt(parts[parts.length - 1], 10) || 1;
+
+    return res.status(200).json({
+      success: true,
+      contractId,
+      financialYear: fy,
+      sequence: seq,
+      format: `NISPL/${fy}/00001`
+    });
+  } catch (err) {
+    console.error('[ContractController] getNextContractId error:', err.message);
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to generate next contract ID.'
     });
   }
 };
@@ -670,7 +721,21 @@ export const updateContract = async (req, res) => {
       contract.subscriptionPeriod ||
       '1 Year';
 
+    if (req.body.contractId && req.body.contractId.trim() && req.body.contractId.trim() !== contract.contractId) {
+      const newContractId = req.body.contractId.trim();
+      const duplicate = isMongoConnected()
+        ? await Contract.exists({ contractId: newContractId, _id: { $ne: contract._id } })
+        : getContractsFromFile().some((c) => (c.contractId === newContractId || c.id === newContractId) && c.contractId !== contract.contractId);
+      if (duplicate) {
+        return res.status(409).json({
+          success: false,
+          error: `Contract ID "${newContractId}" is already taken by another contract. Duplicate contract IDs are not allowed.`
+        });
+      }
+    }
+
     const updatedData = {
+      ...(req.body.contractId && req.body.contractId.trim() && { contractId: req.body.contractId.trim(), id: req.body.contractId.trim() }),
       ...(name && { name: name.trim() }),
       ...(company && { company: company.trim() }),
       ...(customer && { customer: customer.trim() }),

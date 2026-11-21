@@ -19,9 +19,9 @@
     "paymentReceivedDate": "2026-11-19",
     "status": "Received",
     "solutionCategory": "Subscription (1 Month)",
-    "contractId": "CTR-2026-1003",
+    "contractId": "NISPL/2026-27/00004",
     "contractIds": [
-      "CTR-2026-1003"
+      "NISPL/2026-27/00004"
     ],
     "taxableAmount": "₹1,500",
     "gstAmount": "₹270",
@@ -63,9 +63,9 @@
     "paymentReceivedDate": "2026-11-19",
     "status": "Received",
     "solutionCategory": "Subscription (1 Month)",
-    "contractId": "CTR-2026-1002",
+    "contractId": "NISPL/2026-27/00003",
     "contractIds": [
-      "CTR-2026-1002"
+      "NISPL/2026-27/00003"
     ],
     "taxableAmount": "₹1,500",
     "gstAmount": "₹270",
@@ -107,9 +107,9 @@
     "paymentReceivedDate": "2026-11-14",
     "status": "Received",
     "solutionCategory": "Subscription (1 Month)",
-    "contractId": "CTR-2026-1000",
+    "contractId": "NISPL/2026-27/00001",
     "contractIds": [
-      "CTR-2026-1000"
+      "NISPL/2026-27/00001"
     ],
     "taxableAmount": "₹500",
     "gstAmount": "₹90",

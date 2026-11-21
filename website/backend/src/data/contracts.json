@@ -1,6 +1,132 @@
 [
   {
-    "contractId": "CTR-2026-1006",
+    "contractId": "NISPL/2026-27/00024",
+    "name": "Enterprise Cloud Server — 1 User",
+    "company": "TIMD",
+    "customer": "Sudip Kumar",
+    "customerId": "CUST-3470",
+    "accountId": "58d2f120-fca5-41f5-93b5-a296bd7e7ca8",
+    "email": "sudip@gmail.com",
+    "service": "Subscription (2 Years)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "2 Years",
+    "productCategory": "Software",
+    "totalContractValue": "₹14,160",
+    "value": "₹14,160 / 2 years",
+    "orderDate": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2028-11-21",
+    "expiryDate": "2028-11-21",
+    "status": "Inactive",
+    "paymentStatus": "No",
+    "confirmationStatus": "Pending",
+    "adminConfirmed": false,
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (2 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1016 (PAY-2026-1016).",
+    "productId": "PROD-1795173182449",
+    "salesPerson": "Siddhartha",
+    "paymentInvoiceNumber": "INV-2026-1016",
+    "createdBy": {
+      "name": "Sudip Kumar",
+      "email": "sudip@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": "Sangam CRM synchronization disabled in configuration."
+    },
+    "id": "NISPL/2026-27/00024",
+    "createdAt": "2026-11-21T07:29:21.118Z"
+  },
+  {
+    "contractId": "NISPL/2026-27/00023",
+    "name": "Additional Cloud User (3 Users)",
+    "company": "Acme Sync Ltd",
+    "customer": "Acme Sync Ltd",
+    "customerId": "CUST-TEST-SYNC",
+    "accountId": null,
+    "email": "sync@acmetest.in",
+    "service": "Additional Product (10 Days)",
+    "contractType": "Comprehensive",
+    "subscriptionPeriod": "10 Days",
+    "productCategory": "Software",
+    "totalContractValue": "₹590",
+    "value": "₹590 / prorated",
+    "orderDate": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2026-12-01",
+    "expiryDate": "2026-12-01",
+    "status": "Active",
+    "paymentStatus": "Yes",
+    "confirmationStatus": "Confirmed",
+    "adminConfirmed": true,
+    "slaTier": "Tier-1 Priority NOC 99.99%",
+    "description": "Additional contract synchronized with Primary Contract NISPL/2026-27/TESTMASTER01 (Master Expiry: 2026-12-01).",
+    "productId": "ADDITIONAL-USER",
+    "parentContractId": "NISPL/2026-27/TESTMASTER01",
+    "primaryContractId": "NISPL/2026-27/TESTMASTER01",
+    "isAdditionalContract": true,
+    "salesPerson": "Portal Direct",
+    "paymentInvoiceNumber": "INV-2026-1017",
+    "createdBy": {
+      "name": "Acme Sync Ltd",
+      "email": "sync@acmetest.in",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": null
+    },
+    "id": "NISPL/2026-27/00023",
+    "createdAt": "2026-11-21T07:25:08.220Z"
+  },
+  {
+    "contractId": "NISPL/2026-27/00022",
+    "name": "Enterprise Cloud Server — 2 User",
+    "company": "TIMD",
+    "customer": "Sudip Kumar",
+    "customerId": "CUST-3470",
+    "accountId": "58d2f120-fca5-41f5-93b5-a296bd7e7ca8",
+    "email": "sudip@gmail.com",
+    "service": "Subscription (1 Year)",
+    "contractType": "Subscription",
+    "subscriptionPeriod": "1 Year",
+    "productCategory": "Software",
+    "totalContractValue": "₹14,160",
+    "value": "₹14,160 / 1 year",
+    "orderDate": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2027-11-21",
+    "expiryDate": "2027-11-21",
+    "status": "Inactive",
+    "paymentStatus": "No",
+    "confirmationStatus": "Pending",
+    "adminConfirmed": false,
+    "slaTier": "",
+    "description": "Enterprise Tier-4 Cloud Server (3 core/3 GB/50 GB) with N+N dual power feed redundancy. Purchased online against invoice INV-2026-1015 (PAY-2026-1015).",
+    "productId": "PROD-1795173186622",
+    "salesPerson": "Siddhartha",
+    "paymentInvoiceNumber": "INV-2026-1015",
+    "createdBy": {
+      "name": "Sudip Kumar",
+      "email": "sudip@gmail.com",
+      "role": "customer"
+    },
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": "Sangam CRM synchronization disabled in configuration."
+    },
+    "id": "NISPL/2026-27/00022",
+    "createdAt": "2026-11-21T06:49:12.095Z"
+  },
+  {
+    "contractId": "NISPL/2026-27/00007",
     "name": "Enterprise Cloud Server — 3 User",
     "company": "MMNNOO",
     "customer": "Suman Saha",
@@ -37,11 +163,11 @@
       "lastSyncedAt": "2026-11-20T12:17:10.354Z",
       "syncError": null
     },
-    "id": "CTR-2026-1006",
+    "id": "NISPL/2026-27/00007",
     "createdAt": "2026-11-20T12:17:09.607Z"
   },
   {
-    "contractId": "CTR-2026-1005",
+    "contractId": "NISPL/2026-27/00006",
     "name": "Enterprise Cloud Server — 1 User",
     "company": "MMNNOO",
     "customer": "Suman Saha",
@@ -78,11 +204,11 @@
       "lastSyncedAt": "2026-11-20T12:15:39.454Z",
       "syncError": null
     },
-    "id": "CTR-2026-1005",
+    "id": "NISPL/2026-27/00006",
     "createdAt": "2026-11-20T12:15:38.567Z"
   },
   {
-    "contractId": "CTR-2026-1004",
+    "contractId": "NISPL/2026-27/00005",
     "name": "Enterprise Cloud Server — 3 User",
     "company": "JJKKLL",
     "customer": "Arpan Sharma",
@@ -119,12 +245,12 @@
       "lastSyncedAt": "2026-11-20T12:10:51.023Z",
       "syncError": null
     },
-    "id": "CTR-2026-1004",
+    "id": "NISPL/2026-27/00005",
     "createdAt": "2026-11-20T12:10:50.349Z"
   },
   {
-    "contractId": "CTR-DEMO-4640",
-    "id": "CTR-DEMO-4640",
+    "contractId": "NISPL/2026-27/00020",
+    "id": "NISPL/2026-27/00020",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "JJKKLL",
@@ -164,10 +290,10 @@
     },
     "convertedToPaid": true,
     "convertedAt": "2026-11-20T12:11:21.731Z",
-    "convertedToContractId": "CTR-2026-1004"
+    "convertedToContractId": "NISPL/2026-27/00005"
   },
   {
-    "contractId": "CTR-2026-1003",
+    "contractId": "NISPL/2026-27/00004",
     "name": "Enterprise Cloud Server — 2 User",
     "company": "GGHHII",
     "customer": "Saikat Saha",
@@ -204,11 +330,11 @@
       "lastSyncedAt": "2026-11-20T11:56:13.704Z",
       "syncError": null
     },
-    "id": "CTR-2026-1003",
+    "id": "NISPL/2026-27/00004",
     "createdAt": "2026-11-20T11:56:12.993Z"
   },
   {
-    "contractId": "CTR-2026-1002",
+    "contractId": "NISPL/2026-27/00003",
     "name": "Enterprise Cloud Server — 3 User",
     "company": "DDEEFF",
     "customer": "Arka Das",
@@ -245,12 +371,12 @@
       "lastSyncedAt": "2026-11-20T11:32:27.702Z",
       "syncError": null
     },
-    "id": "CTR-2026-1002",
+    "id": "NISPL/2026-27/00003",
     "createdAt": "2026-11-20T11:32:27.007Z"
   },
   {
-    "contractId": "CTR-DEMO-2885",
-    "id": "CTR-DEMO-2885",
+    "contractId": "NISPL/2026-27/00019",
+    "id": "NISPL/2026-27/00019",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "DDEEFF",
@@ -290,10 +416,10 @@
     },
     "convertedToPaid": true,
     "convertedAt": "2026-11-20T11:32:37.744Z",
-    "convertedToContractId": "CTR-2026-1002"
+    "convertedToContractId": "NISPL/2026-27/00003"
   },
   {
-    "contractId": "CTR-2026-1001",
+    "contractId": "NISPL/2026-27/00002",
     "name": "Enterprise Cloud Server — 2 User",
     "company": "AABBCC",
     "customer": "Debanga Roy",
@@ -330,11 +456,11 @@
       "lastSyncedAt": "2026-11-20T11:28:57.576Z",
       "syncError": null
     },
-    "id": "CTR-2026-1001",
+    "id": "NISPL/2026-27/00002",
     "createdAt": "2026-11-20T11:28:56.934Z"
   },
   {
-    "contractId": "CTR-2026-1000",
+    "contractId": "NISPL/2026-27/00001",
     "name": "Enterprise Cloud Server — 1 User",
     "company": "XYZ",
     "customer": "Suvraneel Das",
@@ -371,12 +497,12 @@
       "lastSyncedAt": "2026-11-20T11:21:04.120Z",
       "syncError": null
     },
-    "id": "CTR-2026-1000",
+    "id": "NISPL/2026-27/00001",
     "createdAt": "2026-11-20T11:21:03.357Z"
   },
   {
-    "contractId": "CTR-DEMO-2275",
-    "id": "CTR-DEMO-2275",
+    "contractId": "NISPL/2026-27/00018",
+    "id": "NISPL/2026-27/00018",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "XYZ",
@@ -416,11 +542,11 @@
     },
     "convertedToPaid": true,
     "convertedAt": "2026-11-20T11:21:27.793Z",
-    "convertedToContractId": "CTR-2026-1000"
+    "convertedToContractId": "NISPL/2026-27/00001"
   },
   {
-    "contractId": "CTR-DEMO-4285",
-    "id": "CTR-DEMO-4285",
+    "contractId": "NISPL/2026-27/00017",
+    "id": "NISPL/2026-27/00017",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "JKL",
@@ -460,8 +586,8 @@
     }
   },
   {
-    "contractId": "CTR-DEMO-9003",
-    "id": "CTR-DEMO-9003",
+    "contractId": "NISPL/2026-27/00016",
+    "id": "NISPL/2026-27/00016",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "DEF",
@@ -501,8 +627,8 @@
     }
   },
   {
-    "contractId": "CTR-DEMO-1391",
-    "id": "CTR-DEMO-1391",
+    "contractId": "NISPL/2026-27/00015",
+    "id": "NISPL/2026-27/00015",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "GHI",
@@ -542,8 +668,8 @@
     }
   },
   {
-    "contractId": "CTR-DEMO-9653",
-    "id": "CTR-DEMO-9653",
+    "contractId": "NISPL/2026-27/00014",
+    "id": "NISPL/2026-27/00014",
     "name": "Demo Trial",
     "service": "Demo Trial",
     "company": "ABC",
@@ -583,7 +709,7 @@
     }
   },
   {
-    "contractId": "CTR-2026-1003",
+    "contractId": "NISPL/2026-27/00004",
     "name": "Enterprise Cloud Server — 3 User",
     "company": "TimD",
     "customer": "Debanga",
@@ -618,11 +744,11 @@
       "lastSyncedAt": "2026-11-19T11:14:53.810Z",
       "syncError": null
     },
-    "id": "CTR-2026-1003",
+    "id": "NISPL/2026-27/00004",
     "createdAt": "2026-11-19T11:14:52.872Z"
   },
   {
-    "contractId": "CTR-2026-1002",
+    "contractId": "NISPL/2026-27/00003",
     "name": "Enterprise Cloud Server — 3 User",
     "company": "TimD",
     "customer": "Debanga",
@@ -657,14 +783,14 @@
       "lastSyncedAt": "2026-11-19T07:46:33.798Z",
       "syncError": null
     },
-    "id": "CTR-2026-1002",
+    "id": "NISPL/2026-27/00003",
     "createdAt": "2026-11-19T07:46:32.734Z",
     "convertedToPaid": true,
     "convertedAt": "2026-11-19T11:14:54.098Z",
-    "convertedToContractId": "CTR-2026-1003"
+    "convertedToContractId": "NISPL/2026-27/00004"
   },
   {
-    "contractId": "CTR-2026-1000",
+    "contractId": "NISPL/2026-27/00001",
     "name": "Cloud Services - 1 User (2 core/3 GB/50 GB) (1 Month)",
     "company": "Indware Technologies Pvt Ltd",
     "customer": "Indware Drabhu",
@@ -697,11 +823,11 @@
       "lastSyncedAt": "2026-11-14T11:43:39.673Z",
       "syncError": null
     },
-    "id": "CTR-2026-1000",
+    "id": "NISPL/2026-27/00001",
     "createdAt": "2026-11-14T11:43:38.910Z",
     "convertedToPaid": true,
     "convertedAt": "2026-11-19T10:14:04.303Z",
-    "convertedToContractId": "CTR-2026-1002",
+    "convertedToContractId": "NISPL/2026-27/00003",
     "paymentStatus": "Yes"
   }
 ]

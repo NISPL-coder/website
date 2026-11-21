@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
-import { CountUp } from '../../Dashboard/utils/useCountUp';
+import { CountUp, formatAutoCompactNumber } from '../../Dashboard/utils/useCountUp';
 import {
   PERIOD_OPTIONS,
   FINANCIAL_YEARS,
@@ -2577,19 +2577,19 @@ export default function OverviewSection({
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Customers</span>
             <div className="adm-finance-value blue-val">
-              <CountUp end={accountsMetrics.total} duration={1200} /> Customers
+              <CountUp end={accountsMetrics.total} duration={1200} useCompact={true} /> Customers
             </div>
             <p className="adm-finance-caption">
               <strong style={{ color: '#059669' }}>
-                <CountUp end={accountsMetrics.active} duration={1200} /> Active
+                <CountUp end={accountsMetrics.active} duration={1200} useCompact={true} /> Active
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#d97706' }}>
-                <CountUp end={accountsMetrics.demo} duration={1200} /> Demo Trial
+                <CountUp end={accountsMetrics.demo} duration={1200} useCompact={true} /> Demo Trial
               </strong>{' '}
               •{' '}
               <strong style={{ color: '#64748b' }}>
-                <CountUp end={accountsMetrics.inactive} duration={1200} /> Inactive
+                <CountUp end={accountsMetrics.inactive} duration={1200} useCompact={true} /> Inactive
               </strong>
             </p>
           </div>
@@ -2597,7 +2597,7 @@ export default function OverviewSection({
           <div className="adm-finance-footer">
             <span className="adm-finance-status-tag">
               <span className="adm-dot blue" />
-              <CountUp end={accountsMetrics.total} duration={1200} /> registered customers in range
+              <CountUp end={accountsMetrics.total} duration={1200} useCompact={true} /> registered customers in range
             </span>
             <button
               type="button"
@@ -2628,14 +2628,14 @@ export default function OverviewSection({
               style={{ fontWeight: 700, fontSize: '0.72rem', padding: '3px 8px' }}
             >
               <Users size={12} />
-              <span>{usersMetrics.customersWithUsers} {usersMetrics.customersWithUsers === 1 ? 'Customer' : 'Customers'}</span>
+              <span>{formatAutoCompactNumber(usersMetrics.customersWithUsers)} {usersMetrics.customersWithUsers === 1 ? 'Customer' : 'Customers'}</span>
             </span>
           </div>
 
           <div className="adm-finance-content">
             <span className="adm-finance-label">Total Cloud Used</span>
             <div className="adm-finance-value purple-val">
-              <CountUp end={usersMetrics.totalUsed} duration={1200} /> {usersMetrics.totalUsed === 1 ? 'User' : 'Users'}
+              <CountUp end={usersMetrics.totalUsed} duration={1200} useCompact={true} /> {usersMetrics.totalUsed === 1 ? 'User' : 'Users'}
             </div>
           </div>
 
@@ -3058,7 +3058,7 @@ export default function OverviewSection({
                   {chart2View === 'bargraph' ? <Users size={11} /> : <Layers size={11} />}
                   <span>
                     {chart2View === 'bargraph'
-                      ? `${accountsMetrics.total} Total Customers`
+                      ? `${formatAutoCompactNumber(accountsMetrics.total)} Total Customers`
                       : `${pieCategories.length} ${pieCategories.length === 1 ? 'Category' : 'Categories'}`}
                   </span>
                 </span>
@@ -3101,14 +3101,14 @@ export default function OverviewSection({
                   <span className="adm-bar-chip-dot green" />
                   <span className="adm-bar-chip-label">Active Customers:</span>
                   <strong>
-                    {hoveredBarMonth ? hoveredBarMonth.active : accountsMetrics.active}
+                    {formatAutoCompactNumber(hoveredBarMonth ? hoveredBarMonth.active : accountsMetrics.active)}
                   </strong>
                 </div>
                 <div className="adm-bar-metric-chip">
                   <span className="adm-bar-chip-dot amber" />
                   <span className="adm-bar-chip-label">Demo Trials:</span>
                   <strong>
-                    {hoveredBarMonth ? hoveredBarMonth.demo : accountsMetrics.demo}
+                    {formatAutoCompactNumber(hoveredBarMonth ? hoveredBarMonth.demo : accountsMetrics.demo)}
                   </strong>
                 </div>
                 <div className="adm-bar-metric-chip">
@@ -3163,7 +3163,7 @@ export default function OverviewSection({
                           y={y + 3.5}
                           className="adm-bar-y-label"
                         >
-                          {val}
+                          {formatAutoCompactNumber(val, { short: true })}
                         </text>
                       </g>
                     );
@@ -3278,7 +3278,7 @@ export default function OverviewSection({
                             fontWeight="700"
                             textAnchor="middle"
                           >
-                            {item.active}
+                            {formatAutoCompactNumber(item.active, { short: true })}
                           </text>
                         )}
                         {isHovered && dmoH > 0 && (
@@ -3290,7 +3290,7 @@ export default function OverviewSection({
                             fontWeight="700"
                             textAnchor="middle"
                           >
-                            {item.demo}
+                            {formatAutoCompactNumber(item.demo, { short: true })}
                           </text>
                         )}
 
@@ -3363,7 +3363,7 @@ export default function OverviewSection({
                         fontSize="9"
                         fontWeight="600"
                       >
-                        Active: <tspan fill="#34d399" fontWeight="700">{hoveredBarMonth.active}</tspan>
+                        Active: <tspan fill="#34d399" fontWeight="700">{formatAutoCompactNumber(hoveredBarMonth.active)}</tspan>
                       </text>
                       <circle cx={clampX + 80} cy={clampY + 32} r={3.5} fill="#f59e0b" />
                       <text
@@ -3373,7 +3373,7 @@ export default function OverviewSection({
                         fontSize="9"
                         fontWeight="600"
                       >
-                        Demo: <tspan fill="#fbbf24" fontWeight="700">{hoveredBarMonth.demo}</tspan>
+                        Demo: <tspan fill="#fbbf24" fontWeight="700">{formatAutoCompactNumber(hoveredBarMonth.demo)}</tspan>
                       </text>
                     </g>
                   );
@@ -3392,7 +3392,7 @@ export default function OverviewSection({
                   <span className="adm-bar-legend-dot" style={{ backgroundColor: '#10b981' }} />
                   <span>Active Customers</span>
                   <strong style={{ color: '#059669', marginLeft: '4px' }}>
-                    ({accountsMetrics.active})
+                    ({formatAutoCompactNumber(accountsMetrics.active)})
                   </strong>
                 </div>
 
@@ -3406,7 +3406,7 @@ export default function OverviewSection({
                   <span className="adm-bar-legend-dot" style={{ backgroundColor: '#f59e0b' }} />
                   <span>Demo Trials</span>
                   <strong style={{ color: '#d97706', marginLeft: '4px' }}>
-                    ({accountsMetrics.demo})
+                    ({formatAutoCompactNumber(accountsMetrics.demo)})
                   </strong>
                 </div>
               </div>
@@ -3415,7 +3415,7 @@ export default function OverviewSection({
               <div className="adm-donut-bottom-note">
                 <Users size={14} style={{ color: '#059669' }} />
                 <span>
-                  Showing active subscribed accounts vs. demo prospects across {customerMonthlyBarData.length} months in {overviewWindowLabel}.
+                  Showing {formatAutoCompactNumber(accountsMetrics.active)} active subscribed accounts vs. {formatAutoCompactNumber(accountsMetrics.demo)} demo prospects across {customerMonthlyBarData.length} months in {overviewWindowLabel}.
                 </span>
               </div>
             </div>

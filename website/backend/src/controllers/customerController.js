@@ -4,7 +4,7 @@ import Contract, { getContractsFromFile, saveContractsToFile } from '../models/C
 import Payment, { getPaymentsFromFile, savePaymentsToFile } from '../models/Payment.js';
 import User from '../models/User.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
-import { nextContractCode } from '../services/contractProvisioning.js';
+import { nextContractCode, getFinancialYear } from '../services/contractProvisioning.js';
 import { nextLedgerReference } from './paymentController.js';
 import { logActivity } from '../utils/activityLogger.js';
 import { redactRecords } from '../utils/columnPermissions.js';
@@ -1787,22 +1787,32 @@ const runMasterImport = async (req, rows, onProgress) => {
     const today = new Date().toISOString().split('T')[0];
 
     // Seed sequence numbers once for the batch to eliminate hundreds of slow DB roundtrips in the loop
+    const fy = getFinancialYear();
+    const fyPrefix = `NISPL/${fy}/`;
+    const escapedFy = fy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ctrPattern = new RegExp(`^NISPL/${escapedFy}/(\\d+)`, 'i');
+
     let paymentSeq = 1000;
     let invoiceSeq = 1000;
-    let contractSeq = 1000;
+    let contractSeq = 0;
 
     if (isMongoConnected()) {
-      const [latestPay, latestInv, latestCtr] = await Promise.all([
+      const [latestPay, latestInv, matchingContracts] = await Promise.all([
         Payment.findOne({ paymentId: new RegExp(`^PAY-${year}-`) }).sort({ paymentId: -1 }).lean(),
         Payment.findOne({ invoiceNumber: new RegExp(`^INV-${year}-`) }).sort({ invoiceNumber: -1 }).lean(),
-        Contract.findOne({ contractId: new RegExp(`^CTR-${year}-`) }).sort({ contractId: -1 }).lean()
+        Contract.find({ contractId: ctrPattern }, { contractId: 1 }).lean()
       ]);
       const pTail = parseInt(String(latestPay?.paymentId || '').split('-').pop(), 10);
       if (Number.isFinite(pTail)) paymentSeq = pTail;
       const iTail = parseInt(String(latestInv?.invoiceNumber || '').split('-').pop(), 10);
       if (Number.isFinite(iTail)) invoiceSeq = iTail;
-      const cTail = parseInt(String(latestCtr?.contractId || '').split('-').pop(), 10);
-      if (Number.isFinite(cTail)) contractSeq = cTail;
+      for (const c of (matchingContracts || [])) {
+        const m = String(c.contractId || '').match(ctrPattern);
+        if (m && m[1]) {
+          const num = parseInt(m[1], 10);
+          if (Number.isFinite(num) && num > contractSeq) contractSeq = num;
+        }
+      }
     } else {
       const filePayments = getPaymentsFromFile();
       const pTail = parseInt(String(filePayments.find((p) => String(p.paymentId || '').startsWith(`PAY-${year}-`))?.paymentId || '').split('-').pop(), 10);
@@ -1810,8 +1820,13 @@ const runMasterImport = async (req, rows, onProgress) => {
       const iTail = parseInt(String(filePayments.find((p) => String(p.invoiceNumber || '').startsWith(`INV-${year}-`))?.invoiceNumber || '').split('-').pop(), 10);
       if (Number.isFinite(iTail)) invoiceSeq = iTail;
       const fileContracts = getContractsFromFile();
-      const cTail = parseInt(String(fileContracts.find((c) => String(c.contractId || '').startsWith(`CTR-${year}-`))?.contractId || '').split('-').pop(), 10);
-      if (Number.isFinite(cTail)) contractSeq = cTail;
+      for (const c of (fileContracts || [])) {
+        const m = String(c.contractId || '').match(ctrPattern);
+        if (m && m[1]) {
+          const num = parseInt(m[1], 10);
+          if (Number.isFinite(num) && num > contractSeq) contractSeq = num;
+        }
+      }
     }
 
     for (let i = 0; i < rows.length; i++) {
@@ -2178,7 +2193,7 @@ const runMasterImport = async (req, rows, onProgress) => {
         let contractCode = existingContract?.contractId || item.contractId;
         if (!contractCode) {
           contractSeq++;
-          contractCode = `CTR-${year}-${contractSeq}`;
+          contractCode = `${fyPrefix}${String(contractSeq).padStart(5, '0')}`;
         }
 
         const contractPayload = {
