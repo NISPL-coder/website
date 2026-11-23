@@ -393,10 +393,6 @@
     transform 0.18s ease;
 }
 
-.adm-theme-switch-pill:hover {
-  transform: scale(1.04);
-}
-
 .adm-theme-switch-pill:active {
   transform: scale(0.97);
 }
