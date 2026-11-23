@@ -319,7 +319,7 @@ export default function CreateProductPage({ products, setProducts, productType =
       {/* Cloud Server Standard Matrix Reference & Quick Template Selector */}
       {isCtrlS && (
         <div
-          className="adm-table-card"
+          className="adm-table-card adm-create-product-matrix"
           style={{
             marginBottom: '24px',
             padding: '24px 26px',

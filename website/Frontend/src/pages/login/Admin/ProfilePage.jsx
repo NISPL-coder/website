@@ -84,6 +84,16 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
     String(profile?.role || '').toLowerCase()
   );
 
+  const completion = getProfileCompletion(
+    profile || {
+      name,
+      email,
+      role: profile?.role || 'admin',
+      isPrimaryAdmin: Boolean(profile?.isPrimaryAdmin || true),
+      accountStatus
+    }
+  );
+
   const accountItems = [
     { label: 'Portal Access', value: portalName, icon: ShieldCheck },
     { label: 'Role', value: role, icon: UserCog },
@@ -260,20 +270,20 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
         </div>
 
         {/* Small Circle: How much percent profile is being completed (Hidden when 100% complete) */}
-        {getProfileCompletion(profile || { name, email, role }).percentage < 100 && (
+        {completion.percentage < 100 && (
           <div
             className="adm-profile-hero-completion"
-            title={`${getProfileCompletion(profile || { name, email, role }).completedCount} of ${getProfileCompletion(profile || { name, email, role }).totalCount} profile fields completed`}
+            title={`${completion.completedCount} of ${completion.totalCount} profile fields completed`}
           >
             <ProfileCompletionCircle
-              percentage={getProfileCompletion(profile || { name, email, role }).percentage}
+              percentage={completion.percentage}
               size={46}
               strokeWidth={3.8}
               showPercentageInside={true}
             />
             <div>
               <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-                {getProfileCompletion(profile || { name, email, role }).percentage}% Completed
+                {completion.percentage}% Completed
               </div>
               <div style={{ fontSize: '0.70rem', color: '#64748b', marginTop: '3px' }}>
                 Profile Status

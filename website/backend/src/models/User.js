@@ -66,7 +66,7 @@ userSchema.methods.toSafeJSON = function () {
     createdBy: this.createdBy || null,
     securityLevel: this.securityLevel,
     location: this.location,
-    isEmailVerified: Boolean(this.isEmailVerified),
+    isEmailVerified: Boolean(this.isEmailVerified || this.role === 'admin' || this.isPrimaryAdmin),
     emailVerifiedAt: this.emailVerifiedAt,
     avatar: this.avatar || this.companyLogo || '',
     companyLogo: this.companyLogo || this.avatar || '',

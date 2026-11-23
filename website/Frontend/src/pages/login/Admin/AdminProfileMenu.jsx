@@ -78,7 +78,8 @@ export default function AdminProfileMenu({
     },
     ...(name ? { name } : {}),
     ...(email ? { email } : {}),
-    ...(role ? { role } : {})
+    ...(role ? { role } : {}),
+    ...(isPrimaryAdmin !== undefined ? { isPrimaryAdmin } : {})
   };
   const completion = getProfileCompletion(effectiveUser);
   const avatarUrl =
@@ -120,7 +121,11 @@ export default function AdminProfileMenu({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        title={`Profile ${completion.percentage}% completed — click to manage`}
+        title={
+          completion.percentage < 100
+            ? `Profile ${completion.percentage}% completed — click to manage`
+            : `${name || 'Admin'} (${role || 'Administrator'}) — click to manage`
+        }
       >
         {/* Avatar */}
         {avatarUrl ? (

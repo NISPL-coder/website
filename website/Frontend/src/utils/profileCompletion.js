@@ -16,9 +16,27 @@ export function getProfileCompletion(user = {}) {
   }
 
   const role = String(user.role || '').toLowerCase();
-  const isAdmin = ['admin', 'manager', 'support'].includes(role);
+  const isAdmin = ['admin', 'manager', 'support', 'primary admin'].includes(role) ||
+                  Boolean(user.isPrimaryAdmin) ||
+                  (Array.isArray(user.permissions) && user.permissions.includes('*'));
 
   if (isAdmin) {
+    const isPrimary = Boolean(user.isPrimaryAdmin || role === 'admin' || role === 'primary admin');
+    const isVerifiedEmail = Boolean(
+      user.isEmailVerified ||
+      isPrimary ||
+      (user.email && String(user.email).includes('@'))
+    );
+    const hasRoleOrPermissions = Boolean(
+      isPrimary ||
+      user.role ||
+      (Array.isArray(user.permissions) && user.permissions.length > 0)
+    );
+    const hasActiveSecurityStatus = Boolean(
+      (!user.accountStatus || user.accountStatus === 'active') &&
+      (user.designation || user.securityLevel || isPrimary || role || user.tier || user.lastLoginAt)
+    );
+
     const items = [
       {
         id: 'name',
@@ -34,20 +52,20 @@ export function getProfileCompletion(user = {}) {
       },
       {
         id: 'email_verified',
-        label: 'Verified Email',
-        completed: Boolean(user.isEmailVerified),
+        label: 'Verified Admin Credentials',
+        completed: isVerifiedEmail,
         weight: 20
       },
       {
-        id: 'phone',
-        label: 'Phone Number',
-        completed: Boolean(user.phone && String(user.phone).trim().length >= 6),
+        id: 'role_access',
+        label: 'Role & Module Permissions',
+        completed: hasRoleOrPermissions,
         weight: 20
       },
       {
-        id: 'designation',
-        label: 'Designation & Security Level',
-        completed: Boolean(user.designation || user.securityLevel || user.isPrimaryAdmin),
+        id: 'account_status',
+        label: 'Account Standing & Security Clearance',
+        completed: hasActiveSecurityStatus,
         weight: 20
       }
     ];

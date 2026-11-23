@@ -501,6 +501,9 @@ export async function verifyAndCreateAdmin(req, res) {
     user.designation = designation ? String(designation).trim() : null;
     user.password = String(password);
     user.role = 'admin';
+    user.isPrimaryAdmin = true;
+    user.isEmailVerified = true;
+    user.emailVerifiedAt = new Date();
     user.accountStatus = 'active';
     await user.save();
   } else {
@@ -510,6 +513,9 @@ export async function verifyAndCreateAdmin(req, res) {
       designation: designation ? String(designation).trim() : null,
       password: String(password),
       role: 'admin',
+      isPrimaryAdmin: true,
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
       accountStatus: 'active'
     });
   }

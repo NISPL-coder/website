@@ -141,6 +141,7 @@ export default function AwaitingConfirmationModal({
       >
         {/* Header */}
         <div
+          className="adm-awaiting-confirm-header"
           style={{
             padding: '22px 26px',
             borderBottom: '1px solid #f1f5f9',

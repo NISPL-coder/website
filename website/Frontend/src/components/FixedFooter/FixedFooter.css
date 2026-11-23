@@ -24,8 +24,8 @@
    while keeping the footer content perfectly centered in the active workspace. */
 @media (min-width: 993px) {
   .nis-fixed-global-footer.has-sidebar-admin {
-    left: var(--adm-sidebar-width, 260px);
-    width: calc(100% - var(--adm-sidebar-width, 260px));
+    left: var(--adm-sidebar-width, 300px);
+    width: calc(100% - var(--adm-sidebar-width, 300px));
   }
 
   .nis-fixed-global-footer.has-sidebar-partner {
@@ -34,8 +34,8 @@
   }
 
   .nis-fixed-global-footer.has-sidebar-customer {
-    left: 264px;
-    width: calc(100% - 264px);
+    left: var(--adm-sidebar-width, 300px);
+    width: calc(100% - var(--adm-sidebar-width, 300px));
   }
 }
 
@@ -103,6 +103,39 @@
   width: auto;
   object-fit: contain;
   vertical-align: middle;
+}
+
+/* =========================================================================
+   DYNAMIC THEME (DARK / LIGHT) SUPPORT
+   ========================================================================= */
+html[data-adm-theme='dark'] .nis-fixed-global-footer {
+  background: rgba(10, 16, 32, 0.94);
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.55);
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-text {
+  color: #94a3b8;
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-creator {
+  color: #cbd5e1;
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-creator strong {
+  color: #f1f5f9;
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-sep {
+  color: rgba(148, 163, 184, 0.35);
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-copowered {
+  color: #cbd5e1;
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-ctrls-logo {
+  filter: brightness(1.2) contrast(1.1);
 }
 
 @media (max-width: 480px) {

@@ -69,6 +69,7 @@ import { dashboardApi } from '../../../services/dashboardApi';
 import { PermissionsProvider, usePermissions, MODULE_LABELS } from './PermissionsContext';
 import { normalizeContractStatus } from './contractVocabulary';
 import { onDataChanged } from '../../../utils/dataBus';
+import './AdminThemeDark.css';
 
 const formatINR = (val) => {
   const num = Number(val);
@@ -618,6 +619,7 @@ function AdminDashboardShell({ userSession, onSignOut }) {
         }}
         onSignOut={onSignOut}
         refreshKey={notifRefreshKey}
+        themeToggle
       >
           {/* 1. DEDICATED SEPARATE /CREATE PAGES */}
           {blockedCreate ? (

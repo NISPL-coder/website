@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Menu, Search, X } from 'lucide-react';
+import { Bell, Menu, Moon, Search, Sun, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import logoImg from '../../../assets/new_logo/BLACK NEW.png';
+import logoDarkImg from '../../../assets/new_logo/WHITE NEW.png';
 import ConsoleSidebar from './ConsoleSidebar';
 import AdminProfileMenu from './AdminProfileMenu';
 import NotificationPopover from './NotificationPopover';
@@ -12,6 +14,13 @@ import {
 } from '../../../services/notificationApi';
 import { authApi } from '../../../services/authApi';
 import { useIsMobile } from '../../../utils/useResponsive';
+import {
+  ADMIN_THEMES,
+  applyAdminTheme,
+  clearAdminTheme,
+  persistAdminTheme,
+  readAdminTheme
+} from '../../../utils/adminTheme';
 import './AdminDashboard.css';
 import './AdminTools.css';
 
@@ -40,6 +49,7 @@ export default function ConsoleShell({
   profile = {},
   onSignOut,
   refreshKey = 0,
+  themeToggle = false,
   children
 }) {
   const navigate = useNavigate();
@@ -48,11 +58,117 @@ export default function ConsoleShell({
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [theme, setTheme] = useState(readAdminTheme);
   const searchInputRef = useRef(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotifLoading, setIsNotifLoading] = useState(false);
+
+  // The theme attribute lives on <html> so body-portal dialogs inherit it.
+  // Portals that opt in (Admin & Customer portals) restore the saved dark/light
+  // theme before the browser paints without a flash on first render.
+  useLayoutEffect(() => {
+    if (!themeToggle) {
+      clearAdminTheme();
+      return undefined;
+    }
+    applyAdminTheme(theme);
+    return () => clearAdminTheme();
+  }, [theme, themeToggle]);
+
+  const toggleTheme = useCallback((event) => {
+    const next = theme === ADMIN_THEMES.DARK ? ADMIN_THEMES.LIGHT : ADMIN_THEMES.DARK;
+
+    // Determine circular expansion coordinates from event or button position
+    let x = event?.clientX;
+    let y = event?.clientY;
+    if ((x === undefined || y === undefined || (x === 0 && y === 0)) && event?.currentTarget) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
+    x = x ?? window.innerWidth / 2;
+    y = y ?? 40;
+
+    const isReduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Native View Transition API with circular clipPath (Chrome, Edge, modern browsers)
+    if (typeof document.startViewTransition === 'function' && !isReduceMotion) {
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      document.documentElement.classList.add('adm-theme-transitioning');
+
+      const transition = document.startViewTransition(() => {
+        flushSync(() => {
+          applyAdminTheme(next);
+          persistAdminTheme(next);
+          setTheme(next);
+        });
+      });
+
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: 550,
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)'
+          }
+        );
+      });
+
+      transition.finished.finally(() => {
+        document.documentElement.classList.remove('adm-theme-transitioning');
+      });
+      return;
+    }
+
+    // Fallback circular reveal animation for browsers without View Transition API
+    if (!isReduceMotion && typeof document !== 'undefined') {
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      const overlay = document.createElement('div');
+      overlay.className = 'adm-circular-theme-overlay';
+      overlay.style.setProperty('--circle-x', `${x}px`);
+      overlay.style.setProperty('--circle-y', `${y}px`);
+      overlay.style.setProperty('--circle-r', `${endRadius}px`);
+      overlay.style.backgroundColor = next === ADMIN_THEMES.DARK ? '#0a1020' : '#ffffff';
+      document.body.appendChild(overlay);
+
+      setTimeout(() => {
+        applyAdminTheme(next);
+        persistAdminTheme(next);
+        setTheme(next);
+        overlay.classList.add('adm-circular-fade');
+        setTimeout(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 300);
+      }, 400);
+      return;
+    }
+
+    // Direct toggle when reduced motion is preferred
+    applyAdminTheme(next);
+    persistAdminTheme(next);
+    setTheme(next);
+  }, [theme]);
+
+  const isDarkTheme = theme === ADMIN_THEMES.DARK;
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -264,7 +380,7 @@ export default function ConsoleShell({
 
           <Link to={brandTo} className="adm-brand-link" title="Net Infotech System">
             <img 
-              src={logoImg} 
+              src={isDarkTheme ? logoDarkImg : logoImg} 
               alt="Net Infotech System Pvt. Ltd." 
               className="adm-brand-logo" 
             />
@@ -381,6 +497,44 @@ export default function ConsoleShell({
             >
               <Search size={17} />
             </button>
+
+            {themeToggle && (
+              <button
+                type="button"
+                className={`adm-theme-switch-pill ${isDarkTheme ? 'is-dark' : 'is-light'}`}
+                onClick={toggleTheme}
+                aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-pressed={isDarkTheme}
+                title={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {/* Sun icon on the left (visible in light mode) */}
+                <span className="adm-switch-icon adm-switch-icon-sun" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="4.5" />
+                    <line x1="12" y1="2" x2="12" y2="4.2" />
+                    <line x1="12" y1="19.8" x2="12" y2="22" />
+                    <line x1="4.93" y1="4.93" x2="6.5" y2="6.5" />
+                    <line x1="17.5" y1="17.5" x2="19.07" y2="19.07" />
+                    <line x1="2" y1="12" x2="4.2" y2="12" />
+                    <line x1="19.8" y1="12" x2="22" y2="12" />
+                    <line x1="4.93" y1="19.07" x2="6.5" y2="17.5" />
+                    <line x1="17.5" y1="6.5" x2="19.07" y2="4.93" />
+                  </svg>
+                </span>
+
+                {/* Moon with stars icon on the right (visible in dark mode) */}
+                <span className="adm-switch-icon adm-switch-icon-moon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10.2 3.2a8.5 8.5 0 1 0 8.6 8.6c0-.46-.04-.92-.11-1.36a6.5 6.5 0 0 1-7.13-7.13c-.44-.07-.9-.11-1.36-.11z" />
+                    <path d="M18.8 2.2l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6z" />
+                    <path d="M21.2 7.2l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z" />
+                  </svg>
+                </span>
+
+                {/* Sliding Circular Knob */}
+                <span className="adm-switch-knob" aria-hidden="true" />
+              </button>
+            )}
 
             <div style={{ position: 'relative' }}>
               <button

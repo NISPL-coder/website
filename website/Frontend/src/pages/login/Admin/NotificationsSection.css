@@ -741,3 +741,188 @@
     padding: 40px 16px;
   }
 }
+
+/* =========================================================================
+   DARK THEME SPECIFIC STYLES
+   ========================================================================= */
+html[data-adm-theme='dark'] .nts-section-wrapper {
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-header-title {
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-header-subtitle {
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-stat-card {
+  background: #121a2b;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+html[data-adm-theme='dark'] .nts-stat-value {
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-stat-label {
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-tab {
+  background: #172033;
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-tab:hover {
+  background: #1c2740;
+  color: #ffffff;
+}
+
+html[data-adm-theme='dark'] .nts-tab.active {
+  background: rgba(129, 140, 248, 0.2);
+  border-color: rgba(129, 140, 248, 0.45);
+  color: #c7d2fe;
+}
+
+html[data-adm-theme='dark'] .nts-tab em {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+html[data-adm-theme='dark'] .nts-tab.active em {
+  background: rgba(129, 140, 248, 0.35);
+  color: #ffffff;
+}
+
+html[data-adm-theme='dark'] .nts-search-input,
+html[data-adm-theme='dark'] .nts-filter-select {
+  background: #172033;
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-search-input:focus,
+html[data-adm-theme='dark'] .nts-filter-select:focus {
+  border-color: #818cf8;
+}
+
+html[data-adm-theme='dark'] .nts-search-input::placeholder {
+  color: #7688a6;
+}
+
+html[data-adm-theme='dark'] .nts-list-card {
+  background: #121a2b;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+html[data-adm-theme='dark'] .nts-item {
+  background: #121a2b;
+  border-bottom-color: rgba(148, 163, 184, 0.1);
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-item.is-unread {
+  background: #162035;
+}
+
+html[data-adm-theme='dark'] .nts-item:hover,
+html[data-adm-theme='dark'] .nts-item.is-unread:hover {
+  background: #1c2844;
+}
+
+html[data-adm-theme='dark'] .nts-item.is-expanded,
+html[data-adm-theme='dark'] .nts-item.is-expanded:hover {
+  background: #172033;
+  border-bottom-color: rgba(148, 163, 184, 0.12);
+}
+
+html[data-adm-theme='dark'] .nts-item-icon {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-adm-theme='dark'] .nts-item-title {
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-item-message {
+  color: #cbd5e1;
+}
+
+html[data-adm-theme='dark'] .nts-item-time {
+  color: #94a3b8;
+}
+
+html[data-adm-theme='dark'] .nts-chip {
+  background: #1b263b;
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+html[data-adm-theme='dark'] .nts-chip-email {
+  background: #1b263b;
+  color: #93c5fd;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+html[data-adm-theme='dark'] .nts-row-btn,
+html[data-adm-theme='dark'] .nts-pager-btn {
+  background: #172033;
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-row-btn:hover,
+html[data-adm-theme='dark'] .nts-pager-btn:hover:not(:disabled) {
+  background: #1c2740;
+  color: #ffffff;
+}
+
+html[data-adm-theme='dark'] .nts-btn-outline {
+  background: #172033;
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-btn-outline:hover {
+  background: #1c2740;
+  color: #ffffff;
+}
+
+html[data-adm-theme='dark'] .nts-detail-field {
+  background: #121a2b;
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+html[data-adm-theme='dark'] .nts-detail-label {
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-detail-val {
+  color: #e9eefb;
+}
+
+html[data-adm-theme='dark'] .nts-meta-table {
+  background: #121a2b;
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+html[data-adm-theme='dark'] .nts-meta-row {
+  background: transparent;
+  border-bottom-color: rgba(148, 163, 184, 0.1);
+}
+
+html[data-adm-theme='dark'] .nts-meta-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html[data-adm-theme='dark'] .nts-meta-key {
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .nts-meta-val {
+  color: #e9eefb;
+}

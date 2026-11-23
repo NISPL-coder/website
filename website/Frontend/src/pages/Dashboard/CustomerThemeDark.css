@@ -1,0 +1,1123 @@
+/* ==========================================================================
+   NISPL CUSTOMER / CLIENT DASHBOARD — DARK THEME
+   --------------------------------------------------------------------------
+   Activated whenever <html data-adm-theme="dark"> is present, driven by the
+   theme switch toggle in ConsoleShell.
+   Provides deep navy background, rich card surfaces, high contrast text,
+   and deep navy hover states (#1c2844) so text remains crisp and legible.
+   ========================================================================== */
+
+html[data-adm-theme='dark'] {
+  /* Customer Design System Tokens Override */
+  --ds-bg: #0a1020;
+  --ds-bg-soft: #0d1527;
+  --ds-surface: #121a2b;
+  --ds-surface-2: #172033;
+  --ds-border: rgba(148, 163, 184, 0.16);
+  --ds-border-md: rgba(148, 163, 184, 0.24);
+
+  --ds-text-1: #e9eefb;
+  --ds-text-2: #cbd5e1;
+  --ds-text-3: #94a3b8;
+  --ds-text-4: #64748b;
+
+  --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ds-shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+  --ds-shadow-lg: 0 20px 45px -8px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── 1. Page Canvas & Layout Containers ──────────────────────────────────── */
+html[data-adm-theme='dark'] .cust-dash-layout,
+html[data-adm-theme='dark'] .cust-dash-content-body,
+html[data-adm-theme='dark'] .flowmail-overview-container,
+html[data-adm-theme='dark'] .cliento-overview-wrapper,
+html[data-adm-theme='dark'] .flowmail-section-wrapper,
+html[data-adm-theme='dark'] .new-subscription-page {
+  background-color: var(--adm-bg, #0a1020) !important;
+  color: var(--adm-text-main, #e9eefb) !important;
+}
+
+/* ── 2. Welcome Banner & Action Strips ───────────────────────────────────── */
+html[data-adm-theme='dark'] .flowmail-welcome-banner {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-welcome-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-welcome-sub {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-btn-secondary {
+  background: var(--adm-surface-raised, #172033) !important;
+  border-color: var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-btn-secondary:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  color: #ffffff !important;
+}
+
+/* ── 3. KPI Cards (Overview, Receipts, Stats) ────────────────────────────── */
+html[data-adm-theme='dark'] .flowmail-kpi-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-card:hover,
+html[data-adm-theme='dark'] .flowmail-kpi-card.is-clickable:hover {
+  background: var(--adm-surface-raised, #172033) !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.55) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-label {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-number {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-icon {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-foot {
+  border-top-color: var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-note {
+  color: var(--adm-text-light, #7688a6) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-kpi-link {
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+/* ── 4. FlowMail Cards & Sections ────────────────────────────────────────── */
+html[data-adm-theme='dark'] .flowmail-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+  color: var(--adm-text-main, #e9eefb) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-card-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-card-subtitle {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-view-all-link {
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-view-all-link:hover {
+  color: #ffffff !important;
+}
+
+/* ── 5. Tables & Rows (Overview Payments Table & Receipts Table) ──────────── */
+html[data-adm-theme='dark'] .flowmail-table-wrap,
+html[data-adm-theme='dark'] .cliento-table-responsive {
+  background: transparent !important;
+  border-color: var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-table,
+html[data-adm-theme='dark'] .cliento-data-table {
+  color: #e2e8f0 !important;
+  border-collapse: collapse;
+}
+
+/* Table Header */
+html[data-adm-theme='dark'] .flowmail-table thead tr th,
+html[data-adm-theme='dark'] .cliento-data-table thead tr th,
+html[data-adm-theme='dark'] .flowmail-table thead tr,
+html[data-adm-theme='dark'] .flowmail-table thead tr[style*='background'],
+html[data-adm-theme='dark'] .cliento-data-table thead tr[style*='background'] {
+  background: #172033 !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16) !important;
+  font-weight: 600 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-table thead tr th span,
+html[data-adm-theme='dark'] .cliento-data-table thead tr th span {
+  color: #94a3b8 !important;
+}
+
+/* Table Body Cells */
+html[data-adm-theme='dark'] .flowmail-table tbody tr td,
+html[data-adm-theme='dark'] .cliento-data-table tbody tr td {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Deep navy hover effect so text remains crystal clear (no washed out white!) */
+html[data-adm-theme='dark'] .flowmail-table tbody tr.flowmail-table-row:hover td,
+html[data-adm-theme='dark'] .flowmail-table tbody tr:hover td,
+html[data-adm-theme='dark'] .cliento-data-table tbody tr.flowmail-table-row:hover td,
+html[data-adm-theme='dark'] .cliento-data-table tbody tr:hover td {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-table tbody tr:hover td *,
+html[data-adm-theme='dark'] .cliento-data-table tbody tr:hover td * {
+  color: #ffffff !important;
+}
+
+/* Table cell specific highlights */
+html[data-adm-theme='dark'] .flowmail-table td.font-medium,
+html[data-adm-theme='dark'] .flowmail-table td.text-slate-800,
+html[data-adm-theme='dark'] .flowmail-table td [style*='color: #0f172a'],
+html[data-adm-theme='dark'] .cliento-data-table td [style*='color: #0f172a'] {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cliento-data-table td [style*='color: #475569'] {
+  color: #94a3b8 !important;
+}
+
+/* Receipt Monospace ID Badge */
+html[data-adm-theme='dark'] .flowmail-receipt-id-badge {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(129, 140, 248, 0.35) !important;
+}
+
+/* Status Badges */
+html[data-adm-theme='dark'] .flowmail-status-badge.active,
+html[data-adm-theme='dark'] .flowmail-trend-pill.positive {
+  background: rgba(74, 222, 128, 0.14) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-status-badge.due,
+html[data-adm-theme='dark'] .flowmail-trend-pill.amber {
+  background: rgba(251, 191, 36, 0.14) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-status-badge.overdue,
+html[data-adm-theme='dark'] .flowmail-trend-pill.danger {
+  background: rgba(251, 113, 133, 0.14) !important;
+  color: #fb7185 !important;
+  border: 1px solid rgba(251, 113, 133, 0.3) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-trend-pill.indigo {
+  background: rgba(129, 140, 248, 0.16) !important;
+  color: #a5b4fc !important;
+  border: 1px solid rgba(129, 140, 248, 0.35) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-trend-pill.blue {
+  background: rgba(96, 165, 250, 0.14) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+}
+
+/* Receipt Download Action Button */
+html[data-adm-theme='dark'] .flowmail-receipt-download {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-receipt-download:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  color: #ffffff !important;
+}
+
+/* Empty State Row */
+html[data-adm-theme='dark'] .flowmail-empty-row {
+  color: var(--adm-text-light, #7688a6) !important;
+}
+
+/* ── 6. Overview Product List & Quick Actions ────────────────────────────── */
+html[data-adm-theme='dark'] .flowmail-product-row {
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+  background: transparent !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-row:hover {
+  background: #1c2844 !important;
+  border-radius: 12px;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-icon {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-name {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-meta {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-open {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-product-open:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  color: #ffffff !important;
+}
+
+/* Quick Actions */
+html[data-adm-theme='dark'] .flowmail-quick-action {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-quick-action:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+}
+
+html[data-adm-theme='dark'] .flowmail-quick-action strong,
+html[data-adm-theme='dark'] .flowmail-quick-action span {
+  color: #ffffff !important;
+}
+
+/* ── 7. Reminders, Cutoff Warnings & Notifications ───────────────────────── */
+html[data-adm-theme='dark'] .flowmail-reminder-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border-color: var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-reminder-item {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-reminder-item:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-reminder-item-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-reminder-item-meta {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-reminder-item-amount {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cutoff-warning-banner {
+  background: rgba(251, 191, 36, 0.1) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  color: #fbbf24 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cutoff-warning-header {
+  color: #fbbf24 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cutoff-warning-msg {
+  color: #cbd5e1 !important;
+}
+
+/* ── 8. Search Bars, Filters & Pagination ────────────────────────────────── */
+html[data-adm-theme='dark'] .cliento-search-bar {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+}
+
+html[data-adm-theme='dark'] .cliento-search-bar input {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cliento-search-bar input::placeholder {
+  color: var(--adm-text-light, #7688a6) !important;
+}
+
+html[data-adm-theme='dark'] .cliento-filter-btn {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cliento-filter-btn:hover {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cliento-table-pagination,
+html[data-adm-theme='dark'] .cliento-page-btn {
+  background: var(--adm-surface-raised, #172033) !important;
+  border-color: var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cliento-page-btn:hover:not(:disabled) {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .cliento-table-page-info {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+/* ── 9. Products & Solutions Catalogue (Selection Cards, Plans & Tables) ─── */
+html[data-adm-theme='dark'] .solution-hero-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1.5px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .solution-hero-card:hover {
+  background: var(--adm-surface-raised, #172033) !important;
+  box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.65) !important;
+}
+
+html[data-adm-theme='dark'] .solution-hero-card.tally-theme:hover {
+  border-color: rgba(251, 113, 133, 0.5) !important;
+}
+
+html[data-adm-theme='dark'] .solution-hero-card.cloud-theme:hover {
+  border-color: rgba(129, 140, 248, 0.5) !important;
+}
+
+html[data-adm-theme='dark'] .solution-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .solution-one-line-desc {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .solution-center-logo-box {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+/* Cloud Providers Selection Grid */
+html[data-adm-theme='dark'] .cloud-provider-box {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1.5px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cloud-provider-box:hover {
+  background: var(--adm-surface-raised, #172033) !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  transform: translateY(-4px);
+}
+
+html[data-adm-theme='dark'] .provider-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .provider-desc {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+/* Product Comparison Table & Showcase */
+html[data-adm-theme='dark'] .product-comparison-table-wrap,
+html[data-adm-theme='dark'] .cliento-card.product-comparison-table-wrap {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .product-comparison-table th {
+  background: #172033 !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .product-comparison-table td {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .product-comparison-table tr:hover td {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .product-comparison-table tr:hover td * {
+  color: #ffffff !important;
+}
+
+/* Showcase Cards */
+html[data-adm-theme='dark'] .showcase-card-body {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .showcase-card-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .showcase-card-desc {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .showcase-price-val {
+  color: #ffffff !important;
+}
+
+/* Plan Cards */
+html[data-adm-theme='dark'] .cloud-plan-card,
+html[data-adm-theme='dark'] .tally-plan-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .cloud-plan-card:hover,
+html[data-adm-theme='dark'] .tally-plan-card:hover {
+  background: var(--adm-surface-raised, #172033) !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* ── 10. Cart View (Rows, Quantity Controls & Order Summary) ──────────────── */
+html[data-adm-theme='dark'] .cart-col-main .flowmail-card,
+html[data-adm-theme='dark'] .cart-col-sidebar .flowmail-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cart-head {
+  background: #172033 !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cart-row {
+  background: transparent !important;
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cart-row:hover {
+  background: #1c2844 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-cart-row:hover * {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cart-row-name,
+html[data-adm-theme='dark'] .cart-row-total,
+html[data-adm-theme='dark'] .cart-summary-title,
+html[data-adm-theme='dark'] .cart-grand-total-val {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cart-summary-line {
+  color: var(--adm-text-muted, #98a8c4) !important;
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+/* Quantity input & buttons */
+html[data-adm-theme='dark'] .cart-qty-btn,
+html[data-adm-theme='dark'] .cart-qty-input {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cart-qty-btn:hover {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+}
+
+/* ── 11. Help Center & FAQs ──────────────────────────────────────────────── */
+/* FAQ Card (Left) */
+html[data-adm-theme='dark'] .help-desk-faq-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .faq-card-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .faq-card-subtitle {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .faq-title-icon {
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+/* FAQ Accordion Item Pills */
+html[data-adm-theme='dark'] .faq-accordion-item {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  transition: all 0.2s ease;
+}
+
+html[data-adm-theme='dark'] .faq-accordion-item:hover,
+html[data-adm-theme='dark'] .faq-accordion-item.open {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .faq-item-question-row {
+  background: transparent !important;
+  border: none !important;
+}
+
+html[data-adm-theme='dark'] .faq-item-question-text {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .faq-chevron-icon {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .faq-accordion-item.open .faq-chevron-icon {
+  color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .faq-item-answer-body {
+  background: transparent !important;
+  border-top: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .faq-item-answer-body p {
+  color: #cbd5e1 !important;
+}
+
+/* Quick Support Card (Right) */
+html[data-adm-theme='dark'] .help-desk-quick-support-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .quick-support-header-icon {
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .quick-support-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .quick-support-subtitle {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .quick-channel-item {
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .channel-circle-icon {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .channel-label {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .channel-main-val {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .channel-main-val:hover {
+  color: #60a5fa !important;
+}
+
+html[data-adm-theme='dark'] .channel-chat-link {
+  background: transparent !important;
+  border: none !important;
+  color: #60a5fa !important;
+  font-weight: 600 !important;
+}
+
+html[data-adm-theme='dark'] .channel-chat-link:hover {
+  background: transparent !important;
+  color: #93c5fd !important;
+}
+
+html[data-adm-theme='dark'] .channel-sub-note {
+  color: var(--adm-text-light, #7688a6) !important;
+}
+
+html[data-adm-theme='dark'] .channel-badge-green {
+  background: rgba(74, 222, 128, 0.14) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
+}
+
+html[data-adm-theme='dark'] .channel-live-dot-label {
+  color: #4ade80 !important;
+}
+
+html[data-adm-theme='dark'] .live-dot {
+  background: #4ade80 !important;
+}
+
+/* Hero Support Card & Office Card (Top Row, if present) */
+html[data-adm-theme='dark'] .help-desk-hero-card {
+  background: linear-gradient(135deg, #172033 0%, #121a2b 100%) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.2)) !important;
+  box-shadow: var(--adm-shadow-card) !important;
+}
+
+html[data-adm-theme='dark'] .hero-headphone-icon-wrap {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-adm-theme='dark'] .hero-headphone-icon {
+  color: #a5b4fc !important;
+}
+
+html[data-adm-theme='dark'] .hero-subheading {
+  color: #60a5fa !important;
+}
+
+html[data-adm-theme='dark'] .hero-main-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .hero-description {
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .label-bold {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .label-dim {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .help-desk-address-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card) !important;
+}
+
+html[data-adm-theme='dark'] .address-icon-box {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #a5b4fc !important;
+}
+
+html[data-adm-theme='dark'] .address-card-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .address-lines {
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .address-map-preview {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+html[data-adm-theme='dark'] .address-map-link {
+  color: #60a5fa !important;
+}
+
+/* ── 12. Customer Profile View ───────────────────────────────────────────── */
+html[data-adm-theme='dark'] .cust-profile-wrapper {
+  color: var(--adm-text-main, #e9eefb) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper.adm-table-card,
+html[data-adm-theme='dark'] .cust-profile-wrapper.adm-form-card,
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-card {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-card-header {
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-section-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-section-sub {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+/* Hero Section */
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero-name {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero-email {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-primary-badge {
+  background: rgba(37, 99, 235, 0.2) !important;
+  color: #93c5fd !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+html[data-adm-theme='dark'] .cust-id-pill {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .cust-id-pill:hover {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero-side {
+  border-left-color: var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero-side-item .adm-profile-info-label {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-hero-side-item .adm-profile-hero-side-value {
+  color: #ffffff !important;
+}
+
+/* Form Sections, Labels & Inputs */
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-section {
+  border-bottom: 1px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-section-title {
+  color: #ffffff !important;
+  border-bottom: 1.5px solid var(--adm-border-light, rgba(148, 163, 184, 0.1)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-label {
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-input {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1.5px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-input:hover {
+  border-color: rgba(148, 163, 184, 0.45) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-input:focus {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-form-input:disabled {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-color: var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+/* Section 3: Additional Communication Channels (Secondary Emails & Phones) */
+html[data-adm-theme='dark'] .cust-section-box {
+  background: var(--adm-card-bg, #121a2b) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-section-icon {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+  color: var(--adm-purple, #a5b4fc) !important;
+}
+
+html[data-adm-theme='dark'] .cust-section-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-section-desc {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-btn-add {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cust-btn-add:hover {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-empty-hint {
+  background: rgba(23, 32, 51, 0.6) !important;
+  border: 1px dashed rgba(148, 163, 184, 0.28) !important;
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-empty-hint strong {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-input-row {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-input-row:focus-within {
+  background: #1c2844 !important;
+  border-color: var(--adm-purple-dark, #818cf8) !important;
+}
+
+html[data-adm-theme='dark'] .cust-input-field {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+html[data-adm-theme='dark'] .cust-row-badge.secondary {
+  background: rgba(148, 163, 184, 0.16) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+html[data-adm-theme='dark'] .cust-btn-remove {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .cust-btn-remove:hover {
+  background: rgba(251, 113, 133, 0.2) !important;
+  color: #fb7185 !important;
+}
+
+/* Sections 4 & 5: Clearance Grid & Password */
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-group-label {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-info-card {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-info-label {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-info-value {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-pw-field .adm-form-input {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1.5px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-profile-pw-eye {
+  color: var(--adm-text-muted, #98a8c4) !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-btn-secondary {
+  background: var(--adm-surface-raised, #172033) !important;
+  border: 1px solid var(--adm-border-input, rgba(148, 163, 184, 0.24)) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-adm-theme='dark'] .cust-profile-wrapper .adm-btn-secondary:hover {
+  background: #1c2844 !important;
+  color: #ffffff !important;
+}
+
+/* ── 13. Customer Modals & Dialogs ───────────────────────────────────────── */
+/* OTP Verification Modal */
+html[data-adm-theme='dark'] .customer-otp-card {
+  background: #121a2b !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .customer-otp-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .customer-otp-sub {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .customer-otp-input {
+  background: #172033 !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .customer-otp-input:focus {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25) !important;
+}
+
+/* Support Ticket Modal */
+html[data-adm-theme='dark'] .ebolt-dialog-card {
+  background: #121a2b !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .ebolt-dialog-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .ebolt-dialog-sub {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .ebolt-field-lbl {
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .ebolt-input {
+  background: #172033 !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .ebolt-input:focus {
+  border-color: #818cf8 !important;
+}
+
+/* FlowMail AI & Product Modals */
+html[data-adm-theme='dark'] .flowmail-ai-modal,
+html[data-adm-theme='dark'] .apm-modal,
+html[data-adm-theme='dark'] .apm-modal-box,
+html[data-adm-theme='dark'] .demo-details-modal {
+  background: #121a2b !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-ai-modal-header,
+html[data-adm-theme='dark'] .apm-modal-header,
+html[data-adm-theme='dark'] .demo-details-header {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-ai-modal-title,
+html[data-adm-theme='dark'] .apm-modal-title,
+html[data-adm-theme='dark'] .demo-details-title {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-ai-modal-subtitle,
+html[data-adm-theme='dark'] .apm-modal-subtitle,
+html[data-adm-theme='dark'] .demo-details-subtitle {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-ai-hero-card,
+html[data-adm-theme='dark'] .flowmail-ai-item-card,
+html[data-adm-theme='dark'] .apm-product-card,
+html[data-adm-theme='dark'] .apm-contract-card,
+html[data-adm-theme='dark'] .apm-product-option-card,
+html[data-adm-theme='dark'] .demo-countdown-card,
+html[data-adm-theme='dark'] .demo-specs-section,
+html[data-adm-theme='dark'] .demo-description-box {
+  background: #172033 !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-option-card:hover,
+html[data-adm-theme='dark'] .apm-product-card:hover {
+  background: #1c2844 !important;
+  border-color: #818cf8 !important;
+}
+
+/* Modal Close Buttons */
+html[data-adm-theme='dark'] .flowmail-modal-close-btn,
+html[data-adm-theme='dark'] .apm-close-btn,
+html[data-adm-theme='dark'] .apm-modal-close,
+html[data-adm-theme='dark'] .demo-details-close-btn,
+html[data-adm-theme='dark'] .ebolt-dialog-close {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-adm-theme='dark'] .flowmail-modal-close-btn:hover,
+html[data-adm-theme='dark'] .apm-close-btn:hover,
+html[data-adm-theme='dark'] .apm-modal-close:hover,
+html[data-adm-theme='dark'] .demo-details-close-btn:hover,
+html[data-adm-theme='dark'] .ebolt-dialog-close:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+/* ── 14. Safety Net for Inline Color Overrides on Customer Portal ─────────── */
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: #0f172a'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: #1e293b'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: #000'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: rgb(15, 23, 42)'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: #0f172a'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: #1e293b'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: #000'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: rgb(15, 23, 42)'] {
+  color: #ffffff !important;
+}
+
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: #475569'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: #64748b'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='color: rgb(71, 85, 105)'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: #475569'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='color: #64748b'] {
+  color: #94a3b8 !important;
+}
+
+html[data-adm-theme='dark'] .cust-dash-layout [style*='background: #ffffff'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='background: #fff'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='background-color: #ffffff'],
+html[data-adm-theme='dark'] .cust-dash-layout [style*='background-color: #fff'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='background: #ffffff'],
+html[data-adm-theme='dark'] .flowmail-overview-container [style*='background: #fff'] {
+  background-color: #121a2b !important;
+}

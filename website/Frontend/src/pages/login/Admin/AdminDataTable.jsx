@@ -211,7 +211,7 @@ export default function AdminDataTable({
             className="adm-sno-cell"
             style={{
               fontWeight: 600,
-              color: '#64748b',
+              color: 'var(--rdt-color-text-secondary, #64748b)',
               fontSize: '0.82rem',
               display: 'inline-block',
               textAlign: 'center',

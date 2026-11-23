@@ -26,6 +26,8 @@ import { toPortalReceiptRows } from './utils/portalReceiptRows';
 import { useRazorpayCheckout } from '../../utils/useRazorpayCheckout';
 import { onDataChanged } from '../../utils/dataBus';
 import './Dashboard.css';
+import '../login/Admin/AdminThemeDark.css';
+import './CustomerThemeDark.css';
 
 const NAV_TO_PATH = {
   overview: '/customer/overview',
@@ -595,6 +597,7 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
         sidebarAriaLabel="Customer Portal Navigation"
         profile={consoleProfile}
         onSignOut={handleSignOut}
+        themeToggle
       >
           {/* TAB 1: OVERVIEW */}
           {activeNav === 'overview' && (

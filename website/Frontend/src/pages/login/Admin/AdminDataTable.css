@@ -247,6 +247,43 @@
   background: #f8fafc;
 }
 
+/* Dark mode theme variables and hover state */
+html[data-adm-theme='dark'] .admin-datatable {
+  --rdt-color-bg: #121a2b;
+  --rdt-color-header-bg: #172033;
+  --rdt-color-footer-bg: #121a2b;
+  --rdt-color-text-primary: #e9eefb;
+  --rdt-color-text-secondary: #98a8c4;
+  --rdt-color-divider: rgba(148, 163, 184, 0.1);
+  --rdt-color-primary: #818cf8;
+  --rdt-color-highlight: #1c2844;
+  --rdt-color-highlight-text: #ffffff;
+  --rdt-color-selected: rgba(129, 140, 248, 0.2);
+  --rdt-color-selected-text: #ffffff;
+  --rdt-color-striped: #151d2e;
+  --rdt-color-striped-text: #e9eefb;
+  --rdt-color-btn: #94a3b8;
+  --rdt-color-btn-hover: rgba(129, 140, 248, 0.2);
+  --rdt-color-btn-focus: rgba(129, 140, 248, 0.28);
+  --rdt-color-btn-disabled: #475569;
+  --rdt-color-scrollbar-thumb: #33415c;
+  --rdt-color-scrollbar-thumb-hover: #475569;
+
+  background: #121a2b;
+  border-top-color: rgba(148, 163, 184, 0.1);
+}
+
+html[data-adm-theme='dark'] .admin-datatable .adm-sno-cell {
+  color: #98a8c4;
+}
+
+html[data-adm-theme='dark'] .admin-datatable .rdt_rowHighlight:hover,
+html[data-adm-theme='dark'] .admin-datatable .rdt_row:hover {
+  background-color: #1c2844 !important;
+  color: #ffffff !important;
+  outline-color: transparent !important;
+}
+
 
 .admin-datatable .rdt_TableCell {
   padding-top: 0;
