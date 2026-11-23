@@ -141,6 +141,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
           name: form.name.trim(),
           users: breakdown.users,
           pricePerUser: breakdown.pricePerUser,
+          duration: form.duration || '',
           isCustomPlan: true,
           isCustomerSpecific: Boolean(form.isCustomerSpecific && form.targetCustomerEmail),
           targetCustomerEmail: form.isCustomerSpecific ? (form.targetCustomerEmail || '').trim().toLowerCase() : '',

@@ -5,13 +5,14 @@ import {
   updateProduct,
   deleteProduct
 } from '../controllers/productController.js';
-import { authenticate } from '../middleware/authenticate.js';
+import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
 import { requirePermission } from '../middleware/permission.js';
 
 const router = express.Router();
 
-// Catalog reads stay public so the pricing pages work for visitors.
-router.get('/', getProducts);
+// Catalog reads are public with optional authentication so staff can see all custom plans
+// and logged-in customers see their assigned custom plans
+router.get('/', optionalAuthenticate, getProducts);
 
 // Every write needs a signed-in admin holding the matching product grant.
 router.post('/', authenticate, requirePermission('product', 'create'), createProduct);

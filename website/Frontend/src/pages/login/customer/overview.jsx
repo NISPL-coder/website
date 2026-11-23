@@ -76,11 +76,11 @@ function KpiCard({ icon: Icon, label, value, note, actionLabel, onAction, onClic
       onKeyDown={
         isClickable
           ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleClick();
-              }
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClick();
             }
+          }
           : undefined
       }
     >
@@ -223,8 +223,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const demoProducts = hasPurchasedPaidProduct
     ? []
     : Array.isArray(data?.demoProducts)
-    ? data.demoProducts
-    : demoProductsList.filter(
+      ? data.demoProducts
+      : demoProductsList.filter(
         (p) =>
           !p.expired &&
           !p.convertedToPaid &&
@@ -263,7 +263,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
     ? data.reminders
     : (data?.reminder ? [data.reminder] : []);
 
-  // Check for any pending renewals from products (window: daysLeft <= 10 or overdue)
+  // Check for any pending renewals from products (window: daysLeft <= 30 or overdue)
   const pendingRenewalsFromProducts = products.filter((p) => {
     if (
       p.isDemoTrial ||
@@ -275,11 +275,16 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       return false;
     }
     if (!p.expiryDate || p.daysLeft === null || !p.amount) return false;
-    if (p.daysLeft > 10) return false;
+    if (p.daysLeft > 35) return false;
     const st = String(p.status || '').toLowerCase();
-    if (['closed', 'disabled', 'inactive'].includes(st)) return false;
-    // Check if there is an explicit renewal payment
+    if (['closed', 'disabled', 'converted', 'demo-inactive'].includes(st) || p.convertedToPaid) return false;
+    if (p.daysLeft >= 0 && ['inactive', 'suspended', 'paused'].includes(st)) return false;
+    // Check if renewal payment has been made
     const pId = String(p.contractId || p.id || '').trim();
+    const contractStart = p.startDate ? new Date(p.startDate) : null;
+    const expiryDate = p.expiryDate ? new Date(p.expiryDate) : null;
+    const windowStart = expiryDate ? new Date(expiryDate.getTime() - 35 * 86400000) : null;
+
     const settledPayments = payments.filter((pmt) => {
       const isPaid = ['received', 'cleared', 'paid'].includes(String(pmt.status || '').toLowerCase());
       if (!isPaid) return false;
@@ -287,13 +292,49 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       const matchName = String(pmt.service || '').trim().toLowerCase() === String(p.name || '').trim().toLowerCase();
       return matchId || matchName;
     });
-    if (settledPayments.length > 1) return false;
-    if (settledPayments.some((pmt) => pmt.mode === 'renewal')) return false;
+
+    if (settledPayments.some((pmt) => pmt.mode === 'renewal' || /renew/i.test(pmt.label || pmt.description || pmt.service || ''))) {
+      return false;
+    }
+
+    if (expiryDate && windowStart) {
+      const renewalPayments = settledPayments.filter((pmt) => {
+        const payDate = pmt.depositDate || pmt.date || pmt.createdAt ? new Date(pmt.depositDate || pmt.date || pmt.createdAt) : null;
+        if (!payDate || Number.isNaN(payDate.getTime())) return false;
+        if (contractStart && Math.abs(payDate.getTime() - contractStart.getTime()) <= 2 * 86400000) return false;
+        return payDate >= windowStart;
+      });
+      if (renewalPayments.length > 0) return false;
+    }
     return true;
   });
 
-  // Merge any pending renewals into reminders if not already present
+  // Also collect any open invoices with pending amounts from payments
+  const pendingInvoicesFromPayments = payments.filter((p) => (p.pending || 0) > 0);
+
+  // Merge any pending renewals and invoices into reminders if not already present
   const reminders = [...rawReminders];
+
+  for (const inv of pendingInvoicesFromPayments) {
+    const invId = inv.id || inv.invoiceNumber;
+    const existing = reminders.find(
+      (r) => (r.invoiceNumber && r.invoiceNumber === inv.invoiceNumber) || (r.id && r.id === invId)
+    );
+    if (!existing) {
+      reminders.push({
+        id: invId,
+        kind: 'payment',
+        title: inv.service || `Invoice ${inv.invoiceNumber}`,
+        invoiceNumber: inv.invoiceNumber,
+        amount: inv.pending,
+        dueDate: inv.dueDate,
+        daysLeft: inv.daysLeft,
+        overdue: Boolean(inv.overdue || (inv.daysLeft !== null && inv.daysLeft < 0)),
+        isRenewal: false
+      });
+    }
+  }
+
   for (const pr of pendingRenewalsFromProducts) {
     const existing = reminders.find(
       (r) =>
@@ -312,11 +353,11 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         daysLeft: pr.daysLeft,
         overdue: pr.daysLeft < 0,
         isRenewal: true,
-        urgent: true
+        urgent: pr.daysLeft <= 10 || pr.daysLeft < 0
       });
     } else {
       existing.isRenewal = true;
-      existing.urgent = true;
+      existing.urgent = pr.daysLeft <= 10 || pr.daysLeft < 0;
       if (existing.daysLeft === undefined || existing.daysLeft === null) {
         existing.daysLeft = pr.daysLeft;
       }
@@ -364,7 +405,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         pendingNote = `Renewal overdue by ${Math.abs(urgentRenewal.daysLeft)} days`;
       } else if (urgentRenewal?.daysLeft === 0) {
         pendingNote = 'Renewal due today';
-      } else if (urgentRenewal?.daysLeft !== null && urgentRenewal?.daysLeft <= 10) {
+      } else if (urgentRenewal?.daysLeft !== null && urgentRenewal?.daysLeft <= 35) {
         pendingNote = `Renewal due in ${urgentRenewal.daysLeft} day${urgentRenewal.daysLeft === 1 ? '' : 's'}`;
       } else {
         pendingNote = `${pendingRenewalsCount} renewal due`;
@@ -649,8 +690,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                 pendingConfirmationCount > 0
                   ? `${activeCount} active · ${pendingConfirmationCount} pending confirmation`
                   : activeCount > 0
-                  ? `${activeCount} on this account`
-                  : 'Nothing subscribed yet'
+                    ? `${activeCount} on this account`
+                    : 'Nothing subscribed yet'
               }
               actionLabel="View products"
               onAction={() => setIsProductsModalOpen(true)}
@@ -860,8 +901,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                             {isOverdue
                               ? `Overdue · ${dueInWords(rem.daysLeft)}`
                               : isRenewal
-                              ? `Renewal Due · ${dueInWords(rem.daysLeft)}`
-                              : dueInWords(rem.daysLeft)}
+                                ? `Renewal Due · ${dueInWords(rem.daysLeft)}`
+                                : dueInWords(rem.daysLeft)}
                           </span>
                           <span
                             className="flowmail-reminder-item-amount"
@@ -893,9 +934,16 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                           <button
                             type="button"
                             className="flowmail-btn-secondary"
-                            onClick={() => goTo(isRenewal ? 'products' : 'receipt')}
+                            onClick={() => {
+                              if (isRenewal || rem.contractId) {
+                                setSelectedProductId(rem.contractId || rem.id);
+                                setIsProductsModalOpen(true);
+                              } else {
+                                goTo('receipt');
+                              }
+                            }}
                           >
-                            {isRenewal ? 'View Product' : 'View Details'}
+                            {isRenewal || rem.contractId ? 'View Product' : 'View Details'}
                           </button>
                         </div>
                       </div>
@@ -955,7 +1003,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                     <button
                       type="button"
                       className="flowmail-btn-primary flowmail-renew-shortcut"
-                      onClick={() => onPay({ mode: 'renewal', contractId: primaryContract?.contractId })}
+                      onClick={() => {
+                        const targetContract = primaryContract || products.find((p) => !p.isDemoTrial && p.amount > 0);
+                        const renewAmt = targetContract?.amount || (targetContract?.value ? parseAmount(targetContract.value) : 0) || totalPendingAmount;
+                        onPay({
+                          mode: 'renewal',
+                          contractId: targetContract?.contractId,
+                          amount: renewAmt
+                        });
+                      }}
                     >
                       Renew Contract Now
                     </button>
@@ -985,8 +1041,8 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                       isConverted
                         ? 'Converted to paid plan'
                         : product.expiryDate
-                        ? `Valid till ${formatDate(product.expiryDate)}`
-                        : 'Active subscription'
+                          ? `Valid till ${formatDate(product.expiryDate)}`
+                          : 'Active subscription'
                     ].filter(Boolean);
                     const normProductStatus = String(product.status || '').toLowerCase();
                     const isProductInactive = ['inactive', 'disabled', 'suspended', 'paused', 'closed'].includes(normProductStatus);
@@ -995,25 +1051,25 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                     const displayStatus = isPendingConfirmation
                       ? 'Pending Activation'
                       : isConverted
-                      ? 'Converted'
-                      : isDemo
-                      ? 'Demo Trial'
-                      : product.expired
-                      ? 'Expired'
-                      : isProductInactive
-                      ? product.status || 'Inactive'
-                      : 'Active';
+                        ? 'Converted'
+                        : isDemo
+                          ? 'Demo Trial'
+                          : product.expired
+                            ? 'Expired'
+                            : isProductInactive
+                              ? product.status || 'Inactive'
+                              : 'Active';
                     const badgeTone = isPendingConfirmation
                       ? 'due'
                       : isConverted
-                      ? 'completed'
-                      : isDemo
-                      ? 'due'
-                      : product.expired
-                      ? 'overdue'
-                      : isProductInactive
-                      ? 'inactive'
-                      : 'active';
+                        ? 'completed'
+                        : isDemo
+                          ? 'due'
+                          : product.expired
+                            ? 'overdue'
+                            : isProductInactive
+                              ? 'inactive'
+                              : 'active';
                     return (
                       <div
                         key={product.id || product.contractId || product.name}
@@ -1119,7 +1175,15 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         customer={customer}
         onAddToCart={onAddToCart}
         onGoToCart={() => goTo('cart')}
-        onRenew={() => onPay?.({ mode: 'renewal', contractId: primaryContract?.contractId })}
+        onRenew={() => {
+          const targetContract = primaryContract || products.find((p) => !p.isDemoTrial && p.amount > 0);
+          const renewAmt = targetContract?.amount || (targetContract?.value ? parseAmount(targetContract.value) : 0) || totalPendingAmount;
+          onPay?.({
+            mode: 'renewal',
+            contractId: targetContract?.contractId,
+            amount: renewAmt
+          });
+        }}
       />
     </div>
   );

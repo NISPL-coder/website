@@ -92,11 +92,41 @@ export default function ActiveProductsModal({
   const masterExpiryDate = eligibility?.masterExpiryDate || primaryContract?.expiryDate || primaryContract?.endDate;
   const cutOffDate = eligibility?.cutOffDate;
 
+  const resolveMatchingItemKey = (targetId) => {
+    if (!targetId) return null;
+    const cleanTarget = String(targetId).replace(/^renewal-/, '').trim().toLowerCase();
+    const matched = products.find((p, idx) => {
+      const pId = String(p.id || '').trim().toLowerCase();
+      const pContractId = String(p.contractId || '').trim().toLowerCase();
+      const pProductId = String(p.productId || '').trim().toLowerCase();
+      const pName = String(p.name || '').trim().toLowerCase();
+      return (
+        pId === cleanTarget ||
+        pContractId === cleanTarget ||
+        pProductId === cleanTarget ||
+        pName === cleanTarget ||
+        String(idx) === cleanTarget
+      );
+    });
+    if (matched) {
+      return matched.id || matched.contractId || targetId;
+    }
+    return targetId;
+  };
+
   // Whenever modal opens, auto-expand all items (or the specifically clicked item) so complete details are shown
   useEffect(() => {
     if (!isOpen) return;
     if (initialExpandedId) {
-      setExpandedIds(new Set([initialExpandedId]));
+      const targetKey = resolveMatchingItemKey(initialExpandedId);
+      setExpandedIds(new Set([targetKey]));
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`apm-product-${targetKey}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 120);
+      return () => clearTimeout(timer);
     } else {
       const allKeys = new Set(products.map((p, idx) => p.id || p.contractId || idx));
       setExpandedIds(allKeys);
@@ -271,7 +301,14 @@ export default function ActiveProductsModal({
               {products.map((product, index) => {
                 const state = productState(product);
                 const itemId = product.id || product.contractId || index;
-                const isExpanded = expandedIds.has(itemId);
+                const matchedTargetKey = initialExpandedId ? resolveMatchingItemKey(initialExpandedId) : null;
+                const isTarget = Boolean(
+                  matchedTargetKey &&
+                  (itemId === matchedTargetKey ||
+                   product.contractId === matchedTargetKey ||
+                   product.id === matchedTargetKey)
+                );
+                const isExpanded = isTarget || expandedIds.has(itemId) || (product.contractId && expandedIds.has(product.contractId)) || (product.id && expandedIds.has(product.id));
                 const effectiveExpiry = (!isDemoCheck(product) && masterExpiryDate) ? masterExpiryDate : product.expiryDate;
                 const specCount = [
                   product.contractId,
@@ -291,7 +328,8 @@ export default function ActiveProductsModal({
                 return (
                   <div
                     key={itemId}
-                    className={`apm-product-card ${isExpanded ? 'is-expanded' : ''} ${product.expired ? 'is-expired' : ''}`}
+                    id={`apm-product-${itemId}`}
+                    className={`apm-product-card ${isExpanded ? 'is-expanded' : ''} ${isTarget ? 'is-targeted' : ''} ${product.expired ? 'is-expired' : ''}`}
                   >
                     {/* Collapsed header row */}
                     <button
@@ -313,6 +351,11 @@ export default function ActiveProductsModal({
                         </span>
                       </div>
                       <div className="apm-product-side">
+                        {isTarget && (
+                          <span className="apm-targeted-pill">
+                            Selected Product
+                          </span>
+                        )}
                         {product.amountLabel || product.amount != null ? (
                           <span className="apm-product-amount">
                             {product.amountLabel || `₹${Number(product.amount).toLocaleString('en-IN')}`}

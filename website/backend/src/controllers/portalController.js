@@ -47,9 +47,13 @@ const isoDate = (date) => (date ? date.toISOString().slice(0, 10) : null);
 // Payments and contracts carry the customer as free text, not as an ObjectId, so
 // every row that names this account on any of its identity fields belongs to it.
 const IDENTITY_FIELDS = ['email', 'company', 'customer', 'accountName', 'customerId', 'accountId'];
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const buildIdentityMatch = (values) => ({
-  $or: values.flatMap((value) => IDENTITY_FIELDS.map((field) => ({ [field]: value })))
+  $or: values.flatMap((value) => {
+    const rx = new RegExp(`^${escapeRegex(value)}$`, 'i');
+    return IDENTITY_FIELDS.map((field) => ({ [field]: rx }));
+  })
 });
 
 // The JSON fallback files hold the same free-text fields, so the scan mirrors
@@ -77,7 +81,7 @@ const collectIdentityValues = (user, customer) => {
     user?.customerId,
     customer?.email,
     customer?.customerId,
-    customer?.company
+    customer?.accountId
   ];
   return [...new Set(values.filter((v) => typeof v === 'string' && v.trim()).map((v) => v.trim()))];
 };
@@ -299,8 +303,8 @@ const pickRenewal = (products) =>
     .filter((product) => product.expiryDate && product.daysLeft !== null && product.daysLeft >= 0)
     .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
 
-// User rule: A renewal only asks for money from 10 days before the expiry date (or if overdue)
-const RENEWAL_REMINDER_WINDOW_DAYS = 10;
+// User rule: A renewal asks for payment within 35 days before the expiry date (covering 31-day monthly renewal cycles, or if overdue)
+const RENEWAL_REMINDER_WINDOW_DAYS = 35;
 
 const isRenewalPaid = (product, payments) => {
   const pId = String(product.contractId || product.id || '').trim();
@@ -323,18 +327,23 @@ const isRenewalPaid = (product, payments) => {
   );
   if (hasExplicitRenewal) return true;
 
-  // 2. If contract has multiple settled payments (initial purchase + renewal)
-  if (settled.length > 1) return true;
-
-  // 3. If single payment, check if it was made for renewal (within 10 days of expiry or after expiry)
+  // 2. Initial purchase payment vs Renewal payment:
+  // A payment made on or around the contract's start date (initial purchase) paid for the initial term.
+  // A renewal payment must be distinct from the initial payment (at least 2 days after start date)
+  // and made within the 30-day renewal window (or after expiry).
+  const contractStart = toDate(product.startDate);
   const expiryDate = product.expiryDate ? new Date(product.expiryDate) : null;
-  if (expiryDate && settled.length === 1) {
-    const payDate = toDate(settled[0].depositDate || settled[0].date || settled[0].createdAt);
+  if (expiryDate) {
     const windowStart = new Date(expiryDate.getTime() - RENEWAL_REMINDER_WINDOW_DAYS * 86400000);
-    // An initial payment made prior to the 10-day renewal window paid for the current period, not the upcoming renewal
-    if (payDate && payDate < windowStart) {
-      return false;
-    }
+    const renewalPayments = settled.filter((pmt) => {
+      const payDate = toDate(pmt.depositDate || pmt.date || pmt.createdAt);
+      if (!payDate) return false;
+      if (contractStart && Math.abs(payDate.getTime() - contractStart.getTime()) <= 2 * 86400000) {
+        return false; // Initial contract setup payment
+      }
+      return payDate >= windowStart;
+    });
+    if (renewalPayments.length > 0) return true;
   }
 
   return false;
@@ -353,11 +362,12 @@ const getPendingRenewals = (products, payments) => {
         return false;
       }
       if (!product.expiryDate || product.daysLeft === null || product.amount <= 0) return false;
-      // User rule: show from 10 days before the expiry date (or overdue)
+      // Show within 30 days before the expiry date (or overdue)
       if (product.daysLeft > RENEWAL_REMINDER_WINDOW_DAYS) return false;
-      // Closed or disabled or converted contracts are not active renewals
+      // Closed, disabled, converted contracts are not active renewals
       const st = String(product.status || '').toLowerCase();
-      if (['closed', 'disabled', 'inactive', 'converted', 'demo-inactive'].includes(st) || product.convertedToPaid) return false;
+      if (['closed', 'disabled', 'converted', 'demo-inactive'].includes(st) || product.convertedToPaid) return false;
+      if (product.daysLeft >= 0 && ['inactive', 'suspended', 'paused'].includes(st)) return false;
       // Must not be already paid for renewal
       return !isRenewalPaid(product, payments);
     })
@@ -401,7 +411,7 @@ const collectAllReminders = (payments, products) => {
       daysLeft: renewal.daysLeft,
       overdue: renewal.daysLeft < 0,
       isRenewal: true,
-      urgent: true
+      urgent: renewal.daysLeft <= 10 || renewal.daysLeft < 0
     });
   }
 
@@ -456,8 +466,6 @@ const buildEntitlements = async (products, payments) => {
 // matches survive ranking rather than whichever rows Mongo happened to return.
 const SEARCH_SCAN_LIMIT = 12;
 const SEARCH_GROUP_LIMIT = 5;
-
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const formatLabelDate = (iso) => {
   if (!iso) return null;
@@ -1050,6 +1058,27 @@ export const getCustomerOverview = async (req, res) => {
       );
     }
 
+    // Calculate strict 15-day Additional Product Purchase Cut-off Rule
+    const activeProductsForEligibility = regularProducts.length > 0 ? regularProducts : products;
+    const additionalProductEligibility = checkAdditionalProductEligibility({
+      contracts: activeProductsForEligibility
+    });
+
+    // Unified contract synchronization: only actual child/additional contracts inherit the Primary Contract's Master Expiry Date!
+    // Fixed duration plans (such as '1 Day') keep their own explicit duration.
+    const masterExp = additionalProductEligibility.masterExpiryDate;
+    if (masterExp) {
+      products.forEach((p) => {
+        if (!isDemoProduct(p) && (p.isAdditionalContract || p.parentContractId)) {
+          if (p.subscriptionPeriod && /day/i.test(p.subscriptionPeriod)) return;
+          p.expiryDate = masterExp;
+          p.endDate = masterExp;
+          p.daysLeft = daysUntil(toDate(masterExp));
+          p.expired = Boolean(masterExp) && daysUntil(toDate(masterExp)) < 0;
+        }
+      });
+    }
+
     const activeDemoCount = activeDemos.length;
     const renewal = pickRenewal(regularProducts.length > 0 ? regularProducts : products);
     const entitlements = await buildEntitlements(products, payments);
@@ -1059,25 +1088,6 @@ export const getCustomerOverview = async (req, res) => {
     const totalPending = totalInvoicePending + totalRenewalPending;
     const reminders = collectAllReminders(payments, regularProducts.length > 0 ? regularProducts : products);
     const reminder = pickReminder(payments, regularProducts.length > 0 ? regularProducts : products);
-
-    // Calculate strict 15-day Additional Product Purchase Cut-off Rule
-    const activeProductsForEligibility = regularProducts.length > 0 ? regularProducts : products;
-    const additionalProductEligibility = checkAdditionalProductEligibility({
-      contracts: activeProductsForEligibility
-    });
-
-    // Unified contract synchronization: all remaining products inherit the Primary Contract's Master Expiry Date!
-    const masterExp = additionalProductEligibility.masterExpiryDate;
-    if (masterExp) {
-      products.forEach((p) => {
-        if (!isDemoProduct(p)) {
-          p.expiryDate = masterExp;
-          p.endDate = masterExp;
-          p.daysLeft = daysUntil(toDate(masterExp));
-          p.expired = Boolean(masterExp) && daysUntil(toDate(masterExp)) < 0;
-        }
-      });
-    }
 
     res.json({
       success: true,

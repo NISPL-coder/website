@@ -28,14 +28,17 @@ const deriveCustomPlan = (payload) => {
   const targetId = String(payload.targetCustomerId || payload.customerId || '').trim();
   const targetName = String(payload.targetCustomerName || payload.customerName || '').trim();
   const isCustomerSpecific = Boolean(payload.isCustomerSpecific || targetEmail || targetId);
+  const duration = String(payload.duration || '').trim();
 
   return {
     fields: {
+      isCustomPlan: true,
       users,
       pricePerUser,
       monthlyPrice: monthlyBase,
       price: `₹${monthlyBase.toLocaleString('en-IN')}`,
-      frequency: '/ month',
+      frequency: duration ? ` / ${duration}` : '/ month',
+      duration,
       tier: payload.tier || `${users} User`,
       serverType: dedicated ? 'dedicated' : 'shared',
       userBadge: dedicated ? 'Dedicated Server' : 'Shared Server',
@@ -137,7 +140,7 @@ export const getProducts = async (req, res) => {
     // If request is from an admin without customer-specific query, return all plans so admin can manage them
     // If request is from a customer (or scoped to a customer), filter out other customers' private custom plans
     let scopedProducts = products;
-    if (!isAdmin || activeCustomerEmail || activeCustomerId) {
+    if (!isAdmin || customerEmail || customerId) {
       scopedProducts = products.filter((p) => {
         // Non-custom plans and demo plans are general
         if (!p.isCustomPlan) return true;

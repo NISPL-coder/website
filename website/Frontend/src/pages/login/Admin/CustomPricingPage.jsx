@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Pencil, Plus, Power, Trash2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -65,6 +65,21 @@ const numericCell = {
 export default function CustomPricingPage({ products, setProducts }) {
   const { can } = usePermissions();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let isMounted = true;
+    productApi
+      .getProducts()
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && setProducts) {
+          setProducts(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [setProducts]);
 
   const backToProducts = () => navigate('/admin/product/cloud');
 

@@ -57,3 +57,30 @@ export const authorizeRole = (...roles) => (req, res, next) => {
   }
   next();
 };
+
+export async function optionalAuthenticate(req, res, next) {
+  try {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token || token === 'null' || token === 'undefined') {
+      return next();
+    }
+
+    let payload;
+    try {
+      payload = verifyAccessToken(token);
+    } catch {
+      return next();
+    }
+
+    if (payload?.type !== 'access' || !payload?.sub) return next();
+
+    const user = await User.findById(payload.sub).lean();
+    if (user && user.accountStatus === 'active') {
+      req.user = user;
+    }
+    next();
+  } catch {
+    next();
+  }
+}

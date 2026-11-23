@@ -18,3 +18,25 @@ export const hashToken = token => crypto.createHash('sha256').update(token).dige
 
 export const verifyAccessToken = token => jwt.verify(token, env.JWT_ACCESS_SECRET);
 export const verifyRefreshToken = token => jwt.verify(token, env.JWT_REFRESH_SECRET);
+
+export const create2FATempToken = (user, type = '2fa_login', rememberMe = false, secret = null) => jwt.sign(
+  {
+    sub: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    type,
+    rememberMe: Boolean(rememberMe),
+    ...(secret ? { secret } : {})
+  },
+  env.JWT_ACCESS_SECRET,
+  { expiresIn: '15m' }
+);
+
+export const verify2FATempToken = token => {
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+  if (!payload || !payload.type || !payload.type.startsWith('2fa_')) {
+    throw new Error('Invalid or expired 2FA token.');
+  }
+  return payload;
+};
+

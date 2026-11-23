@@ -38,11 +38,6 @@ html[data-adm-theme='dark'] .new-subscription-page {
 }
 
 /* ── 2. Welcome Banner & Action Strips ───────────────────────────────────── */
-html[data-adm-theme='dark'] .flowmail-welcome-banner {
-  background: var(--adm-card-bg, #121a2b) !important;
-  border: 1px solid var(--adm-border, rgba(148, 163, 184, 0.16)) !important;
-  box-shadow: var(--adm-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.45)) !important;
-}
 
 html[data-adm-theme='dark'] .flowmail-welcome-title {
   color: #ffffff !important;

@@ -161,6 +161,91 @@ export const authApi = {
   },
 
   /**
+   * Verify 6-digit Google Authenticator code during Admin 2FA login or setup
+   * @param {Object} payload - { tempToken, code }
+   */
+  async verify2FA(payload) {
+    const res = await fetch(`${API_BASE_URL}/2fa/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Two-factor authentication failed. Please check your code.');
+    }
+
+    if (data.accessToken && data.user) {
+      data.token = data.accessToken;
+      this.setAuthSession(data.accessToken, data.user, data.session || null);
+    }
+
+    return data;
+  },
+
+  /**
+   * Get 2FA status for the logged-in user
+   */
+  async get2FAStatus() {
+    const token = this.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/2fa/status`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return res.json();
+  },
+
+  /**
+   * Setup 2FA for logged-in user
+   */
+  async setup2FA() {
+    const token = this.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/2fa/setup`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return res.json();
+  },
+
+  /**
+   * Confirm 2FA setup with a 6-digit code
+   */
+  async confirm2FA(code) {
+    const token = this.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/2fa/confirm`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ code })
+    });
+    return res.json();
+  },
+
+  /**
+   * Disable 2FA with current password
+   */
+  async disable2FA(password) {
+    const token = this.getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/2fa/disable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ password })
+    });
+    return res.json();
+  },
+
+  /**
    * Fetch current authenticated user profile
    */
   async getMe() {

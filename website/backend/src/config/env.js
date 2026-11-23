@@ -114,5 +114,6 @@ export const env = {
   RAZORPAY_KEY_SECRET: razorpayKeySecret,
   RAZORPAY_CURRENCY: (process.env.RAZORPAY_CURRENCY || 'INR').trim().toUpperCase(),
   RAZORPAY_WEBHOOK_SECRET: (process.env.RAZORPAY_WEBHOOK_SECRET || '').trim(),
-  RAZORPAY_ENABLED: Boolean(razorpayKeyId && razorpayKeySecret)
+  RAZORPAY_ENABLED: Boolean(razorpayKeyId && razorpayKeySecret),
+  ENABLE_ADMIN_2FA: String(process.env.ENABLE_ADMIN_2FA || process.env.ADMIN_2FA_ENABLED || 'false').trim().toLowerCase() === 'true'
 };

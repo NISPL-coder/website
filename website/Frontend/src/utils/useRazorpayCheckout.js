@@ -24,9 +24,15 @@ export function useRazorpayCheckout({ onSuccess } = {}) {
   const [isPaying, setIsPaying] = useState(false);
   const busyRef = useRef(false);
 
-  const pay = useCallback(async (checkout) => {
+  const pay = useCallback(async (checkout = {}) => {
     const amount = Math.round(Number(checkout?.amount) || 0);
-    if (!amount) {
+    const hasScope = Boolean(
+      checkout?.contractId ||
+      checkout?.invoiceNumber ||
+      checkout?.mode === 'dues' ||
+      checkout?.mode === 'renewal'
+    );
+    if (!amount && !hasScope) {
       toast('There is nothing due on this account right now.');
       return;
     }

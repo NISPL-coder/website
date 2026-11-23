@@ -82,17 +82,21 @@ export const findPrimaryContract = (contracts = []) => {
   );
   const candidates = standalone.length > 0 ? standalone : nonDemoContracts;
 
+  // Prefer standard long-term contracts over temporary daily custom plans
+  const regularTermPool = candidates.filter((c) => !(c.subscriptionPeriod && /day/i.test(c.subscriptionPeriod)));
+  const pool = regularTermPool.length > 0 ? regularTermPool : candidates;
+
   // Business Rule: The customer's FIRST purchased product is the Primary Contract that determines Master Expiry Date!
-  // Sort candidates by earliest expiry / earliest start date so the initial contract defines the common expiry date
-  return [...candidates].sort((a, b) => {
-    const expA = a.expiryDate || a.endDate || '';
-    const expB = b.expiryDate || b.endDate || '';
-    if (expA && expB && expA !== expB) {
-      return expA.localeCompare(expB);
-    }
+  // Sort candidates by earliest start date (when subscription began) so the initial contract defines the primary relationship
+  return [...pool].sort((a, b) => {
     const startA = a.startDate || a.createdAt || '';
     const startB = b.startDate || b.createdAt || '';
-    return startA.localeCompare(startB);
+    if (startA && startB && startA !== startB) {
+      return startA.localeCompare(startB);
+    }
+    const expA = a.expiryDate || a.endDate || '';
+    const expB = b.expiryDate || b.endDate || '';
+    return expA.localeCompare(expB);
   })[0] || null;
 };
 

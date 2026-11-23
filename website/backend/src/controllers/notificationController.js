@@ -7,6 +7,8 @@ import Customer, { getCustomersFromFile } from '../models/Customer.js';
 import Contract, { getContractsFromFile } from '../models/Contract.js';
 import Payment, { getPaymentsFromFile } from '../models/Payment.js';
 
+const isMongoConnected = () => mongoose.connection.readyState === 1;
+
 export const MANAGER_ALLOWED_TYPES = [
   'customer_created',
   'customer_updated',
@@ -279,14 +281,17 @@ export async function buildDynamicCustomerNotifications(caller, query = {}) {
   ];
   if (custId) contractMatch.push({ customerId: custId });
   if (custDoc?.accountId) contractMatch.push({ accountId: custDoc.accountId });
-  if (custCompany) contractMatch.push({ company: custCompany });
 
   let contracts = await Contract.find({ $or: contractMatch }).lean();
-  const fileContracts = getContractsFromFile().filter(c =>
-    String(c.email || c.personEmail || c.createdBy?.email || '').toLowerCase() === targetEmail ||
-    (custId && (c.customerId === custId || c.accountId === custId)) ||
-    (custCompany && String(c.company || '').toLowerCase() === String(custCompany).toLowerCase())
-  );
+  
+  // Only use file fallback if Mongo is not connected, and strictly match by customer email/ID (never company)
+  let fileContracts = [];
+  if (!isMongoConnected()) {
+    fileContracts = getContractsFromFile().filter(c =>
+      String(c.email || c.personEmail || c.createdBy?.email || '').toLowerCase() === targetEmail ||
+      (custId && (c.customerId === custId || c.accountId === custId))
+    );
+  }
 
   const contractMap = new Map();
   for (const c of [...(contracts || []), ...fileContracts]) {
@@ -300,14 +305,17 @@ export async function buildDynamicCustomerNotifications(caller, query = {}) {
     { customerEmail: targetEmail }
   ];
   if (custId) paymentMatch.push({ customerId: custId });
-  if (custCompany) paymentMatch.push({ company: custCompany });
 
   let payments = await Payment.find({ $or: paymentMatch }).sort({ createdAt: -1 }).lean();
-  const filePayments = getPaymentsFromFile().filter(p =>
-    String(p.email || p.customerEmail || '').toLowerCase() === targetEmail ||
-    (custId && p.customerId === custId) ||
-    (custCompany && String(p.company || '').toLowerCase() === String(custCompany).toLowerCase())
-  );
+  
+  // Only use file fallback if Mongo is not connected, strictly by customer email/ID
+  let filePayments = [];
+  if (!isMongoConnected()) {
+    filePayments = getPaymentsFromFile().filter(p =>
+      String(p.email || p.customerEmail || '').toLowerCase() === targetEmail ||
+      (custId && p.customerId === custId)
+    );
+  }
 
   const paymentMap = new Map();
   for (const p of [...(payments || []), ...filePayments]) {

@@ -31,7 +31,11 @@ const userSchema = new mongoose.Schema({
   isEmailVerified: { type: Boolean, default: false },
   emailVerifiedAt: { type: Date, default: null },
   avatar: { type: String, default: '' },
-  companyLogo: { type: String, default: '' }
+  companyLogo: { type: String, default: '' },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String, select: false, default: '' },
+  twoFactorTempSecret: { type: String, select: false, default: '' },
+  twoFactorRecoveryCodes: { type: [String], select: false, default: [] }
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {
@@ -71,6 +75,7 @@ userSchema.methods.toSafeJSON = function () {
     avatar: this.avatar || this.companyLogo || '',
     companyLogo: this.companyLogo || this.avatar || '',
     lastLoginAt: this.lastLoginAt,
+    twoFactorEnabled: Boolean(this.twoFactorEnabled),
     createdAt: this.createdAt,
     updatedAt: this.updatedAt
   };
@@ -83,7 +88,7 @@ userSchema.statics.findByEmailOrCustomerId = function (identifier) {
       { email: value.toLowerCase() },
       { customerId: value }
     ]
-  }).select('+password');
+  }).select('+password +twoFactorSecret +twoFactorTempSecret +twoFactorRecoveryCodes');
 };
 
 userSchema.statics.makeCustomerId = function () {

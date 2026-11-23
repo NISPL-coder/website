@@ -468,3 +468,101 @@
     padding: 0 14px 14px;
   }
 }
+
+/* ── Targeted Product Card (From Payment Reminder click) ── */
+.apm-product-card.is-targeted {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 8px 24px -4px rgba(79, 70, 229, 0.16) !important;
+  background: #fbfbff;
+}
+
+.apm-targeted-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+/* ── Dark Mode Overrides for Active Products Modal ── */
+html[data-adm-theme='dark'] .apm-modal {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+}
+
+html[data-adm-theme='dark'] .apm-header {
+  background: #111827 !important;
+  border-bottom-color: #1f2937 !important;
+}
+
+html[data-adm-theme='dark'] .apm-title {
+  color: #f9fafb !important;
+}
+
+html[data-adm-theme='dark'] .apm-subtitle {
+  color: #9ca3af !important;
+}
+
+html[data-adm-theme='dark'] .apm-summary-strip {
+  background: #1f2937 !important;
+  border-bottom-color: #374151 !important;
+}
+
+html[data-adm-theme='dark'] .apm-body {
+  background: #111827 !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-card {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-card.is-targeted {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25), 0 8px 24px -4px rgba(0, 0, 0, 0.5) !important;
+  background: #1e1e38 !important;
+}
+
+html[data-adm-theme='dark'] .apm-targeted-pill {
+  background: rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  border-color: rgba(165, 180, 252, 0.4);
+}
+
+html[data-adm-theme='dark'] .apm-product-name {
+  color: #f3f4f6 !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-sub {
+  color: #9ca3af !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-amount {
+  color: #e5e7eb !important;
+}
+
+html[data-adm-theme='dark'] .apm-product-detail {
+  background: #172033 !important;
+  border-top-color: #374151 !important;
+}
+
+html[data-adm-theme='dark'] .demo-spec-item {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+html[data-adm-theme='dark'] .demo-spec-label {
+  color: #9ca3af !important;
+}
+
+html[data-adm-theme='dark'] .demo-spec-value {
+  color: #f3f4f6 !important;
+}
+

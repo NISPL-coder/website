@@ -10,8 +10,9 @@ import { logActivity } from '../utils/activityLogger.js';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { HttpError } from '../utils/httpError.js';
-import { createAccessToken, createRefreshToken, hashToken, verifyAccessToken, verifyRefreshToken } from '../utils/tokens.js';
+import { createAccessToken, createRefreshToken, hashToken, verifyAccessToken, verifyRefreshToken, create2FATempToken, verify2FATempToken } from '../utils/tokens.js';
 import { sendPasswordResetEmail, sendAdminOtpEmail, sendCustomerVerificationOtpEmail } from '../utils/mailer.js';
+import { generateTwoFactorSetup, verifyTwoFactorToken, generateRecoveryCodes, verifyAndConsumeRecoveryCode } from '../services/twoFactorService.js';
 
 function isMongoConnected() {
   return mongoose.connection.readyState === 1;
@@ -110,6 +111,50 @@ export async function login(req, res) {
   let resolvedPortal = requestedPortal && requestedPortal !== 'auto'
     ? requestedPortal
     : (user.role === 'customer' ? 'customer' : (isAdminPortalUser ? 'admin' : user.role));
+
+  // Google Authenticator (TOTP 2FA) Enforcement:
+  // ONLY applies to admin login when ENABLE_ADMIN_2FA is enabled in Backend/.env
+  if (env.ENABLE_ADMIN_2FA && (requestedPortal === 'admin' || isAdminPortalUser)) {
+    const isConfigured = Boolean(user.twoFactorEnabled && user.twoFactorSecret);
+
+    if (isConfigured) {
+      const tempToken = create2FATempToken(user, '2fa_login', rememberMe);
+      return res.json({
+        success: true,
+        requires2FA: true,
+        is2FASetup: true,
+        tempToken,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        portal: resolvedPortal,
+        message: 'Google Authenticator verification required. Enter the 6-digit code from your app.'
+      });
+    }
+
+    // First-time admin 2FA setup: reuse existing temp secret if available, or generate a new one
+    const existingTempSecret = user.twoFactorTempSecret || null;
+    const setup = await generateTwoFactorSetup(user, existingTempSecret);
+    if (!user.twoFactorTempSecret) {
+      user.twoFactorTempSecret = setup.secret;
+      await user.save();
+    }
+
+    const tempToken = create2FATempToken(user, '2fa_setup', rememberMe, setup.secret);
+    return res.json({
+      success: true,
+      requires2FA: true,
+      is2FASetup: false,
+      tempToken,
+      qrCode: setup.qrCode,
+      secret: setup.secret,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      portal: resolvedPortal,
+      message: 'Scan the QR code with Google Authenticator and enter the 6-digit verification code.'
+    });
+  }
 
   user.lastLoginAt = new Date();
   await user.save();
@@ -712,3 +757,209 @@ export async function verifyCustomerEmailOtp(req, res) {
     user: updatedUser ? updatedUser.toSafeJSON() : { email: targetEmail, isEmailVerified: true, emailVerifiedAt: verifiedDate }
   });
 }
+
+/**
+ * Verifies 6-digit TOTP code during Admin 2FA login or initial setup.
+ */
+export async function verify2FALogin(req, res) {
+  const { tempToken, code } = req.body;
+  if (!tempToken || !code) {
+    throw new HttpError(400, 'Verification session token and 6-digit code are required.');
+  }
+
+  let payload;
+  try {
+    payload = verify2FATempToken(tempToken);
+  } catch (err) {
+    throw new HttpError(401, 'Verification session has expired. Please sign in again.');
+  }
+
+  const user = await User.findById(payload.sub).select('+password +twoFactorSecret +twoFactorTempSecret +twoFactorRecoveryCodes');
+  if (!user || user.accountStatus !== 'active') {
+    throw new HttpError(401, 'User account not found or inactive.');
+  }
+
+  const rawCode = String(code).trim().replace(/\s+/g, '');
+  const cleanCode = rawCode.replace(/\D/g, '');
+  let recoveryCodesGenerated = null;
+
+  if (payload.type === '2fa_setup') {
+    // Verifying initial setup with temporary secret
+    const secret = payload.secret || user.twoFactorTempSecret;
+    if (!secret && !user.twoFactorSecret) {
+      throw new HttpError(400, '2FA setup session expired. Please sign in again to generate a new QR code.');
+    }
+
+    let verifiedSecret = null;
+    if (secret && verifyTwoFactorToken(cleanCode, secret)) {
+      verifiedSecret = secret;
+    } else if (user.twoFactorTempSecret && verifyTwoFactorToken(cleanCode, user.twoFactorTempSecret)) {
+      verifiedSecret = user.twoFactorTempSecret;
+    } else if (user.twoFactorSecret && verifyTwoFactorToken(cleanCode, user.twoFactorSecret)) {
+      verifiedSecret = user.twoFactorSecret;
+    }
+
+    if (!verifiedSecret) {
+      throw new HttpError(400, 'Invalid Google Authenticator code. Please check your app and try again.');
+    }
+
+    user.twoFactorEnabled = true;
+    user.twoFactorSecret = verifiedSecret;
+    user.twoFactorTempSecret = undefined;
+
+    const recoveryCodes = generateRecoveryCodes(8);
+    user.twoFactorRecoveryCodes = recoveryCodes;
+    recoveryCodesGenerated = recoveryCodes;
+  } else if (payload.type === '2fa_login') {
+    // Normal 2FA verification
+    const secret = user.twoFactorSecret || payload.secret || user.twoFactorTempSecret;
+    if (!secret) {
+      throw new HttpError(400, 'Two-factor authentication is not configured for this account.');
+    }
+
+    let isValid = verifyTwoFactorToken(cleanCode, secret);
+    if (!isValid && user.twoFactorTempSecret && user.twoFactorTempSecret !== secret) {
+      isValid = verifyTwoFactorToken(cleanCode, user.twoFactorTempSecret);
+      if (isValid) {
+        user.twoFactorSecret = user.twoFactorTempSecret;
+        user.twoFactorEnabled = true;
+        user.twoFactorTempSecret = undefined;
+      }
+    }
+
+    if (!isValid) {
+      // Check backup recovery code
+      const isRecoveryValid = verifyAndConsumeRecoveryCode(user, rawCode);
+      if (!isRecoveryValid) {
+        throw new HttpError(400, 'Invalid verification code. Please check Google Authenticator or enter a valid backup recovery code.');
+      }
+    }
+  } else {
+    throw new HttpError(401, 'Invalid verification ticket.');
+  }
+
+  user.lastLoginAt = new Date();
+  await user.save();
+
+  const resolvedPortal = 'admin';
+
+  await logActivity(req, {
+    action: 'ADMIN_2FA_SIGN_IN',
+    category: 'auth',
+    resource: 'UserAccess',
+    resourceId: user.email,
+    details: `${user.name} (${user.role.toUpperCase()}) authenticated via Google Authenticator 2FA`,
+    changes: {
+      adminId: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      portal: resolvedPortal,
+      loginTime: user.lastLoginAt
+    },
+    adminOverride: user
+  });
+
+  const rememberMe = Boolean(payload.rememberMe);
+  const { accessToken, session } = await issueSession(user, req, res, new Date(), rememberMe);
+
+  res.json({
+    success: true,
+    message: 'Google Authenticator verification successful.',
+    accessToken,
+    user: user.toSafeJSON(),
+    role: user.role,
+    portal: resolvedPortal,
+    session: sessionPolicy(session, rememberMe),
+    recoveryCodes: recoveryCodesGenerated,
+    rememberMe,
+    redirect: '/admin/overview'
+  });
+}
+
+/**
+ * Get 2FA status for the logged-in user.
+ */
+export async function get2FAStatus(req, res) {
+  const user = await User.findById(req.user._id).select('+twoFactorSecret +twoFactorRecoveryCodes');
+  res.json({
+    success: true,
+    enabled: Boolean(user?.twoFactorEnabled && user?.twoFactorSecret),
+    recoveryCodesRemaining: user?.twoFactorRecoveryCodes?.length || 0
+  });
+}
+
+/**
+ * Setup 2FA for an authenticated user (e.g. from profile settings).
+ */
+export async function setup2FA(req, res) {
+  const user = await User.findById(req.user._id).select('+twoFactorSecret +twoFactorTempSecret');
+  const setup = await generateTwoFactorSetup(user);
+  user.twoFactorTempSecret = setup.secret;
+  await user.save();
+
+  res.json({
+    success: true,
+    qrCode: setup.qrCode,
+    secret: setup.secret,
+    message: 'Scan the QR code with Google Authenticator and verify with a 6-digit code.'
+  });
+}
+
+/**
+ * Confirm 2FA setup for an authenticated user.
+ */
+export async function confirm2FA(req, res) {
+  const { code } = req.body;
+  const cleanCode = String(code || '').trim().replace(/\s+/g, '');
+  const user = await User.findById(req.user._id).select('+twoFactorSecret +twoFactorTempSecret +twoFactorRecoveryCodes');
+  if (!user.twoFactorTempSecret) {
+    throw new HttpError(400, 'No pending 2FA setup found. Please request a new setup first.');
+  }
+
+  const isValid = verifyTwoFactorToken(cleanCode, user.twoFactorTempSecret);
+  if (!isValid) {
+    throw new HttpError(400, 'Invalid Google Authenticator code. Please check your app and try again.');
+  }
+
+  user.twoFactorEnabled = true;
+  user.twoFactorSecret = user.twoFactorTempSecret;
+  user.twoFactorTempSecret = undefined;
+
+  const recoveryCodes = generateRecoveryCodes(8);
+  user.twoFactorRecoveryCodes = recoveryCodes;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Google Authenticator enabled successfully.',
+    recoveryCodes
+  });
+}
+
+/**
+ * Disable 2FA for an authenticated user (requires current password).
+ */
+export async function disable2FA(req, res) {
+  const { password } = req.body;
+  if (!password) {
+    throw new HttpError(400, 'Password is required to disable two-factor authentication.');
+  }
+
+  const user = await User.findById(req.user._id).select('+password +twoFactorSecret +twoFactorRecoveryCodes');
+  if (!user || !(await user.comparePassword(password))) {
+    throw new HttpError(401, 'Incorrect password. Cannot disable two-factor authentication.');
+  }
+
+  user.twoFactorEnabled = false;
+  user.twoFactorSecret = '';
+  user.twoFactorTempSecret = '';
+  user.twoFactorRecoveryCodes = [];
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Google Authenticator two-factor authentication has been disabled.'
+  });
+}
+

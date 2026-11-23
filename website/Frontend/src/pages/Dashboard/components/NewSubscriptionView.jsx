@@ -618,8 +618,14 @@ export default function NewSubscriptionView({
 
   useEffect(() => {
     let isMounted = true;
+    const params = { available: 'true' };
+    const emailParam = customer?.email || account?.email || currentEmail;
+    if (emailParam) params.customerEmail = emailParam;
+    const idParam = customer?.customerId || account?.customerId;
+    if (idParam) params.customerId = idParam;
+
     productApi
-      .getProducts({ available: 'true' })
+      .getProducts(params)
       .then((list) => {
         if (!isMounted) return;
         setPlans(buildPlans(Array.isArray(list) ? list : []));
@@ -633,7 +639,7 @@ export default function NewSubscriptionView({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [customer?.email, account?.email, currentEmail, customer?.customerId, account?.customerId]);
 
   // Identify currently selected customer record from customers list
   const activeCustomer = useMemo(() => {
@@ -880,6 +886,14 @@ export default function NewSubscriptionView({
         months: 0
       };
     }
+    if (selectedPlan?.duration && !primaryContract) {
+      return {
+        value: 'custom_term',
+        label: `${selectedPlan.duration}`,
+        months: 0,
+        isCustomTerm: true
+      };
+    }
     // If synchronized to active Primary Contract, inherit term to Master Expiry Date
     if (primaryContract && masterExpiryDate && selectedPlan) {
       const months = calculateMonthsBetween(startDate, masterExpiryDate);
@@ -901,6 +915,9 @@ export default function NewSubscriptionView({
   const endDate = useMemo(() => {
     if (selectedPlan?.isDemoPlan) {
       return calculateDemoEndDate(startDate, selectedPlan.duration || '7 Days');
+    }
+    if (selectedPlan?.duration && !primaryContract) {
+      return calculateDemoEndDate(startDate, selectedPlan.duration);
     }
     // Unified contract logic: inherit Master Expiry Date when plan is selected
     if (primaryContract && masterExpiryDate) {
@@ -1529,11 +1546,17 @@ export default function NewSubscriptionView({
                   value={
                     selectedPlan?.isDemoPlan
                       ? { value: 'demo_term', label: `${selectedPlan.duration || '7 Days'} (Demo Trial)` }
+                      : selectedPlan?.duration && !primaryContract
+                      ? { value: 'custom_term', label: `${selectedPlan.duration} (Custom Term)` }
                       : SUBSCRIPTION_DURATIONS.find((d) => d.value === selectedDurationKey) || null
                   }
                   onChange={(opt) => setSelectedDurationKey(opt ? opt.value : '')}
-                  options={SUBSCRIPTION_DURATIONS}
-                  isDisabled={Boolean(selectedPlan?.isDemoPlan)}
+                  options={
+                    selectedPlan?.duration && !primaryContract
+                      ? [{ value: 'custom_term', label: `${selectedPlan.duration} (Custom Term)` }, ...SUBSCRIPTION_DURATIONS]
+                      : SUBSCRIPTION_DURATIONS
+                  }
+                  isDisabled={Boolean(selectedPlan?.isDemoPlan || (selectedPlan?.duration && !primaryContract))}
                   placeholder="Select Duration"
                   isSearchable={true}
                   styles={{

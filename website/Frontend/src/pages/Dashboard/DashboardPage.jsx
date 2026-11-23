@@ -548,7 +548,20 @@ export default function DashboardPage({ onSignOut: propOnSignOut }) {
   // invoices, then the nearest renewal. Overview passes an explicit scope
   // when a specific invoice or renewal is being paid.
   const startPayment = (scope) => {
-    pay(scope || checkout);
+    let resolvedScope = scope;
+    if (resolvedScope && !resolvedScope.amount) {
+      if (resolvedScope.contractId) {
+        const prod = portal?.products?.find((p) => p.contractId === resolvedScope.contractId || p.id === resolvedScope.contractId);
+        const rem = (portal?.reminders || []).find((r) => r.contractId === resolvedScope.contractId);
+        const fallbackAmount = prod?.amount || rem?.amount || checkout?.amount || 0;
+        if (fallbackAmount) {
+          resolvedScope = { ...resolvedScope, amount: Math.round(Number(fallbackAmount)) };
+        }
+      } else if (checkout?.amount) {
+        resolvedScope = { ...resolvedScope, amount: checkout.amount };
+      }
+    }
+    pay(resolvedScope || checkout);
   };
 
   const navItems = useMemo(

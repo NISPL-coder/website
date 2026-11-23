@@ -25,7 +25,10 @@ import {
   Volume2,
   VolumeX,
   Star,
-  Zap
+  Zap,
+  KeyRound,
+  Copy,
+  Check
 } from 'lucide-react';
 import './LoginPage.css';
 
@@ -218,6 +221,15 @@ export default function LoginPage({ lockedPortal }) {
   const [isShaking, setIsShaking] = useState(false);
   const [socialNote, setSocialNote] = useState('');
 
+  // Google Authenticator (TOTP 2FA) State for Admin Login
+  const [twoFactorState, setTwoFactorState] = useState(null);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [isVerifying2FA, setIsVerifying2FA] = useState(false);
+  const [twoFactorError, setTwoFactorError] = useState('');
+  const [copiedSecret, setCopiedSecret] = useState(false);
+  const [backupRecoveryCodes, setBackupRecoveryCodes] = useState(null);
+  const [copiedCodes, setCopiedCodes] = useState(false);
+
   // Handle dynamic Remember Me toggle
   const handleRememberMeToggle = (checked) => {
     setRememberMe(checked);
@@ -289,6 +301,22 @@ export default function LoginPage({ lockedPortal }) {
         rememberMe: Boolean(rememberMe)
       });
 
+      // Intercept 2FA verification for Admin Portal
+      if (response?.requires2FA) {
+        setIsLoading(false);
+        setTwoFactorState({
+          is2FASetup: Boolean(response.is2FASetup),
+          tempToken: response.tempToken,
+          qrCode: response.qrCode || '',
+          secret: response.secret || '',
+          email: response.email || email.trim(),
+          name: response.name || ''
+        });
+        setTwoFactorCode('');
+        setTwoFactorError('');
+        return;
+      }
+
       const token = response?.accessToken || response?.token || authApi.getAuthToken();
       if (response && (token || authApi.isAuthenticated())) {
         const user = response.user || authApi.getCurrentUser() || {};
@@ -349,6 +377,37 @@ export default function LoginPage({ lockedPortal }) {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Google Authenticator Verification Handler
+  const handleVerify2FA = async (e) => {
+    if (e) e.preventDefault();
+    if (!twoFactorCode.trim()) {
+      setTwoFactorError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setIsVerifying2FA(true);
+    setTwoFactorError('');
+
+    try {
+      const res = await authApi.verify2FA({
+        tempToken: twoFactorState?.tempToken,
+        code: twoFactorCode.trim().replace(/\s+/g, '')
+      });
+
+      if (res?.recoveryCodes && res.recoveryCodes.length > 0) {
+        setBackupRecoveryCodes(res.recoveryCodes);
+        setIsVerifying2FA(false);
+        return;
+      }
+
+      navigate('/admin/overview', { replace: true });
+    } catch (err) {
+      console.error('2FA verification error:', err);
+      setTwoFactorError(err.message || 'Invalid verification code. Please check your authenticator app.');
+      setIsVerifying2FA(false);
     }
   };
 
@@ -629,153 +688,367 @@ export default function LoginPage({ lockedPortal }) {
              ==================================================================== */
           <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
 
-            {/* Top Floating Action Icon Badge: ->] */}
-            <div className="ebolt-badge-icon-box" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-            </div>
-
-            {/* Heading and Description */}
-            <h1 className="ebolt-card-title">Sign in with email</h1>
-            <p className="ebolt-card-subtitle">
-              {activePortal === 'partner'
-                ? 'Access your partner deal desk, payouts and enablement.'
-                : 'Access the NISPL operations console.'}
-            </p>
-
-            {/* Error Notice */}
-            {errorMessage && (
-              <div className="ebolt-alert-error is-stacked" role="alert">
-                <div className="ebolt-alert-error-row">
-                  <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>{errorMessage}</span>
+            {backupRecoveryCodes ? (
+              <div className="ebolt-2fa-container animate-fade-in">
+                <div className="ebolt-badge-icon-box" style={{ background: '#ecfdf5', borderColor: '#a7f3d0' }}>
+                  <CheckCircle2 size={24} color="#059669" />
                 </div>
-                {errorMessage.includes('Customer Portal') && (
+
+                <h1 className="ebolt-card-title">Save Recovery Codes</h1>
+                <p className="ebolt-card-subtitle">
+                  Store these one-time codes in a safe place. If you ever lose access to Google Authenticator, you can use any of these codes to sign in.
+                </p>
+
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1.5px dashed #cbd5e1',
+                  borderRadius: '12px',
+                  padding: '14px',
+                  margin: '14px 0',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '8px',
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  color: '#0f172a',
+                  textAlign: 'center'
+                }}>
+                  {backupRecoveryCodes.map((c, idx) => (
+                    <div key={idx} style={{ background: '#ffffff', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      {c}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
                   <button
                     type="button"
-                    className="ebolt-error-action-btn"
+                    style={{
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#334155',
+                      fontWeight: 600,
+                      fontSize: '0.84rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
                     onClick={() => {
-                      setErrorMessage('');
-                      handleSelectPortal('customer');
-                      navigate('/customer-login');
+                      navigator.clipboard?.writeText(backupRecoveryCodes.join('\n'));
+                      setCopiedCodes(true);
+                      setTimeout(() => setCopiedCodes(false), 2500);
                     }}
                   >
-                    Go to Customer Portal &rarr;
+                    {copiedCodes ? <Check size={16} color="#059669" /> : <Copy size={16} />}
+                    <span>{copiedCodes ? 'Copied Codes!' : 'Copy All Codes'}</span>
                   </button>
-                )}
+                </div>
+
+                <button
+                  type="button"
+                  className="ebolt-submit-btn"
+                  onClick={() => navigate('/admin/overview', { replace: true })}
+                >
+                  <span>Proceed to Admin Dashboard</span>
+                  <ArrowRight size={16} />
+                </button>
               </div>
-            )}
+            ) : twoFactorState ? (
+              <div className="ebolt-2fa-container animate-fade-in">
+                <div className="ebolt-badge-icon-box" style={{ background: '#eff6ff', borderColor: '#bfdbfe' }}>
+                  <ShieldCheck size={24} color="#2563eb" />
+                </div>
 
-            {/* Form: Portal Selector Dropdown, Email, and Password */}
-            <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
+                <h1 className="ebolt-card-title">
+                  {twoFactorState.is2FASetup ? 'Two-Factor Verification' : 'Setup Google Authenticator'}
+                </h1>
+                <p className="ebolt-card-subtitle">
+                  {twoFactorState.is2FASetup
+                    ? `Enter the 6-digit verification code from your Google Authenticator app for ${twoFactorState.email}`
+                    : 'Scan this QR code with Google Authenticator on your phone to link your admin account.'}
+                </p>
 
-              {/* Dropdown Selector */}
-              <div className={`ebolt-input-wrap ebolt-select-wrap ${isPortalLocked ? 'is-locked-wrap' : ''}`}>
-                <div className="ebolt-input-icon">
-                  {activePortal === 'admin' ? (
-                    <ShieldCheck size={16} />
-                  ) : activePortal === 'partner' ? (
-                    <Users size={16} />
-                  ) : (
-                    <Cloud size={16} />
+                {twoFactorError && (
+                  <div className="ebolt-alert-error is-stacked" role="alert" style={{ marginBottom: '14px' }}>
+                    <div className="ebolt-alert-error-row">
+                      <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{twoFactorError}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* If First-time setup: display QR Code and manual key */}
+                {!twoFactorState.is2FASetup && twoFactorState.qrCode && (
+                  <div className="ebolt-2fa-qr-wrap" style={{ textAlign: 'center', margin: '12px 0 16px' }}>
+                    <div style={{
+                      display: 'inline-block',
+                      padding: '10px',
+                      background: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1.5px solid #e2e8f0',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.06)'
+                    }}>
+                      <img
+                        src={twoFactorState.qrCode}
+                        alt="Google Authenticator QR Code"
+                        style={{ width: '170px', height: '170px', display: 'block' }}
+                      />
+                    </div>
+                    <div style={{ marginTop: '10px' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Or enter key manually: </span>
+                      <code style={{
+                        fontSize: '0.82rem',
+                        background: '#f1f5f9',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        fontFamily: 'monospace',
+                        color: '#0f172a',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em'
+                      }}>
+                        {twoFactorState.secret}
+                      </code>
+                      <button
+                        type="button"
+                        style={{
+                          marginLeft: '8px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#2563eb',
+                          cursor: 'pointer',
+                          fontSize: '0.76rem',
+                          fontWeight: 600
+                        }}
+                        onClick={() => {
+                          navigator.clipboard?.writeText(twoFactorState.secret);
+                          setCopiedSecret(true);
+                          setTimeout(() => setCopiedSecret(false), 2000);
+                        }}
+                      >
+                        {copiedSecret ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2FA Code Input Form */}
+                <form onSubmit={handleVerify2FA} className="ebolt-form" noValidate>
+                  <div className="ebolt-input-wrap">
+                    <KeyRound size={16} className="ebolt-input-icon" />
+                    <input
+                      type="text"
+                      className="ebolt-input"
+                      placeholder={twoFactorState.is2FASetup ? "Enter 6-digit code or recovery code" : "Enter 6-digit code from app"}
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value)}
+                      maxLength={12}
+                      autoFocus
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
+                      style={{ letterSpacing: '0.12em', fontWeight: 600, fontSize: '1.05rem', textAlign: 'center' }}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="ebolt-submit-btn"
+                    disabled={isVerifying2FA || !twoFactorCode.trim()}
+                    style={{ marginTop: '10px' }}
+                  >
+                    {isVerifying2FA ? (
+                      <span className="ebolt-spinner" />
+                    ) : (
+                      <>
+                        <span>{twoFactorState.is2FASetup ? 'Verify & Sign In' : 'Verify & Enable 2FA'}</span>
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+
+                  <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTwoFactorState(null);
+                        setTwoFactorCode('');
+                        setTwoFactorError('');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748b',
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <ArrowLeft size={14} />
+                      <span>Back to password login</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <>
+                {/* Top Floating Action Icon Badge: ->] */}
+                <div className="ebolt-badge-icon-box" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                </div>
+
+                {/* Heading and Description */}
+                <h1 className="ebolt-card-title">Sign in with email</h1>
+                <p className="ebolt-card-subtitle">
+                  {activePortal === 'partner'
+                    ? 'Access your partner deal desk, payouts and enablement.'
+                    : 'Access the NISPL operations console.'}
+                </p>
+
+                {/* Error Notice */}
+                {errorMessage && (
+                  <div className="ebolt-alert-error is-stacked" role="alert">
+                    <div className="ebolt-alert-error-row">
+                      <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{errorMessage}</span>
+                    </div>
+                    {errorMessage.includes('Customer Portal') && (
+                      <button
+                        type="button"
+                        className="ebolt-error-action-btn"
+                        onClick={() => {
+                          setErrorMessage('');
+                          handleSelectPortal('customer');
+                          navigate('/customer-login');
+                        }}
+                      >
+                        Go to Customer Portal &rarr;
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Form: Portal Selector Dropdown, Email, and Password */}
+                <form onSubmit={handleSubmit} className="ebolt-form" noValidate>
+
+                  {/* Dropdown Selector */}
+                  <div className={`ebolt-input-wrap ebolt-select-wrap ${isPortalLocked ? 'is-locked-wrap' : ''}`}>
+                    <div className="ebolt-input-icon">
+                      {activePortal === 'admin' ? (
+                        <ShieldCheck size={16} />
+                      ) : activePortal === 'partner' ? (
+                        <Users size={16} />
+                      ) : (
+                        <Cloud size={16} />
+                      )}
+                    </div>
+                    <select
+                      className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
+                      value={activePortal}
+                      onChange={(e) => handleSelectPortal(e.target.value)}
+                      disabled={isPortalLocked}
+                      title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
+                      aria-label="Select Login Portal"
+                    >
+                      <option value="admin">NISPL Admin Login</option>
+                      <option value="partner">Partners Login</option>
+                      <option value="customer">Customer Login</option>
+                    </select>
+                    {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
+                  </div>
+
+                  {/* Email Input */}
+                  <div className="ebolt-input-wrap">
+                    <Mail size={16} className="ebolt-input-icon" />
+                    <input
+                      type="email"
+                      className="ebolt-input"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="username"
+                      required
+                    />
+                  </div>
+
+                  {/* Password Input */}
+                  <div className="ebolt-input-wrap">
+                    <Lock size={16} className="ebolt-input-icon" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="ebolt-input"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="ebolt-eye-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+
+                  {/* Forgot Password Right Link */}
+                  <div className="ebolt-forgot-row">
+                    <button
+                      type="button"
+                      className="ebolt-forgot-btn"
+                      onClick={() => {
+                        setIsForgotOpen(true);
+                        setResetEmail(email);
+                        setResetError('');
+                        setResetSent(false);
+                      }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    className="ebolt-submit-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <span className="ebolt-spinner" />
+                    ) : (
+                      <>
+                        <span>Sign In</span>
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Create Admin Option */}
+                  {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
+                    <div className="ebolt-create-account-box animate-fade-in">
+                      <span className="ebolt-create-account-text">Are you a new administrator? </span>
+                      <Link to="/admin/create" className="ebolt-create-account-link">
+                        Create Admin
+                      </Link>
+                    </div>
                   )}
-                </div>
-                <select
-                  className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
-                  value={activePortal}
-                  onChange={(e) => handleSelectPortal(e.target.value)}
-                  disabled={isPortalLocked}
-                  title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
-                  aria-label="Select Login Portal"
-                >
-                  <option value="admin">NISPL Admin Login</option>
-                  <option value="partner">Partners Login</option>
-                  <option value="customer">Customer Login</option>
-                </select>
-                {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
-              </div>
-
-              {/* Email Input */}
-              <div className="ebolt-input-wrap">
-                <Mail size={16} className="ebolt-input-icon" />
-                <input
-                  type="email"
-                  className="ebolt-input"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
-                  required
-                />
-              </div>
-
-              {/* Password Input */}
-              <div className="ebolt-input-wrap">
-                <Lock size={16} className="ebolt-input-icon" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className="ebolt-input"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="ebolt-eye-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-
-              {/* Forgot Password Right Link */}
-              <div className="ebolt-forgot-row">
-                <button
-                  type="button"
-                  className="ebolt-forgot-btn"
-                  onClick={() => {
-                    setIsForgotOpen(true);
-                    setResetEmail(email);
-                    setResetError('');
-                    setResetSent(false);
-                  }}
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="ebolt-submit-btn"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="ebolt-spinner" />
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-
-              {/* Create Admin Option */}
-              {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
-                <div className="ebolt-create-account-box animate-fade-in">
-                  <span className="ebolt-create-account-text">Are you a new administrator? </span>
-                  <Link to="/admin/create" className="ebolt-create-account-link">
-                    Create Admin
-                  </Link>
-                </div>
-              )}
-            </form>
+                </form>
+              </>
+            )}
 
           </div>
         )}
