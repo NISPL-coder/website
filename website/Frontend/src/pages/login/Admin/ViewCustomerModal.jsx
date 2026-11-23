@@ -14,14 +14,23 @@ import {
   EyeOff,
   Copy,
   Check,
-  ReceiptText
+  ReceiptText,
+  Package,
+  Globe,
+  Server
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerApi } from '../../../services/customerApi';
+import { contractApi } from '../../../services/contractApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { usePermissions } from './PermissionsContext';
 import { receiptsForCustomer } from './adminTableUtils';
 import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
+import {
+  generateDedicatedIp,
+  normalizeContractStatus,
+  contractStatusTone
+} from './contractVocabulary';
 
 const inr = (value) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
@@ -38,6 +47,65 @@ const STATUS_COLORS = {
   pending: '#d97706',
   overdue: '#dc2626'
 };
+
+function formatCustomerAddress(cust) {
+  if (!cust) return null;
+  let addr = cust.address;
+  if (Array.isArray(addr) && addr.length > 0) {
+    addr = addr[0];
+  }
+
+  const parts = [];
+  if (typeof addr === 'string' && addr.trim()) {
+    parts.push(addr.trim());
+  } else if (addr && typeof addr === 'object') {
+    parts.push(
+      addr.street || addr.addressLine1 || addr.line1,
+      addr.area || addr.addressLine2 || addr.line2,
+      addr.city,
+      addr.state,
+      addr.postalCode || addr.pincode || addr.pinCode,
+      addr.country
+    );
+  }
+
+  // Fallback to top-level customer fields
+  if (parts.filter(Boolean).length === 0) {
+    parts.push(
+      cust.street || cust.addressStreet,
+      cust.area || cust.addressArea,
+      cust.city || cust.addressCity,
+      cust.state || cust.addressState,
+      cust.postalCode || cust.pincode || cust.pinCode || cust.addressPostalCode,
+      cust.country || cust.addressCountry
+    );
+  }
+
+  // Additional fallback to billingAddress / shippingAddress
+  if (parts.filter(Boolean).length === 0) {
+    const fallbackObj = cust.billingAddress || cust.shippingAddress || cust.registeredAddress;
+    if (typeof fallbackObj === 'string' && fallbackObj.trim()) {
+      parts.push(fallbackObj.trim());
+    } else if (fallbackObj && typeof fallbackObj === 'object') {
+      parts.push(
+        fallbackObj.street || fallbackObj.line1,
+        fallbackObj.area || fallbackObj.line2,
+        fallbackObj.city,
+        fallbackObj.state,
+        fallbackObj.postalCode || fallbackObj.pincode,
+        fallbackObj.country
+      );
+    }
+  }
+
+  const formatted = parts
+    .filter(Boolean)
+    .map((s) => String(s).trim())
+    .filter((s) => s.length > 0)
+    .join(', ');
+
+  return formatted || null;
+}
 
 function SummaryTile({ label, value, tone = '#0f172a' }) {
   return (
@@ -59,13 +127,49 @@ export default function ViewCustomerModal({
   onEdit,
   onRetrySync,
   isSyncing = false,
-  receipts = []
+  receipts = [],
+  contracts = []
 }) {
   const { can } = usePermissions();
   const canEdit = can('customer', 'edit');
   const canSeeReceipts = can('receipt', 'view');
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [internalContracts, setInternalContracts] = useState(contracts || []);
+
+  useEffect(() => {
+    if (contracts && contracts.length > 0) {
+      setInternalContracts(contracts);
+    } else if (isOpen) {
+      contractApi.getContracts().then((res) => {
+        const list = res.contracts || res.data || res || [];
+        if (Array.isArray(list)) setInternalContracts(list);
+      }).catch((e) => console.warn('Failed to fetch contracts for modal:', e));
+    }
+  }, [contracts, isOpen]);
+
+  // Active/purchased products for this customer
+  const customerProducts = useMemo(() => {
+    if (!customer) return [];
+    const cId = String(customer.customerId || customer.id || '').trim().toLowerCase();
+    const cEmail = String(customer.email || customer.corporateEmail || customer.loginEmail || '').trim().toLowerCase();
+    const cComp = String(customer.company || '').trim().toLowerCase();
+    const cName = String(customer.name || '').trim().toLowerCase();
+
+    return (internalContracts || []).filter((c) => {
+      const matchId = String(c.customerId || c.accountId || '').trim().toLowerCase();
+      const matchEmail = String(c.email || c.personEmail || '').trim().toLowerCase();
+      const matchComp = String(c.company || '').trim().toLowerCase();
+      const matchCust = String(c.customer || '').trim().toLowerCase();
+
+      return (
+        (cId && matchId === cId) ||
+        (cEmail && matchEmail === cEmail) ||
+        (cComp && matchComp === cComp) ||
+        (cName && matchCust === cName)
+      );
+    });
+  }, [customer, internalContracts]);
 
   // The ledger rows the server already resolved to this account, newest first.
   const history = useMemo(() => receiptsForCustomer(receipts, customer), [receipts, customer]);
@@ -123,7 +227,7 @@ export default function ViewCustomerModal({
         className="adm-modal-container animate-fade-in"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: '680px',
+          maxWidth: '850px',
           width: '100%',
           borderRadius: '18px',
           background: '#ffffff',
@@ -460,6 +564,143 @@ export default function ViewCustomerModal({
           </div>
         </div>
 
+        {/* Purchased Products & Subscriptions (with Dedicated Server IP) */}
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '22px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Package size={18} color="#4f46e5" />
+              <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
+                Purchased Products &amp; Cloud Subscriptions
+              </span>
+            </div>
+
+            {customerProducts.length > 0 && (
+              <span
+                style={{
+                  background: '#e0e7ff',
+                  color: '#4338ca',
+                  padding: '3px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700
+                }}
+              >
+                {customerProducts.length} product{customerProducts.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {customerProducts.length === 0 ? (
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+              No active products or contracts found for this customer account.
+            </p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.80rem' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#64748b', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '6px 8px', fontWeight: 700 }}>Contract ID</th>
+                    <th style={{ padding: '6px 8px', fontWeight: 700 }}>Product / Plan</th>
+                    <th style={{ padding: '6px 8px', fontWeight: 700 }}>Dedicated Server IP</th>
+                    <th style={{ padding: '6px 8px', fontWeight: 700 }}>Validity / Expiry</th>
+                    <th style={{ padding: '6px 8px', fontWeight: 700, textAlign: 'right' }}>Value</th>
+                    <th style={{ padding: '6px 8px', fontWeight: 700, textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerProducts.map((p) => {
+                    const ip = p.ipAddress || p.dedicatedIp || p.wanIp || generateDedicatedIp(p.contractId || p.id);
+                    const normStatus = normalizeContractStatus(p.status, p);
+                    const tone = contractStatusTone(normStatus, p);
+                    return (
+                      <tr key={p.id || p.contractId} style={{ borderTop: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px', fontFamily: 'monospace', color: '#6366f1', fontWeight: 600 }}>
+                          {p.contractId || p.id}
+                        </td>
+                        <td style={{ padding: '8px', color: '#0f172a', fontWeight: 600 }}>
+                          <div>{p.name || p.service || 'Cloud Server'}</div>
+                          {p.subscriptionPeriod && (
+                            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>
+                              {p.subscriptionPeriod} • {p.contractType || 'Subscription'}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '8px' }}>
+                          {ip ? (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                              <span
+                                style={{
+                                  fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+                                  fontWeight: 600,
+                                  fontSize: '0.80rem',
+                                  color: '#4338ca',
+                                  background: '#eef2ff',
+                                  padding: '2px 7px',
+                                  borderRadius: '5px',
+                                  border: '1px solid #e0e7ff',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Globe size={11} style={{ color: '#6366f1' }} />
+                                {ip}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(ip);
+                                  toast.success(`Copied IP: ${ip}`);
+                                }}
+                                title="Copy Dedicated IP"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  color: '#94a3b8',
+                                  padding: '2px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <Copy size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '8px', color: '#475569', fontSize: '0.78rem' }}>
+                          <div>{prettyDate(p.endDate || p.expiryDate)}</div>
+                          <span style={{ fontSize: '0.70rem', color: '#94a3b8' }}>
+                            From {prettyDate(p.startDate)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8' }}>
+                          {p.totalContractValue || p.value || '—'}
+                        </td>
+                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                          <span className={`adm-status-pill ${tone}`} style={{ fontSize: '0.70rem', padding: '2px 8px' }}>
+                            {normStatus || 'Active'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Payment History */}
         <div
           style={{
@@ -656,19 +897,8 @@ export default function ViewCustomerModal({
 
           <div style={{ gridColumn: '1 / -1' }}>
             <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Billing & Physical Address</span>
-            <div style={{ fontWeight: 500, color: '#334155', marginTop: '2px' }}>
-              {typeof customer.address === 'object'
-                ? [
-                    customer.address.street,
-                    customer.address.area,
-                    customer.address.city,
-                    customer.address.state,
-                    customer.address.postalCode,
-                    customer.address.country
-                  ]
-                    .filter(Boolean)
-                    .join(', ')
-                : customer.address || customer.city}
+            <div style={{ fontWeight: 500, color: formatCustomerAddress(customer) ? '#334155' : '#94a3b8', marginTop: '2px' }}>
+              {formatCustomerAddress(customer) || 'Not recorded'}
             </div>
           </div>
         </div>

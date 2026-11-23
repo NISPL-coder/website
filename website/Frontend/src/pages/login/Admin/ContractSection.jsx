@@ -13,7 +13,9 @@ import {
   Power,
   CheckCircle2,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Copy,
+  Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -26,26 +28,35 @@ import ViewContractModal from './ViewContractModal';
 import EditContractModal from './EditContractModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import AwaitingConfirmationModal from './AwaitingConfirmationModal';
+import ViewCustomerModal from './ViewCustomerModal';
 import { generateContractPdf } from './utils/generateContractPdf';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
-import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
+import { compareDate, compareNumber, compareText, isWithinDateRange, parseDateValue, toNumber } from './adminTableUtils';
 import {
   CONTRACT_STATUSES,
   normalizeContractStatus,
   normalizeContractType,
   contractStatusTone,
+  contractPersonName,
   contractPersonEmail,
   contractPersonMobile,
   contractActorName,
   formatContractStamp,
   matchesStatusFilter,
   isDemoContract,
-  customerHasPurchasedPlans
+  customerHasPurchasedPlans,
+  generateDedicatedIp
 } from './contractVocabulary';
 import { usePermissions } from './PermissionsContext';
 
 const getContractId = (row) => row.id || row.contractId;
+
+const formatINR = (val) => {
+  const num = Number(val);
+  if (Number.isNaN(num) || num === 0) return '₹0';
+  return `₹${Math.round(num).toLocaleString('en-IN')}`;
+};
 
 export default function ContractSection({ contracts, setContracts, customers = [], externalSearch = '' }) {
   const navigate = useNavigate();
@@ -85,6 +96,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [copiedIpId, setCopiedIpId] = useState(null);
   const [syncingIds, setSyncingIds] = useState({});
   const [updatingStatusIds, setUpdatingStatusIds] = useState({});
 
@@ -165,6 +177,53 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const [deletingContract, setDeletingContract] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAwaitingModalOpen, setIsAwaitingModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  const handleViewCustomerForContract = (c) => {
+    if (!c) return;
+    const custId = String(c.customerId || resolveCustomerId(c) || '').trim().toLowerCase();
+    const email = String(c.email || c.personEmail || c.customerEmail || '').trim().toLowerCase();
+    const comp = String(c.company || '').trim().toLowerCase();
+    const name = String(c.customer || c.person || c.contactPerson || '').trim().toLowerCase();
+
+    let matched = (customers || []).find((cust) => {
+      const cId = String(cust.customerId || cust.id || '').trim().toLowerCase();
+      const cEmail = String(cust.email || cust.loginEmail || '').trim().toLowerCase();
+      const cComp = String(cust.company || '').trim().toLowerCase();
+      const cName = String(cust.name || '').trim().toLowerCase();
+      return (
+        (custId && cId === custId) ||
+        (email && cEmail === email) ||
+        (comp && cComp === comp) ||
+        (name && cName === name)
+      );
+    });
+
+    if (!matched) {
+      const person = contractPersonName(c, customers);
+      matched = {
+        customerId: c.customerId || resolveCustomerId(c) || 'CUST-RECORD',
+        id: c.customerId || resolveCustomerId(c) || 'CUST-RECORD',
+        name: person || c.company || 'Customer',
+        company: c.company || person || 'Client Company',
+        email: contractPersonEmail(c, customers),
+        phone: contractPersonMobile(c, customers),
+        plan: c.name || c.contractName || '',
+        users: c.users || 1,
+        serverNode: c.serverNode || '',
+        status: normalizeContractStatus(c.status, c) === 'ACTIVE' ? 'Active' : 'Inactive',
+        address: c.address || {
+          street: '',
+          city: 'Kolkata',
+          state: 'West Bengal',
+          country: 'India',
+          postalCode: ''
+        }
+      };
+    }
+
+    setSelectedCustomer(matched);
+  };
 
   // Contracts awaiting payment confirmation
   const awaitingConfirmationContracts = useMemo(() => {
@@ -259,12 +318,48 @@ export default function ContractSection({ contracts, setContracts, customers = [
     return matched?.customerId || matched?.id || '';
   };
 
+  // Upcoming renewal payments calculation (responsive to DateRangeFilter)
+  const upcomingRenewalMetrics = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const hasFilter = Boolean(dateFrom || dateTo);
+
+    const targetContracts = (contracts || []).filter((c) => {
+      const normStatus = normalizeContractStatus(c?.status, c);
+      if (['Closed', 'Cancelled', 'Terminated'].includes(normStatus)) return false;
+
+      const renewalDateVal = c?.endDate || c?.expiryDate;
+      if (!renewalDateVal) return false;
+
+      if (hasFilter) {
+        return isWithinDateRange(renewalDateVal, dateFrom, dateTo);
+      }
+
+      // Default when no filter: upcoming renewals from today onwards
+      const time = parseDateValue(renewalDateVal);
+      return time != null && time >= today.getTime();
+    });
+
+    const totalAmount = targetContracts.reduce((sum, c) => {
+      const val = toNumber(c?.totalContractValue || c?.value || c?.amount || 0);
+      return sum + val;
+    }, 0);
+
+    return {
+      totalAmount,
+      count: targetContracts.length,
+      hasFilter
+    };
+  }, [contracts, dateFrom, dateTo]);
+
   // Filtered contracts
   const filteredContracts = useMemo(() => {
     return contracts.filter((c) => {
       const q = searchQuery.toLowerCase();
       const code = (c.id || c.contractId || '').toLowerCase();
       const custId = String(c.customerId || resolveCustomerId(c) || '').toLowerCase();
+      const custName = contractPersonName(c, customers).toLowerCase();
+      const dedicatedIp = String(c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id)).toLowerCase();
       const name = (c.name || '').toLowerCase();
       const company = (c.company || '').toLowerCase();
       const email = contractPersonEmail(c, customers).toLowerCase();
@@ -276,6 +371,8 @@ export default function ContractSection({ contracts, setContracts, customers = [
         !q ||
         code.includes(q) ||
         custId.includes(q) ||
+        custName.includes(q) ||
+        dedicatedIp.includes(q) ||
         name.includes(q) ||
         company.includes(q) ||
         email.includes(q) ||
@@ -285,11 +382,10 @@ export default function ContractSection({ contracts, setContracts, customers = [
 
       const matchesStatus = matchesStatusFilter(c, statusFilter);
 
-      const matchesDateRange = isWithinDateRange(
-        c.startDate || c.createdAt || c.expiryDate,
-        dateFrom,
-        dateTo
-      );
+      const matchesDateRange =
+        isWithinDateRange(c.endDate || c.expiryDate, dateFrom, dateTo) ||
+        isWithinDateRange(c.startDate, dateFrom, dateTo) ||
+        isWithinDateRange(c.createdAt, dateFrom, dateTo);
 
       return matchesSearch && matchesStatus && matchesDateRange;
     }).sort((a, b) => {
@@ -371,26 +467,33 @@ export default function ContractSection({ contracts, setContracts, customers = [
               <span>{custId}</span>
               <ArrowUpRight size={13} className="adm-clickable-id-icon" />
             </button>
-            {isTarget && (
-              <span
-                style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '10px',
-                  backgroundColor: '#e0e7ff',
-                  color: '#4338ca',
-                  border: '1px solid #c7d2fe',
-                  letterSpacing: '0.02em',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Target
-              </span>
-            )}
           </div>
         );
       }
+    },
+    {
+      id: 'customer',
+      name: 'Customer Name',
+      selector: (row) => contractPersonName(row, customers),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonName(row, customers)),
+      minWidth: '175px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => {
+        const pName = contractPersonName(c, customers) || '—';
+        return (
+          <button
+            type="button"
+            onClick={() => handleViewCustomerForContract(c)}
+            className="adm-clickable-name-btn"
+            title={`View profile details for ${pName}`}
+          >
+            <span>{pName}</span>
+          </button>
+        );
+      },
+      searchType: 'text'
     },
     {
       id: 'name',
@@ -411,23 +514,6 @@ export default function ContractSection({ contracts, setContracts, customers = [
           <div className="adm-primary-text">
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontWeight: 600 }}>{c.name || '—'}</span>
-              {isTarget && (
-                <span
-                  style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: '10px',
-                    backgroundColor: '#e0e7ff',
-                    color: '#4338ca',
-                    border: '1px solid #c7d2fe',
-                    letterSpacing: '0.02em',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  Target
-                </span>
-              )}
             </div>
             {cId && cId !== c.name && (
               <div style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#6366f1', fontWeight: 600 }}>
@@ -448,6 +534,65 @@ export default function ContractSection({ contracts, setContracts, customers = [
       grow: 1,
       wrap: true,
       cell: (c) => <div className="adm-primary-text">{c.company || '—'}</div>
+    },
+    {
+      id: 'dedicatedIp',
+      name: 'Dedicated IP Address',
+      selector: (row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id),
+      sortable: true,
+      sortFunction: compareText((row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id)),
+      minWidth: '190px',
+      cell: (c) => {
+        const ip = c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id);
+        const isCopied = copiedIpId === (c.id || c.contractId);
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+                fontWeight: 600,
+                fontSize: '0.84rem',
+                color: ip ? '#4338ca' : '#94a3b8',
+                background: ip ? '#eef2ff' : 'transparent',
+                padding: ip ? '3px 8px' : 0,
+                borderRadius: '6px',
+                border: ip ? '1px solid #e0e7ff' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              {ip && <Globe size={12} style={{ color: '#6366f1' }} />}
+              {ip || '—'}
+            </span>
+            {ip && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(ip);
+                  setCopiedIpId(c.id || c.contractId);
+                  toast.success(`Copied IP: ${ip}`);
+                  setTimeout(() => setCopiedIpId(null), 1800);
+                }}
+                title="Copy Dedicated IP Address"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isCopied ? '#10b981' : '#94a3b8',
+                  padding: '3px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Copy size={13} />
+              </button>
+            )}
+          </div>
+        );
+      },
+      searchType: 'text'
     },
     {
       id: 'status',
@@ -775,6 +920,52 @@ export default function ContractSection({ contracts, setContracts, customers = [
         </div>
 
         <div className="adm-card-header-action">
+          {/* Highlighted Section: Upcoming Renewal Payment Receive Amount (only visible when date range is filtered) */}
+          {upcomingRenewalMetrics.hasFilter && (
+            <div
+              className="adm-upcoming-renewal-card is-filtered"
+              onClick={() => {
+                const trigger = document.querySelector('.adm-date-range-trigger');
+                if (trigger) {
+                  trigger.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  trigger.click();
+                }
+              }}
+              title={`Upcoming renewal payments: ${formatINR(upcomingRenewalMetrics.totalAmount)} (${upcomingRenewalMetrics.count} renewals). Click to adjust date range.`}
+            >
+              <div className="adm-renewal-icon-wrap is-filtered">
+                <RotateCw size={15} />
+              </div>
+              <div className="adm-renewal-info">
+                <span className="adm-renewal-label">
+                  Upcoming Payment Receive
+                </span>
+                <div className="adm-renewal-value-row">
+                  <span className="adm-renewal-amount">
+                    {formatINR(upcomingRenewalMetrics.totalAmount)}
+                  </span>
+                  <span className="adm-renewal-count-badge">
+                    {upcomingRenewalMetrics.count} {upcomingRenewalMetrics.count === 1 ? 'Renewal' : 'Renewals'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="adm-renewal-reset-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+                title="Clear date filter"
+                aria-label="Clear date filter"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          )}
+
           {awaitingConfirmationContracts.length > 0 && (
             <button
               type="button"
@@ -824,7 +1015,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
 
           <ExportDropdown
             data={filteredContracts}
-            formatter={formatContractsForExport}
+            formatter={(list) => formatContractsForExport(list, customers)}
             fileName="NISPL_Contracts"
             itemLabel="contracts"
           />
@@ -957,6 +1148,19 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 : item
             )
           );
+        }}
+      />
+
+      {/* Customer Profile View Modal */}
+      <ViewCustomerModal
+        customer={selectedCustomer}
+        isOpen={!!selectedCustomer}
+        onClose={() => setSelectedCustomer(null)}
+        onEdit={(cust) => {
+          setSelectedCustomer(null);
+          navigate(`/admin/customer?search=${encodeURIComponent(cust.customerId || cust.id)}`, {
+            state: { search: cust.customerId || cust.id, highlightId: cust.customerId || cust.id }
+          });
         }}
       />
     </div>

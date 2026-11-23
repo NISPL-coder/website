@@ -1670,13 +1670,15 @@ export default function OverviewSection({
       cell: (cust) => {
         const crmStatus = String(cust.sangamCrm?.status || '').toLowerCase();
         const isSyncing = syncingIds[cust.id || cust.customerId];
+        const orderInfo = getCustomerOrderBreakdown(cust, contracts);
+        const hasPurchasedActive = orderInfo.active > 0 || normalizeCustomerLifecycle(cust.status) === 'Active';
         return (
           <RowActionMenu
             module="customer"
             items={[
               { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
               can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
-              can('customer', 'edit') && {
+              can('customer', 'edit') && !hasPurchasedActive && {
                 label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
                 icon: Clock,
                 tone: 'amber',
@@ -3540,6 +3542,8 @@ export default function OverviewSection({
           setEditingCustomer(cust);
         }}
         onRetrySync={handleRetrySync}
+        receipts={receipts}
+        contracts={contracts}
         isSyncing={selectedCustomer ? !!syncingIds[selectedCustomer.id || selectedCustomer.customerId] : false}
       />
 

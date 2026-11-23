@@ -18,7 +18,8 @@ import {
   UserCheck,
   Tag,
   AlertCircle,
-  Activity
+  Activity,
+  Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { contractApi } from '../../../services/contractApi';
@@ -32,7 +33,8 @@ import {
   LEGACY_CONTRACT_TYPES,
   normalizeContractStatus,
   normalizeContractType,
-  contractPersonEmail
+  contractPersonEmail,
+  generateDedicatedIp
 } from './contractVocabulary';
 import './EditContractModal.css';
 
@@ -200,6 +202,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
     paymentStatus: 'No',
     status: 'In Progress',
     slaTier: 'Tier-1 Priority NOC 99.99%',
+    ipAddress: '',
     description: ''
   });
 
@@ -282,6 +285,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
         paymentStatus: pStatus,
         status: sStatus,
         slaTier: sSla,
+        ipAddress: contract.ipAddress || contract.dedicatedIp || contract.wanIp || generateDedicatedIp(contract.contractId || contract.id),
         description: contract.description || ''
       });
 
@@ -931,6 +935,24 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* Contract Type Dropdown */}
+                <div className="ecm-field">
+                  <label className="ecm-label">
+                    <span>Dedicated IP Address</span>
+                  </label>
+                  <div className="ecm-input-wrapper">
+                    <Globe size={16} className="ecm-input-icon" />
+                    <input
+                      type="text"
+                      className="ecm-input"
+                      value={formData.ipAddress || ''}
+                      onChange={(e) => setFormData({ ...formData, ipAddress: e.target.value })}
+                      placeholder="e.g. 103.115.220.44"
+                      style={{ fontFamily: 'monospace' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Contract Type Dropdown */}

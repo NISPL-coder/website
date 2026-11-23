@@ -244,7 +244,7 @@ export const getCustomers = async (req, res) => {
       // Ensure self-registered customer accounts from 'users' collection are synced into 'customers'
       try {
         customerUsers = await User.find({ role: 'customer' })
-          .select('+password portalPassword lastLoginAt email customerId name phone')
+          .select('+password portalPassword lastLoginAt email customerId name phone address location')
           .lean();
         for (const u of customerUsers) {
           const uEmail = (u.email || '').toLowerCase();
@@ -270,6 +270,15 @@ export const getCustomers = async (req, res) => {
               // account has taken nothing yet and starts Inactive.
               status: 'Inactive',
               registered: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              address: u.address && typeof u.address === 'object' ? u.address : {
+                street: '',
+                area: '',
+                city: 'Kolkata',
+                state: 'West Bengal',
+                country: 'India',
+                postalCode: '',
+                addressType: 'Office / Billing'
+              },
               sangamCrm: { status: 'pending', recordId: null, lastSyncedAt: null, syncError: null }
             });
             await backfillDoc.save();
@@ -310,10 +319,14 @@ export const getCustomers = async (req, res) => {
 
       const loginEmail = c.loginEmail || matchedUser?.email || c.email;
       const lastLoginAt = matchedUser?.lastLoginAt || c.lastLoginAt || null;
+      const userAddr = matchedUser?.address;
+      const hasCustAddr = c.address && typeof c.address === 'object' && Object.values(c.address).some(v => Boolean(v && String(v).trim()));
+      const effectiveAddress = hasCustAddr ? c.address : (userAddr && typeof userAddr === 'object' ? userAddr : c.address);
 
       return {
         ...c,
         id: c.customerId || c._id || c.id,
+        address: effectiveAddress,
         loginEmail,
         password,
         portalPassword: password,

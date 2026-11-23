@@ -88,6 +88,11 @@ const contractSchema = new mongoose.Schema(
       trim: true,
       default: ''
     },
+    ipAddress: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     contractType: {
       type: String,
       enum: [...CONTRACT_TYPES, ...LEGACY_CONTRACT_TYPES],

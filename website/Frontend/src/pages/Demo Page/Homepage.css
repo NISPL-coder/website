@@ -2162,12 +2162,12 @@
   }
 
   .demo-brand-logo-img {
-    height: 42px;
+    height: 62px;
     width: auto;
-    max-height: 44px;
-    max-width: 210px;
+    /* max-height: 44px;
+    max-width: 210px; */
     object-fit: contain;
-    margin-left: 0;
+    margin-left: 15px;
   }
 
   .demo-contact-pill-btn {
@@ -2216,10 +2216,10 @@
   }
 
   .demo-brand-logo-img {
-    height: 45px;
+    height: 55px;
     width: auto;
     object-fit: contain;
-    margin-left: 0;
+    margin-left: 10px;
   }
 
   .demo-nav-actions {
@@ -2239,9 +2239,9 @@
   }
 
   .demo-brand-logo-img {
-    height: 28px;
-    max-height: 30px;
-    max-width: 130px;
+    height: 48px;
+    /* max-height: 30px;
+    max-width: 130px; */
   }
 
   .demo-contact-pill-btn {

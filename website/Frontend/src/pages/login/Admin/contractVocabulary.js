@@ -143,6 +143,58 @@ export const describeContractTerm = (contract) => {
 };
 
 /**
+ * Generates or derives a dedicated IP address for a purchased product/contract.
+ * Returns static IP in 103.115.220.xx range.
+ */
+export const generateDedicatedIp = (contractId, line = {}, product = null) => {
+  if (line?.ipAddress && String(line.ipAddress).trim()) return String(line.ipAddress).trim();
+  if (product?.ipAddress && String(product.ipAddress).trim()) return String(product.ipAddress).trim();
+
+  let num = 0;
+  if (contractId) {
+    const m = String(contractId).match(/(\d+)$/);
+    if (m) num = parseInt(m[1], 10);
+  }
+  if (!num || Number.isNaN(num)) {
+    let hash = 0;
+    const s = String(contractId || Date.now());
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) % 200;
+    num = Math.abs(hash) + 40;
+  }
+  const subnet = 40 + (num % 210);
+  return `103.115.220.${subnet}`;
+};
+
+/**
+ * Resolves the Customer Contact Name with full fallback hierarchy.
+ */
+export const contractPersonName = (row, customers = []) => {
+  if (row?.customer && String(row.customer).trim()) return String(row.customer).trim();
+  if (row?.person && String(row.person).trim()) return String(row.person).trim();
+  if (row?.contactPerson && String(row.contactPerson).trim()) return String(row.contactPerson).trim();
+  if (row?.createdBy?.name && row.createdBy.role === 'customer') return String(row.createdBy.name).trim();
+
+  if (Array.isArray(customers) && customers.length > 0) {
+    const custId = String(row?.customerId || '').trim().toLowerCase();
+    const email = String(row?.email || row?.personEmail || '').trim().toLowerCase();
+    const comp = String(row?.company || '').trim().toLowerCase();
+
+    const matched = customers.find((c) => {
+      const cId = String(c.customerId || c.id || '').trim().toLowerCase();
+      const cEmail = String(c.email || c.loginEmail || '').trim().toLowerCase();
+      const cComp = String(c.company || '').trim().toLowerCase();
+      return (custId && cId === custId) || (email && cEmail === email) || (comp && cComp === comp);
+    });
+
+    if (matched && matched.name) {
+      return String(matched.name).trim();
+    }
+  }
+
+  return row?.customer || '';
+};
+
+/**
  * The register stores the person's name, not their contact details: the list
  * endpoint joins the customer master and puts the result on `personEmail` /
  * `personMobile`. A row raised before that link existed, or one the console

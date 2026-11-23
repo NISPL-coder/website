@@ -102,6 +102,30 @@ export const nextContractCode = async (date = new Date()) => {
   return candidate;
 };
 
+/**
+ * Generates or derives a dedicated IP address for a purchased product/contract.
+ * Prioritizes explicitly passed IP from order or catalog product, or calculates
+ * a dedicated static enterprise IP in the 103.115.220.xx subnet.
+ */
+export const generateDedicatedIp = (contractId, line = {}, product = null) => {
+  if (line?.ipAddress && String(line.ipAddress).trim()) return String(line.ipAddress).trim();
+  if (product?.ipAddress && String(product.ipAddress).trim()) return String(product.ipAddress).trim();
+
+  let num = 0;
+  if (contractId) {
+    const m = String(contractId).match(/(\d+)$/);
+    if (m) num = parseInt(m[1], 10);
+  }
+  if (!num || Number.isNaN(num)) {
+    let hash = 0;
+    const s = String(contractId || Date.now());
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) % 200;
+    num = Math.abs(hash) + 40;
+  }
+  const subnet = 40 + (num % 210);
+  return `103.115.220.${subnet}`;
+};
+
 const PRODUCT_CATEGORIES = ['Software', 'Service', 'Hardware', 'Trial'];
 
 const isoDay = (value) => {
@@ -346,6 +370,7 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
         const subscriptionPeriod = periodFromDates(startDate, endDate) || (term ? termLabel(term) : '');
         const value = inr(line.finalPrice);
         const contractCode = await nextContractCode();
+        const ipAddress = generateDedicatedIp(contractCode, line, product);
 
         const isOnlineCustomerPurchase = Boolean(user && (user.role === 'customer' || !user.role || user.role === 'user'));
 
@@ -357,6 +382,7 @@ export const provisionContractsForPayment = async ({ payment, user, customer, li
           customerId: String(customer?.customerId || user?.customerId || payment?.customerId || '').trim(),
           accountId,
           email,
+          ipAddress,
           service: `${contractType} (${subscriptionPeriod})`,
           contractType,
           subscriptionPeriod,

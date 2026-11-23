@@ -629,7 +629,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                         }}
                       >
                         <label className="adm-form-label" style={{ marginBottom: 0, fontWeight: 500, fontSize: '0.84rem' }}>
-                          Select Target Customer <span className="adm-required-star">*</span>
+                          Select Customer <span className="adm-required-star">*</span>
                         </label>
                         <select
                           className="adm-form-input"

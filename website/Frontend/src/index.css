@@ -204,7 +204,7 @@ input, select, textarea {
   outline: none;
 }
 
-img { display: block; max-width: 100%; }
+img { display: block; max-width: auto; }
 
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: var(--bg-subtle); }

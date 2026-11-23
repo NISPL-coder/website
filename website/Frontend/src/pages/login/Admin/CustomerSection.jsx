@@ -18,7 +18,8 @@ import {
   Trash2,
   Printer,
   Activity,
-  Server
+  Server,
+  ArrowUpRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -46,8 +47,11 @@ import { getCustomerUserCount, getCustomerOrderBreakdown } from '../../../utils/
 // Rows saved before the address became structured hold one joined string, so
 // the city and state may only exist on the top level or not at all.
 function addressPart(cust, key) {
-  const fromAddress = cust.address && typeof cust.address === 'object' ? cust.address[key] : '';
-  return String(fromAddress || cust[key] || '').trim();
+  if (!cust) return '';
+  const addr = Array.isArray(cust.address) && cust.address.length > 0 ? cust.address[0] : cust.address;
+  const fromAddress = addr && typeof addr === 'object' ? addr[key] : '';
+  const capitalizedKey = key ? key.charAt(0).toUpperCase() + key.slice(1) : '';
+  return String(fromAddress || cust[key] || cust[`address${capitalizedKey}`] || '').trim();
 }
 
 export default function CustomerSection({
@@ -387,24 +391,15 @@ export default function CustomerSection({
         );
         return (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
-            {isTarget && (
-              <span
-                style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '10px',
-                  backgroundColor: '#e0e7ff',
-                  color: '#4338ca',
-                  border: '1px solid #c7d2fe',
-                  letterSpacing: '0.02em',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Target
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => setSelectedCustomer(cust)}
+              className="adm-clickable-id-btn"
+              title={`View details for customer ${cust.id}`}
+            >
+              <span>{cust.id}</span>
+              <ArrowUpRight size={13} className="adm-clickable-id-icon" />
+            </button>
           </div>
         );
       }
@@ -418,7 +413,14 @@ export default function CustomerSection({
       minWidth: '170px',
       grow: 1,
       cell: (cust) => (
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>{cust.name || '—'}</span>
+        <button
+          type="button"
+          onClick={() => setSelectedCustomer(cust)}
+          className="adm-clickable-name-btn"
+          title={`View details for ${cust.name || 'Customer'}`}
+        >
+          <span>{cust.name || '—'}</span>
+        </button>
       )
     },
     {
@@ -841,13 +843,15 @@ export default function CustomerSection({
       cell: (cust) => {
         const crmStatus = String(cust.sangamCrm?.status || '').toLowerCase();
         const isSyncing = syncingIds[cust.id || cust.customerId];
+        const orderInfo = getCustomerOrderBreakdown(cust, contracts);
+        const hasPurchasedActive = orderInfo.active > 0 || normalizeCustomerLifecycle(cust.status) === 'Active';
         return (
           <RowActionMenu
             module="customer"
             items={[
               { label: 'View Profile', icon: Eye, tone: 'blue', onClick: () => setSelectedCustomer(cust) },
               can('customer', 'edit') && { label: 'Edit Customer', icon: Edit3, tone: 'purple', onClick: () => setEditingCustomer(cust) },
-              can('customer', 'edit') && {
+              can('customer', 'edit') && !hasPurchasedActive && {
                 label: cust.demoExtensionAllowed ? `Extend (+${cust.demoExtensionDays || 7}d approved)` : 'Allow Demo Extension',
                 icon: Clock,
                 tone: 'amber',
@@ -1146,6 +1150,7 @@ export default function CustomerSection({
         }}
         onRetrySync={handleRetrySync}
         receipts={receipts}
+        contracts={contracts}
         isSyncing={selectedCustomer ? !!syncingIds[selectedCustomer.id || selectedCustomer.customerId] : false}
       />
 

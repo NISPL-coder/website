@@ -3,10 +3,12 @@ import { formatStamp, receiptDuration } from './adminTableUtils';
 import {
   normalizeContractStatus,
   normalizeContractType,
+  contractPersonName,
   contractPersonEmail,
   contractPersonMobile,
   contractActorName,
-  formatContractStamp
+  formatContractStamp,
+  generateDedicatedIp
 } from './contractVocabulary';
 import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
 
@@ -84,11 +86,13 @@ export function formatCustomersForExport(customers) {
 /**
  * Format Contract records for clean spreadsheet export
  */
-export function formatContractsForExport(contracts) {
+export function formatContractsForExport(contracts, customers = []) {
   return contracts.map((ctr) => ({
     'Customer ID': ctr.customerId || '—',
+    'Customer Name': contractPersonName(ctr, customers) || '—',
     'Contract ID': ctr.name || '—',
     'Company Name': ctr.company || '—',
+    'Dedicated IP Address': ctr.ipAddress || ctr.dedicatedIp || ctr.wanIp || generateDedicatedIp(ctr.contractId || ctr.id),
     'Status': normalizeContractStatus(ctr.status) || '—',
     'Payment Status': ['yes', 'true', '1', 'paid'].includes(String(ctr.paymentStatus || '').toLowerCase())
       ? 'Yes'

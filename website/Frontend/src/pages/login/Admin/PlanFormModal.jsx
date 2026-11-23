@@ -612,7 +612,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                       <span>Customer Visibility &amp; Custom Price Access</span>
                     </label>
                     <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                      Target specific customer
+                      Specific customer
                     </span>
                   </div>
 
@@ -701,7 +701,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                       }}
                     >
                       <label className="adm-form-label" style={{ marginBottom: '4px' }}>
-                        Select Target Customer <span className="adm-required-star">*</span>
+                        Select Customer <span className="adm-required-star">*</span>
                       </label>
                       <select
                         className="adm-form-input"

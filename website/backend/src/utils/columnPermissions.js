@@ -29,8 +29,10 @@ export const MODULE_COLUMNS = {
   ],
   contract: [
     { id: 'customerId', label: 'Customer ID', fields: ['customerId'] },
+    { id: 'customer', label: 'Customer Name', fields: ['customer', 'person'] },
     { id: 'name', label: 'Contract ID', fields: ['name'] },
     { id: 'company', label: 'Company Name', fields: ['company'] },
+    { id: 'dedicatedIp', label: 'Dedicated IP Address', fields: ['ipAddress', 'dedicatedIp'] },
     { id: 'status', label: 'Status', fields: ['status'] },
     { id: 'paymentStatus', label: 'Payment Status', fields: ['paymentStatus'] },
     { id: 'personEmail', label: 'Person Email Address', fields: ['personEmail', 'email'] },

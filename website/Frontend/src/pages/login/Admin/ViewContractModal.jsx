@@ -21,7 +21,8 @@ import {
   Download,
   IndianRupee,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Globe
 } from 'lucide-react';
 import { contractApi } from '../../../services/contractApi';
 import { paymentApi } from '../../../services/paymentApi';
@@ -32,7 +33,8 @@ import {
   contractPersonEmail,
   contractPersonMobile,
   describeContractTerm,
-  normalizeContractStatus
+  normalizeContractStatus,
+  generateDedicatedIp
 } from './contractVocabulary';
 import './ViewContractModal.css';
 
@@ -397,6 +399,15 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                   {contract.slaTier || 'Tier-1 Priority NOC 99.99%'}
                 </span>
                 <span className="vcm-item-sub">Type: {contract.contractType || 'Comprehensive'}</span>
+              </div>
+
+              <div className="vcm-item">
+                <span className="vcm-item-label">Dedicated IP Address</span>
+                <span className="vcm-item-val" style={{ fontFamily: 'monospace', color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Globe size={13} style={{ color: '#6366f1' }} />
+                  {contract.ipAddress || contract.dedicatedIp || contract.wanIp || generateDedicatedIp(contract.contractId || contract.id)}
+                </span>
+                <span className="vcm-item-sub">Cloud Gateway &amp; Static Routing</span>
               </div>
             </div>
           </div>

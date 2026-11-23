@@ -52,8 +52,8 @@
   --adm-shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
   --adm-shadow-dropdown: 0 20px 45px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
 
-  --adm-header-height: 70px;
-  --adm-sidebar-width: 260px;
+  --adm-header-height: 75px;
+  --adm-sidebar-width: 300px;
   --adm-sidebar-collapsed-width: 76px;
 }
 
@@ -92,11 +92,10 @@
 .adm-header-left {
   width: var(--adm-sidebar-width);
   height: 100%;
-  border-right: 1px solid var(--adm-border);
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 13px;
+  padding: 0 18px;
   flex-shrink: 0;
   box-sizing: border-box;
   background: #ffffff;
@@ -146,9 +145,10 @@
 }
 
 .adm-brand-logo {
-  height: 65px;
+  height: 68px;
   width: auto;
   object-fit: contain;
+  object-position: left center;
   flex-shrink: 0;
   display: block;
 }
@@ -156,6 +156,7 @@
 /* Keep the mark legible when the sidebar collapses to icon width */
 .adm-header-left.collapsed .adm-brand-logo {
   height: 38px;
+  object-position: center;
 }
 
 .adm-brand-portal-title {
@@ -208,7 +209,7 @@
 }
 
 .adm-search-input {
-  width: 320px;
+  width: 438px;
   height: 40px;
   padding: 0 14px 0 38px;
   border-radius: var(--adm-radius-pill);
@@ -464,7 +465,7 @@
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 14px 36px;
+  padding: 16px 16px 36px;
   box-sizing: border-box;
   transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1), padding 0.24s ease;
 }
@@ -905,6 +906,158 @@
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+}
+
+/* ── Upcoming Renewal Payment Receive Card in Contract List Header ── */
+.adm-upcoming-renewal-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  border: 1.5px solid transparent;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.adm-upcoming-renewal-card.is-filtered {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border-color: #86efac;
+  box-shadow: 0 4px 14px -3px rgba(16, 185, 129, 0.28);
+}
+
+.adm-upcoming-renewal-card.is-filtered:hover {
+  background: linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%);
+  border-color: #4ade80;
+  transform: translateY(-1px);
+}
+
+.adm-upcoming-renewal-card.is-idle {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.adm-upcoming-renewal-card.is-idle:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.adm-renewal-icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #eef2ff;
+  color: #4f46e5;
+  transition: all 0.2s ease;
+}
+
+.adm-renewal-icon-wrap.is-filtered {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.adm-renewal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.adm-renewal-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.adm-upcoming-renewal-card.is-filtered .adm-renewal-label {
+  color: #047857;
+}
+
+.adm-renewal-filter-tag {
+  font-size: 0.60rem;
+  font-weight: 800;
+  background: #059669;
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.adm-renewal-idle-tag {
+  font-size: 0.60rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.adm-renewal-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.adm-renewal-amount {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.adm-upcoming-renewal-card.is-filtered .adm-renewal-amount {
+  color: #065f46;
+}
+
+.adm-renewal-count-badge {
+  font-size: 0.70rem;
+  font-weight: 700;
+  color: #475569;
+  background: #ffffff;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+
+.adm-upcoming-renewal-card.is-filtered .adm-renewal-count-badge {
+  background: #d1fae5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.adm-renewal-reset-btn {
+  background: transparent;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+  cursor: pointer;
+  margin-left: 2px;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.adm-renewal-reset-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 /* Filter / Search Toolbar */
@@ -1609,7 +1762,7 @@ input:checked + .adm-slider:before {
   .adm-sidebar {
     position: fixed;
     top: var(--adm-header-height);
-    left: -280px;
+    left: -340px;
     height: calc(100vh - var(--adm-header-height));
     height: calc(100dvh - var(--adm-header-height));
     max-height: calc(100dvh - var(--adm-header-height));
@@ -3460,7 +3613,7 @@ input:checked + .adm-slider:before {
     height: calc(100vh - var(--adm-header-height));
     height: calc(100dvh - var(--adm-header-height));
     max-height: calc(100dvh - var(--adm-header-height));
-    width: 280px;
+    width: min(var(--adm-sidebar-width), 320px);
     max-width: 85vw;
     box-shadow: none;
     overflow-y: auto;
@@ -4116,12 +4269,32 @@ input:checked + .adm-slider:before {
   transform: translate(1px, -1px);
 }
 
-/* Row Target Highlight on Redirect */
-.admin-datatable .rdt_row.adm-row-target-highlight,
-.admin-datatable .rdt_TableRow.adm-row-target-highlight {
-  background-color: #f5f3ff !important;
-  box-shadow: inset 4px 0 0 #6366f1 !important;
-  animation: admRowTargetPulse 2.8s ease-in-out infinite;
+.adm-clickable-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease, transform 0.15s ease;
+  line-height: 1.3;
+}
+
+.adm-clickable-name-btn:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.adm-clickable-name-btn:active {
+  transform: translateY(1px);
 }
 
 @keyframes admRowTargetPulse {
@@ -4256,7 +4429,7 @@ input:checked + .adm-slider:before {
 @media (max-width: 480px) {
   /* Compact header: 64px leaves more room for content on small phones. */
   .adm-dashboard-viewport {
-    --adm-header-height: 64px;
+    --adm-header-height: 75px;
   }
 
   .adm-header-left,

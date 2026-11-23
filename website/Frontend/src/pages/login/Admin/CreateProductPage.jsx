@@ -51,7 +51,7 @@ const PRODUCT_TYPE_CONFIG = {
     categories: [{ value: 'ERP Solutions', label: 'ERP Solutions' }],
     defaultCategory: 'ERP Solutions',
     defaultPrice: '₹22,000',
-    defaultFrequency: '/ year',
+    defaultFrequency: 'Annually',
     defaultDescription:
       'Official Tally Prime license edition with GST compliance, e-invoicing, and automated data synchronization.',
     returnPath: '/admin/product/tally'
@@ -69,7 +69,7 @@ const PRODUCT_TYPE_CONFIG = {
     ],
     defaultCategory: 'Infrastructure',
     defaultPrice: '₹4,500',
-    defaultFrequency: '/ month',
+    defaultFrequency: 'Monthly',
     defaultDescription:
       'Tier-4 Enterprise Cloud VPS hosting node with dedicated IP address, N+N redundancy, and 24/7 SLA.',
     returnPath: '/admin/product/cloud'
@@ -81,14 +81,14 @@ const CLOUD_PROVIDER_OPTIONS = [
 ];
 
 const AVAILABILITY_OPTIONS = [
-  { value: 'active', label: 'Active & Available to Order (Live in Store)' },
-  { value: 'disabled', label: 'Disabled / Hidden from Customers' }
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' }
 ];
 
 const FREQUENCY_OPTIONS = [
-  { value: '/ month', label: 'Monthly Billing (/ month)' },
-  { value: '/ year', label: 'Annual Billing (/ year)' },
-  { value: 'one-time', label: 'One-Time Perpetual License' }
+  { value: 'Monthly', label: 'Monthly' },
+  { value: 'Annually', label: 'Annually' },
+  { value: 'Quarterly', label: 'Quarterly' }
 ];
 
 export default function CreateProductPage({ products, setProducts, productType = 'tally' }) {
@@ -331,21 +331,9 @@ export default function CreateProductPage({ products, setProducts, productType =
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Server size={18} color="#4f46e5" />
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                Enterprise Cloud Server Configuration Matrix (Verified Specs)
+                Enterprise Cloud Server Configuration Matrix
               </h3>
             </div>
-            <span
-              style={{
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                color: '#4338ca',
-                background: '#ede9fe',
-                padding: '3px 10px',
-                borderRadius: '999px'
-              }}
-            >
-              Click any tier below to auto-populate form
-            </span>
           </div>
 
           {/* Quick-select chips grid */}
@@ -410,7 +398,7 @@ export default function CreateProductPage({ products, setProducts, productType =
               <Server size={18} className="adm-form-section-icon purple" />
               <span>
                 {isCtrlS
-                  ? 'User & Server Configuration (Standard Format)'
+                  ? 'User & Server Configuration'
                   : 'Product Classification & Identity'}
               </span>
             </div>
@@ -543,7 +531,7 @@ export default function CreateProductPage({ products, setProducts, productType =
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>
-                  Server Configuration Specification (Required Format: <span style={{ fontFamily: 'monospace', color: '#4f46e5' }}>core/RAM/Storage</span>)
+                  Server Configuration Specification
                 </span>
                 <span
                   style={{
@@ -659,11 +647,12 @@ export default function CreateProductPage({ products, setProducts, productType =
                   isSearchable={false}
                   options={FREQUENCY_OPTIONS}
                   value={
-                    FREQUENCY_OPTIONS.find((f) => f.value === formState.frequency) ||
+                    FREQUENCY_OPTIONS.find((f) => f.value.toLowerCase() === (formState.frequency || '').toLowerCase()) ||
+                    FREQUENCY_OPTIONS.find((f) => f.value === (formState.frequency === '/ year' ? 'Annually' : formState.frequency === '/ month' ? 'Monthly' : formState.frequency)) ||
                     FREQUENCY_OPTIONS[0]
                   }
                   onChange={(opt) =>
-                    setFormState({ ...formState, frequency: opt?.value || '/ month' })
+                    setFormState({ ...formState, frequency: opt?.value || 'Monthly' })
                   }
                   classNamePrefix="react-select"
                 />
@@ -677,7 +666,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                   options={AVAILABILITY_OPTIONS}
                   value={
                     AVAILABILITY_OPTIONS.find(
-                      (a) => a.value === (formState.available ? 'active' : 'disabled')
+                      (a) => a.value === (formState.available ? 'active' : 'inactive')
                     ) || AVAILABILITY_OPTIONS[0]
                   }
                   onChange={(opt) =>

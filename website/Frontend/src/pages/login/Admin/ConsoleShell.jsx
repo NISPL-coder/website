@@ -267,8 +267,6 @@ export default function ConsoleShell({
               src={logoImg} 
               alt="Net Infotech System Pvt. Ltd." 
               className="adm-brand-logo" 
-              width="175" 
-              height="48" 
             />
           </Link>
         </div>

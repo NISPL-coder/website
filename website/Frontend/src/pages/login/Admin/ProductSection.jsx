@@ -443,7 +443,7 @@ export default function ProductSection({ products, setProducts, externalSearch }
               className={`adm-status-pill ${isLive ? 'active' : 'suspended'}`}
               style={{ fontSize: '0.72rem', padding: '3px 8px', fontWeight: 600 }}
             >
-              {isLive ? 'Available' : 'Disabled'}
+              {isLive ? 'Active' : 'Inactive'}
             </span>
           </div>
         );
@@ -634,7 +634,7 @@ export default function ProductSection({ products, setProducts, externalSearch }
               className={`adm-status-pill ${isLive ? 'active' : 'suspended'}`}
               style={{ fontSize: '0.72rem', padding: '3px 8px', fontWeight: 600 }}
             >
-              {isLive ? 'Available' : 'Disabled'}
+              {isLive ? 'Active' : 'Inactive'}
             </span>
           </div>
         );
@@ -894,8 +894,8 @@ export default function ProductSection({ products, setProducts, externalSearch }
                   isSearchable={false}
                   options={[
                     { value: 'all', label: `All Statuses (${currentCategoryProducts.length})` },
-                    { value: 'available', label: 'Active & Available Only' },
-                    { value: 'disabled', label: 'Disabled Only' }
+                    { value: 'available', label: 'Active Only' },
+                    { value: 'disabled', label: 'Inactive Only' }
                   ]}
                   value={{
                     value: availabilityFilter,
@@ -903,8 +903,8 @@ export default function ProductSection({ products, setProducts, externalSearch }
                       availabilityFilter === 'all'
                         ? `All Statuses (${currentCategoryProducts.length})`
                         : availabilityFilter === 'available'
-                        ? 'Active & Available Only'
-                        : 'Disabled Only'
+                        ? 'Active Only'
+                        : 'Inactive Only'
                   }}
                   onChange={(opt) => setAvailabilityFilter(opt ? opt.value : 'all')}
                   classNamePrefix="react-select"

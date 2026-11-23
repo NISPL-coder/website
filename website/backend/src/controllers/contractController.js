@@ -3,7 +3,7 @@ import Contract, { getContractsFromFile, saveContractsToFile } from '../models/C
 import Customer, { getCustomersFromFile, saveCustomersToFile } from '../models/Customer.js';
 import Notification from '../models/Notification.js';
 import { sangamCrmService } from '../services/sangamCrmService.js';
-import { nextContractCode, getFinancialYear, isContractIdExists, activateAccountAfterPayment } from '../services/contractProvisioning.js';
+import { nextContractCode, getFinancialYear, isContractIdExists, activateAccountAfterPayment, generateDedicatedIp } from '../services/contractProvisioning.js';
 import { refreshCustomerLifecycle, matchesCustomer } from '../services/customerLifecycle.js';
 import {
   checkAdditionalProductEligibility,
@@ -67,6 +67,8 @@ export const getContracts = async (req, res) => {
         ...c,
         id: c.contractId || c._id || c.id,
         customerId: c.customerId || '',
+        customer: c.customer || '',
+        ipAddress: c.ipAddress || generateDedicatedIp(c.contractId || c.id),
         status: effectiveStatus,
         confirmationStatus: c.confirmationStatus || (c.adminConfirmed === false ? 'Pending' : 'None'),
         adminConfirmed: c.adminConfirmed !== false,
@@ -81,7 +83,10 @@ export const getContracts = async (req, res) => {
     });
   } catch (err) {
     console.error('[ContractController] getContracts error:', err.message);
-    const fileList = redactRecords(req.user, 'contract', getContractsFromFile());
+    const fileList = redactRecords(req.user, 'contract', getContractsFromFile().map(c => ({
+      ...c,
+      ipAddress: c.ipAddress || generateDedicatedIp(c.contractId || c.id)
+    })));
     return res.status(200).json({
       success: true,
       count: fileList.length,
@@ -162,7 +167,8 @@ export const createContract = async (req, res) => {
       salesPerson,
       phone,
       mobile,
-      renewalDate
+      renewalDate,
+      ipAddress
     } = req.body;
 
     // 1. Mandatory field validation
@@ -356,6 +362,7 @@ export const createContract = async (req, res) => {
         productCategory: effectiveCategory,
         totalContractValue: formattedVal,
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
+        ipAddress: req.body.ipAddress || generateDedicatedIp(contractCode),
         orderDate: String(orderDate || '').trim(),
         startDate,
         endDate: effectiveEndDate,
@@ -398,6 +405,7 @@ export const createContract = async (req, res) => {
         productCategory: effectiveCategory,
         totalContractValue: formattedVal,
         value: `${formattedVal} / ${effectiveSubPeriod.toLowerCase()}`,
+        ipAddress: req.body.ipAddress || generateDedicatedIp(contractCode),
         orderDate: String(orderDate || '').trim(),
         startDate,
         endDate: effectiveEndDate,
@@ -819,7 +827,8 @@ export const updateContract = async (req, res) => {
       salesPerson,
       phone,
       mobile,
-      renewalDate
+      renewalDate,
+      ipAddress
     } = req.body;
 
     const formattedVal = totalContractValue
@@ -879,6 +888,7 @@ export const updateContract = async (req, res) => {
       ...(phone !== undefined && { phone: String(phone).trim() }),
       ...(mobile !== undefined && { mobile: String(mobile).trim() }),
       ...(renewalDate !== undefined && { renewalDate: String(renewalDate).trim() }),
+      ...(ipAddress !== undefined && { ipAddress: String(ipAddress).trim() }),
       updatedBy: req.user
         ? {
             name: req.user.name || '',
