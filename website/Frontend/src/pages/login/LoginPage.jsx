@@ -765,13 +765,9 @@ export default function LoginPage({ lockedPortal }) {
                   <ShieldCheck size={24} color="#2563eb" />
                 </div>
 
-                <h1 className="ebolt-card-title">
-                  {twoFactorState.is2FASetup ? 'Two-Factor Verification' : 'Setup Google Authenticator'}
-                </h1>
+                <h1 className="ebolt-card-title">Two-Factor Authentication</h1>
                 <p className="ebolt-card-subtitle">
-                  {twoFactorState.is2FASetup
-                    ? `Enter the 6-digit verification code from your Google Authenticator app for ${twoFactorState.email}`
-                    : 'Scan this QR code with Google Authenticator on your phone to link your admin account.'}
+                  Scan this QR code with Google Authenticator on your phone, then enter the 6-digit code below.
                 </p>
 
                 {twoFactorError && (
@@ -783,8 +779,8 @@ export default function LoginPage({ lockedPortal }) {
                   </div>
                 )}
 
-                {/* If First-time setup: display QR Code and manual key */}
-                {!twoFactorState.is2FASetup && twoFactorState.qrCode && (
+                {/* QR Code and Manual Setup Key (Always Displayed) */}
+                {twoFactorState.qrCode && (
                   <div className="ebolt-2fa-qr-wrap" style={{ textAlign: 'center', margin: '12px 0 16px' }}>
                     <div style={{
                       display: 'inline-block',
@@ -866,7 +862,7 @@ export default function LoginPage({ lockedPortal }) {
                       <span className="ebolt-spinner" />
                     ) : (
                       <>
-                        <span>{twoFactorState.is2FASetup ? 'Verify & Sign In' : 'Verify & Enable 2FA'}</span>
+                        <span>Verify & Sign In</span>
                         <ArrowRight size={16} />
                       </>
                     )}

@@ -118,17 +118,20 @@ export async function login(req, res) {
     const isConfigured = Boolean(user.twoFactorEnabled && user.twoFactorSecret);
 
     if (isConfigured) {
-      const tempToken = create2FATempToken(user, '2fa_login', rememberMe);
+      const setup = await generateTwoFactorSetup(user, user.twoFactorSecret);
+      const tempToken = create2FATempToken(user, '2fa_login', rememberMe, user.twoFactorSecret);
       return res.json({
         success: true,
         requires2FA: true,
         is2FASetup: true,
         tempToken,
+        qrCode: setup.qrCode,
+        secret: setup.secret,
         email: user.email,
         name: user.name,
         role: user.role,
         portal: resolvedPortal,
-        message: 'Google Authenticator verification required. Enter the 6-digit code from your app.'
+        message: 'Google Authenticator verification required. Scan the QR code or enter the 6-digit code from your app.'
       });
     }
 
