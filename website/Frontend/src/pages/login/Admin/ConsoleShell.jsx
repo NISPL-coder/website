@@ -534,8 +534,8 @@ export default function ConsoleShell({
                   </svg>
                 </span>
 
-                {/* Sliding Circular Knob */}
-                <span className="adm-switch-knob" aria-hidden="true" />
+                {/* Sliding Circular Knob (hidden for mobile responsive) */}
+                {!isMobile && <span className="adm-switch-knob" aria-hidden="true" />}
               </button>
             )}
 

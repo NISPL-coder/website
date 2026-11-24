@@ -3790,7 +3790,7 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    max-height: 52px;
+    max-height: 50px;
     max-width: 100%;
     width: auto;
     height: auto;
@@ -3860,30 +3860,55 @@ input:checked + .adm-slider:before {
   }
 
   .adm-theme-switch-pill {
-    width: 42px;
-    height: 23px;
-    min-width: 42px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
   }
 
+  /* Knob hidden on mobile responsive */
   .adm-theme-switch-pill .adm-switch-knob {
-    width: 17px;
-    height: 17px;
-    top: 3px;
-    left: 3px;
+    display: none !important;
   }
 
-  .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(19px);
+  .adm-switch-icon {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 15px;
+    height: 15px;
+    transform: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .adm-theme-switch-pill.is-dark .adm-switch-knob {
-    transform: translateX(0px);
+  .adm-switch-icon svg {
+    width: 15px;
+    height: 15px;
   }
 
-  .adm-switch-icon-sun svg,
-  .adm-switch-icon-moon svg {
-    width: 11px;
-    height: 11px;
+  .adm-switch-icon-sun {
+    display: flex;
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-icon-sun {
+    display: none !important;
+  }
+
+  .adm-switch-icon-moon {
+    display: none !important;
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-icon-moon {
+    display: flex !important;
+    opacity: 1;
+    transform: none;
   }
 
   .adm-profile-chip {
@@ -4155,7 +4180,7 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    max-height: 44px;
+    max-height: 50px;
     max-width: 100%;
     width: auto;
     height: auto;
@@ -4854,30 +4879,19 @@ input:checked + .adm-slider:before {
   }
 
   .adm-theme-switch-pill {
-    width: 34px;
-    height: 19px;
-    min-width: 34px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
   }
 
   .adm-theme-switch-pill .adm-switch-knob {
+    display: none !important;
+  }
+
+  .adm-switch-icon svg {
     width: 13px;
     height: 13px;
-    top: 3px;
-    left: 2px;
-  }
-
-  .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(16px);
-  }
-
-  .adm-theme-switch-pill.is-dark .adm-switch-knob {
-    transform: translateX(0px);
-  }
-
-  .adm-switch-icon-sun svg,
-  .adm-switch-icon-moon svg {
-    width: 9px;
-    height: 9px;
   }
 
   .adm-header-main {
@@ -5023,30 +5037,19 @@ input:checked + .adm-slider:before {
   }
 
   .adm-theme-switch-pill {
-    width: 30px;
-    height: 17px;
-    min-width: 30px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
   }
 
   .adm-theme-switch-pill .adm-switch-knob {
-    width: 11px;
-    height: 11px;
-    top: 3px;
-    left: 2px;
+    display: none !important;
   }
 
-  .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(13px);
-  }
-
-  .adm-theme-switch-pill.is-dark .adm-switch-knob {
-    transform: translateX(0px);
-  }
-
-  .adm-switch-icon-sun svg,
-  .adm-switch-icon-moon svg {
-    width: 8px;
-    height: 8px;
+  .adm-switch-icon svg {
+    width: 12px;
+    height: 12px;
   }
 
   .adm-profile-chip {
@@ -5093,24 +5096,14 @@ input:checked + .adm-slider:before {
   }
 
   .adm-theme-switch-pill {
-    width: 28px;
-    height: 16px;
-    min-width: 28px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 50%;
   }
 
   .adm-theme-switch-pill .adm-switch-knob {
-    width: 10px;
-    height: 10px;
-    top: 3px;
-    left: 2px;
-  }
-
-  .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(12px);
-  }
-
-  .adm-theme-switch-pill.is-dark .adm-switch-knob {
-    transform: translateX(0px);
+    display: none !important;
   }
 }
 
