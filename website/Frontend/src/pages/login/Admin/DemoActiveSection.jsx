@@ -221,7 +221,7 @@ export default function DemoActiveSection({
           style={{
             fontFamily: 'monospace',
             fontWeight: 700,
-            color: '#6366f1',
+            color: '#2563eb',
             fontSize: '0.86rem'
           }}
         >

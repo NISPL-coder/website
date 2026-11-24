@@ -37,7 +37,7 @@
   font-weight: 600;
   gap: 5px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgb(31 28 28 / 95%)
   border: 1px solid #cbd5e1;
   color: #334155;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -50,7 +50,7 @@
 
 .adm-date-range.is-compact.is-active .adm-date-range-trigger {
   padding-right: 24px;
-  background: #f5f3ff;
+  background: #eff6ff;
   border-color: #a5b4fc;
   color: #4338ca;
 }
@@ -62,21 +62,21 @@
 }
 
 .adm-date-range-trigger:hover {
-  border-color: #c7d2fe;
+  border-color: #bfdbfe;
   background: #fafbff;
 }
 
 .adm-date-range-trigger:focus-visible {
   outline: none;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 .adm-date-range.is-active .adm-date-range-trigger {
   padding-right: 34px;
-  border-color: #c7d2fe;
-  background: #f5f3ff;
-  color: #4f46e5;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-weight: 600;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .adm-date-range.is-active .adm-date-range-icon {
-  color: #6366f1;
+  color: #2563eb;
 }
 
 .adm-date-range-label {
@@ -111,14 +111,14 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: #dbeafe;
+  color: #1d4ed8;
   cursor: pointer;
   transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 .adm-date-range-clear:hover {
-  background: #c7d2fe;
+  background: #bfdbfe;
   color: #3730a3;
 }
 
@@ -175,8 +175,8 @@
 }
 
 .adm-date-range-field input[type='date']:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 .adm-date-range-actions {
@@ -211,12 +211,12 @@
 }
 
 .adm-date-range-btn.primary {
-  background: #6366f1;
+  background: #2563eb;
   color: #ffffff;
 }
 
 .adm-date-range-btn.primary:hover {
-  background: #4f46e5;
+  background: #1d4ed8;
 }
 
 @media (max-width: 640px) {

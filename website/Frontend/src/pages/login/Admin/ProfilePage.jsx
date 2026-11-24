@@ -9,6 +9,7 @@ import { getProfileCompletion } from '../../../utils/profileCompletion';
 import ProfileCompletionCircle from '../../../components/common/ProfileCompletionCircle';
 import ProfileAvatarUploader from '../../../components/common/ProfileAvatarUploader';
 import toast from 'react-hot-toast';
+import { AdminProfileSkeleton } from './AdminSkeleton';
 import './AdminTools.css';
 
 const PORTAL_NAME = 'NISPL Admin Console';
@@ -164,7 +165,7 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
     items.map((item) => (
       <div key={item.label} className="adm-profile-info-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-          <item.icon size={13} color="#6366f1" />
+          <item.icon size={13} color="#2563eb" />
           <div className="adm-profile-info-label" style={{ marginBottom: 0 }}>{item.label}</div>
         </div>
         <div className="adm-profile-info-value">{item.value}</div>
@@ -172,20 +173,7 @@ export default function ProfilePage({ adminName, adminEmail, portalName = PORTAL
     ));
 
   if (isLoading) {
-    return (
-      <div className="adm-table-card animate-fade-in">
-        <div className="adm-card-header">
-          <div className="adm-card-header-info">
-            <h1 className="adm-section-title">Admin Profile</h1>
-            <p className="adm-section-sub">Loading your profile from the server…</p>
-          </div>
-        </div>
-        <div className="admin-datatable-loading" style={{ padding: '60px 40px' }}>
-          <Loader2 size={22} className="admin-datatable-spinner" />
-          <span>Fetching profile…</span>
-        </div>
-      </div>
-    );
+    return <AdminProfileSkeleton />;
   }
 
   if (loadError) {

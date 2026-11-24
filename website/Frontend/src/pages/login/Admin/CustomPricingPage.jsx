@@ -216,7 +216,7 @@ export default function CustomPricingPage({ products, setProducts }) {
           <button
             type="button"
             className="adm-action-pill"
-            style={{ color: '#4338ca', borderColor: '#c7d2fe' }}
+            style={{ color: '#4338ca', borderColor: '#bfdbfe' }}
             onClick={() => onEdit(plan)}
             title="Edit this plan"
           >
@@ -387,7 +387,7 @@ export default function CustomPricingPage({ products, setProducts }) {
           <div className="adm-card-header">
             <div className="adm-card-header-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Wallet size={20} color="#4f46e5" />
+                <Wallet size={20} color="#1d4ed8" />
                 <h1 className="adm-section-title">Custom &amp; Demo Pricing</h1>
               </div>
               <p className="adm-section-sub">

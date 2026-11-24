@@ -329,7 +329,7 @@ export default function CreateProductPage({ products, setProducts, productType =
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Server size={18} color="#4f46e5" />
+              <Server size={18} color="#1d4ed8" />
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 Enterprise Cloud Server Configuration Matrix
               </h3>
@@ -352,14 +352,14 @@ export default function CreateProductPage({ products, setProducts, productType =
                   type="button"
                   onClick={() => handleSelectTemplate(m, idx)}
                   style={{
-                    border: isSelected ? '2px solid #6366f1' : '1px solid #cbd5e1',
+                    border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
                     background: isSelected ? '#eef2ff' : '#ffffff',
                     borderRadius: '10px',
                     padding: '10px 8px',
                     textAlign: 'center',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    boxShadow: isSelected ? '0 4px 12px rgba(99, 102, 241, 0.15)' : 'none'
+                    boxShadow: isSelected ? '0 4px 12px rgba(37, 99, 235, 0.15)' : 'none'
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '0.84rem', color: isSelected ? '#4338ca' : '#0f172a' }}>
@@ -369,7 +369,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                     style={{
                       fontFamily: 'monospace',
                       fontSize: '0.68rem',
-                      color: isSelected ? '#4f46e5' : '#64748b',
+                      color: isSelected ? '#1d4ed8' : '#64748b',
                       marginTop: '3px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -488,7 +488,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                       top: '50%',
                       transform: 'translateY(-50%)',
                       fontSize: '0.68rem',
-                      color: '#6366f1',
+                      color: '#2563eb',
                       background: '#eef2ff',
                       padding: '2px 6px',
                       borderRadius: '4px',
@@ -539,7 +539,7 @@ export default function CreateProductPage({ products, setProducts, productType =
                     fontWeight: 700,
                     fontSize: '0.84rem',
                     color: '#4338ca',
-                    background: '#ede9fe',
+                    background: '#dbeafe',
                     padding: '3px 12px',
                     borderRadius: '6px'
                   }}

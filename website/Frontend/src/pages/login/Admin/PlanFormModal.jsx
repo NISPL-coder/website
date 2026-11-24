@@ -291,7 +291,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                 height: '40px',
                 borderRadius: '12px',
                 background: type === 'demo' ? '#ecfdf5' : '#eef2ff',
-                color: type === 'demo' ? '#059669' : '#4f46e5',
+                color: type === 'demo' ? '#059669' : '#1d4ed8',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -363,7 +363,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                         borderRadius: '12px',
                         cursor: isEdit ? 'not-allowed' : 'pointer',
                         opacity: isEdit && !isSelected ? 0.55 : 1,
-                        border: isSelected ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                        border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                         background: isSelected ? '#eef2ff' : '#ffffff',
                         transition: 'all 0.15s ease'
                       }}
@@ -378,7 +378,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                           setType(option.value);
                           setForm(initialForm(null, option.value));
                         }}
-                        style={{ marginTop: '3px', accentColor: '#4f46e5' }}
+                        style={{ marginTop: '3px', accentColor: '#1d4ed8' }}
                       />
                       <div>
                         <div
@@ -560,7 +560,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                             padding: '12px 14px',
                             borderRadius: '12px',
                             cursor: 'pointer',
-                            border: isSelected ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                            border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                             background: isSelected ? '#eef2ff' : '#ffffff',
                             transition: 'all 0.15s ease'
                           }}
@@ -571,7 +571,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                             value={server.value}
                             checked={isSelected}
                             onChange={() => setForm({ ...form, serverType: server.value })}
-                            style={{ marginTop: '3px', accentColor: '#4f46e5' }}
+                            style={{ marginTop: '3px', accentColor: '#1d4ed8' }}
                           />
                           <div>
                             <div
@@ -608,7 +608,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                 <div style={{ marginTop: '6px', paddingTop: '16px', borderTop: '1px dashed #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <label className="adm-form-label" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <UserCheck size={16} color="#4f46e5" />
+                      <UserCheck size={16} color="#1d4ed8" />
                       <span>Customer Visibility &amp; Custom Price Access</span>
                     </label>
                     <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
@@ -632,7 +632,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                         padding: '10px 12px',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        border: !form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                        border: !form.isCustomerSpecific ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                         background: !form.isCustomerSpecific ? '#eef2ff' : '#ffffff'
                       }}
                     >
@@ -649,7 +649,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                             targetCustomerName: ''
                           }));
                         }}
-                        style={{ accentColor: '#4f46e5' }}
+                        style={{ accentColor: '#1d4ed8' }}
                       />
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#0f172a' }}>All Customers</div>
@@ -665,7 +665,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                         padding: '10px 12px',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        border: form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                        border: form.isCustomerSpecific ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                         background: form.isCustomerSpecific ? '#eef2ff' : '#ffffff'
                       }}
                     >
@@ -679,7 +679,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                             isCustomerSpecific: true
                           }));
                         }}
-                        style={{ accentColor: '#4f46e5' }}
+                        style={{ accentColor: '#1d4ed8' }}
                       />
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#4338ca' }}>Specific Customer Only</div>
@@ -816,8 +816,8 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: row.highlight ? '10px 16px' : '8px 16px',
-                      background: row.highlight ? '#e0e7ff' : 'transparent',
-                      borderBottom: row.highlight ? '1px solid #c7d2fe' : '1px solid #eef2f6'
+                      background: row.highlight ? '#dbeafe' : 'transparent',
+                      borderBottom: row.highlight ? '1px solid #bfdbfe' : '1px solid #eef2f6'
                     }}
                   >
                     <span

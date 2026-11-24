@@ -321,8 +321,8 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                       borderRadius: '10px',
                       cursor: isEdit ? 'not-allowed' : 'pointer',
                       opacity: isEdit && !isSelected ? 0.6 : 1,
-                      border: isSelected ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
-                      background: isSelected ? '#f5f3ff' : '#ffffff',
+                      border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                      background: isSelected ? '#eff6ff' : '#ffffff',
                       transition: 'all 0.15s ease'
                     }}
                   >
@@ -336,7 +336,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                         setType(option.value);
                         setForm(initialForm(null, option.value));
                       }}
-                      style={{ marginTop: '3px', accentColor: '#4f46e5' }}
+                      style={{ marginTop: '3px', accentColor: '#1d4ed8' }}
                     />
                     <div>
                       <div
@@ -527,7 +527,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                         className="adm-form-label"
                         style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', fontWeight: 500 }}
                       >
-                        <UserCheck size={17} color="#4f46e5" />
+                        <UserCheck size={17} color="#1d4ed8" />
                         <span>Customer Visibility &amp; Custom Price Access</span>
                       </label>
                       <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
@@ -550,7 +550,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                           padding: '10px 14px',
                           borderRadius: '8px',
                           cursor: 'pointer',
-                          border: !form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #cbd5e1',
+                          border: !form.isCustomerSpecific ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
                           background: !form.isCustomerSpecific ? '#eef2ff' : '#ffffff',
                           transition: 'all 0.15s ease'
                         }}
@@ -568,7 +568,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                               targetCustomerName: ''
                             }));
                           }}
-                          style={{ accentColor: '#4f46e5' }}
+                          style={{ accentColor: '#1d4ed8' }}
                         />
                         <div>
                           <div style={{ fontWeight: 500, fontSize: '0.85rem', color: '#0f172a' }}>
@@ -588,7 +588,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                           padding: '10px 14px',
                           borderRadius: '8px',
                           cursor: 'pointer',
-                          border: form.isCustomerSpecific ? '1.5px solid #6366f1' : '1px solid #cbd5e1',
+                          border: form.isCustomerSpecific ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
                           background: form.isCustomerSpecific ? '#eef2ff' : '#ffffff',
                           transition: 'all 0.15s ease'
                         }}
@@ -603,7 +603,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                               isCustomerSpecific: true
                             }));
                           }}
-                          style={{ accentColor: '#4f46e5' }}
+                          style={{ accentColor: '#1d4ed8' }}
                         />
                         <div>
                           <div style={{ fontWeight: 500, fontSize: '0.85rem', color: '#4338ca' }}>
@@ -770,7 +770,7 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                       key={row.label}
                       style={{
                         padding: '12px 16px',
-                        background: row.highlight ? '#f5f3ff' : '#ffffff',
+                        background: row.highlight ? '#eff6ff' : '#ffffff',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',

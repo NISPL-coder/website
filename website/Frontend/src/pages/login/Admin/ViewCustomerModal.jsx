@@ -257,8 +257,8 @@ export default function ViewCustomerModal({
                 style={{
                   fontFamily: 'monospace',
                   fontSize: '0.80rem',
-                  background: '#ede9fe',
-                  color: '#6366f1',
+                  background: '#eff6ff',
+                  color: '#2563eb',
                   padding: '3px 8px',
                   borderRadius: '6px',
                   fontWeight: 700
@@ -307,7 +307,7 @@ export default function ViewCustomerModal({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Building2 size={18} color="#4f46e5" />
+              <Building2 size={18} color="#2563eb" />
               <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
                 Sangam CRM Integration
               </span>
@@ -382,7 +382,7 @@ export default function ViewCustomerModal({
           >
             <div>
               <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Sangam CRM Record ID:</span>
-              <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#4f46e5' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#1d4ed8' }}>
                 {crmId || 'Pending synchronization'}
               </span>
             </div>
@@ -405,7 +405,7 @@ export default function ViewCustomerModal({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#4f46e5',
+                  background: '#1d4ed8',
                   color: '#ffffff',
                   padding: '7px 14px',
                   borderRadius: '8px',
@@ -452,7 +452,7 @@ export default function ViewCustomerModal({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Key size={18} color="#7c3aed" />
+              <Key size={18} color="#2563eb" />
               <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
                 Customer Portal Login Credentials
               </span>
@@ -463,7 +463,7 @@ export default function ViewCustomerModal({
               rel="noreferrer"
               style={{
                 fontSize: '0.75rem',
-                color: '#7c3aed',
+                color: '#2563eb',
                 fontWeight: 600,
                 textDecoration: 'none',
                 display: 'inline-flex',
@@ -486,7 +486,7 @@ export default function ViewCustomerModal({
           >
             <div>
               <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block' }}>Login Username / ID:</span>
-              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
+              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
                 {customer.customerId || customer.id}
               </span>
             </div>
@@ -503,7 +503,7 @@ export default function ViewCustomerModal({
                     navigator.clipboard.writeText(customer.loginEmail || customer.email);
                     toast.success('Copied login email to clipboard!');
                   }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7c3aed', padding: '2px' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', padding: '2px' }}
                   title="Copy Login Email"
                 >
                   <Copy size={12} />
@@ -547,7 +547,7 @@ export default function ViewCustomerModal({
                     toast.success('Copied password to clipboard!');
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#16a34a' : '#7c3aed', padding: '2px' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#16a34a' : '#2563eb', padding: '2px' }}
                   title={copied ? 'Copied' : 'Copy Password'}
                 >
                   {copied ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
@@ -576,7 +576,7 @@ export default function ViewCustomerModal({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Package size={18} color="#4f46e5" />
+              <Package size={18} color="#2563eb" />
               <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>
                 Purchased Products &amp; Cloud Subscriptions
               </span>
@@ -585,7 +585,7 @@ export default function ViewCustomerModal({
             {customerProducts.length > 0 && (
               <span
                 style={{
-                  background: '#e0e7ff',
+                  background: '#dbeafe',
                   color: '#4338ca',
                   padding: '3px 10px',
                   borderRadius: '20px',
@@ -622,7 +622,7 @@ export default function ViewCustomerModal({
                     const tone = contractStatusTone(normStatus, p);
                     return (
                       <tr key={p.id || p.contractId} style={{ borderTop: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '8px', fontFamily: 'monospace', color: '#6366f1', fontWeight: 600 }}>
+                        <td style={{ padding: '8px', fontFamily: 'monospace', color: '#2563eb', fontWeight: 600 }}>
                           {p.contractId || p.id}
                         </td>
                         <td style={{ padding: '8px', color: '#0f172a', fontWeight: 600 }}>
@@ -641,17 +641,17 @@ export default function ViewCustomerModal({
                                   fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
                                   fontWeight: 600,
                                   fontSize: '0.80rem',
-                                  color: '#4338ca',
-                                  background: '#eef2ff',
+                                  color: '#1d4ed8',
+                                  background: '#eff6ff',
                                   padding: '2px 7px',
                                   borderRadius: '5px',
-                                  border: '1px solid #e0e7ff',
+                                  border: '1px solid #bfdbfe',
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '4px'
                                 }}
                               >
-                                <Globe size={11} style={{ color: '#6366f1' }} />
+                                <Globe size={11} style={{ color: '#2563eb' }} />
                                 {ip}
                               </span>
                               <button
@@ -713,15 +713,15 @@ export default function ViewCustomerModal({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ReceiptText size={18} color="#4f46e5" />
+              <ReceiptText size={18} color="#2563eb" />
               <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.94rem' }}>Payment History</span>
             </div>
 
             {canSeeReceipts && history.length > 0 && (
               <span
                 style={{
-                  background: '#e0e7ff',
-                  color: '#4338ca',
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
                   padding: '3px 10px',
                   borderRadius: '20px',
                   fontSize: '0.75rem',
@@ -822,7 +822,7 @@ export default function ViewCustomerModal({
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ fontWeight: 600, color: '#0f172a' }}>{customer.email || '—'}</div>
-              <span style={{ fontSize: '0.64rem', background: '#ede9fe', color: '#6d28d9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.64rem', background: '#dbeafe', color: '#1d4ed8', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                 Primary
               </span>
             </div>
@@ -890,7 +890,7 @@ export default function ViewCustomerModal({
 
           <div>
             <span style={{ color: '#64748b', fontSize: '0.78rem' }}>Server Hypervisor Node</span>
-            <div style={{ fontFamily: 'monospace', fontWeight: 600, color: customer.serverNode ? '#6366f1' : '#94a3b8' }}>
+            <div style={{ fontFamily: 'monospace', fontWeight: 600, color: customer.serverNode ? '#2563eb' : '#94a3b8' }}>
               {customer.serverNode || 'Not recorded'}
             </div>
           </div>

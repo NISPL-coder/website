@@ -31,6 +31,7 @@ import {
   formatTimeAgo
 } from './NotificationPopover';
 import { notificationApi } from '../../../services/notificationApi';
+import { AdminNotificationsSkeleton } from './AdminSkeleton';
 import './NotificationsSection.css';
 
 const CATEGORY_TABS = [

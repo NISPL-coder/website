@@ -361,7 +361,7 @@ export default function AwaitingConfirmationModal({
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             <User size={13} color="#64748b" />
                             <strong>{customerName}</strong>
-                            {custId && <span style={{ color: '#6366f1' }}>({custId})</span>}
+                            {custId && <span style={{ color: '#2563eb' }}>({custId})</span>}
                           </span>
                         )}
                         {companyName && (

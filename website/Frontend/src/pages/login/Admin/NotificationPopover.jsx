@@ -135,7 +135,7 @@ export const getNotificationMeta = (item) => {
     case 'staff_created':
       return {
         icon: UserCheck,
-        color: '#6366f1',
+        color: '#2563eb',
         bg: '#eef2ff',
         badge: 'Staff Account',
         badgeClass: 'adm-notif-tag-purple'
@@ -159,7 +159,7 @@ export const getNotificationMeta = (item) => {
     case 'contract_created':
       return {
         icon: FilePlus,
-        color: '#6366f1',
+        color: '#2563eb',
         bg: '#eef2ff',
         badge: 'Contract Created',
         badgeClass: 'adm-notif-tag-contract'
@@ -167,8 +167,8 @@ export const getNotificationMeta = (item) => {
     case 'contract_updated':
       return {
         icon: FileText,
-        color: '#8b5cf6',
-        bg: '#f5f3ff',
+        color: '#3b82f6',
+        bg: '#eff6ff',
         badge: 'Contract Updated',
         badgeClass: 'adm-notif-tag-purple'
       };

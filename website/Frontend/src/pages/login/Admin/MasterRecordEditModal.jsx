@@ -135,7 +135,7 @@ export default function MasterRecordEditModal({ isOpen, onClose, record, onSave 
         >
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Building2 size={20} style={{ color: '#6366f1' }} />
+              <Building2 size={20} style={{ color: '#2563eb' }} />
               Edit Master Record #{record._origIdx != null ? record._origIdx + 1 : ''}
             </h2>
             <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '4px 0 0 0' }}>
@@ -183,7 +183,7 @@ export default function MasterRecordEditModal({ isOpen, onClose, record, onSave 
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#6366f1',
+                  color: '#2563eb',
                   background: '#eef2ff',
                   padding: '6px 10px',
                   borderRadius: '6px',

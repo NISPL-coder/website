@@ -7,7 +7,7 @@ import { addonApi } from '../../../services/addonApi';
 const BADGE_PRESETS = [
   { label: 'Popular', badge: 'POPULAR', color: '#059669', bg: '#ecfdf5' },
   { label: 'Essential', badge: 'ESSENTIAL', color: '#2563eb', bg: '#eff6ff' },
-  { label: 'Compliance', badge: 'COMPLIANCE', color: '#7c3aed', bg: '#f5f3ff' },
+  { label: 'Compliance', badge: 'COMPLIANCE', color: '#2563eb', bg: '#eff6ff' },
   { label: 'Best Seller', badge: 'BEST SELLER', color: '#d97706', bg: '#fef3c7' },
   { label: 'Tax Updates', badge: 'TAX UPDATES', color: '#dc2626', bg: '#fef2f2' },
   { label: 'Utility', badge: 'UTILITY', color: '#0891b2', bg: '#ecfeff' }
@@ -143,8 +143,8 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 width: '40px',
                 height: '40px',
                 borderRadius: '10px',
-                background: '#ede9fe',
-                color: '#6366f1',
+                background: '#dbeafe',
+                color: '#2563eb',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

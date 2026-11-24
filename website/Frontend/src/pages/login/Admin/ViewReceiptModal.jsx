@@ -181,8 +181,8 @@ export default function ViewReceiptModal({ receipt, isOpen, onClose }) {
                 style={{
                   fontFamily: 'monospace',
                   fontSize: '0.78rem',
-                  background: '#ede9fe',
-                  color: '#6366f1',
+                  background: '#dbeafe',
+                  color: '#2563eb',
                   padding: '3px 8px',
                   borderRadius: '6px',
                   fontWeight: 700

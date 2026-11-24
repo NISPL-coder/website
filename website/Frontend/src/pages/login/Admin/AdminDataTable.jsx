@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import DataTable from 'react-data-table-component';
-import { ArrowUp, SearchX, Loader2 } from 'lucide-react';
+import { ArrowUp, SearchX } from 'lucide-react';
 import { useIsNarrow, useIsPhone } from '../../../utils/useResponsive';
+import { AdminTableSkeleton } from './AdminSkeleton';
 import './AdminDataTable.css';
 
 
@@ -506,10 +507,11 @@ export default function AdminDataTable({
   );
 
   const progressComponent = (
-    <div className="admin-datatable-loading">
-      <Loader2 size={22} className="admin-datatable-spinner" />
-      <span>Loading records…</span>
-    </div>
+    <AdminTableSkeleton
+      columns={tableColumns.length || 6}
+      rows={dense ? 7 : 8}
+      label={`Loading ${ariaLabel || 'records'}`}
+    />
   );
 
   return (

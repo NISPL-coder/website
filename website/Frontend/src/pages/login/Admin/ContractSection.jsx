@@ -425,8 +425,8 @@ export default function ContractSection({ contracts, setContracts, customers = [
           return cId === target || cName === target || (custId && custId === target);
         },
         style: {
-          backgroundColor: '#f5f3ff',
-          boxShadow: 'inset 4px 0 0 #6366f1'
+          backgroundColor: '#eff6ff',
+          boxShadow: 'inset 4px 0 0 #2563eb'
         },
         classNames: ['adm-row-target-highlight']
       }
@@ -516,7 +516,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
               <span style={{ fontWeight: 600 }}>{c.name || '—'}</span>
             </div>
             {cId && cId !== c.name && (
-              <div style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#6366f1', fontWeight: 600 }}>
+              <div style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#2563eb', fontWeight: 600 }}>
                 {cId}
               </div>
             )}
@@ -552,17 +552,17 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
                 fontWeight: 600,
                 fontSize: '0.84rem',
-                color: ip ? '#4338ca' : '#94a3b8',
-                background: ip ? '#eef2ff' : 'transparent',
+                color: ip ? '#1d4ed8' : '#94a3b8',
+                background: ip ? '#eff6ff' : 'transparent',
                 padding: ip ? '3px 8px' : 0,
                 borderRadius: '6px',
-                border: ip ? '1px solid #e0e7ff' : 'none',
+                border: ip ? '1px solid #bfdbfe' : 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px'
               }}
             >
-              {ip && <Globe size={12} style={{ color: '#6366f1' }} />}
+              {ip && <Globe size={12} style={{ color: '#2563eb' }} />}
               {ip || '—'}
             </span>
             {ip && (

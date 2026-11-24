@@ -120,7 +120,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
       cell: (p) => (
         <div>
           <div style={{ fontWeight: 600, color: '#0f172a' }}>{getName(p)}</div>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#6366f1' }}>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: '#2563eb' }}>
             {p.id}
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
               fontWeight: 600,
               color: '#4338ca',
               background: '#eef2ff',
-              border: '1px solid #c7d2fe',
+              border: '1px solid #bfdbfe',
               whiteSpace: 'nowrap',
               width: 'fit-content',
               maxWidth: 'none'

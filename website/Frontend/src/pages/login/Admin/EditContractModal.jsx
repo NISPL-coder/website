@@ -631,8 +631,8 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                     className="ecm-ref-chip"
                     style={{
                       backgroundColor: '#eef2ff',
-                      color: '#4f46e5',
-                      border: '1px solid #c7d2fe',
+                      color: '#1d4ed8',
+                      border: '1px solid #bfdbfe',
                       fontFamily: 'monospace',
                       fontWeight: 700
                     }}
@@ -648,7 +648,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                     borderRadius: '6px',
                     background:
                       formData.status === 'DEMO'
-                        ? '#e0e7ff'
+                        ? '#dbeafe'
                         : formData.status === 'In Progress'
                         ? '#dcfce7'
                         : formData.status === 'DEMO-Inactive'
@@ -770,7 +770,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                               <span
                                 style={{
                                   fontSize: '0.72rem',
-                                  color: '#4f46e5',
+                                  color: '#1d4ed8',
                                   background: '#eef2ff',
                                   padding: '1px 6px',
                                   borderRadius: '4px',
@@ -820,7 +820,7 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   <Layers size={13} /> Product, Service &amp; Sales Attribution
                 </span>
                 {isLoadingDropdowns && (
-                  <span style={{ fontSize: '0.72rem', color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <Sparkles size={11} className="animate-spin" /> Loading API catalog...
                   </span>
                 )}

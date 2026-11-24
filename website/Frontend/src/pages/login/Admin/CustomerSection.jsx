@@ -368,8 +368,8 @@ export default function CustomerSection({
           return rowId === target;
         },
         style: {
-          backgroundColor: '#f5f3ff',
-          boxShadow: 'inset 4px 0 0 #6366f1'
+          backgroundColor: '#eff6ff',
+          boxShadow: 'inset 4px 0 0 #2563eb'
         },
         classNames: ['adm-row-target-highlight']
       }
@@ -495,8 +495,8 @@ export default function CustomerSection({
                 <span
                   style={{
                     fontSize: '0.64rem',
-                    background: '#ede9fe',
-                    color: '#6d28d9',
+                    background: '#dbeafe',
+                    color: '#1d4ed8',
                     padding: '1px 5px',
                     borderRadius: '4px',
                     fontWeight: 700
@@ -1019,10 +1019,10 @@ export default function CustomerSection({
           title={statusFilter === 'users' || onlyWithUsers ? 'Click to show all customers' : 'Click to filter customers who have cloud users'}
         >
           <div className="adm-cust-stat-top">
-            <span className="adm-cust-stat-label" style={{ color: '#7c3aed' }}>Cloud Users</span>
-            <Server size={18} className="adm-cust-stat-icon purple" style={{ color: '#7c3aed' }} />
+            <span className="adm-cust-stat-label" style={{ color: '#2563eb' }}>Cloud Users</span>
+            <Server size={18} className="adm-cust-stat-icon purple" style={{ color: '#2563eb' }} />
           </div>
-          <span className="adm-cust-stat-val" style={{ color: '#7c3aed' }}>
+          <span className="adm-cust-stat-val" style={{ color: '#2563eb' }}>
             <CountUp end={totalUsersAllocated} duration={1200} useCompact={true} /> {totalUsersAllocated === 1 ? 'User' : 'Users'}
           </span>
           <span className="adm-cust-stat-desc">
@@ -1081,8 +1081,8 @@ export default function CustomerSection({
                 fontSize: '0.78rem',
                 fontWeight: 700,
                 border: '1px solid #c4b5fd',
-                background: '#ede9fe',
-                color: '#6d28d9',
+                background: '#dbeafe',
+                color: '#1e40af',
                 borderRadius: '8px',
                 transition: 'all 0.15s ease'
               }}

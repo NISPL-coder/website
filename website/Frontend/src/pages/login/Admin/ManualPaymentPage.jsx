@@ -749,7 +749,7 @@ export default function ManualPaymentPage({
                     proofInputRef.current && proofInputRef.current.click();
                   }}
                 >
-                  <FileUp size={15} style={{ color: '#6366f1' }} />
+                  <FileUp size={15} style={{ color: '#2563eb' }} />
                   <span>Browse Document</span>
                 </button>
               </div>

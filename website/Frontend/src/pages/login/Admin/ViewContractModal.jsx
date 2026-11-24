@@ -251,7 +251,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                   {contract.company || 'N/A'}
                 </span>
                 {contract.customerId && (
-                  <span style={{ color: '#4f46e5', fontFamily: 'monospace', fontWeight: 700 }}>
+                  <span style={{ color: '#1d4ed8', fontFamily: 'monospace', fontWeight: 700 }}>
                     • Customer ID: {contract.customerId}
                   </span>
                 )}
@@ -261,7 +261,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                   </span>
                 )}
                 <span style={{ color: '#64748b' }}>
-                  • Type: <strong style={{ color: '#4f46e5' }}>{describeContractTerm(contract)}</strong>
+                  • Type: <strong style={{ color: '#1d4ed8' }}>{describeContractTerm(contract)}</strong>
                 </span>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
             {/* 4. Next Renewal Date */}
             <div className="vcm-metric-card">
               <span className="vcm-metric-label">Next Renewal Date</span>
-              <div className="vcm-metric-value" style={{ color: '#4f46e5', fontSize: '0.96rem' }}>
+              <div className="vcm-metric-value" style={{ color: '#1d4ed8', fontSize: '0.96rem' }}>
                 <Calendar size={15} />
                 <span>{renewalInfo.dateStr}</span>
               </div>
@@ -387,7 +387,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               <div className="vcm-item">
                 <span className="vcm-item-label">Assigned Sales Executive</span>
                 <span className="vcm-item-val" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <UserCheck size={14} style={{ color: '#6366f1' }} />
+                  <UserCheck size={14} style={{ color: '#2563eb' }} />
                   {contract.salesPerson || 'Sales Team Direct'}
                 </span>
                 <span className="vcm-item-sub">Attributed in CRM</span>
@@ -395,7 +395,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
 
               <div className="vcm-item">
                 <span className="vcm-item-label">SLA Guarantee Tier</span>
-                <span className="vcm-item-val" style={{ color: '#4f46e5' }}>
+                <span className="vcm-item-val" style={{ color: '#1d4ed8' }}>
                   {contract.slaTier || 'Tier-1 Priority NOC 99.99%'}
                 </span>
                 <span className="vcm-item-sub">Type: {contract.contractType || 'Comprehensive'}</span>
@@ -404,7 +404,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               <div className="vcm-item">
                 <span className="vcm-item-label">Dedicated IP Address</span>
                 <span className="vcm-item-val" style={{ fontFamily: 'monospace', color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Globe size={13} style={{ color: '#6366f1' }} />
+                  <Globe size={13} style={{ color: '#2563eb' }} />
                   {contract.ipAddress || contract.dedicatedIp || contract.wanIp || generateDedicatedIp(contract.contractId || contract.id)}
                 </span>
                 <span className="vcm-item-sub">Cloud Gateway &amp; Static Routing</span>
@@ -456,7 +456,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
 
               <div className="vcm-item">
                 <span className="vcm-item-label">Next Renewal Date</span>
-                <span className="vcm-item-val" style={{ color: '#4f46e5', fontWeight: 700 }}>
+                <span className="vcm-item-val" style={{ color: '#1d4ed8', fontWeight: 700 }}>
                   {renewalInfo.dateStr}
                 </span>
                 {renewalInfo.badgeText && (
@@ -619,7 +619,7 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
                     gap: '4px',
                     fontSize: '0.78rem',
                     fontWeight: 600,
-                    color: '#4f46e5',
+                    color: '#1d4ed8',
                     textDecoration: 'none'
                   }}
                 >

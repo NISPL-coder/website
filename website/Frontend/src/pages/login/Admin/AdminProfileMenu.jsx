@@ -240,7 +240,7 @@ export default function AdminProfileMenu({
                         completion.percentage === 100
                           ? '#059669'
                           : completion.percentage >= 60
-                          ? '#4f46e5'
+                          ? '#2563eb'
                           : '#d97706'
                     }}
                   >
@@ -270,7 +270,7 @@ export default function AdminProfileMenu({
                       background: 'transparent',
                       fontSize: '0.68rem',
                       fontWeight: 600,
-                      color: '#4f46e5',
+                      color: '#2563eb',
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',

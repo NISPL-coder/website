@@ -525,7 +525,7 @@ export default function CreateContractPage({ contracts, setContracts }) {
                       left: '14px',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      color: '#6366f1',
+                      color: '#2563eb',
                       fontWeight: 700,
                       fontSize: '1rem',
                       pointerEvents: 'none'

@@ -303,7 +303,7 @@ export default function AddonSection({ onBack, externalSearch }) {
           <button
             type="button"
             className="adm-action-pill"
-            style={{ color: '#4f46e5', borderColor: '#e0e7ff' }}
+            style={{ color: '#1d4ed8', borderColor: '#dbeafe' }}
             onClick={() => {
               setEditingAddon(row);
               setIsModalOpen(true);

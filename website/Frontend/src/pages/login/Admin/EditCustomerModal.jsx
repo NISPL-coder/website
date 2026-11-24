@@ -207,7 +207,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             <div className="edit-cust-card">
               <div className="edit-cust-card-header">
                 <span className="edit-cust-card-title">
-                  <User size={15} color="#4f46e5" />
+                  <User size={15} color="#1d4ed8" />
                   <span>Contact & Business Overview</span>
                 </span>
               </div>
@@ -322,7 +322,7 @@ export default function EditCustomerModal({ customer, isOpen, onClose, onUpdated
             <div className="edit-cust-card">
               <div className="edit-cust-card-header">
                 <span className="edit-cust-card-title">
-                  <MapPin size={15} color="#4f46e5" />
+                  <MapPin size={15} color="#1d4ed8" />
                   <span>Address Information</span>
                 </span>
               </div>

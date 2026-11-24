@@ -152,7 +152,7 @@ export default function SangamSyncPage({ customers, setCustomers }) {
       sortFunction: compareText((row) => row.id),
       width: '140px',
       cell: (cust) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>{cust.id}</span>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{cust.id}</span>
       )
     },
     {
@@ -189,7 +189,7 @@ export default function SangamSyncPage({ customers, setCustomers }) {
               href={customerApi.getSangamRecordUrl(recordId)}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#6366f1', display: 'inline-flex' }}
+              style={{ color: '#2563eb', display: 'inline-flex' }}
               title="View Company in Sangam CRM"
               onClick={(e) => e.stopPropagation()}
             >
@@ -249,7 +249,7 @@ export default function SangamSyncPage({ customers, setCustomers }) {
               handleRetry(cust);
             }}
             disabled={isSyncing || isSyncAllRunning}
-            style={{ color: '#6366f1', borderColor: '#c7d2fe', background: '#f5f3ff' }}
+            style={{ color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}
             title="Retry Sangam CRM synchronization"
           >
             <RotateCw size={12} className={isSyncing ? 'animate-spin' : ''} />

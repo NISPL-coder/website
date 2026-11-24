@@ -330,9 +330,9 @@ export default function ProductSection({ products, setProducts, externalSearch }
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                 fontWeight: 600,
                 fontSize: '0.85rem',
-                color: prod.isDemoPlan ? '#059669' : '#4338ca',
-                background: prod.isDemoPlan ? '#ecfdf5' : '#ede9fe',
-                border: prod.isDemoPlan ? '1px solid #a7f3d0' : '1px solid #c7d2fe',
+                color: prod.isDemoPlan ? '#059669' : '#1d4ed8',
+                background: prod.isDemoPlan ? '#ecfdf5' : '#eff6ff',
+                border: prod.isDemoPlan ? '1px solid #a7f3d0' : '1px solid #bfdbfe',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 letterSpacing: '0.2px'
@@ -385,7 +385,7 @@ export default function ProductSection({ products, setProducts, externalSearch }
               style={{
                 border: 'none',
                 background: 'transparent',
-                color: '#6366f1',
+                color: '#2563eb',
                 cursor: 'pointer',
                 padding: '4px',
                 display: 'inline-flex',
@@ -556,7 +556,7 @@ export default function ProductSection({ products, setProducts, externalSearch }
               style={{
                 border: 'none',
                 background: 'transparent',
-                color: '#6366f1',
+                color: '#2563eb',
                 cursor: 'pointer',
                 padding: '4px',
                 display: 'inline-flex',
@@ -781,8 +781,8 @@ export default function ProductSection({ products, setProducts, externalSearch }
                       marginTop: '8px',
                       fontSize: '0.75rem',
                       fontWeight: 600,
-                      color: '#4338ca',
-                      background: '#ede9fe',
+                      color: '#1d4ed8',
+                      background: '#eff6ff',
                       padding: '3px 10px',
                       borderRadius: '999px'
                     }}

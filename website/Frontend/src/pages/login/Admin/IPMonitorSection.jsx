@@ -224,11 +224,11 @@ export default function IPMonitorSection({ externalSearch }) {
             fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
             fontSize: '0.84rem',
             fontWeight: 600,
-            color: '#4f46e5',
+            color: '#1d4ed8',
             background: '#eef2ff',
             padding: '2px 8px',
             borderRadius: '6px',
-            border: '1px solid #e0e7ff'
+            border: '1px solid #dbeafe'
           }}
         >
           {row.rdpPort || '3389'}
@@ -320,9 +320,9 @@ export default function IPMonitorSection({ externalSearch }) {
               fontWeight: 700,
               padding: '3px 10px',
               borderRadius: '999px',
-              background: isDedicated ? '#f5f3ff' : '#f0fdf4',
-              color: isDedicated ? '#6d28d9' : '#15803d',
-              border: `1px solid ${isDedicated ? '#ddd6fe' : '#bbf7d0'}`
+              background: isDedicated ? '#eff6ff' : '#f0fdf4',
+              color: isDedicated ? '#1e40af' : '#15803d',
+              border: `1px solid ${isDedicated ? '#bfdbfe' : '#bbf7d0'}`
             }}
           >
             {isDedicated ? 'DEDICATED' : 'SHARED'}
@@ -446,7 +446,7 @@ export default function IPMonitorSection({ externalSearch }) {
             <span className="adm-cust-stat-label">Dedicated Servers</span>
             <Server size={18} className="adm-cust-stat-icon amber" />
           </div>
-          <span className="adm-cust-stat-val" style={{ color: '#6d28d9' }}>{counts.dedicated}</span>
+          <span className="adm-cust-stat-val" style={{ color: '#1e40af' }}>{counts.dedicated}</span>
           <span className="adm-cust-stat-desc">Dedicated VM instances</span>
         </div>
       </div>
@@ -517,6 +517,7 @@ export default function IPMonitorSection({ externalSearch }) {
         defaultSortAsc={true}
         resetPageToken={`${searchQuery}|${statusFilter}|${serverFilter}|${dateFrom}|${dateTo}`}
         minWidth={980}
+        progressPending={isLoading}
         noDataMessage={isLoading ? 'Loading network IP records...' : 'No IP records registered'}
         noDataHint={
           isLoading

@@ -892,7 +892,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                 fileInputRef.current && fileInputRef.current.click();
               }}
             >
-              <FileUp size={16} style={{ color: '#6366f1' }} />
+              <FileUp size={16} style={{ color: '#2563eb' }} />
               <span>Browse Master Spreadsheet (Excel / CSV)</span>
             </button>
           </div>
@@ -920,7 +920,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                 <span className="adm-import-col-chip">Contract Name / ID</span>
                 <span className="adm-import-col-chip">Product / Plan</span>
                 <span className="adm-import-col-chip">Contract Type</span>
-                <span className="adm-import-col-chip" style={{ background: '#ede9fe', borderColor: '#c4b5fd', color: '#6d28d9', fontWeight: 600 }}>
+                <span className="adm-import-col-chip" style={{ background: '#dbeafe', borderColor: '#c4b5fd', color: '#1e40af', fontWeight: 600 }}>
                   Duration (Auto-Calculated)
                 </span>
                 <span className="adm-import-col-chip">Total Contract Value</span>
@@ -1153,7 +1153,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                 <span className="adm-cust-stat-label">Total Records</span>
                 <FileSpreadsheet size={18} className="adm-cust-stat-icon purple" />
               </div>
-              <span className="adm-cust-stat-val" style={{ color: '#6366f1' }}>{previewStats.total}</span>
+              <span className="adm-cust-stat-val" style={{ color: '#2563eb' }}>{previewStats.total}</span>
               <span className="adm-cust-stat-desc">Parsed from uploaded sheet</span>
             </div>
 
@@ -1222,7 +1222,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
           <div className="adm-import-preview-section">
             <div className="adm-import-preview-header" style={{ flexWrap: 'wrap', gap: '12px' }}>
               <div className="adm-import-preview-title">
-                <FileCheck2 size={18} style={{ color: '#6366f1' }} />
+                <FileCheck2 size={18} style={{ color: '#2563eb' }} />
                 <span>Parsed Master Preview ({records.length} records ready)</span>
               </div>
 
@@ -1255,7 +1255,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                   type="button"
                   onClick={handleResetPaymentStatus}
                   className="adm-action-pill"
-                  style={{ color: '#6366f1', padding: '4px 10px' }}
+                  style={{ color: '#2563eb', padding: '4px 10px' }}
                   title="Reset to auto-detected statuses from file"
                 >
                   <RefreshCw size={12} />
@@ -1435,7 +1435,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                               <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{rec.duration || '1 Year'}</span>
                               {rec._durationAutoCalculated && (
-                                <span style={{ fontSize: '0.65rem', background: '#e0e7ff', color: '#4338ca', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
+                                <span style={{ fontSize: '0.65rem', background: '#dbeafe', color: '#4338ca', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
                                   Auto-calc
                                 </span>
                               )}
@@ -1590,7 +1590,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
             </div>
             <div>
               <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Official Receipts</span>
-              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#6366f1', fontSize: '1.05rem' }}>{importResults.receiptsCount || 0}</p>
+              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#2563eb', fontSize: '1.05rem' }}>{importResults.receiptsCount || 0}</p>
             </div>
             <div>
               <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Sangam CRM Synced</span>
@@ -1598,7 +1598,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
             </div>
             <div>
               <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Total Import Time</span>
-              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#4f46e5', fontSize: '1.05rem' }}>
+              <p style={{ margin: '2px 0 0 0', fontWeight: 700, color: '#1d4ed8', fontSize: '1.05rem' }}>
                 {formatDuration(importResults.durationMs)}
               </p>
             </div>

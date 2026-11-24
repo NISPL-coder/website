@@ -166,7 +166,7 @@ export default function ReceiptSection({ receipts: initialReceipts, externalSear
       sortFunction: compareText((row) => row.invoiceNumber || row.id),
       minWidth: '150px',
       cell: (r) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#6366f1' }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
           {r.invoiceNumber || r.id}
         </span>
       )
@@ -438,6 +438,7 @@ export default function ReceiptSection({ receipts: initialReceipts, externalSear
         defaultSortAsc={false}
         resetPageToken={`${searchQuery}|${statusFilter}|${dateFrom}|${dateTo}`}
         minWidth={1600}
+        progressPending={isLoading}
         noDataMessage="No payment receipts found"
         noDataHint="Payments appear here as soon as they are recorded on the ledger."
         ariaLabel="Customer payment receipts"

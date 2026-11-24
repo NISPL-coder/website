@@ -1322,8 +1322,8 @@ export default function OverviewSection({
                 <span
                   style={{
                     fontSize: '0.64rem',
-                    background: '#ede9fe',
-                    color: '#6d28d9',
+                    background: '#dbeafe',
+                    color: '#1e40af',
                     padding: '1px 5px',
                     borderRadius: '4px',
                     fontWeight: 700
@@ -1783,13 +1783,13 @@ export default function OverviewSection({
             title={`View contract ${targetSearch} in Contract List`}
           >
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', width: '100%' }}>
-              <span style={{ fontWeight: 600, color: '#4f46e5', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontWeight: 600, color: '#1d4ed8', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {c.name || targetSearch || '—'}
               </span>
               <ArrowUpRight size={13} className="adm-clickable-id-icon" style={{ flexShrink: 0 }} />
             </div>
             {cId && cId !== c.name && (
-              <span style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#6366f1', fontWeight: 600 }}>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#2563eb', fontWeight: 600 }}>
                 {cId}
               </span>
             )}
@@ -2833,21 +2833,21 @@ export default function OverviewSection({
               <defs>
                 {/* Area Gradient */}
                 <linearGradient id="salesAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.38" />
-                  <stop offset="65%" stopColor="#818cf8" stopOpacity="0.10" />
-                  <stop offset="100%" stopColor="#818cf8" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.35" />
+                  <stop offset="65%" stopColor="#60a5fa" stopOpacity="0.10" />
+                  <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.0" />
                 </linearGradient>
 
                 {/* Line Gradient */}
                 <linearGradient id="salesLineGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#4f46e5" />
-                  <stop offset="50%" stopColor="#6366f1" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
+                  <stop offset="0%" stopColor="#1d4ed8" />
+                  <stop offset="50%" stopColor="#2563eb" />
+                  <stop offset="100%" stopColor="#38bdf8" />
                 </linearGradient>
 
                 {/* Drop Shadow for Line */}
                 <filter id="lineGlow" x="-10%" y="-10%" width="120%" height="120%">
-                  <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodColor="#6366f1" floodOpacity="0.35" />
+                  <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodColor="#2563eb" floodOpacity="0.35" />
                 </filter>
               </defs>
 
@@ -2919,7 +2919,7 @@ export default function OverviewSection({
                         y1={paddingY}
                         x2={pt.x}
                         y2={svgHeight - paddingY}
-                        stroke="#6366f1"
+                        stroke="#2563eb"
                         strokeWidth="1.5"
                         strokeDasharray="3 3"
                         opacity="0.65"
@@ -2933,9 +2933,9 @@ export default function OverviewSection({
                         cx={pt.x}
                         cy={pt.y}
                         r="11"
-                        fill="#6366f1"
+                        fill="#2563eb"
                         fillOpacity="0.2"
-                        stroke="#6366f1"
+                        stroke="#2563eb"
                         strokeWidth="1.4"
                         strokeOpacity="0.5"
                       />
@@ -2946,8 +2946,8 @@ export default function OverviewSection({
                       cx={pt.x}
                       cy={pt.y}
                       r={isHovered ? 6 : 4}
-                      fill={isHovered ? '#4338ca' : '#ffffff'}
-                      stroke="#4f46e5"
+                      fill={isHovered ? '#1d4ed8' : '#ffffff'}
+                      stroke="#2563eb"
                       strokeWidth={isHovered ? 2.6 : 2.2}
                       className="adm-chart-point-circle"
                     />
@@ -3227,8 +3227,8 @@ export default function OverviewSection({
                             width={colSlotW * 0.88}
                             height={barChartH + 8}
                             rx="6"
-                            fill="rgba(99, 102, 241, 0.06)"
-                            stroke="rgba(99, 102, 241, 0.2)"
+                            fill="rgba(37, 99, 235, 0.06)"
+                            stroke="rgba(37, 99, 235, 0.2)"
                             strokeDasharray="3 3"
                             className="adm-bar-col-highlight"
                           />

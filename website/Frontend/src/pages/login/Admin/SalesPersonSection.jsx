@@ -112,7 +112,7 @@ function SalesPersonModal({ isOpen, onClose, onSave, person = null, isSaving = f
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#4f46e5'
+                color: '#1d4ed8'
               }}
             >
               <UserCheck size={18} />
@@ -464,7 +464,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
       sortFunction: compareText((row) => row.salesPersonId || row.id),
       width: '105px',
       cell: (row) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#4f46e5', fontSize: '0.84rem' }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 500, color: '#1d4ed8', fontSize: '0.84rem' }}>
           {row.salesPersonId || row.id || 'SP-—'}
         </span>
       )
@@ -797,7 +797,7 @@ export default function SalesPersonSection({ externalSearch = '' }) {
       <AdminDataTable
         columns={columns}
         data={filteredPersons}
-        loading={isLoading}
+        progressPending={isLoading}
         keyField="id"
         searchPlaceholder="Filter sales persons..."
       />

@@ -20,16 +20,16 @@
   --rdt-color-text-primary: #0f172a;
   --rdt-color-text-secondary: #64748b;
   --rdt-color-divider: #f1f5f9;
-  --rdt-color-primary: #6366f1;
+  --rdt-color-primary: #2563eb;
   --rdt-color-highlight: #f8fafc;
   --rdt-color-highlight-text: #0f172a;
-  --rdt-color-selected: #f3f0ff;
+  --rdt-color-selected: #eff6ff;
   --rdt-color-selected-text: #0f172a;
   --rdt-color-striped: #fafbfc;
   --rdt-color-striped-text: #0f172a;
   --rdt-color-btn: #64748b;
-  --rdt-color-btn-hover: #f3f0ff;
-  --rdt-color-btn-focus: #ede9fe;
+  --rdt-color-btn-hover: #eff6ff;
+  --rdt-color-btn-focus: #dbeafe;
   --rdt-color-btn-disabled: #cbd5e1;
   --rdt-color-scrollbar-thumb: #cbd5e1;
   --rdt-color-scrollbar-thumb-hover: #94a3b8;
@@ -174,8 +174,8 @@
 }
 
 .admin-datatable .adm-col-search:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.14);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
 }
 
 .admin-datatable .adm-col-search-select {
@@ -197,7 +197,7 @@
 
 .admin-datatable .rdt_columnSortableEnabled:hover .rdt_columnText,
 .admin-datatable .rdt_columnSortableActive .rdt_columnText {
-  color: #4f46e5;
+  color: #1d4ed8;
 }
 
 .admin-datatable .rdt_sortIcon {
@@ -217,11 +217,11 @@
 
 .admin-datatable .rdt_columnSortableEnabled:hover .rdt_sortIconInactive svg {
   opacity: 0.75;
-  color: #6366f1;
+  color: #2563eb;
 }
 
 .admin-datatable .rdt_columnSortableActive .rdt_sortIcon {
-  color: #6366f1;
+  color: #2563eb;
 }
 
 /* ------------------------------------------------------------------ *
@@ -255,7 +255,7 @@ html[data-adm-theme='dark'] .admin-datatable {
   --rdt-color-text-primary: #e9eefb;
   --rdt-color-text-secondary: #98a8c4;
   --rdt-color-divider: rgba(148, 163, 184, 0.1);
-  --rdt-color-primary: #818cf8;
+  --rdt-color-primary: #3b82f6;
   --rdt-color-highlight: #1c2844;
   --rdt-color-highlight-text: #ffffff;
   --rdt-color-selected: rgba(129, 140, 248, 0.2);
@@ -360,9 +360,9 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_row:hover {
 }
 
 .admin-datatable .rdt_paginationButton:hover:not(:disabled) {
-  background: #f3f0ff;
-  color: #6366f1;
-  fill: #6366f1;
+  background: #eff6ff;
+  color: #2563eb;
+  fill: #2563eb;
 }
 
 .admin-datatable .rdt_paginationButton:disabled {
@@ -406,9 +406,9 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_row:hover {
   height: 52px;
   margin-bottom: 10px;
   border-radius: 16px;
-  background: #f5f3ff;
-  color: #6366f1;
-  border: 1px solid #e9e4ff;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
 
 .admin-datatable-empty-title {
@@ -427,7 +427,7 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_row:hover {
   align-items: center;
   gap: 10px;
   padding: 40px;
-  color: #6366f1;
+  color: #2563eb;
   font-size: 0.86rem;
   font-weight: 600;
 }

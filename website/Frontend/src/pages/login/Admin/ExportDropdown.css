@@ -32,7 +32,7 @@
 }
 
 .adm-btn-export-icon {
-  color: #6366f1;
+  color: #2563eb;
 }
 
 .adm-btn-export-chevron {
@@ -113,8 +113,8 @@
 }
 
 .adm-export-item-icon.csv {
-  background: #ede9fe;
-  color: #6366f1;
+  background: #dbeafe;
+  color: #2563eb;
 }
 
 .adm-export-item-text {
