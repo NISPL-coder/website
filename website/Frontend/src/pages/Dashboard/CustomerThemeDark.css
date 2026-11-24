@@ -33,7 +33,7 @@ html[data-adm-theme='dark'] .flowmail-overview-container,
 html[data-adm-theme='dark'] .cliento-overview-wrapper,
 html[data-adm-theme='dark'] .flowmail-section-wrapper,
 html[data-adm-theme='dark'] .new-subscription-page {
-  background-color: var(--adm-bg, #0a1020) !important;
+
   color: var(--adm-text-main, #e9eefb) !important;
 }
 

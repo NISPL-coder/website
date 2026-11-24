@@ -1,5 +1,46 @@
 [
   {
+    "contractId": "CTR-DEMO-8991",
+    "id": "CTR-DEMO-8991",
+    "name": "Demo Trial",
+    "service": "Demo Trial",
+    "company": "abc company",
+    "customer": "Demo User",
+    "accountName": "abc company",
+    "email": "demouser@gmail.com",
+    "customerId": "CUST-9111",
+    "accountId": null,
+    "contractType": "Trial",
+    "subscriptionPeriod": "7 Days",
+    "productCategory": "Trial",
+    "isDemoTrial": true,
+    "trialUsed": true,
+    "extensionAllowed": false,
+    "extensionDays": 0,
+    "totalContractValue": "₹0",
+    "value": "₹0",
+    "startDate": "2026-11-24",
+    "endDate": "2026-12-01",
+    "expiryDate": "2026-12-01",
+    "status": "DEMO",
+    "slaTier": "Demo Trial 99.99%",
+    "description": "Active Demo Trial trial for 7 Days (valid until 2026-12-01).",
+    "productId": "PROD-1795165400213",
+    "salesPerson": "Siddhartha",
+    "createdBy": {
+      "name": "Demo User",
+      "email": "demouser@gmail.com",
+      "role": "customer"
+    },
+    "createdAt": "2026-11-24T11:47:40.778Z",
+    "sangamCrm": {
+      "status": "pending",
+      "recordId": null,
+      "lastSyncedAt": null,
+      "syncError": "Sangam CRM synchronization disabled in configuration."
+    }
+  },
+  {
     "contractId": "NISPL/2026-27/00026",
     "name": "Custom Cloud Server (1 Day Expiry)",
     "company": "TIMD",
