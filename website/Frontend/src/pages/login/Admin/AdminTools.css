@@ -14,7 +14,7 @@
   align-items: center;
   gap: 10px;
   padding: 5px 10px 5px 6px;
-  border: 1px solid #e9ebf3;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #ffffff;
   cursor: pointer;
@@ -25,14 +25,14 @@
 .adm-profile-chip:hover,
 .adm-profile-chip.is-open {
   border-color: #bfdbfe;
-  box-shadow: 0 4px 14px -6px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px -6px rgba(37, 99, 235, 0.25);
 }
 
 .adm-profile-avatar {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #102a56 0%, #2563eb 100%);
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 700;
@@ -65,7 +65,7 @@
 .adm-profile-name {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #102a56;
   max-width: 170px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -260,7 +260,7 @@
 .adm-sidebar-divider {
   height: 1px;
   margin: 10px 12px 2px 12px;
-  background: #eef0f6;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .adm-sidebar.collapsed .adm-sidebar-tools-label,

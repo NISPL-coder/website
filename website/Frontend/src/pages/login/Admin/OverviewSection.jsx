@@ -66,6 +66,7 @@ import {
   normalizeContractStatus,
   normalizeContractType,
   contractStatusTone,
+  contractPersonName,
   contractPersonEmail,
   contractPersonMobile,
   contractActorName,
@@ -1754,6 +1755,40 @@ export default function OverviewSection({
       }
     },
     {
+      id: 'customer',
+      name: 'Customer Name',
+      selector: (row) => contractPersonName(row, customers),
+      sortable: true,
+      sortFunction: compareText((row) => contractPersonName(row, customers)),
+      minWidth: '175px',
+      grow: 1,
+      wrap: true,
+      cell: (c) => {
+        const pName = contractPersonName(c, customers) || '';
+        if (!pName) return <span style={{ color: '#94a3b8' }}>—</span>;
+        const target = c.customerId || c.accountId || c.email || c.personEmail || pName;
+        return (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/customer?search=${encodeURIComponent(target)}`, {
+                state: {
+                  search: target,
+                  highlightId: c.customerId || c.accountId || ''
+                }
+              });
+            }}
+            className="adm-clickable-name-btn"
+            title={`View ${pName} in Customer List`}
+          >
+            <span>{pName}</span>
+          </button>
+        );
+      },
+      searchType: 'text'
+    },
+    {
       id: 'name',
       name: 'Contract Name/ID',
       selector: (row) => row.name || row.contractId || row.id,
@@ -2842,21 +2877,20 @@ export default function OverviewSection({
               <defs>
                 {/* Area Gradient */}
                 <linearGradient id="salesAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.35" />
-                  <stop offset="65%" stopColor="#60a5fa" stopOpacity="0.10" />
-                  <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
+                  <stop offset="70%" stopColor="#2563eb" stopOpacity="0.04" />
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
                 </linearGradient>
 
                 {/* Line Gradient */}
                 <linearGradient id="salesLineGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#1d4ed8" />
-                  <stop offset="50%" stopColor="#2563eb" />
-                  <stop offset="100%" stopColor="#38bdf8" />
+                  <stop offset="0%" stopColor="#2563eb" />
+                  <stop offset="100%" stopColor="#2563eb" />
                 </linearGradient>
 
                 {/* Drop Shadow for Line */}
                 <filter id="lineGlow" x="-10%" y="-10%" width="120%" height="120%">
-                  <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodColor="#2563eb" floodOpacity="0.35" />
+                  <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#2563eb" floodOpacity="0.25" />
                 </filter>
               </defs>
 
@@ -2872,14 +2906,14 @@ export default function OverviewSection({
                       y1={y}
                       x2={svgWidth - paddingX}
                       y2={y}
-                      stroke="#f1f5f9"
+                      stroke="#e2e8f0"
                       strokeWidth="1"
                       strokeDasharray="4 4"
                     />
                     <text
                       x={paddingX - 10}
                       y={y + 4}
-                      fill="#94a3b8"
+                      fill="#64748b"
                       fontSize="10"
                       textAnchor="end"
                       fontWeight="500"
@@ -2965,7 +2999,7 @@ export default function OverviewSection({
                     <text
                       x={pt.x}
                       y={svgHeight - 10}
-                      fill={isHovered ? '#4338ca' : '#64748b'}
+                      fill={isHovered ? '#102a56' : '#64748b'}
                       fontSize="10.5"
                       fontWeight={isHovered ? '700' : '500'}
                       textAnchor="middle"
@@ -3143,7 +3177,7 @@ export default function OverviewSection({
                   </linearGradient>
                   <linearGradient id="admDemoBarGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#fbbf24" />
-                    <stop offset="100%" stopColor="#d97706" />
+                    <stop offset="100%" stopColor="#f59e0b" />
                   </linearGradient>
                 </defs>
 
@@ -3187,7 +3221,7 @@ export default function OverviewSection({
                   y1={188}
                   x2={600}
                   y2={188}
-                  stroke="#cbd5e1"
+                  stroke="#e2e8f0"
                   strokeWidth="1.5"
                 />
 

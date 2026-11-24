@@ -11,16 +11,19 @@
    ========================================================================= */
 
 :root {
-  --adm-bg: #f0f6ff;
+  /* Enterprise SaaS Colour System */
+  --adm-navy: #102a56;
+  --adm-royal-blue: #2563eb;
+  --adm-light-blue: #dbeafe;
+  --adm-bg: #f1f7ff;
   --adm-bg-gradient:
-    radial-gradient(ellipse at 15% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 15%, rgba(14, 165, 233, 0.09) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 90%, rgba(59, 130, 246, 0.06) 0%, transparent 55%),
-    linear-gradient(150deg, #f0f7ff 0%, #e0f2fe 35%, #f4f8fe 70%, #ebf5ff 100%);
+    radial-gradient(ellipse at 15% 10%, rgba(37, 99, 235, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(16, 42, 86, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, #f1f7ff 0%, #edf5ff 100%);
   --adm-card-bg: #ffffff;
-  --adm-border: rgba(191, 219, 254, 0.75);
+  --adm-border: #e2e8f0;
   --adm-border-light: #f1f5f9;
-  --adm-border-input: #bfdbfe;
+  --adm-border-input: #e2e8f0;
 
   --adm-purple: #2563eb;
   --adm-purple-dark: #1d4ed8;
@@ -38,30 +41,43 @@
   --adm-emerald-soft: #ecfdf5;
   --adm-emerald-border: #a7f3d0;
 
-  --adm-rose: #dc2626;
-  --adm-rose-soft: #fef2f2;
-  --adm-rose-border: #fecaca;
-
   --adm-amber: #d97706;
   --adm-amber-soft: #fffbeb;
   --adm-amber-border: #fde68a;
 
-  --adm-blue: #0284c7;
-  --adm-blue-soft: #e0f2fe;
+  --adm-rose: #e11d48;
+  --adm-rose-soft: #ffe4e6;
+  --adm-rose-border: #fecdd3;
 
-  --adm-text-main: #0f172a;
+  --adm-teal: #0f766e;
+  --adm-teal-soft: #f0fdfa;
+  --adm-teal-border: #99f6e4;
+
+  --adm-cyan: #0891b2;
+  --adm-cyan-soft: #ecfeff;
+  --adm-cyan-border: #a5f3fc;
+
+  --adm-indigo: #4f46e5;
+  --adm-indigo-soft: #eef2ff;
+  --adm-indigo-border: #c7d2fe;
+
+  --adm-blue: #2563eb;
+  --adm-blue-soft: #eff6ff;
+
+  --adm-text-main: #102a56;
+  --adm-text-secondary: #64748b;
   --adm-text-muted: #64748b;
   --adm-text-light: #94a3b8;
 
   --adm-radius-sm: 8px;
   --adm-radius-md: 12px;
-  --adm-radius-lg: 16px;
-  --adm-radius-xl: 20px;
+  --adm-radius-lg: 14px;
+  --adm-radius-xl: 14px;
   --adm-radius-pill: 999px;
 
-  --adm-shadow-sm: 0 1px 3px rgba(37, 99, 235, 0.05);
-  --adm-shadow-card: 0 4px 20px -2px rgba(37, 99, 235, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
-  --adm-shadow-dropdown: 0 20px 45px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --adm-shadow-sm: 0 1px 3px rgba(16, 42, 86, 0.04);
+  --adm-shadow-card: 0 1px 3px rgba(16, 42, 86, 0.04), 0 4px 14px -2px rgba(16, 42, 86, 0.05);
+  --adm-shadow-dropdown: 0 20px 45px -8px rgba(16, 42, 86, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
 
   --adm-header-height: 75px;
   --adm-sidebar-width: 300px;
@@ -217,27 +233,27 @@
 
 .adm-search-icon {
   position: absolute;
-  left: 12px;
-  color: var(--adm-text-light);
+  left: 14px;
+  color: var(--adm-royal-blue, #2563eb);
   pointer-events: none;
 }
 
 .adm-search-input {
   width: 438px;
-  height: 40px;
-  padding: 0 14px 0 38px;
+  height: 42px;
+  padding: 0 16px 0 40px;
   border-radius: var(--adm-radius-pill);
-  border: 1px solid var(--adm-border-input);
-  background: var(--adm-bg);
+  border: 1px solid var(--adm-border, #e2e8f0);
+  background: #f1f7ff;
   font-size: 0.94rem;
-  color: var(--adm-text-main);
+  color: var(--adm-text-main, #102a56);
   outline: none;
   transition: all 0.2s ease;
 }
 
 .adm-search-input:focus {
   background: #ffffff;
-  border-color: var(--adm-purple);
+  border-color: var(--adm-royal-blue, #2563eb);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
@@ -356,7 +372,7 @@
 .adm-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .adm-header-icon-btn {
@@ -367,18 +383,18 @@
   width: 40px;
   height: 40px;
   background: #ffffff;
-  border: 1px solid var(--adm-border-input);
+  border: 1px solid var(--adm-border, #e2e8f0);
   border-radius: var(--adm-radius-pill);
-  color: var(--adm-text-muted);
+  color: var(--adm-royal-blue, #2563eb);
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .adm-header-icon-btn:hover {
-  background: var(--adm-bg);
-  color: var(--adm-purple);
-  border-color: var(--adm-purple);
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #2563eb;
 }
 
 /* =========================================================================
@@ -631,8 +647,9 @@ html.adm-theme-transitioning * {
   z-index: 100;
   width: var(--adm-sidebar-width);
   height: 100%;
-  background: #ffffff;
-  border-right: 1px solid var(--adm-border);
+  background: var(--adm-navy, #102a56);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -649,7 +666,7 @@ html.adm-theme-transitioning * {
   justify-content: space-between;
   padding: 0 4px 14px;
   margin-bottom: 8px;
-  border-bottom: 1px solid var(--adm-border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .adm-sidebar-heading {
@@ -657,15 +674,15 @@ html.adm-theme-transitioning * {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--adm-text-light);
+  color: #94a3b8;
 }
 
 .adm-collapse-btn {
-  background: transparent;
-  border: 1px solid var(--adm-border-input);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--adm-radius-sm);
   padding: 4px;
-  color: var(--adm-text-muted);
+  color: #cbd5e1;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -674,9 +691,9 @@ html.adm-theme-transitioning * {
 }
 
 .adm-collapse-btn:hover {
-  background: var(--adm-bg);
-  color: var(--adm-purple);
-  border-color: var(--adm-purple);
+  background: rgba(37, 99, 235, 0.25);
+  color: #ffffff;
+  border-color: #2563eb;
 }
 
 .adm-sidebar-nav {
@@ -694,7 +711,7 @@ html.adm-theme-transitioning * {
   justify-content: space-between;
   padding: 10px 14px;
   border-radius: var(--adm-radius-md);
-  color: var(--adm-text-muted);
+  color: #e2e8f0;
   font-size: 0.98rem;
   font-weight: 500;
   background: transparent;
@@ -706,14 +723,15 @@ html.adm-theme-transitioning * {
 }
 
 .adm-nav-item:hover {
-  background: var(--adm-bg);
-  color: var(--adm-text-main);
+  background: rgba(37, 99, 235, 0.18);
+  color: #ffffff;
 }
 
 .adm-nav-item.active {
-  background: var(--adm-purple-soft);
-  color: var(--adm-purple);
+  background: var(--adm-royal-blue, #2563eb);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
 .adm-nav-item.active::before {
@@ -724,7 +742,7 @@ html.adm-theme-transitioning * {
   bottom: 6px;
   width: 4px;
   border-radius: 0 4px 4px 0;
-  background: var(--adm-purple);
+  background: #ffffff;
 }
 
 .adm-nav-item.is-readonly,
@@ -732,13 +750,13 @@ html.adm-theme-transitioning * {
   cursor: default !important;
   pointer-events: none !important;
   user-select: none !important;
-  opacity: 0.72;
+  opacity: 0.6;
 }
 
 .adm-nav-item.is-readonly:hover,
 .adm-submenu-item.is-readonly:hover {
   background: transparent !important;
-  color: var(--adm-text-muted) !important;
+  color: #94a3b8 !important;
 }
 
 .adm-nav-item-left {
@@ -748,13 +766,13 @@ html.adm-theme-transitioning * {
 }
 
 .adm-nav-chevron {
-  color: var(--adm-text-light);
+  color: #94a3b8;
   transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .adm-nav-chevron.open {
   transform: rotate(180deg);
-  color: var(--adm-purple);
+  color: #ffffff;
 }
 
 /* Expandable Submenu (Customer -> Contract, Payment) */
@@ -764,7 +782,7 @@ html.adm-theme-transitioning * {
   gap: 4px;
   padding-left: 20px;
   margin: 4px 0 6px 16px;
-  border-left: 2px solid #e2e8f0;
+  border-left: 2px solid rgba(255, 255, 255, 0.18);
   overflow: hidden;
   transition: max-height 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
@@ -775,7 +793,7 @@ html.adm-theme-transitioning * {
   gap: 10px;
   padding: 8px 12px;
   border-radius: var(--adm-radius-sm);
-  color: var(--adm-text-muted);
+  color: #cbd5e1;
   font-size: 0.92rem;
   font-weight: 500;
   background: transparent;
@@ -787,21 +805,22 @@ html.adm-theme-transitioning * {
 }
 
 .adm-submenu-item:hover {
-  background: var(--adm-bg);
-  color: var(--adm-text-main);
+  background: rgba(37, 99, 235, 0.16);
+  color: #ffffff;
 }
 
 .adm-submenu-item.active {
-  background: var(--adm-purple-soft);
-  color: var(--adm-purple);
+  background: var(--adm-royal-blue, #2563eb);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30);
 }
 
 /* Sidebar Bottom Footer Profile & Logout */
 .adm-sidebar-footer {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid var(--adm-border-light);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -812,9 +831,10 @@ html.adm-theme-transitioning * {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: var(--adm-bg);
-  border: 1px solid var(--adm-border-light);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--adm-radius-md);
+  color: #ffffff;
 }
 
 .adm-sidebar-logout-btn {
@@ -824,10 +844,10 @@ html.adm-theme-transitioning * {
   gap: 8px;
   width: 100%;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid var(--adm-border-input);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--adm-radius-md);
-  color: var(--adm-rose);
+  color: #fda4af;
   font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
@@ -835,8 +855,9 @@ html.adm-theme-transitioning * {
 }
 
 .adm-sidebar-logout-btn:hover {
-  background: var(--adm-rose-soft);
-  border-color: var(--adm-rose-border);
+  background: #e11d48;
+  color: #ffffff;
+  border-color: #e11d48;
 }
 
 /* Desktop Collapsed Sidebar State */
@@ -1494,13 +1515,14 @@ html.adm-theme-transitioning * {
   max-width: 100%;
 }
 
-.adm-status-pill.active { background: var(--adm-emerald-soft); color: var(--adm-emerald); border: 1px solid rgba(5, 150, 105, 0.2); }
+.adm-status-pill.active { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
 .adm-status-pill.completed, .adm-status-pill.converted { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-.adm-status-pill.demo { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-.adm-status-pill.demoinactive, .adm-status-pill.demo-inactive { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid var(--adm-rose-border); }
-.adm-status-pill.inactive { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-.adm-status-pill.pending { background: var(--adm-amber-soft); color: var(--adm-amber); border: 1px solid rgba(217, 119, 6, 0.2); }
-.adm-status-pill.suspended, .adm-status-pill.expiring { background: var(--adm-rose-soft); color: var(--adm-rose); border: 1px solid rgba(225, 29, 72, 0.2); }
+.adm-status-pill.demo { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.adm-status-pill.demoinactive, .adm-status-pill.demo-inactive, .adm-status-pill.expired { background: #ffe4e6; color: #e11d48; border: 1px solid #fecdd3; }
+.adm-status-pill.inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.adm-status-pill.pending { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.adm-status-pill.suspended, .adm-status-pill.expiring { background: #ffe4e6; color: #e11d48; border: 1px solid #fecdd3; }
+.adm-status-pill.renewed, .adm-status-pill.teal { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
 .adm-status-pill.info,
 .adm-status-pill.purple,
 .adm-status-pill.blue {
@@ -2154,16 +2176,16 @@ input:checked + .adm-slider:before {
 
 .adm-finance-card {
   background: #ffffff;
-  border: 1px solid var(--adm-border);
-  border-radius: var(--adm-radius-xl);
-  padding: 24px 28px;
-  box-shadow: var(--adm-shadow-card);
+  border: 1px solid var(--adm-border, #e2e8f0);
+  border-radius: 14px;
+  padding: 22px 26px;
+  box-shadow: 0 1px 3px rgba(16, 42, 86, 0.04), 0 4px 12px rgba(16, 42, 86, 0.03);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+  transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.2s ease;
 }
 
 .adm-finance-card::after {
@@ -2172,36 +2194,73 @@ input:checked + .adm-slider:before {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   background: transparent;
 }
 
+/* Card 1: Total Amount Received — Emerald #059669 */
 .adm-finance-card.payment-received::after {
-  background: linear-gradient(90deg, #10b981, #059669);
+  background: #059669;
+}
+.adm-finance-card.payment-received .adm-finance-badge {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
 }
 
+/* Card 2: Total Business / Renewals — Amber #D97706 */
 .adm-finance-card.payment-due::after {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: #d97706;
+}
+.adm-finance-card.payment-due .adm-finance-badge {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
 
+/* Card 3: Annual Net Revenue — Royal Blue #1D4ED8 */
 .adm-finance-card.mrr-arr::after {
-  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  background: #1d4ed8;
+}
+.adm-finance-card.mrr-arr .adm-finance-badge {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
+/* Card 4: Total Customers — Cyan #0891B2 */
 .adm-finance-card.customer-ratio::after {
-  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+  background: #0891b2;
+}
+.adm-finance-card.customer-ratio .adm-finance-badge {
+  background: #ecfeff;
+  color: #0891b2;
+  border: 1px solid #a5f3fc;
 }
 
+/* Card 5: Cloud Users — Indigo #4F46E5 */
 .adm-finance-card.cloud-users::after {
-  background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+  background: #4f46e5;
+}
+.adm-finance-card.cloud-users .adm-finance-badge {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
 }
 
+/* Card 6: Upcoming Renewals — Teal #0F766E */
 .adm-finance-card.upcoming-renewals::after {
-  background: linear-gradient(90deg, #0284c7, #06b6d4);
+  background: #0f766e;
+}
+.adm-finance-card.upcoming-renewals .adm-finance-badge {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
 }
 
 .adm-finance-card:hover {
-  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(16, 42, 86, 0.08);
   border-color: #cbd5e1;
 }
 
@@ -2407,11 +2466,11 @@ input:checked + .adm-slider:before {
 }
 
 .adm-finance-value.emerald-val {
-  color: #065f46;
+  color: #059669;
 }
 
 .adm-finance-value.amber-val {
-  color: #b45309;
+  color: #d97706;
 }
 
 .adm-finance-value.purple-val {
@@ -2419,11 +2478,19 @@ input:checked + .adm-slider:before {
 }
 
 .adm-finance-value.blue-val {
-  color: #0369a1;
+  color: #102a56;
 }
 
 .adm-finance-value.cyan-val {
-  color: #0e7490;
+  color: #0891b2;
+}
+
+.adm-finance-value.indigo-val {
+  color: #4f46e5;
+}
+
+.adm-finance-value.teal-val {
+  color: #0f766e;
 }
 
 .adm-finance-caption {
@@ -2881,7 +2948,7 @@ input:checked + .adm-slider:before {
 }
 
 .adm-bar-grid-line {
-  stroke: #f1f5f9;
+  stroke: #e2e8f0;
   stroke-dasharray: 4 4;
   stroke-width: 1;
 }
@@ -2896,14 +2963,14 @@ input:checked + .adm-slider:before {
 }
 
 .adm-bar-x-label.active {
-  fill: #0f172a;
+  fill: #102a56;
   font-weight: 700;
 }
 
 .adm-bar-y-label {
   font-size: 10px;
   font-weight: 600;
-  fill: #94a3b8;
+  fill: #64748b;
   text-anchor: end;
   user-select: none;
 }
