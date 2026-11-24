@@ -534,12 +534,12 @@ export default function ConsoleShell({
                   </svg>
                 </span>
 
-                {/* Sliding Circular Knob (hidden for mobile responsive) */}
-                {!isMobile && <span className="adm-switch-knob" aria-hidden="true" />}
+                {/* Sliding Circular Knob (visible on desktop, hidden in responsive modes via CSS) */}
+                <span className="adm-switch-knob" aria-hidden="true" />
               </button>
             )}
 
-            <div style={{ position: 'relative' }}>
+            <div className="adm-header-notif-wrap" style={{ position: 'relative' }}>
               <button
                 type="button"
                 className={`adm-header-icon-btn ${isNotifOpen ? 'is-active' : ''}`}
