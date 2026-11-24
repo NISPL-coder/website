@@ -353,6 +353,7 @@ html[data-adm-theme='dark'] {
 }
 
 .adm-sk-overview-tables > * {
+  box-sizing: border-box;
   min-width: 0;
   padding: 14px;
   border: 1px solid var(--adm-sk-border);

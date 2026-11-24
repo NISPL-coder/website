@@ -15,6 +15,7 @@ import { customSelectStyles } from './reactSelectStyles';
 import { paymentApi } from '../../../services/paymentApi';
 import { staffApi } from '../../../services/staffApi';
 import { productApi } from '../../../services/productApi';
+import { SkeletonBar } from './AdminSkeleton';
 
 const PAYMENT_METHODS = [
   { value: 'NEFT / RTGS Wire', label: 'NEFT / RTGS Wire' },
@@ -97,6 +98,9 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
   }, [contracts, formState.company]);
 
   const [liveProducts, setLiveProducts] = useState(catalogue);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(
+    !Array.isArray(catalogue) || catalogue.length === 0
+  );
 
   useEffect(() => {
     if (Array.isArray(catalogue) && catalogue.length > 0) {
@@ -106,11 +110,17 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
 
   useEffect(() => {
     let cancelled = false;
-    productApi.getProducts().then((data) => {
-      if (!cancelled && Array.isArray(data)) {
-        setLiveProducts(data);
-      }
-    });
+    productApi
+      .getProducts()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setLiveProducts(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsLoadingProducts(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -144,9 +154,11 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
   );
 
   const [staffOptions, setStaffOptions] = useState([]);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoadingStaff(true);
     staffApi
       .getStaff()
       .then((rows) => {
@@ -165,6 +177,9 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
       .catch(() => {
         // Without user_access:view the list is empty and the admin types a name.
         if (!cancelled) setStaffOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingStaff(false);
       });
     return () => {
       cancelled = true;
@@ -425,43 +440,51 @@ export default function CreatePaymentPage({ payments, setPayments, customers = [
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Product / Plan sold</label>
-                <Select
-                  styles={customSelectStyles}
-                  isSearchable={true}
-                  options={productOptions}
-                  value={
-                    productOptions.find(
-                      (p) =>
-                        p.value === formState.productId ||
-                        p.product?.productId === formState.productId ||
-                        p.product?._id === formState.productId
-                    ) || null
-                  }
-                  onChange={(opt) => setFormState({ ...formState, productId: opt ? opt.value : '' })}
-                  placeholder="Select the plan this payment covers..."
-                  noOptionsMessage={() => 'No products created by admin'}
-                  classNamePrefix="react-select"
-                />
+                {isLoadingProducts ? (
+                  <SkeletonBar width="100%" height={40} radius={9} />
+                ) : (
+                  <Select
+                    styles={customSelectStyles}
+                    isSearchable={true}
+                    options={productOptions}
+                    value={
+                      productOptions.find(
+                        (p) =>
+                          p.value === formState.productId ||
+                          p.product?.productId === formState.productId ||
+                          p.product?._id === formState.productId
+                      ) || null
+                    }
+                    onChange={(opt) => setFormState({ ...formState, productId: opt ? opt.value : '' })}
+                    placeholder="Select the plan this payment covers..."
+                    noOptionsMessage={() => 'No products created by admin'}
+                    classNamePrefix="react-select"
+                  />
+                )}
               </div>
 
               <div className="adm-form-field">
                 <label className="adm-form-label">Sales person</label>
-                <CreatableSelect
-                  styles={customSelectStyles}
-                  isSearchable={true}
-                  options={staffOptions}
-                  value={
-                    formState.salesPerson
-                      ? { value: formState.salesPerson, label: formState.salesPerson }
-                      : null
-                  }
-                  onChange={(opt) => setFormState({ ...formState, salesPerson: opt ? opt.value : '' })}
-                  onCreateOption={(text) =>
-                    setFormState({ ...formState, salesPerson: text.trim() })
-                  }
-                  placeholder="Pick a team member or type a name..."
-                  classNamePrefix="react-select"
-                />
+                {isLoadingStaff ? (
+                  <SkeletonBar width="100%" height={40} radius={9} delay={80} />
+                ) : (
+                  <CreatableSelect
+                    styles={customSelectStyles}
+                    isSearchable={true}
+                    options={staffOptions}
+                    value={
+                      formState.salesPerson
+                        ? { value: formState.salesPerson, label: formState.salesPerson }
+                        : null
+                    }
+                    onChange={(opt) => setFormState({ ...formState, salesPerson: opt ? opt.value : '' })}
+                    onCreateOption={(text) =>
+                      setFormState({ ...formState, salesPerson: text.trim() })
+                    }
+                    placeholder="Pick a team member or type a name..."
+                    classNamePrefix="react-select"
+                  />
+                )}
               </div>
             </div>
           </div>

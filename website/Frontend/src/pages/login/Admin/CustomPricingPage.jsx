@@ -65,9 +65,11 @@ const numericCell = {
 export default function CustomPricingPage({ products, setProducts }) {
   const { can } = usePermissions();
   const navigate = useNavigate();
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoadingProducts(true);
     productApi
       .getProducts()
       .then((data) => {
@@ -75,7 +77,10 @@ export default function CustomPricingPage({ products, setProducts }) {
           setProducts(data);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setIsLoadingProducts(false);
+      });
     return () => {
       isMounted = false;
     };
@@ -428,6 +433,7 @@ export default function CustomPricingPage({ products, setProducts }) {
           <AdminDataTable
             columns={customColumns}
             data={customPlans}
+            progressPending={isLoadingProducts}
             keyField="id"
             defaultSortFieldId="name"
             defaultSortAsc={true}
@@ -446,6 +452,7 @@ export default function CustomPricingPage({ products, setProducts }) {
           <AdminDataTable
             columns={demoColumns}
             data={demoPlans}
+            progressPending={isLoadingProducts}
             keyField="id"
             defaultSortFieldId="name"
             defaultSortAsc={true}

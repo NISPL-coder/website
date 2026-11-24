@@ -7,6 +7,7 @@ import { productApi } from '../../../services/productApi';
 import { salesPersonApi } from '../../../services/salesPersonApi';
 import { customerApi } from '../../../services/customerApi';
 import { notificationApi } from '../../../services/notificationApi';
+import { SkeletonBar } from './AdminSkeleton';
 
 const PAYMENT_METHODS = [
   'NEFT / RTGS',
@@ -48,10 +49,12 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
   const [apiProducts, setApiProducts] = useState([]);
   const [apiSalesPersons, setApiSalesPersons] = useState([]);
   const [apiCustomers, setApiCustomers] = useState([]);
+  const [isLoadingLookups, setIsLoadingLookups] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     let isMounted = true;
+    setIsLoadingLookups(true);
     Promise.allSettled([
       productApi.getProducts().catch(() => []),
       salesPersonApi.getAll().catch(() => ({ data: [] })),
@@ -68,6 +71,8 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
       if (custRes.status === 'fulfilled' && Array.isArray(custRes.value)) {
         setApiCustomers(custRes.value);
       }
+    }).finally(() => {
+      if (isMounted) setIsLoadingLookups(false);
     });
     return () => { isMounted = false; };
   }, [isOpen]);
@@ -236,6 +241,13 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
             <X size={18} />
           </button>
         </div>
+
+        {isLoadingLookups && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <SkeletonBar width="140px" height={10} />
+            <span className="adm-sk-sr-only">Loading account, product and staff suggestions…</span>
+          </div>
+        )}
 
         {/* Form Body */}
         <form onSubmit={handleSubmit}>

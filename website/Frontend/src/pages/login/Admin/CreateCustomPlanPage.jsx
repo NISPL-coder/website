@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast';
 import { productApi } from '../../../services/productApi';
 import { customerApi } from '../../../services/customerApi';
+import { SkeletonBar } from './AdminSkeleton';
 import { GST_RATE_DEFAULT, formatINR } from '../../Dashboard/utils/pricingUtils';
 
 const DURATION_OPTIONS = ['7 Days', '15 Days', '1 Month', '3 Months', '6 Months', '1 Year'];
@@ -77,9 +78,11 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [customersList, setCustomersList] = useState([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoadingCustomers(true);
     customerApi
       .getCustomers()
       .then((list) => {
@@ -87,7 +90,10 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
           setCustomersList(list);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setIsLoadingCustomers(false);
+      });
     return () => {
       isMounted = false;
     };
@@ -632,36 +638,40 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                         <label className="adm-form-label" style={{ marginBottom: 0, fontWeight: 500, fontSize: '0.84rem' }}>
                           Select Customer <span className="adm-required-star">*</span>
                         </label>
-                        <select
-                          className="adm-form-input"
-                          value={form.targetCustomerEmail}
-                          onChange={(e) => {
-                            const selectedEmail = e.target.value;
-                            const matched = customersList.find(
-                              (c) => (c.email || '').toLowerCase() === selectedEmail.toLowerCase()
-                            );
-                            setForm((prev) => ({
-                              ...prev,
-                              targetCustomerEmail: selectedEmail,
-                              targetCustomerId: matched?.customerId || matched?.id || '',
-                              targetCustomerName: matched?.company || matched?.name || matched?.clientName || ''
-                            }));
-                          }}
-                          style={{ fontWeight: 400 }}
-                          required
-                        >
-                          <option value="">Select customer from registered accounts...</option>
-                          {customersList.map((c) => {
-                            const email = c.email || '';
-                            const name = c.company || c.name || c.clientName || 'Unnamed';
-                            const cid = c.customerId || c.id || '';
-                            return (
-                              <option key={email || cid} value={email}>
-                                {name} — {email} {cid ? `(${cid})` : ''}
-                              </option>
-                            );
-                          })}
-                        </select>
+                        {isLoadingCustomers ? (
+                          <SkeletonBar width="100%" height={40} radius={9} />
+                        ) : (
+                          <select
+                            className="adm-form-input"
+                            value={form.targetCustomerEmail}
+                            onChange={(e) => {
+                              const selectedEmail = e.target.value;
+                              const matched = customersList.find(
+                                (c) => (c.email || '').toLowerCase() === selectedEmail.toLowerCase()
+                              );
+                              setForm((prev) => ({
+                                ...prev,
+                                targetCustomerEmail: selectedEmail,
+                                targetCustomerId: matched?.customerId || matched?.id || '',
+                                targetCustomerName: matched?.company || matched?.name || matched?.clientName || ''
+                              }));
+                            }}
+                            style={{ fontWeight: 400 }}
+                            required
+                          >
+                            <option value="">Select customer from registered accounts...</option>
+                            {customersList.map((c) => {
+                              const email = c.email || '';
+                              const name = c.company || c.name || c.clientName || 'Unnamed';
+                              const cid = c.customerId || c.id || '';
+                              return (
+                                <option key={email || cid} value={email}>
+                                  {name} — {email} {cid ? `(${cid})` : ''}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        )}
 
                         {form.targetCustomerEmail && (
                           <div

@@ -24,6 +24,7 @@ import { customerApi } from '../../../services/customerApi';
 import { contractApi } from '../../../services/contractApi';
 import { generateCustomerPdf } from './utils/generateCustomerPdf';
 import { usePermissions } from './PermissionsContext';
+import { AdminTableSkeleton } from './AdminSkeleton';
 import { receiptsForCustomer } from './adminTableUtils';
 import { customerLifecycleLabel } from '../../../utils/customerLifecycle';
 import {
@@ -136,16 +137,29 @@ export default function ViewCustomerModal({
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
   const [internalContracts, setInternalContracts] = useState(contracts || []);
+  const [isLoadingContracts, setIsLoadingContracts] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     if (contracts && contracts.length > 0) {
       setInternalContracts(contracts);
+      setIsLoadingContracts(false);
     } else if (isOpen) {
-      contractApi.getContracts().then((res) => {
-        const list = res.contracts || res.data || res || [];
-        if (Array.isArray(list)) setInternalContracts(list);
-      }).catch((e) => console.warn('Failed to fetch contracts for modal:', e));
+      setIsLoadingContracts(true);
+      contractApi
+        .getContracts()
+        .then((res) => {
+          const list = res.contracts || res.data || res || [];
+          if (!cancelled && Array.isArray(list)) setInternalContracts(list);
+        })
+        .catch((e) => console.warn('Failed to fetch contracts for modal:', e))
+        .finally(() => {
+          if (!cancelled) setIsLoadingContracts(false);
+        });
     }
+    return () => {
+      cancelled = true;
+    };
   }, [contracts, isOpen]);
 
   // Active/purchased products for this customer
@@ -598,7 +612,14 @@ export default function ViewCustomerModal({
             )}
           </div>
 
-          {customerProducts.length === 0 ? (
+          {isLoadingContracts ? (
+            <AdminTableSkeleton
+              columns={5}
+              rows={3}
+              compact
+              label="Loading customer subscriptions"
+            />
+          ) : customerProducts.length === 0 ? (
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
               No active products or contracts found for this customer account.
             </p>
