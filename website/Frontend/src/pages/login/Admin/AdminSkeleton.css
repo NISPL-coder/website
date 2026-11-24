@@ -338,8 +338,18 @@ html[data-adm-theme='dark'] {
   flex: 1 1 auto;
   align-items: flex-end;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
   min-height: 160px;
   margin-top: 16px;
+}
+
+/* The bar component sets an inline width by default; chart bars must instead
+ * share the panel width so a narrow viewport never gets a horizontal scroll. */
+.adm-sk-chart-bars .adm-sk-bar {
+  flex: 1 1 0;
+  width: auto !important;
+  min-width: 0;
 }
 
 .adm-sk-overview-tables > * {

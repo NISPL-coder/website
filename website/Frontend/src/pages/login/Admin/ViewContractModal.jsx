@@ -28,6 +28,7 @@ import { contractApi } from '../../../services/contractApi';
 import { paymentApi } from '../../../services/paymentApi';
 import { generateContractPdf } from './utils/generateContractPdf';
 import { generateReceiptPdf } from '../../Dashboard/utils/generateReceiptPdf';
+import { AdminLedgerSkeleton } from './AdminSkeleton';
 import {
   contractStatusColor,
   contractPersonEmail,
@@ -481,7 +482,9 @@ export default function ViewContractModal({ contract, isOpen, onClose }) {
               )}
             </div>
 
-            {linkedPayments.length > 0 ? (
+            {loadingFinancials ? (
+              <AdminLedgerSkeleton rows={3} label="Fetching linked payments" />
+            ) : linkedPayments.length > 0 ? (
               <div>
                 {linkedPayments.map((p, i) => (
                   <div key={p.id || p.paymentId || i} className="vcm-payment-item">

@@ -14,6 +14,7 @@ import {
 } from '../../../services/notificationApi';
 import { authApi } from '../../../services/authApi';
 import { useIsMobile } from '../../../utils/useResponsive';
+import { AdminNotificationsSkeleton } from './AdminSkeleton';
 import {
   ADMIN_THEMES,
   applyAdminTheme,
@@ -418,7 +419,9 @@ export default function ConsoleShell({
                   aria-label="Search results"
                 >
                   {isSearchLoading && (
-                    <div className="adm-search-status">Searching your account…</div>
+                    <div className="adm-search-status adm-search-skeleton">
+                      <AdminNotificationsSkeleton rows={3} compact label="Searching your account" />
+                    </div>
                   )}
 
                   {!isSearchLoading && !flatResults.length && (

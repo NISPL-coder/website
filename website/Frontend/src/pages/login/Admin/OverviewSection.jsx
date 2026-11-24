@@ -48,6 +48,7 @@ import {
 import { compactSelectStyles } from './reactSelectStyles';
 import { dashboardApi } from '../../../services/dashboardApi';
 import AdminDataTable from './AdminDataTable';
+import { AdminOverviewSkeleton } from './AdminSkeleton';
 import DateRangeFilter from './DateRangeFilter';
 import RowActionMenu from './RowActionMenu';
 import { usePermissions } from './PermissionsContext';
@@ -158,10 +159,12 @@ export default function OverviewSection({
   const [selectedFY, setSelectedFY] = useState('2026-2027');
   const [apiOverview, setApiOverview] = useState(null);
   const [apiOverviewError, setApiOverviewError] = useState(null);
+  const [isApiLoading, setIsApiLoading] = useState(true);
 
   // Fetch dynamic overview metrics directly from backend API
   useEffect(() => {
     let isMounted = true;
+    setIsApiLoading(true);
     dashboardApi
       .getOverview({
         period: selectedPeriod,
@@ -183,6 +186,9 @@ export default function OverviewSection({
       .catch((err) => {
         console.warn('Dashboard overview API note:', err.message);
         if (isMounted) setApiOverviewError(err.message);
+      })
+      .finally(() => {
+        if (isMounted) setIsApiLoading(false);
       });
     return () => {
       isMounted = false;
@@ -2105,6 +2111,9 @@ export default function OverviewSection({
     }
   ];
   const recentContractColumns = overviewContractColumns;
+
+  // First API read shows a dashboard-shaped skeleton instead of zeroed KPIs.
+  if (isApiLoading && !apiOverview) return <AdminOverviewSkeleton />;
 
   return (
     <div className="adm-overview-container animate-fade-in">

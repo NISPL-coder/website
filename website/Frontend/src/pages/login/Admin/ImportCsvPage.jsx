@@ -40,6 +40,7 @@ import { paymentApi } from '../../../services/paymentApi';
 import { notificationApi } from '../../../services/notificationApi';
 import { notifyDataChanged } from '../../../utils/dataBus';
 import { usePermissions } from './PermissionsContext';
+import { AdminFormSkeleton } from './AdminSkeleton';
 import {
   contractStatusTone,
   normalizeContractStatus,
@@ -217,6 +218,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
   const [records, setRecords] = useState([]);
+  const [isParsing, setIsParsing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importResults, setImportResults] = useState(null);
   const [credentials, setCredentials] = useState(null);
@@ -319,6 +321,7 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
       return;
     }
 
+    setIsParsing(true);
     const parseStartedAt = performance.now();
     try {
       let rows = [];
@@ -505,6 +508,8 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
       );
     } catch (err) {
       toast.error(`Failed to read spreadsheet file: ${err.message}`);
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -875,26 +880,35 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                 handleFileSelect(e.dataTransfer.files[0]);
               }
             }}
-            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            onClick={() => {
+              if (isParsing) return;
+              fileInputRef.current && fileInputRef.current.click();
+            }}
           >
-            <div className="adm-import-dropzone-icon">
-              <Upload size={30} />
-            </div>
-            <h3 className="adm-import-dropzone-title">Click or drag &amp; drop Master Spreadsheet</h3>
-            <p className="adm-import-dropzone-sub">
-              Upload all customer, contract, and payment data in a single file. Supports Excel (.xlsx, .xls) and CSV (.csv) files with auto-detected headers.
-            </p>
-            <button
-              type="button"
-              className="adm-import-btn-browse"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current && fileInputRef.current.click();
-              }}
-            >
-              <FileUp size={16} style={{ color: '#2563eb' }} />
-              <span>Browse Master Spreadsheet (Excel / CSV)</span>
-            </button>
+            {isParsing ? (
+              <AdminFormSkeleton fields={6} title="Parsing spreadsheet" showActions={false} />
+            ) : (
+              <>
+                <div className="adm-import-dropzone-icon">
+                  <Upload size={30} />
+                </div>
+                <h3 className="adm-import-dropzone-title">Click or drag &amp; drop Master Spreadsheet</h3>
+                <p className="adm-import-dropzone-sub">
+                  Upload all customer, contract, and payment data in a single file. Supports Excel (.xlsx, .xls) and CSV (.csv) files with auto-detected headers.
+                </p>
+                <button
+                  type="button"
+                  className="adm-import-btn-browse"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current && fileInputRef.current.click();
+                  }}
+                >
+                  <FileUp size={16} style={{ color: '#2563eb' }} />
+                  <span>Browse Master Spreadsheet (Excel / CSV)</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Right: Specification Guide & Download Demo Template */}

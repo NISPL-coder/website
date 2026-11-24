@@ -21,6 +21,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { AdminNotificationsSkeleton } from './AdminSkeleton';
 import './NotificationPopover.css';
 
 export const formatTimeAgo = (dateStr) => {
@@ -399,7 +400,9 @@ export default function NotificationPopover({
 
       {/* Notifications List */}
       <div className="adm-notif-list">
-        {filteredNotifications.length === 0 ? (
+        {isLoading ? (
+          <AdminNotificationsSkeleton rows={4} compact label="Loading notifications" />
+        ) : filteredNotifications.length === 0 ? (
           <div className="adm-notif-empty">
             <div className="adm-notif-empty-icon">
               <Sparkles size={22} />

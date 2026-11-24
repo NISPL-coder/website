@@ -406,10 +406,7 @@ export default function NotificationsSection({ focusId }) {
 
       <div className="nts-list-card">
         {isLoading ? (
-          <div className="nts-loading-state">
-            <RefreshCw size={20} className="usr-spinner" />
-            <span>Loading live notification stream...</span>
-          </div>
+          <AdminNotificationsSkeleton rows={7} label="Loading live notification stream" />
         ) : rows.length === 0 ? (
           <div className="nts-empty-state">
             <div className="nts-empty-icon">

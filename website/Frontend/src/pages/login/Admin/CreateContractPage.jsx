@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { customSelectStyles } from './reactSelectStyles';
 import { contractApi } from '../../../services/contractApi';
 import { customerApi } from '../../../services/customerApi';
+import { AdminFormSkeleton } from './AdminSkeleton';
 import { CONTRACT_STATUSES, CONTRACT_TYPES } from './contractVocabulary';
 
 const statusOptions = CONTRACT_STATUSES.map((status) => ({ value: status, label: status }));
@@ -326,6 +327,9 @@ export default function CreateContractPage({ contracts, setContracts }) {
 
       {/* Main Form Container */}
       <div className="adm-table-card adm-form-card adm-create-contract-card">
+        {directoryState === 'loading' ? (
+          <AdminFormSkeleton fields={8} title="Loading customer directory" />
+        ) : (
         <form id="create-contract-form" onSubmit={handleSubmit}>
           <div className="adm-form-section adm-create-contract-section">
             <div
@@ -595,6 +599,7 @@ export default function CreateContractPage({ contracts, setContracts }) {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

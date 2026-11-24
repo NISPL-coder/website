@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -21,6 +21,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 // Shared console chrome (header + navigation rail + notification bell)
 import ConsoleShell from './ConsoleShell';
+import { AdminFullPageLoader } from './AdminSkeleton';
 
 // Components & Modular Sections
 import OverviewSection from './OverviewSection';
@@ -264,6 +265,8 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [sectionSearch, setSectionSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const hasBootstrappedRef = useRef(false);
 
   // Sync external search when navigating with route state (e.g. from Overview cards)
   useEffect(() => {
@@ -403,11 +406,35 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   }, [can]);
 
   useEffect(() => {
-    refreshAdminData();
+    let isMounted = true;
+
+    // The first data read owns the branded loading screen. Later refreshes
+    // (interval + data-bus) stay silent so the console never flashes a loader.
+    const bootstrap = async () => {
+      const startedAt = Date.now();
+      if (!hasBootstrappedRef.current) setIsInitialLoading(true);
+
+      await refreshAdminData();
+
+      if (hasBootstrappedRef.current) return;
+      // Keep the loader on screen long enough to be understood, even on a
+      // warm cache where the API answers immediately.
+      const remaining = Math.max(0, 700 - (Date.now() - startedAt));
+      if (remaining) await new Promise((resolve) => setTimeout(resolve, remaining));
+      if (!isMounted) return;
+
+      hasBootstrappedRef.current = true;
+      setIsInitialLoading(false);
+    };
+
+    bootstrap();
     const interval = setInterval(() => {
       refreshAdminData(['contracts', 'payments', 'customers']);
     }, 15000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [refreshAdminData]);
 
   // Mutations anywhere in the app (create/edit/delete/import) broadcast through
@@ -596,6 +623,13 @@ function AdminDashboardShell({ userSession, onSignOut }) {
   return (
     <>
       <Toaster position="top-right" />
+
+      {isInitialLoading && (
+        <AdminFullPageLoader
+          title="Preparing your admin console"
+          subtitle="Loading live records, permissions and preferences…"
+        />
+      )}
 
       <ConsoleShell
         brandTo="/admin/overview"

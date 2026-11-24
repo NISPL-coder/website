@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   Clock,
-  Sparkles,
   UserCheck,
   Tag,
   AlertCircle,
@@ -26,6 +25,7 @@ import { contractApi } from '../../../services/contractApi';
 import { productApi } from '../../../services/productApi';
 import { salesPersonApi } from '../../../services/salesPersonApi';
 import { customerApi } from '../../../services/customerApi';
+import { SkeletonBar } from './AdminSkeleton';
 import { notificationApi } from '../../../services/notificationApi';
 import {
   CONTRACT_STATUSES,
@@ -820,8 +820,9 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   <Layers size={13} /> Product, Service &amp; Sales Attribution
                 </span>
                 {isLoadingDropdowns && (
-                  <span style={{ fontSize: '0.72rem', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <Sparkles size={11} className="animate-spin" /> Loading API catalog...
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <SkeletonBar width="96px" height={10} radius={5} />
+                    <span className="adm-sk-sr-only">Loading API catalog...</span>
                   </span>
                 )}
               </div>
