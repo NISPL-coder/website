@@ -105,6 +105,14 @@
   vertical-align: middle;
 }
 
+.nis-fixed-footer-ctrls-logo.nis-ctrls-dark {
+  display: none !important;
+}
+
+.nis-fixed-footer-ctrls-logo.nis-ctrls-light {
+  display: inline-block !important;
+}
+
 /* =========================================================================
    DYNAMIC THEME (DARK / LIGHT) SUPPORT
    ========================================================================= */
@@ -134,8 +142,16 @@ html[data-adm-theme='dark'] .nis-fixed-footer-copowered {
   color: #cbd5e1;
 }
 
-html[data-adm-theme='dark'] .nis-fixed-footer-ctrls-logo {
-  filter: brightness(1.2) contrast(1.1);
+html[data-adm-theme='dark'] .nis-fixed-footer-ctrls-logo.nis-ctrls-light,
+html[data-theme='dark'] .nis-fixed-footer-ctrls-logo.nis-ctrls-light,
+html.dark .nis-fixed-footer-ctrls-logo.nis-ctrls-light {
+  display: none !important;
+}
+
+html[data-adm-theme='dark'] .nis-fixed-footer-ctrls-logo.nis-ctrls-dark,
+html[data-theme='dark'] .nis-fixed-footer-ctrls-logo.nis-ctrls-dark,
+html.dark .nis-fixed-footer-ctrls-logo.nis-ctrls-dark {
+  display: inline-block !important;
 }
 
 @media (max-width: 480px) {

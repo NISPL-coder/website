@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import ctrlsLogo from '../../assets/partners/ctrls.png';
+import ctrlsLogoWhite from '../../assets/partners/ctrls-white.png';
 import './FixedFooter.css';
 
 export default function FixedFooter() {
@@ -66,7 +67,13 @@ export default function FixedFooter() {
               <img 
                 src={ctrlsLogo} 
                 alt="CtrlS" 
-                className="nis-fixed-footer-ctrls-logo" 
+                className="nis-fixed-footer-ctrls-logo nis-ctrls-light" 
+                height="15"
+              />
+              <img 
+                src={ctrlsLogoWhite} 
+                alt="CtrlS" 
+                className="nis-fixed-footer-ctrls-logo nis-ctrls-dark" 
                 height="15"
               />
             </a>
