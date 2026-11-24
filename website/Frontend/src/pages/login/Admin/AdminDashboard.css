@@ -1988,8 +1988,8 @@ input:checked + .adm-slider:before {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     flex-shrink: 0;
   }
@@ -3783,14 +3783,14 @@ input:checked + .adm-slider:before {
     width: auto;
     flex: 1 1 auto;
     min-width: 0;
-    padding: 0 12px;
+    padding: 0 10px;
     justify-content: flex-start;
     border-right: none;
-    gap: 10px;
+    gap: 8px;
   }
 
   .adm-brand-logo {
-    max-height: 48px;
+    max-height: 52px;
     max-width: 100%;
     width: auto;
     height: auto;
@@ -3798,13 +3798,36 @@ input:checked + .adm-slider:before {
     object-position: left center;
   }
 
+  /* Compact header buttons in responsive mode to maximize logo visibility */
+  .adm-mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    border: 1px solid var(--adm-border-input);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--adm-text-main);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .adm-mobile-menu-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
   .adm-mobile-search-btn,
   .adm-mobile-search-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
     flex-shrink: 0;
     padding: 0;
     border: 1px solid var(--adm-border-input);
@@ -3812,6 +3835,93 @@ input:checked + .adm-slider:before {
     background: #ffffff;
     color: var(--adm-text-muted);
     cursor: pointer;
+  }
+
+  .adm-mobile-search-btn svg,
+  .adm-mobile-search-close svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .adm-header-icon-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .adm-header-icon-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .adm-theme-switch-pill {
+    width: 42px;
+    height: 23px;
+    min-width: 42px;
+  }
+
+  .adm-theme-switch-pill .adm-switch-knob {
+    width: 17px;
+    height: 17px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .adm-theme-switch-pill.is-light .adm-switch-knob {
+    transform: translateX(19px);
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-knob {
+    transform: translateX(0px);
+  }
+
+  .adm-switch-icon-sun svg,
+  .adm-switch-icon-moon svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .adm-profile-chip {
+    padding: 2px;
+    gap: 0;
+    border-radius: 50%;
+  }
+
+  .adm-profile-chip .adm-profile-meta,
+  .adm-profile-chip .adm-profile-completion-circle-box,
+  .adm-profile-chip .adm-profile-chevron {
+    display: none !important;
+  }
+
+  .adm-profile-chip .adm-profile-avatar,
+  .adm-profile-chip .adm-profile-avatar-img {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    font-size: 0.72rem;
+  }
+
+  .adm-badge-count {
+    top: -4px;
+    right: -4px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    font-size: 0.58rem;
+  }
+
+  .adm-header-main {
+    flex: 0 1 auto;
+    padding: 0 8px 0 0;
+  }
+
+  .adm-header-right {
+    gap: 5px;
   }
 
   .adm-mobile-search-btn:hover,
@@ -4479,8 +4589,8 @@ input:checked + .adm-slider:before {
 
   .adm-header-icon-btn,
   .adm-mobile-menu-btn {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
   }
 
   .adm-header-right {
@@ -4708,7 +4818,7 @@ input:checked + .adm-slider:before {
   }
 
   .adm-brand-logo {
-    max-height: 38px;
+    max-height: 46px;
     max-width: 100%;
     width: auto;
     height: auto;
@@ -4716,28 +4826,48 @@ input:checked + .adm-slider:before {
     object-position: left center;
   }
 
+  /* Sleek compact header controls on mobile devices to let logo be prominently visible */
   .adm-mobile-menu-btn,
   .adm-header-icon-btn,
   .adm-mobile-search-btn,
   .adm-mobile-search-close {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0;
+  }
+
+  .adm-mobile-menu-btn {
+    border-radius: 6px;
+  }
+
+  .adm-mobile-menu-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .adm-mobile-search-btn svg,
+  .adm-mobile-search-close svg,
+  .adm-header-icon-btn svg {
+    width: 13px;
+    height: 13px;
   }
 
   .adm-theme-switch-pill {
-    width: 48px;
-    height: 25px;
+    width: 34px;
+    height: 19px;
+    min-width: 34px;
   }
 
   .adm-theme-switch-pill .adm-switch-knob {
-    width: 19px;
-    height: 19px;
+    width: 13px;
+    height: 13px;
     top: 3px;
-    left: 3px;
+    left: 2px;
   }
 
   .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(23px);
+    transform: translateX(16px);
   }
 
   .adm-theme-switch-pill.is-dark .adm-switch-knob {
@@ -4746,38 +4876,53 @@ input:checked + .adm-slider:before {
 
   .adm-switch-icon-sun svg,
   .adm-switch-icon-moon svg {
-    width: 13px;
-    height: 13px;
+    width: 9px;
+    height: 9px;
+  }
+
+  .adm-header-main {
+    padding: 0 4px 0 0;
+  }
+
+  .adm-header-right {
+    gap: 4px;
   }
 
   .adm-header.has-mobile-search .adm-search-input {
-    font-size: 16px;
+    font-size: 15px;
   }
 
-  /* Keep the unread badge inside the 64px header instead of clipping it. */
+  /* Keep the unread badge inside the compact header */
   .adm-badge-count {
-    top: -6px;
-    right: -6px;
+    top: -3px;
+    right: -3px;
     width: auto;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 4px;
+    min-width: 13px;
+    height: 13px;
+    padding: 0 2px;
     border-radius: 999px;
-    font-size: 0.6rem;
+    font-size: 0.52rem;
   }
 
-  /* The account chip collapses to just the avatar + chevron. */
+  /* The account chip collapses to a sleek circular avatar */
   .adm-profile-chip {
-    padding: 4px;
-    gap: 6px;
+    padding: 1px;
+    gap: 0;
+    border-radius: 50%;
   }
 
-  .adm-profile-chip .adm-profile-completion-circle-box {
+  .adm-profile-chip .adm-profile-completion-circle-box,
+  .adm-profile-chip .adm-profile-chevron,
+  .adm-profile-chip .adm-profile-meta {
     display: none !important;
   }
 
-  .adm-profile-chip .adm-profile-chevron {
-    display: none;
+  .adm-profile-chip .adm-profile-avatar,
+  .adm-profile-chip .adm-profile-avatar-img {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    font-size: 0.65rem;
   }
 
   /* A couple of legacy section grids carry an inline 24px inset which would
@@ -4831,8 +4976,94 @@ input:checked + .adm-slider:before {
   }
 }
 
-/* ---------- Small phones (≤400px) ---------- */
-@media (max-width: 400px) {
+/* ---------- Small phones (≤380px) ---------- */
+@media (max-width: 380px) {
+  .adm-brand-logo {
+    max-height: 40px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .adm-header-left,
+  .adm-header-left.collapsed {
+    padding: 0 2px 0 3px;
+    gap: 4px;
+  }
+
+  .adm-header-main {
+    padding-right: 2px;
+  }
+
+  .adm-header-right {
+    gap: 3px;
+  }
+
+  .adm-mobile-menu-btn,
+  .adm-header-icon-btn,
+  .adm-mobile-search-btn,
+  .adm-mobile-search-close {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+  }
+
+  .adm-mobile-menu-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .adm-mobile-search-btn svg,
+  .adm-mobile-search-close svg,
+  .adm-header-icon-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .adm-theme-switch-pill {
+    width: 30px;
+    height: 17px;
+    min-width: 30px;
+  }
+
+  .adm-theme-switch-pill .adm-switch-knob {
+    width: 11px;
+    height: 11px;
+    top: 3px;
+    left: 2px;
+  }
+
+  .adm-theme-switch-pill.is-light .adm-switch-knob {
+    transform: translateX(13px);
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-knob {
+    transform: translateX(0px);
+  }
+
+  .adm-switch-icon-sun svg,
+  .adm-switch-icon-moon svg {
+    width: 8px;
+    height: 8px;
+  }
+
+  .adm-profile-chip {
+    padding: 0;
+  }
+
+  .adm-profile-chip .adm-profile-avatar,
+  .adm-profile-chip .adm-profile-avatar-img {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    font-size: 0.6rem;
+  }
+}
+
+/* ---------- Extra small phones (≤340px) ---------- */
+@media (max-width: 340px) {
   .adm-brand-logo {
     max-height: 34px;
     max-width: 100%;
@@ -4844,105 +5075,38 @@ input:checked + .adm-slider:before {
 
   .adm-header-left,
   .adm-header-left.collapsed {
-    padding: 0 2px 0 4px;
-    gap: 4px;
-  }
-
-  .adm-header-main {
-    padding-right: 4px;
+    padding: 0 1px;
+    gap: 2px;
   }
 
   .adm-header-right {
-    gap: 4px;
+    gap: 2px;
   }
 
   .adm-mobile-menu-btn,
   .adm-header-icon-btn,
   .adm-mobile-search-btn,
   .adm-mobile-search-close {
-    width: 33px;
-    height: 33px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
   }
 
   .adm-theme-switch-pill {
-    width: 44px;
-    height: 23px;
-  }
-
-  .adm-theme-switch-pill .adm-switch-knob {
-    width: 17px;
-    height: 17px;
-    top: 3px;
-    left: 3px;
-  }
-
-  .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(21px);
-  }
-
-  .adm-theme-switch-pill.is-dark .adm-switch-knob {
-    transform: translateX(0px);
-  }
-
-  .adm-switch-icon-sun svg,
-  .adm-switch-icon-moon svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  .adm-profile-chip {
-    padding: 2px;
-    gap: 3px;
-  }
-
-  .adm-profile-chip .adm-profile-avatar,
-  .adm-profile-chip .adm-profile-avatar-img {
     width: 28px;
-    height: 28px;
-  }
-}
-
-/* ---------- Extra small phones (≤340px) ---------- */
-@media (max-width: 340px) {
-  .adm-brand-logo {
-    max-height: 28px;
-    max-width: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    object-position: left center;
-  }
-
-  .adm-header-left,
-  .adm-header-left.collapsed {
-    padding: 0 2px;
-    gap: 3px;
-  }
-
-  .adm-header-right {
-    gap: 3px;
-  }
-
-  .adm-mobile-menu-btn,
-  .adm-header-icon-btn,
-  .adm-mobile-search-btn,
-  .adm-mobile-search-close {
-    width: 30px;
-    height: 30px;
-  }
-
-  .adm-theme-switch-pill {
-    width: 40px;
-    height: 22px;
+    height: 16px;
+    min-width: 28px;
   }
 
   .adm-theme-switch-pill .adm-switch-knob {
-    width: 16px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
+    top: 3px;
+    left: 2px;
   }
 
   .adm-theme-switch-pill.is-light .adm-switch-knob {
-    transform: translateX(18px);
+    transform: translateX(12px);
   }
 
   .adm-theme-switch-pill.is-dark .adm-switch-knob {

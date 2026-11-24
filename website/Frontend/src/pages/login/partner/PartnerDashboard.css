@@ -1963,6 +1963,29 @@
   }
   .pnd-mobile-menu-btn {
     display: inline-flex;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+  }
+  .pnd-mobile-menu-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .pnd-header-icon-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+  .pnd-header-icon-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+  .pnd-user-avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    font-size: 0.72rem;
   }
   .pnd-main-content {
     padding: 20px 16px 36px;
