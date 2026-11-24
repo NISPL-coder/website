@@ -880,11 +880,8 @@ html.adm-theme-transitioning * {
   overflow-x: hidden;
   box-sizing: border-box;
   max-width: 1600px;
-  background:
-    radial-gradient(ellipse at 12% 8%, rgba(37, 99, 235, 0.09) 0%, transparent 45%),
-    radial-gradient(ellipse at 88% 12%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 85%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
-    linear-gradient(155deg, #f0f7ff 0%, #e2effe 32%, #f3f8fe 68%, #ebf5ff 100%);
+  background-color: var(--adm-bg);
+  background-image: var(--adm-bg-gradient);
   background-attachment: fixed;
 }
 
