@@ -70,6 +70,7 @@ import { PermissionsProvider, usePermissions, MODULE_LABELS } from './Permission
 import { normalizeContractStatus } from './contractVocabulary';
 import { onDataChanged } from '../../../utils/dataBus';
 import './AdminThemeDark.css';
+import './AdminModalResponsive.css';
 
 const formatINR = (val) => {
   const num = Number(val);

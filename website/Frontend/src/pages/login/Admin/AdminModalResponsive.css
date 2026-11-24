@@ -1,0 +1,291 @@
+/* ------------------------------------------------------------------ *
+ * AdminModalResponsive.css
+ * Final responsive layer for every admin view / edit dialog.
+ *
+ * Most legacy dialogs paint their root padding, max-height and grid columns
+ * with React inline styles. This sheet is imported last and uses scoped
+ * !important overrides so those dialogs behave correctly on phones without
+ * rewriting every component. It only changes layout - colours stay owned by
+ * the light sheets / AdminThemeDark.css.
+ * ------------------------------------------------------------------ */
+
+/* ---------- Large phone / small tablet (<= 768px) ---------- */
+@media (max-width: 768px) {
+  /* Portal backdrop: start at the top so a tall dialog can scroll naturally
+     instead of being clipped by the viewport. */
+  .adm-modal-backdrop-portal {
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 10px !important;
+  }
+
+  .adm-modal-container,
+  .ecm-modal-container,
+  .vcm-modal-container,
+  .edit-cust-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: auto 0;
+    border-radius: 14px !important;
+    max-height: calc(100vh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  /* Override the inline "28px 32px" shell padding used by the view / edit
+     portals (customer, receipt, payment, plan, master record). */
+  .adm-modal-container[style*='padding: 28px 32px'],
+  .adm-modal-container[style*='padding: 24px 28px'] {
+    padding: 16px !important;
+  }
+
+  /* Inline-styled dialog sub-sections. */
+  .adm-modal-container > div[style*='padding: 22px 26px'],
+  .adm-modal-container > div[style*='padding: 20px 26px'],
+  .adm-modal-container > div[style*='padding: 20px 24px'],
+  .adm-modal-container > div[style*='padding: 16px 26px'],
+  .adm-modal-container form > div[style*='padding: 24px'],
+  .adm-awaiting-confirm-header {
+    padding: 14px 16px !important;
+  }
+
+  /* Dedicated CSS-driven dialogs. */
+  .ecm-header,
+  .vcm-header,
+  .edit-cust-header {
+    padding: 14px 16px !important;
+  }
+
+  .ecm-body,
+  .vcm-body,
+  .edit-cust-body {
+    padding: 14px 16px !important;
+  }
+
+  .ecm-footer,
+  .vcm-footer,
+  .edit-cust-footer {
+    padding: 12px 16px !important;
+  }
+
+  .ecm-card,
+  .vcm-card {
+    padding: 14px !important;
+  }
+
+  /* Add-on form has its own fixed inner scroll area. */
+  .adm-modal-container > form > div[style*='max-height: calc(85vh - 150px)'],
+  .adm-modal-container form > div[style*='max-height: calc(85vh - 150px)'] {
+    max-height: calc(100vh - 190px) !important;
+    max-height: calc(100dvh - 190px) !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Wide tables scroll inside their own card; never stretch the dialog. */
+  .adm-modal-container table,
+  .ecm-modal-container table,
+  .vcm-modal-container table,
+  .edit-cust-container table {
+    max-width: 100%;
+  }
+
+  .adm-modal-container [style*='overflow-x: auto'],
+  .ecm-modal-container [style*='overflow-x: auto'],
+  .vcm-modal-container [style*='overflow-x: auto'],
+  .edit-cust-container [style*='overflow-x: auto'] {
+    max-width: 100%;
+  }
+}
+
+/* ---------- Phones (<= 640px) ---------- */
+@media (max-width: 640px) {
+  /* Collapse every inline auto-fit grid (min columns of 140–280px) to a
+     single readable column. Applies to view customer, receipt, payment,
+     master record, plan and add-on dialogs. */
+  .adm-modal-container [style*='grid-template-columns'],
+  .ecm-modal-container [style*='grid-template-columns'],
+  .vcm-modal-container [style*='grid-template-columns'],
+  .edit-cust-container [style*='grid-template-columns'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .ecm-grid-2,
+  .ecm-grid-3,
+  .vcm-grid-2,
+  .vcm-grid-3,
+  .vcm-grid-4,
+  .vcm-metrics-banner,
+  .edit-cust-grid-2,
+  .edit-cust-grid-3,
+  .edit-cust-grid-4 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Header: title wraps, close button stays reachable on the right. */
+  .adm-modal-container > div:first-child[style*='space-between'],
+  .adm-awaiting-confirm-header,
+  .ecm-header,
+  .vcm-header,
+  .edit-cust-header {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  .adm-modal-container > div:first-child > div:first-child,
+  .ecm-header-left,
+  .vcm-header-left,
+  .edit-cust-header-left {
+    min-width: 0;
+    flex: 1 1 180px;
+  }
+
+  .ecm-header-title,
+  .vcm-header-title,
+  .edit-cust-title,
+  .adm-modal-container h2 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 1.05rem !important;
+  }
+
+  .ecm-header-meta,
+  .vcm-header-meta,
+  .edit-cust-meta {
+    flex-wrap: wrap !important;
+  }
+
+  .adm-modal-container > div:first-child > button,
+  .ecm-close-btn,
+  .vcm-close-btn,
+  .edit-cust-close-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* Footer actions wrap instead of being squeezed into one row. */
+  .adm-modal-footer,
+  .ecm-footer,
+  .vcm-footer,
+  .edit-cust-footer,
+  .adm-modal-container [style*='justify-content: flex-end'] {
+    flex-wrap: wrap !important;
+  }
+
+  .adm-modal-container [style*='justify-content: flex-end'] > button,
+  .vcm-footer > button,
+  .ecm-footer > button,
+  .edit-cust-footer > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Long monospace IDs / references must never force horizontal overflow. */
+  .adm-modal-container span[style*='monospace'],
+  .ecm-ref-chip,
+  .vcm-ref-chip,
+  .edit-cust-chip {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  /* Form controls fill the available width and stay tap-friendly. */
+  .adm-modal-container input,
+  .adm-modal-container select,
+  .adm-modal-container textarea,
+  .ecm-input,
+  .ecm-select,
+  .ecm-textarea,
+  .edit-cust-input,
+  .edit-cust-select {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .adm-modal-container [class*='__control'] {
+    max-width: 100%;
+  }
+}
+
+/* ---------- Small phones (<= 480px) ---------- */
+@media (max-width: 480px) {
+  .adm-modal-backdrop-portal {
+    padding: 6px !important;
+  }
+
+  .adm-modal-container[style*='padding: 28px 32px'],
+  .adm-modal-container[style*='padding: 24px 28px'] {
+    padding: 12px !important;
+  }
+
+  .ecm-header,
+  .vcm-header,
+  .edit-cust-header,
+  .ecm-body,
+  .vcm-body,
+  .edit-cust-body {
+    padding: 12px !important;
+  }
+
+  .ecm-footer,
+  .vcm-footer,
+  .edit-cust-footer {
+    padding: 10px 12px !important;
+  }
+
+  .ecm-card,
+  .vcm-card {
+    padding: 12px !important;
+  }
+
+  /* Full-width primary/secondary actions are easier to hit on a phone. */
+  .adm-modal-container [style*='justify-content: flex-end'] > button,
+  .vcm-footer > button,
+  .ecm-footer > button,
+  .edit-cust-footer > button,
+  .ecm-btn-cancel,
+  .ecm-btn-save,
+  .edit-cust-btn-cancel,
+  .edit-cust-btn-save {
+    width: 100%;
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .adm-modal-container > div:first-child > button,
+  .ecm-close-btn,
+  .vcm-close-btn,
+  .edit-cust-close-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px;
+  }
+}
+
+/* ---------- Very small phones (<= 360px) ---------- */
+@media (max-width: 360px) {
+  .adm-modal-container,
+  .ecm-modal-container,
+  .vcm-modal-container,
+  .edit-cust-container {
+    border-radius: 10px !important;
+  }
+
+  .adm-modal-container[style*='padding: 28px 32px'],
+  .adm-modal-container[style*='padding: 24px 28px'],
+  .ecm-header,
+  .vcm-header,
+  .edit-cust-header,
+  .ecm-body,
+  .vcm-body,
+  .edit-cust-body {
+    padding: 10px !important;
+  }
+
+  .ecm-header-title,
+  .vcm-header-title,
+  .edit-cust-title,
+  .adm-modal-container h2 {
+    font-size: 1rem !important;
+  }
+}
