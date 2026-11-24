@@ -116,11 +116,15 @@
   display: flex;
   align-items: center;
   text-decoration: none;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .pnd-brand-logo {
-  height: 65px;
+  max-height: 58px;
+  max-width: 100%;
   width: auto;
+  height: auto;
   object-fit: contain;
   display: block;
 }
@@ -1983,6 +1987,12 @@
   }
   .pnd-header {
     padding: 10px 16px;
+  }
+  .pnd-brand-logo {
+    max-height: 42px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
   }
   .pnd-search-kbd {
     display: none;

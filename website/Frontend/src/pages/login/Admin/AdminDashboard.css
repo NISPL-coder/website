@@ -170,16 +170,20 @@
   align-items: center;
   text-decoration: none;
   min-width: 0;
-  overflow: hidden;
-  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow: visible;
+  flex: 1 1 auto;
 }
 
 .adm-brand-logo {
-  height: 68px;
+  max-height: 58px;
+  max-width: 100%;
   width: auto;
+  height: auto;
   object-fit: contain;
   object-position: left center;
-  flex-shrink: 0;
+  flex-shrink: 1;
   display: block;
 }
 
@@ -3777,11 +3781,21 @@ input:checked + .adm-slider:before {
   .adm-header-left,
   .adm-header-left.collapsed {
     width: auto;
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
     padding: 0 12px;
     justify-content: flex-start;
     border-right: none;
+    gap: 10px;
+  }
+
+  .adm-brand-logo {
+    max-height: 48px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
   }
 
   .adm-mobile-search-btn,
@@ -4024,12 +4038,19 @@ input:checked + .adm-slider:before {
 @media (max-width: 640px) {
   .adm-header-left,
   .adm-header-left.collapsed {
-    padding: 0 8px 0 10px;
+    padding: 0 6px 0 8px;
     gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .adm-brand-logo {
-    height: 55px;
+    max-height: 44px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
   }
 
   /* Icon-only header actions to save horizontal space */
@@ -4260,10 +4281,6 @@ input:checked + .adm-slider:before {
 @media (max-width: 480px) {
   .adm-main-content {
     padding: 12px 10px 28px;
-  }
-
-  .adm-brand-logo {
-    height: 34px;
   }
 
   .adm-header-main {
@@ -4684,20 +4701,53 @@ input:checked + .adm-slider:before {
 
   .adm-header-left,
   .adm-header-left.collapsed {
-    padding: 0 8px 0 6px;
+    padding: 0 4px 0 6px;
     gap: 6px;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .adm-brand-logo {
-    height: 40px;
+    max-height: 38px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
   }
 
   .adm-mobile-menu-btn,
   .adm-header-icon-btn,
   .adm-mobile-search-btn,
   .adm-mobile-search-close {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .adm-theme-switch-pill {
+    width: 48px;
+    height: 25px;
+  }
+
+  .adm-theme-switch-pill .adm-switch-knob {
+    width: 19px;
+    height: 19px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .adm-theme-switch-pill.is-light .adm-switch-knob {
+    transform: translateX(23px);
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-knob {
+    transform: translateX(0px);
+  }
+
+  .adm-switch-icon-sun svg,
+  .adm-switch-icon-moon svg {
+    width: 13px;
+    height: 13px;
   }
 
   .adm-header.has-mobile-search .adm-search-input {
@@ -4784,26 +4834,119 @@ input:checked + .adm-slider:before {
 /* ---------- Small phones (≤400px) ---------- */
 @media (max-width: 400px) {
   .adm-brand-logo {
-    height: 50px;
+    max-height: 34px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .adm-header-left,
+  .adm-header-left.collapsed {
+    padding: 0 2px 0 4px;
+    gap: 4px;
   }
 
   .adm-header-main {
-    padding-right: 6px;
+    padding-right: 4px;
   }
 
   .adm-header-right {
-    gap: 5px;
+    gap: 4px;
+  }
+
+  .adm-mobile-menu-btn,
+  .adm-header-icon-btn,
+  .adm-mobile-search-btn,
+  .adm-mobile-search-close {
+    width: 33px;
+    height: 33px;
+  }
+
+  .adm-theme-switch-pill {
+    width: 44px;
+    height: 23px;
+  }
+
+  .adm-theme-switch-pill .adm-switch-knob {
+    width: 17px;
+    height: 17px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .adm-theme-switch-pill.is-light .adm-switch-knob {
+    transform: translateX(21px);
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-knob {
+    transform: translateX(0px);
+  }
+
+  .adm-switch-icon-sun svg,
+  .adm-switch-icon-moon svg {
+    width: 12px;
+    height: 12px;
   }
 
   .adm-profile-chip {
-    padding: 3px;
-    gap: 4px;
+    padding: 2px;
+    gap: 3px;
   }
 
   .adm-profile-chip .adm-profile-avatar,
   .adm-profile-chip .adm-profile-avatar-img {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ---------- Extra small phones (≤340px) ---------- */
+@media (max-width: 340px) {
+  .adm-brand-logo {
+    max-height: 28px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .adm-header-left,
+  .adm-header-left.collapsed {
+    padding: 0 2px;
+    gap: 3px;
+  }
+
+  .adm-header-right {
+    gap: 3px;
+  }
+
+  .adm-mobile-menu-btn,
+  .adm-header-icon-btn,
+  .adm-mobile-search-btn,
+  .adm-mobile-search-close {
     width: 30px;
     height: 30px;
+  }
+
+  .adm-theme-switch-pill {
+    width: 40px;
+    height: 22px;
+  }
+
+  .adm-theme-switch-pill .adm-switch-knob {
+    width: 16px;
+    height: 16px;
+  }
+
+  .adm-theme-switch-pill.is-light .adm-switch-knob {
+    transform: translateX(18px);
+  }
+
+  .adm-theme-switch-pill.is-dark .adm-switch-knob {
+    transform: translateX(0px);
   }
 }
 

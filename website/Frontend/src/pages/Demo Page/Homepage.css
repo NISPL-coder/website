@@ -139,8 +139,10 @@
 }
 
 .demo-brand-logo-img {
-  height: 75px;
+  max-height: 70px;
+  max-width: 100%;
   width: auto;
+  height: auto;
   object-fit: contain;
   display: block;
   transition: transform 0.2s ease, filter 0.2s ease;
@@ -2216,11 +2218,14 @@
   }
 
   .demo-brand-logo-img {
-    height: 55px;
+    max-height: 48px;
+    max-width: 100%;
     width: auto;
+    height: auto;
     object-fit: contain;
-    margin-left: 10px;
+    margin-left: 8px;
   }
+
 
   .demo-nav-actions {
     gap: 6px;
@@ -2239,9 +2244,11 @@
   }
 
   .demo-brand-logo-img {
-    height: 48px;
-    /* max-height: 30px;
-    max-width: 130px; */
+    max-height: 40px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
   }
 
   .demo-contact-pill-btn {
