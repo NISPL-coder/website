@@ -986,12 +986,21 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_paginationRange {
 }
 
 html[data-adm-theme='dark'] .admin-datatable .rdt_selectWrapper {
-  background: var(--adm-surface-raised);
-  border-color: var(--adm-border-input);
+  background: var(--adm-surface-raised, #172033);
+  border-color: var(--adm-border-input, #33415c);
 }
 
 html[data-adm-theme='dark'] .admin-datatable .rdt_selectControl {
-  color: var(--adm-text-main);
+  background: var(--adm-surface-raised, #172033) !important;
+  color: var(--adm-text-main, #e9eefb) !important;
+  color-scheme: dark !important;
+}
+
+html[data-adm-theme='dark'] .admin-datatable .rdt_selectControl option,
+html[data-adm-theme='dark'] .admin-datatable select option,
+html[data-adm-theme='dark'] .adm-col-search-select option {
+  background-color: #172033 !important;
+  color: #e9eefb !important;
 }
 
 html[data-adm-theme='dark'] .admin-datatable .rdt_paginationButton {
@@ -1085,10 +1094,13 @@ html[data-adm-theme='dark'] :is(
   color: var(--adm-text-light);
 }
 
+html[data-adm-theme='dark'] select option,
 html[data-adm-theme='dark'] select.adm-form-input option,
-html[data-adm-theme='dark'] .adm-fy-select option {
-  background: var(--adm-surface-raised);
-  color: var(--adm-text-main);
+html[data-adm-theme='dark'] .adm-fy-select option,
+html[data-adm-theme='dark'] .adm-select-filter option,
+html[data-adm-theme='dark'] .adm-card-select option {
+  background: var(--adm-surface-raised, #172033) !important;
+  color: var(--adm-text-main, #e9eefb) !important;
 }
 
 html[data-adm-theme='dark'] .adm-form-section,

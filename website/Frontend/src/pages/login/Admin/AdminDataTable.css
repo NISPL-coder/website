@@ -351,6 +351,34 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_row:hover {
   font-size: 0.8rem;
   font-weight: 600;
   color: #475569;
+  background-color: transparent;
+  color-scheme: light;
+}
+
+.admin-datatable .rdt_selectControl option,
+.admin-datatable select option,
+.admin-datatable .adm-col-search-select option {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+/* Dark mode select options in datatable */
+html[data-adm-theme='dark'] .admin-datatable .rdt_selectWrapper {
+  background: #172033;
+  border-color: #33415c;
+}
+
+html[data-adm-theme='dark'] .admin-datatable .rdt_selectControl {
+  background-color: #172033 !important;
+  color: #e9eefb !important;
+  color-scheme: dark !important;
+}
+
+html[data-adm-theme='dark'] .admin-datatable .rdt_selectControl option,
+html[data-adm-theme='dark'] .admin-datatable select option,
+html[data-adm-theme='dark'] .admin-datatable .adm-col-search-select option {
+  background-color: #172033 !important;
+  color: #e9eefb !important;
 }
 
 .admin-datatable .rdt_paginationButton {
