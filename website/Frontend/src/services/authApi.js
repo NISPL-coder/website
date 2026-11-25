@@ -141,6 +141,7 @@ export const authApi = {
   async login(credentials) {
     const res = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -167,6 +168,7 @@ export const authApi = {
   async verify2FA(payload) {
     const res = await fetch(`${API_BASE_URL}/2fa/verify`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -449,6 +451,19 @@ export const authApi = {
     }
   },
 
+  async refreshSession() {
+    const res = await fetch(`${API_BASE_URL}/refresh`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success || !data.accessToken || !data.user) {
+      throw new Error(data.error || data.message || 'Session refresh failed.');
+    }
+    this.setAuthSession(data.accessToken, data.user, data.session || null);
+    return data;
+  },
+
   /**
    * Sign out: clear local session first, then revoke the server-side session.
    * keepalive lets the revocation survive the caller's page redirect.
@@ -456,16 +471,15 @@ export const authApi = {
   async logout() {
     const token = this.getAuthToken();
     this.clearAuthSession();
-    if (token) {
-      try {
-        await fetch(`${API_BASE_URL}/logout`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          keepalive: true
-        });
-      } catch {
-        // Best-effort revocation; the local session is already gone.
-      }
+    try {
+      await fetch(`${API_BASE_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        keepalive: true
+      });
+    } catch {
+      // Best-effort revocation; the local session is already gone.
     }
   },
 

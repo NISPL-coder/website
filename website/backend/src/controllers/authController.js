@@ -41,6 +41,7 @@ async function issueSession(user, req, res, startedAt = new Date(), rememberMe =
     expiresAt: new Date(Math.min(decoded.exp * 1000, startedAt.getTime() + sessionMaxMs)),
     startedAt,
     lastActivityAt: new Date(),
+    rememberMe: Boolean(rememberMe),
     userAgent: req.get('user-agent'),
     ipAddress: req.ip
   });
@@ -359,7 +360,9 @@ export async function refresh(req, res) {
   const tokenHash = hashToken(token);
   const session = await Session.findOne({ refreshTokenHash: tokenHash, revokedAt: null });
   if (!session || session.expiresAt <= new Date()) throw new HttpError(401, 'Refresh session has expired.');
-  if (Date.now() - session.lastActivityAt.getTime() > env.SESSION_IDLE_MINUTES * 60 * 1000) {
+  const isRemembered = Boolean(session.rememberMe);
+  const idleLimitMs = (isRemembered ? 7 * 24 * 60 : env.SESSION_IDLE_MINUTES) * 60 * 1000;
+  if (Date.now() - session.lastActivityAt.getTime() > idleLimitMs) {
     throw new HttpError(401, 'You were signed out after a period of inactivity. Please sign in again.');
   }
 
@@ -368,9 +371,21 @@ export async function refresh(req, res) {
 
   session.revokedAt = new Date();
   await session.save();
-  // Rotating the refresh token must not reset the one-day login cap.
-  const { accessToken, session: nextSession } = await issueSession(user, req, res, session.startedAt || session.createdAt);
-  res.json({ success: true, accessToken, user: user.toSafeJSON(), session: sessionPolicy(nextSession) });
+  // Rotating the refresh token preserves the original session start cap and rememberMe policy.
+  const { accessToken, session: nextSession } = await issueSession(
+    user,
+    req,
+    res,
+    session.startedAt || session.createdAt,
+    isRemembered
+  );
+  res.json({
+    success: true,
+    accessToken,
+    user: user.toSafeJSON(),
+    session: sessionPolicy(nextSession, isRemembered),
+    rememberMe: isRemembered
+  });
 }
 
 export async function logout(req, res) {

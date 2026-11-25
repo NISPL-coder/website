@@ -6,6 +6,7 @@ const sessionSchema = new mongoose.Schema({
   expiresAt: { type: Date, required: true, index: { expires: 0 } },
   startedAt: { type: Date, default: Date.now },
   lastActivityAt: { type: Date, default: Date.now },
+  rememberMe: { type: Boolean, default: false },
   revokedAt: { type: Date, default: null },
   userAgent: String,
   ipAddress: String

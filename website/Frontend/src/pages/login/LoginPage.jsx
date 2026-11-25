@@ -118,25 +118,49 @@ export default function LoginPage({ lockedPortal }) {
     }
   }, [location.pathname, urlPortal, navigate]);
 
-  // If already authenticated with a valid token, redirect to active portal dashboard
+  // If already authenticated with a valid token (or valid Remember Me refresh cookie), redirect to active portal dashboard
   useEffect(() => {
-    const checkAuthAndRedirect = () => {
+    let cancelled = false;
+    const redirectForUser = (user) => {
+      const currentRole = user?.role;
+      if (currentRole === 'customer' && (activePortal === 'customer' || location.pathname.includes('customer'))) {
+        navigate('/customer/overview', { replace: true });
+        return true;
+      }
+      if (['admin', 'manager', 'support'].includes(currentRole) && activePortal === 'admin') {
+        navigate('/admin/overview', { replace: true });
+        return true;
+      }
+      if (currentRole === 'partner' && activePortal === 'partner') {
+        navigate('/partner-dashboard', { replace: true });
+        return true;
+      }
+      return false;
+    };
+
+    const checkAuthAndRedirect = async () => {
       if (authApi.isAuthenticated()) {
-        const user = authApi.getCurrentUser();
-        const currentRole = user?.role;
-        if (currentRole === 'customer' && (activePortal === 'customer' || location.pathname.includes('customer'))) {
-          navigate('/customer/overview', { replace: true });
-        } else if (['admin', 'manager', 'support'].includes(currentRole) && activePortal === 'admin') {
-          navigate('/admin/overview', { replace: true });
-        } else if (currentRole === 'partner' && activePortal === 'partner') {
-          navigate('/partner-dashboard', { replace: true });
+        redirectForUser(authApi.getCurrentUser());
+        return;
+      }
+
+      // If Remember Me is enabled for this portal, attempt silent session restore via /api/auth/refresh
+      try {
+        if (localStorage.getItem(`nispl_${activePortal || 'customer'}_remember_me`) === 'true') {
+          const refreshed = await authApi.refreshSession();
+          if (!cancelled && refreshed?.user) {
+            redirectForUser(refreshed.user);
+          }
         }
+      } catch {
+        // Refresh cookie absent, expired, or logged out — stay on login page
       }
     };
 
     checkAuthAndRedirect();
     window.addEventListener('nispl_auth_change', checkAuthAndRedirect);
     return () => {
+      cancelled = true;
       window.removeEventListener('nispl_auth_change', checkAuthAndRedirect);
     };
   }, [activePortal, location.pathname, navigate]);
@@ -194,9 +218,9 @@ export default function LoginPage({ lockedPortal }) {
     return () => { isMounted = false; };
   }, []);
 
-  // Remember Me & Email persistence keys
-  const REMEMBER_KEY = 'nispl_customer_remember_me';
-  const REMEMBERED_EMAIL_KEY = 'nispl_customer_remembered_email';
+  // Remember Me & Email persistence keys (scoped per portal: admin, customer, partner)
+  const REMEMBER_KEY = `nispl_${activePortal || 'customer'}_remember_me`;
+  const REMEMBERED_EMAIL_KEY = `nispl_${activePortal || 'customer'}_remembered_email`;
 
   // Form Fields State (initialized dynamically based on remembered preferences)
   const [rememberMe, setRememberMe] = useState(() => {
@@ -216,6 +240,19 @@ export default function LoginPage({ lockedPortal }) {
       return '';
     }
   });
+
+  // Sync Remember Me & remembered email whenever the active portal changes
+  useEffect(() => {
+    try {
+      const isRemembered = localStorage.getItem(REMEMBER_KEY) === 'true';
+      const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || '';
+      setRememberMe(isRemembered);
+      setEmail(isRemembered ? savedEmail : '');
+    } catch {
+      setRememberMe(false);
+      setEmail('');
+    }
+  }, [REMEMBER_KEY, REMEMBERED_EMAIL_KEY]);
 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -338,19 +375,18 @@ export default function LoginPage({ lockedPortal }) {
           throw new Error('This account does not have Partner Portal access.');
         }
 
-        // Persist or clear Remember Me preferences for Customer Portal
-        if (activePortal === 'customer') {
-          try {
-            if (rememberMe) {
-              localStorage.setItem(REMEMBER_KEY, 'true');
-              localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
-            } else {
-              localStorage.removeItem(REMEMBER_KEY);
-              localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-            }
-          } catch (e) {
-            // ignore localStorage quota/privacy errors
+        // Persist or clear Remember Me preferences for the active portal
+        const effectiveRememberMe = response?.rememberMe !== undefined ? Boolean(response.rememberMe) : Boolean(rememberMe);
+        try {
+          if (effectiveRememberMe) {
+            localStorage.setItem(REMEMBER_KEY, 'true');
+            localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+          } else {
+            localStorage.removeItem(REMEMBER_KEY);
+            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
           }
+        } catch (e) {
+          // ignore localStorage quota/privacy errors
         }
 
         // Navigate immediately to appropriate overview
@@ -399,6 +435,19 @@ export default function LoginPage({ lockedPortal }) {
         tempToken: twoFactorState?.tempToken,
         code: twoFactorCode.trim().replace(/\s+/g, '')
       });
+
+      const effectiveRememberMe = res?.rememberMe !== undefined ? Boolean(res.rememberMe) : Boolean(rememberMe);
+      try {
+        if (effectiveRememberMe) {
+          localStorage.setItem(REMEMBER_KEY, 'true');
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, (twoFactorState?.email || email).trim());
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+      } catch {
+        // ignore localStorage errors
+      }
 
       if (res?.recoveryCodes && res.recoveryCodes.length > 0) {
         setBackupRecoveryCodes(res.recoveryCodes);
@@ -952,7 +1001,7 @@ export default function LoginPage({ lockedPortal }) {
                       className="admin-glass-input"
                       placeholder="Email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       autoComplete="username"
                       required
                     />
@@ -989,7 +1038,7 @@ export default function LoginPage({ lockedPortal }) {
                       <input
                         type="checkbox"
                         checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
+                        onChange={(e) => handleRememberMeToggle(e.target.checked)}
                       />
                       <span>Remember me</span>
                     </label>
