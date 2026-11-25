@@ -1250,9 +1250,9 @@
    ========================================================================== */
 .ebolt-login-viewport.is-admin-glass {
   background:
-    radial-gradient(ellipse 720px 520px at 50% 46%, rgba(176, 194, 206, 0.34) 0%, rgba(114, 134, 148, 0) 68%),
-    radial-gradient(circle at 18% 22%, rgba(203, 213, 225, 0.16) 0%, transparent 45%),
-    linear-gradient(135deg, #5b6d7a 0%, #7d909d 34%, #6f828f 66%, #4e606d 100%);
+    radial-gradient(ellipse 680px 520px at 50% 46%, rgba(186, 214, 232, 0.24) 0%, rgba(114, 134, 148, 0) 68%),
+    radial-gradient(circle at 18% 22%, rgba(203, 224, 238, 0.16) 0%, transparent 45%),
+    linear-gradient(135deg, #4b6173 0%, #6d8496 36%, #5f7688 68%, #435768 100%);
 }
 
 .admin-glass-spheres {
@@ -1373,21 +1373,21 @@
   border-radius: 28px;
   background: linear-gradient(
     142deg,
-    rgba(255, 255, 255, 0.32) 0%,
-    rgba(255, 255, 255, 0.14) 42%,
-    rgba(255, 255, 255, 0.06) 72%,
-    rgba(255, 255, 255, 0.22) 100%
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(255, 255, 255, 0.02) 72%,
+    rgba(255, 255, 255, 0.10) 100%
   );
-  backdrop-filter: blur(28px) saturate(165%) contrast(104%);
-  -webkit-backdrop-filter: blur(28px) saturate(165%) contrast(104%);
-  border: 1.5px solid rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(18px) saturate(145%) brightness(1.06);
+  -webkit-backdrop-filter: blur(18px) saturate(145%) brightness(1.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.44);
   box-shadow:
-    0 32px 72px rgba(10, 18, 28, 0.36),
-    0 10px 26px rgba(15, 23, 42, 0.2),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.85),
-    inset 0 -2px 4px rgba(255, 255, 255, 0.42),
-    inset 1.5px 0 3px rgba(255, 255, 255, 0.32),
-    inset -1.5px 0 3px rgba(255, 255, 255, 0.22);
+    0 32px 72px rgba(8, 16, 26, 0.38),
+    0 10px 26px rgba(15, 23, 42, 0.22),
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.75),
+    inset 0 -1.5px 3px rgba(255, 255, 255, 0.28),
+    inset 1.5px 0 3px rgba(255, 255, 255, 0.24),
+    inset -1.5px 0 3px rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
@@ -1399,10 +1399,10 @@
   border-radius: inherit;
   background: linear-gradient(
     125deg,
-    rgba(255, 255, 255, 0.24) 0%,
-    rgba(255, 255, 255, 0.05) 32%,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.02) 28%,
     transparent 55%,
-    rgba(255, 255, 255, 0.1) 100%
+    rgba(255, 255, 255, 0.05) 100%
   );
   pointer-events: none;
   z-index: 0;

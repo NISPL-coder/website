@@ -916,6 +916,19 @@ export default function LoginPage({ lockedPortal }) {
                       <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span>{errorMessage}</span>
                     </div>
+                    {errorMessage.includes('Customer Portal') && (
+                      <button
+                        type="button"
+                        className="ebolt-error-action-btn"
+                        onClick={() => {
+                          setErrorMessage('');
+                          handleSelectPortal('customer');
+                          navigate('/customer-login');
+                        }}
+                      >
+                        Go to Customer Portal &rarr;
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -992,16 +1005,15 @@ export default function LoginPage({ lockedPortal }) {
                     {isLoading ? <span className="ebolt-spinner" /> : 'Login'}
                   </button>
 
-                  {/* Bottom Register Link */}
-                  <div className="admin-glass-register">
-                    <span>Don&apos;t have an account? </span>
-                    <Link
-                      to={adminConfigLoaded && !adminExists ? '/admin/create' : '/customer-login'}
-                      className="admin-glass-register-link"
-                    >
-                      Register
-                    </Link>
-                  </div>
+                  {/* Create Admin Option (only shown when no admin exists yet) */}
+                  {activePortal === 'admin' && adminConfigLoaded && !adminExists && (
+                    <div className="admin-glass-register animate-fade-in">
+                      <span>Are you a new administrator? </span>
+                      <Link to="/admin/create" className="admin-glass-register-link">
+                        Create Admin
+                      </Link>
+                    </div>
+                  )}
                 </form>
               </div>
             ) : (
