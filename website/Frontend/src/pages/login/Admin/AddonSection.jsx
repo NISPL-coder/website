@@ -17,10 +17,12 @@ import {
   Tag
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import AdminDataTable from './AdminDataTable';
 import AddonFormModal from './AddonFormModal';
 import { compareNumber, compareText } from './adminTableUtils';
 import { addonApi } from '../../../services/addonApi';
+import { compactSelectStyles } from './reactSelectStyles';
 
 export default function AddonSection({ onBack, externalSearch }) {
   const navigate = useNavigate();
@@ -471,19 +473,29 @@ export default function AddonSection({ onBack, externalSearch }) {
         </div>
 
         <div className="adm-toolbar-actions">
-          <select
-            className="adm-filter-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Statuses ({addons.length})</option>
-            <option value="available">
-              Available ({addons.filter((a) => a.available !== false).length})
-            </option>
-            <option value="disabled">
-              Disabled ({addons.filter((a) => a.available === false).length})
-            </option>
-          </select>
+          <div className="adm-filter-select-wrap">
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={[
+                { value: 'all', label: `All Statuses (${addons.length})` },
+                { value: 'available', label: `Available (${addons.filter((a) => a.available !== false).length})` },
+                { value: 'disabled', label: `Disabled (${addons.filter((a) => a.available === false).length})` }
+              ]}
+              value={
+                [
+                  { value: 'all', label: `All Statuses (${addons.length})` },
+                  { value: 'available', label: `Available (${addons.filter((a) => a.available !== false).length})` },
+                  { value: 'disabled', label: `Disabled (${addons.filter((a) => a.available === false).length})` }
+                ].find((o) => o.value === statusFilter) || {
+                  value: 'all',
+                  label: `All Statuses (${addons.length})`
+                }
+              }
+              onChange={(opt) => setStatusFilter(opt ? opt.value : 'all')}
+            />
+          </div>
         </div>
       </div>
 

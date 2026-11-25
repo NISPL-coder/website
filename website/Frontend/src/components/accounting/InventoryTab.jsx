@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import Select from 'react-select';
+import { compactSelectStyles } from '../../pages/login/Admin/reactSelectStyles';
 import { 
   Boxes, 
   Search, 
@@ -131,27 +133,38 @@ export default function InventoryTab({ products, onAddProduct }) {
           <div className="filters-group">
             <div className="filter-select-wrapper">
               <label className="filter-label">Category:</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="filter-select"
-              >
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <Select
+                styles={compactSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={categories.map((c) => ({ value: c, label: c }))}
+                value={{ value: categoryFilter, label: categoryFilter }}
+                onChange={(opt) => setCategoryFilter(opt ? opt.value : 'All')}
+              />
             </div>
 
             <div className="filter-select-wrapper">
               <label className="filter-label">Status:</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="All">All Status</option>
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Out of Stock">Out of Stock</option>
-              </select>
+              <Select
+                styles={compactSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={[
+                  { value: 'All', label: 'All Status' },
+                  { value: 'In Stock', label: 'In Stock' },
+                  { value: 'Low Stock', label: 'Low Stock' },
+                  { value: 'Out of Stock', label: 'Out of Stock' }
+                ]}
+                value={
+                  [
+                    { value: 'All', label: 'All Status' },
+                    { value: 'In Stock', label: 'In Stock' },
+                    { value: 'Low Stock', label: 'Low Stock' },
+                    { value: 'Out of Stock', label: 'Out of Stock' }
+                  ].find((o) => o.value === statusFilter) || { value: 'All', label: 'All Status' }
+                }
+                onChange={(opt) => setStatusFilter(opt ? opt.value : 'All')}
+              />
             </div>
           </div>
         </div>

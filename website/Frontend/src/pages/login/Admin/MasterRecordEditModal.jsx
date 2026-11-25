@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Select from 'react-select';
+import { customSelectStyles } from './reactSelectStyles';
 import {
   X,
   Save,
@@ -331,20 +333,28 @@ export default function MasterRecordEditModal({ isOpen, onClose, record, onSave 
 
                 <div>
                   <label className="adm-form-label" style={{ marginBottom: '6px' }}>Contract Type</label>
-                  <select
-                    className="adm-form-input"
-                    style={{ width: '100%' }}
-                    value={formData.contractType}
-                    onChange={(e) => handleChange('contractType', e.target.value)}
-                  >
-                    <option value="Comprehensive">Comprehensive</option>
-                    <option value="SHARED">SHARED</option>
-                    <option value="DEDICATED">DEDICATED</option>
-                    <option value="Non Comprehensive Rental">Non Comprehensive Rental</option>
-                    <option value="Subscription">Subscription</option>
-                    <option value="AMC">AMC</option>
-                    <option value="Trial">Trial</option>
-                  </select>
+                  <Select
+                    styles={customSelectStyles}
+                    classNamePrefix="react-select"
+                    isSearchable={false}
+                    options={[
+                      'Comprehensive',
+                      'SHARED',
+                      'DEDICATED',
+                      'Non Comprehensive Rental',
+                      'Subscription',
+                      'AMC',
+                      'Trial'
+                    ].map((t) => ({ value: t, label: t }))}
+                    value={
+                      formData.contractType
+                        ? { value: formData.contractType, label: formData.contractType }
+                        : null
+                    }
+                    onChange={(opt) => handleChange('contractType', opt ? opt.value : 'Comprehensive')}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPosition="fixed"
+                  />
                 </div>
 
                 <div>
@@ -373,20 +383,23 @@ export default function MasterRecordEditModal({ isOpen, onClose, record, onSave 
 
                 <div>
                   <label className="adm-form-label" style={{ marginBottom: '6px' }}>Payment Status</label>
-                  <select
-                    className="adm-form-input"
-                    style={{
-                      width: '100%',
-                      fontWeight: 700,
-                      color: formData.paymentStatus === 'Yes' ? '#047857' : '#b45309',
-                      background: formData.paymentStatus === 'Yes' ? '#ecfdf5' : '#fffbeb'
-                    }}
-                    value={formData.paymentStatus}
-                    onChange={(e) => handleChange('paymentStatus', e.target.value)}
-                  >
-                    <option value="Yes">Yes (Active Client + Receipt)</option>
-                    <option value="No">No (Demo Trial)</option>
-                  </select>
+                  <Select
+                    styles={customSelectStyles}
+                    classNamePrefix="react-select"
+                    isSearchable={false}
+                    options={[
+                      { value: 'Yes', label: 'Yes (Active Client + Receipt)' },
+                      { value: 'No', label: 'No (Demo Trial)' }
+                    ]}
+                    value={
+                      formData.paymentStatus === 'Yes'
+                        ? { value: 'Yes', label: 'Yes (Active Client + Receipt)' }
+                        : { value: 'No', label: 'No (Demo Trial)' }
+                    }
+                    onChange={(opt) => handleChange('paymentStatus', opt ? opt.value : 'No')}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPosition="fixed"
+                  />
                 </div>
 
                 <div>

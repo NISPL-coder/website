@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Select from 'react-select';
+import { compactSelectStyles } from './reactSelectStyles';
 import {
   Upload,
   FileSpreadsheet,
@@ -1459,26 +1461,49 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                             {formatRupee(rec.totalContractValue)}
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <select
-                              value={isPaid ? 'Yes' : 'No'}
-                              onChange={(e) => handleRowPaymentStatusChange(actualIdx, e.target.value)}
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                outline: 'none',
-                                border: isPaid ? '1px solid #10b981' : '1px solid #f59e0b',
-                                background: isPaid ? '#ecfdf5' : '#fffbeb',
-                                color: isPaid ? '#047857' : '#b45309',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                              }}
-                              title="Click to manually toggle between Active (Yes) and Demo (No)"
-                            >
-                              <option value="Yes">Yes</option>
-                              <option value="No">No</option>
-                            </select>
+                            <div style={{ minWidth: '88px', display: 'inline-block' }}>
+                              <Select
+                                classNamePrefix="react-select"
+                                isSearchable={false}
+                                styles={{
+                                  ...compactSelectStyles,
+                                  control: (base, state) => ({
+                                    ...compactSelectStyles.control(base, state),
+                                    minHeight: '30px',
+                                    height: '30px',
+                                    minWidth: '82px',
+                                    borderRadius: '6px',
+                                    borderColor: isPaid ? '#10b981' : '#f59e0b',
+                                    backgroundColor: isPaid ? '#ecfdf5' : '#fffbeb',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700
+                                  }),
+                                  valueContainer: (base) => ({
+                                    ...compactSelectStyles.valueContainer(base),
+                                    height: '28px',
+                                    padding: '0 8px'
+                                  }),
+                                  singleValue: (base) => ({
+                                    ...compactSelectStyles.singleValue(base),
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    color: isPaid ? '#047857' : '#b45309'
+                                  }),
+                                  dropdownIndicator: (base, state) => ({
+                                    ...compactSelectStyles.dropdownIndicator(base, state),
+                                    padding: '0 6px'
+                                  })
+                                }}
+                                options={[
+                                  { value: 'Yes', label: 'Yes' },
+                                  { value: 'No', label: 'No' }
+                                ]}
+                                value={{ value: isPaid ? 'Yes' : 'No', label: isPaid ? 'Yes' : 'No' }}
+                                onChange={(opt) => opt && handleRowPaymentStatusChange(actualIdx, opt.value)}
+                                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                                menuPosition="fixed"
+                              />
+                            </div>
                           </td>
                           <td style={{ fontSize: '0.76rem' }}>
                             <div>{rec.paymentMode || (isPaid ? 'NEFT Wire' : '—')}</div>
@@ -1543,20 +1568,45 @@ export default function ImportCsvPage({ setCustomers, setContracts, setPayments,
                   >
                     Next
                   </button>
-                  <select
-                    value={previewPageSize}
-                    onChange={(e) => {
-                      setPreviewPageSize(Number(e.target.value));
-                      setPreviewPage(1);
-                    }}
-                    style={{ padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.76rem' }}
-                  >
-                    <option value={10}>10 per page</option>
-                    <option value={15}>15 per page</option>
-                    <option value={25}>25 per page</option>
-                    <option value={50}>50 per page</option>
-                    <option value={100}>100 per page</option>
-                  </select>
+                  <div style={{ minWidth: '132px' }}>
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...compactSelectStyles,
+                        control: (base, state) => ({
+                          ...compactSelectStyles.control(base, state),
+                          minHeight: '30px',
+                          height: '30px',
+                          minWidth: '126px',
+                          borderRadius: '6px',
+                          fontSize: '0.76rem'
+                        }),
+                        valueContainer: (base) => ({
+                          ...compactSelectStyles.valueContainer(base),
+                          height: '28px',
+                          padding: '0 8px'
+                        }),
+                        singleValue: (base) => ({
+                          ...compactSelectStyles.singleValue(base),
+                          fontSize: '0.76rem'
+                        }),
+                        dropdownIndicator: (base, state) => ({
+                          ...compactSelectStyles.dropdownIndicator(base, state),
+                          padding: '0 6px'
+                        })
+                      }}
+                      options={[10, 15, 25, 50, 100].map((n) => ({ value: n, label: `${n} per page` }))}
+                      value={{ value: previewPageSize, label: `${previewPageSize} per page` }}
+                      onChange={(opt) => {
+                        if (!opt) return;
+                        setPreviewPageSize(Number(opt.value));
+                        setPreviewPage(1);
+                      }}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
+                  </div>
                 </div>
               </div>
             )}

@@ -2529,18 +2529,48 @@ export default function OverviewSection({
               <span>Annual Net Revenue</span>
             </div>
             <div className="adm-header-right-controls">
-              <select
-                className="adm-card-select"
-                value={selectedFY}
-                onChange={(e) => setSelectedFY(e.target.value)}
-                title="Select Financial Year"
-              >
-                {FINANCIAL_YEARS.map((fy) => (
-                  <option key={fy.id} value={fy.id}>
-                    {fy.label.replace(' (Current)', '')}
-                  </option>
-                ))}
-              </select>
+              <div style={{ minWidth: '128px' }}>
+                <Select
+                  styles={{
+                    ...compactSelectStyles,
+                    control: (base, state) => ({
+                      ...compactSelectStyles.control(base, state),
+                      minHeight: '30px',
+                      height: '30px',
+                      minWidth: '124px',
+                      fontSize: '0.78rem'
+                    }),
+                    valueContainer: (base) => ({
+                      ...compactSelectStyles.valueContainer(base),
+                      height: '28px',
+                      padding: '0 8px'
+                    }),
+                    singleValue: (base) => ({
+                      ...compactSelectStyles.singleValue(base),
+                      fontSize: '0.78rem'
+                    }),
+                    dropdownIndicator: (base, state) => ({
+                      ...compactSelectStyles.dropdownIndicator(base, state),
+                      padding: '0 6px'
+                    })
+                  }}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={FINANCIAL_YEARS.map((fy) => ({
+                    value: fy.id,
+                    label: fy.label.replace(' (Current)', '')
+                  }))}
+                  value={(() => {
+                    const matched = FINANCIAL_YEARS.find((fy) => fy.id === selectedFY);
+                    return matched
+                      ? { value: matched.id, label: matched.label.replace(' (Current)', '') }
+                      : null;
+                  })()}
+                  onChange={(opt) => opt && setSelectedFY(opt.value)}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
+              </div>
             </div>
           </div>
 

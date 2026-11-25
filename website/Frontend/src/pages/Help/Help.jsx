@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Select from 'react-select';
+import { customSelectStyles } from '../login/Admin/reactSelectStyles';
 import {
   LifeBuoy,
   Phone,
@@ -314,21 +316,30 @@ export default function Help() {
                     <label htmlFor="ticket-category">
                       Service / Category
                     </label>
-                    <select
-                      id="ticket-category"
-                      name="category"
-                      value={ticketForm.category}
-                      onChange={handleInputChange}
-                    >
-                      <option value="Tally Prime License & Installation">Tally Prime License & Installation</option>
-                      <option value="Tally on Cloud Hosting">Tally on Cloud Hosting</option>
-                      <option value="Enterprise / Azure / AWS Cloud Infrastructure">Enterprise / Azure / AWS Cloud Infrastructure</option>
-                      <option value="IT Hardware, Servers & AMC Support">IT Hardware, Servers & AMC Support</option>
-                      <option value="Cybersecurity & Firewall Configuration">Cybersecurity & Firewall Configuration</option>
-                      <option value="Data Backup & Disaster Recovery">Data Backup & Disaster Recovery</option>
-                      <option value="Billing, Invoicing & GST Receipt Inquiry">Billing, Invoicing & GST Receipt Inquiry</option>
-                      <option value="General Technical Support">General Technical Support</option>
-                    </select>
+                    <Select
+                      inputId="ticket-category"
+                      styles={customSelectStyles}
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      options={[
+                        'Tally Prime License & Installation',
+                        'Tally on Cloud Hosting',
+                        'Enterprise / Azure / AWS Cloud Infrastructure',
+                        'IT Hardware, Servers & AMC Support',
+                        'Cybersecurity & Firewall Configuration',
+                        'Data Backup & Disaster Recovery',
+                        'Billing, Invoicing & GST Receipt Inquiry',
+                        'General Technical Support'
+                      ].map((v) => ({ value: v, label: v }))}
+                      value={ticketForm.category ? { value: ticketForm.category, label: ticketForm.category } : null}
+                      onChange={(opt) =>
+                        handleInputChange({
+                          target: { name: 'category', value: opt ? opt.value : 'Tally Prime License & Installation' }
+                        })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 

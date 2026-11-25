@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../pages/login/Admin/reactSelectStyles';
 import { Star, ChevronLeft, ChevronRight, CheckCircle2, MessageSquarePlus, ExternalLink, Quote } from 'lucide-react';
 const GOOGLE_REVIEWS = [];
 import { useScrollReveal } from '../utils/useScrollReveal';
@@ -251,17 +253,32 @@ export default function GoogleReviewsSection() {
               />
 
               <label>Service Used:</label>
-              <select 
-                value={newReviewService}
-                onChange={(e) => setNewReviewService(e.target.value)}
-              >
-                <option value="Tally Prime">Tally Prime</option>
-                <option value="Tally on Cloud">Tally on Cloud</option>
-                <option value="Enterprise Cloud Server">Enterprise Cloud Server</option>
-                <option value="IT Infra & Security">IT Infrastructure & Security</option>
-                <option value="Hardware Repair">Hardware Repair & Maintenance</option>
-                <option value="IT Rentals">IT Rentals & Hardware Sales</option>
-              </select>
+              <Select
+                styles={customSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={[
+                  { value: 'Tally Prime', label: 'Tally Prime' },
+                  { value: 'Tally on Cloud', label: 'Tally on Cloud' },
+                  { value: 'Enterprise Cloud Server', label: 'Enterprise Cloud Server' },
+                  { value: 'IT Infra & Security', label: 'IT Infrastructure & Security' },
+                  { value: 'Hardware Repair', label: 'Hardware Repair & Maintenance' },
+                  { value: 'IT Rentals', label: 'IT Rentals & Hardware Sales' }
+                ]}
+                value={
+                  [
+                    { value: 'Tally Prime', label: 'Tally Prime' },
+                    { value: 'Tally on Cloud', label: 'Tally on Cloud' },
+                    { value: 'Enterprise Cloud Server', label: 'Enterprise Cloud Server' },
+                    { value: 'IT Infra & Security', label: 'IT Infrastructure & Security' },
+                    { value: 'Hardware Repair', label: 'Hardware Repair & Maintenance' },
+                    { value: 'IT Rentals', label: 'IT Rentals & Hardware Sales' }
+                  ].find((o) => o.value === newReviewService) || null
+                }
+                onChange={(opt) => setNewReviewService(opt ? opt.value : 'Tally Prime')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                menuPosition="fixed"
+              />
 
               <label>Rating:</label>
               <div className="gr-star-picker">

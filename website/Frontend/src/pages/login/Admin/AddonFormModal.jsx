@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Save, Loader2, Sparkles, Tag, DollarSign, Layers, FileText, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { addonApi } from '../../../services/addonApi';
+import { customSelectStyles } from './reactSelectStyles';
 
 const BADGE_PRESETS = [
   { label: 'Popular', badge: 'POPULAR', color: '#059669', bg: '#ecfdf5' },
@@ -255,26 +257,16 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 >
                   Category
                 </label>
-                <select
-                  className="adm-form-input"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    background: '#ffffff',
-                    color: '#0f172a',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    height: '42px',
-                    padding: '0 12px',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  value={category ? { value: category, label: category } : null}
+                  onChange={(opt) => setCategory(opt ? opt.value : CATEGORIES[0])}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
 
               <div>
@@ -289,26 +281,16 @@ export default function AddonFormModal({ addon = null, onClose, onSaved }) {
                 >
                   Billing Cycle
                 </label>
-                <select
-                  className="adm-form-input"
-                  value={billingCycle}
-                  onChange={(e) => setBillingCycle(e.target.value)}
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    background: '#ffffff',
-                    color: '#0f172a',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    height: '42px',
-                    padding: '0 12px',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  {BILLING_CYCLES.map((cycle) => (
-                    <option key={cycle} value={cycle}>{cycle}</option>
-                  ))}
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={BILLING_CYCLES.map((cycle) => ({ value: cycle, label: cycle }))}
+                  value={billingCycle ? { value: billingCycle, label: billingCycle } : null}
+                  onChange={(opt) => setBillingCycle(opt ? opt.value : 'Annual')}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
             </div>
 

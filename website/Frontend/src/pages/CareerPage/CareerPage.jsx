@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../login/Admin/reactSelectStyles';
 import {
   Briefcase,
   MapPin,
@@ -592,21 +594,48 @@ export default function CareerPage() {
                     <label htmlFor="appliedRole">
                       Applied Role <span className="iz-required-star">*</span>
                     </label>
-                    <select
-                      id="appliedRole"
-                      name="appliedRole"
-                      className={`iz-career-input iz-career-select ${fieldErrors.appliedRole ? 'iz-input-invalid' : ''}`}
-                      value={formData.appliedRole}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                      required
-                    >
-                      <option value="">Select a Position / Role...</option>
-                      {JOBS.map((j) => (
-                        <option key={j.id} value={j.title}>{j.title} ({j.department})</option>
-                      ))}
-                      <option value="General Application / Other IT Role">General Application / Other IT Role</option>
-                    </select>
+                    <Select
+                      inputId="appliedRole"
+                      classNamePrefix="react-select"
+                      isClearable
+                      isSearchable
+                      isDisabled={isSubmitting}
+                      placeholder="Select a Position / Role..."
+                      styles={{
+                        ...customSelectStyles,
+                        control: (base, state) => ({
+                          ...customSelectStyles.control(base, state),
+                          borderColor: fieldErrors.appliedRole
+                            ? '#ef4444'
+                            : state.isFocused
+                            ? '#6366f1'
+                            : '#e2e8f0'
+                        })
+                      }}
+                      options={[
+                        ...JOBS.map((j) => ({ value: j.title, label: `${j.title} (${j.department})` })),
+                        {
+                          value: 'General Application / Other IT Role',
+                          label: 'General Application / Other IT Role'
+                        }
+                      ]}
+                      value={(() => {
+                        if (!formData.appliedRole) return null;
+                        const jobMatch = JOBS.find((j) => j.title === formData.appliedRole);
+                        if (jobMatch) {
+                          return {
+                            value: jobMatch.title,
+                            label: `${jobMatch.title} (${jobMatch.department})`
+                          };
+                        }
+                        return { value: formData.appliedRole, label: formData.appliedRole };
+                      })()}
+                      onChange={(opt) =>
+                        handleChange({ target: { name: 'appliedRole', value: opt ? opt.value : '' } })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                     {fieldErrors.appliedRole && <span className="iz-field-error-msg">{fieldErrors.appliedRole}</span>}
                   </div>
 

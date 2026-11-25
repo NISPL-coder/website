@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
 import { X, Send, CheckCircle2, HelpCircle } from 'lucide-react';
+import { customSelectStyles } from '../../login/Admin/reactSelectStyles';
 
 export default function SupportTicketModal({ isOpen, onClose, customer }) {
   const [subject, setSubject] = useState('');
@@ -62,19 +64,23 @@ export default function SupportTicketModal({ isOpen, onClose, customer }) {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '10px' }}>
             <div className="ebolt-field-group">
               <label className="ebolt-field-lbl" htmlFor="ticket-category">Category</label>
-              <select
-                id="ticket-category"
-                className="ebolt-input"
-                style={{ paddingLeft: '12px', border: '1.5px solid #e2e8f0', borderRadius: '10px' }}
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="Tally Prime Cloud Access">Tally Prime Cloud Access</option>
-                <option value="TSS License Renewal">TSS License Renewal</option>
-                <option value="Multi-User User Addition">Multi-User User Addition</option>
-                <option value="GST e-Invoice / e-Way Bill">GST e-Invoice / e-Way Bill</option>
-                <option value="Data Backup & Restore">Data Backup & Restore</option>
-              </select>
+              <Select
+                inputId="ticket-category"
+                styles={customSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={[
+                  'Tally Prime Cloud Access',
+                  'TSS License Renewal',
+                  'Multi-User User Addition',
+                  'GST e-Invoice / e-Way Bill',
+                  'Data Backup & Restore'
+                ].map((c) => ({ value: c, label: c }))}
+                value={category ? { value: category, label: category } : null}
+                onChange={(opt) => setCategory(opt ? opt.value : 'Tally Prime Cloud Access')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                menuPosition="fixed"
+              />
             </div>
 
             <div className="ebolt-field-group">

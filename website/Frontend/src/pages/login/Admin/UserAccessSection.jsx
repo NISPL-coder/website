@@ -15,7 +15,9 @@ import {
   EyeOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { staffApi } from '../../../services/staffApi';
+import { customSelectStyles } from './reactSelectStyles';
 import { authApi } from '../../../services/authApi';
 import { useIsPhone } from '../../../utils/useResponsive';
 import AdminDataTable from './AdminDataTable';
@@ -693,27 +695,48 @@ export default function UserAccessSection() {
                 >
                   <div className="usr-form-group">
                     <label className="usr-form-label">Role <span className="usr-req">*</span></label>
-                    <select
-                      className="usr-form-select"
-                      value={addForm.role}
-                      onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
-                    >
-                      <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
-                      <option value="support">Support</option>
-                    </select>
+                    <Select
+                      styles={customSelectStyles}
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      options={[
+                        { value: 'admin', label: 'Admin' },
+                        { value: 'manager', label: 'Manager' },
+                        { value: 'support', label: 'Support' }
+                      ]}
+                      value={
+                        [
+                          { value: 'admin', label: 'Admin' },
+                          { value: 'manager', label: 'Manager' },
+                          { value: 'support', label: 'Support' }
+                        ].find((o) => o.value === addForm.role) || { value: 'admin', label: 'Admin' }
+                      }
+                      onChange={(opt) => setAddForm({ ...addForm, role: opt ? opt.value : 'admin' })}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
 
                   <div className="usr-form-group">
                     <label className="usr-form-label">Status <span className="usr-req">*</span></label>
-                    <select
-                      className="usr-form-select"
-                      value={addForm.status}
-                      onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
+                    <Select
+                      styles={customSelectStyles}
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      options={[
+                        { value: 'active', label: 'Active' },
+                        { value: 'inactive', label: 'Inactive' }
+                      ]}
+                      value={
+                        [
+                          { value: 'active', label: 'Active' },
+                          { value: 'inactive', label: 'Inactive' }
+                        ].find((o) => o.value === addForm.status) || { value: 'active', label: 'Active' }
+                      }
+                      onChange={(opt) => setAddForm({ ...addForm, status: opt ? opt.value : 'active' })}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 
@@ -783,16 +806,27 @@ export default function UserAccessSection() {
             <div className="usr-modal-body">
               <div className="usr-form-group">
                 <label className="usr-form-label">Assigned Role</label>
-                <select
-                  className="usr-form-select"
-                  value={editRole}
-                  onChange={(e) => setEditRole(e.target.value)}
-                  disabled={selectedStaff.isPrimaryAdmin}
-                >
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="support">Support</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  isDisabled={selectedStaff.isPrimaryAdmin}
+                  options={[
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'manager', label: 'Manager' },
+                    { value: 'support', label: 'Support' }
+                  ]}
+                  value={
+                    [
+                      { value: 'admin', label: 'Admin' },
+                      { value: 'manager', label: 'Manager' },
+                      { value: 'support', label: 'Support' }
+                    ].find((o) => o.value === editRole) || { value: 'admin', label: 'Admin' }
+                  }
+                  onChange={(opt) => setEditRole(opt ? opt.value : 'admin')}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
 
               <div className="usr-form-group">

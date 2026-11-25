@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { paymentApi } from '../../../services/paymentApi';
+import { customSelectStyles } from './reactSelectStyles';
 import { productApi } from '../../../services/productApi';
 import { salesPersonApi } from '../../../services/salesPersonApi';
 import { customerApi } from '../../../services/customerApi';
@@ -418,17 +420,16 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
               <div>
                 <label className="adm-modal-label">Payment Method</label>
-                <select
-                  className="adm-modal-input"
-                  value={formData.paymentMethod}
-                  onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                >
-                  {PAYMENT_METHODS.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={PAYMENT_METHODS.map((m) => ({ value: m, label: m }))}
+                  value={formData.paymentMethod ? { value: formData.paymentMethod, label: formData.paymentMethod } : null}
+                  onChange={(opt) => setFormData({ ...formData, paymentMethod: opt ? opt.value : PAYMENT_METHODS[0] })}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
 
               <div>
@@ -482,17 +483,16 @@ export default function EditPaymentModal({ payment, isOpen, onClose, onUpdated }
 
               <div>
                 <label className="adm-modal-label">Payment Status</label>
-                <select
-                  className="adm-modal-input"
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                >
-                  {PAYMENT_STATUSES.map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={PAYMENT_STATUSES.map((st) => ({ value: st, label: st }))}
+                  value={formData.status ? { value: formData.status, label: formData.status } : null}
+                  onChange={(opt) => setFormData({ ...formData, status: opt ? opt.value : PAYMENT_STATUSES[0] })}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
             </div>
           </div>

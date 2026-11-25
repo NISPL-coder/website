@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../login/Admin/reactSelectStyles';
 import {
   Building2,
   MapPin,
@@ -333,24 +335,30 @@ export default function ContactPage() {
                     <label className="iz-input-label">
                       Interested in <span>*</span>
                     </label>
-                    <select
-                      name="interestedIn"
-                      value={formData.interestedIn}
-                      onChange={handleChange}
-                      className="iz-input-underline"
-                      required
-                    >
-                      <option value="">Select an option...</option>
-                      <option value="Tally Prime Solutions & Customization">Tally Prime Solutions & Customization</option>
-                      <option value="Cloud Hosting & Infrastructure (AWS / Azure / Enterprise Cloud)">Cloud Hosting & Infrastructure (AWS / Azure / Enterprise Cloud)</option>
-                      <option value="Enterprise ERP & Custom Software Development">Enterprise ERP & Custom Software Development</option>
-                      <option value="IT Hardware, Servers & AMC Support">IT Hardware, Servers & AMC Support</option>
-                      <option value="Cybersecurity & Network Infrastructure">Cybersecurity & Network Infrastructure</option>
-                      <option value="Data Backup & Disaster Recovery">Data Backup & Disaster Recovery</option>
-                      <option value="Web Development & Digital Solutions">Web Development & Digital Solutions</option>
-                      <option value="Corporate IT Advisory & Consulting">Corporate IT Advisory & Consulting</option>
-                      <option value="Other / General Inquiry">Other / General Inquiry</option>
-                    </select>
+                    <Select
+                      styles={customSelectStyles}
+                      classNamePrefix="react-select"
+                      isClearable
+                      isSearchable
+                      placeholder="Select an option..."
+                      options={[
+                        'Tally Prime Solutions & Customization',
+                        'Cloud Hosting & Infrastructure (AWS / Azure / Enterprise Cloud)',
+                        'Enterprise ERP & Custom Software Development',
+                        'IT Hardware, Servers & AMC Support',
+                        'Cybersecurity & Network Infrastructure',
+                        'Data Backup & Disaster Recovery',
+                        'Web Development & Digital Solutions',
+                        'Corporate IT Advisory & Consulting',
+                        'Other / General Inquiry'
+                      ].map((v) => ({ value: v, label: v }))}
+                      value={formData.interestedIn ? { value: formData.interestedIn, label: formData.interestedIn } : null}
+                      onChange={(opt) =>
+                        handleChange({ target: { name: 'interestedIn', value: opt ? opt.value : '' } })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
 
                   <div className="iz-input-group">

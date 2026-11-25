@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import DataTable from 'react-data-table-component';
+import Select from 'react-select';
 import { ArrowUp, SearchX } from 'lucide-react';
 import { useIsNarrow, useIsPhone } from '../../../utils/useResponsive';
 import { AdminTableSkeleton } from './AdminSkeleton';
+import { compactSelectStyles } from './reactSelectStyles';
 import './AdminDataTable.css';
 
 
@@ -451,23 +453,57 @@ export default function AdminDataTable({
 
       const control =
         column.searchType === 'select' ? (
-          <select
-            className="adm-col-search adm-col-search-select"
-            value={value}
-            onChange={(event) => handleColumnFilter(columnId, event.target.value)}
+          <div
             onClick={stopPropagation}
             onMouseDown={stopPropagation}
             onDoubleClick={stopPropagation}
             onKeyDown={stopPropagation}
-            aria-label={`Filter ${label}`}
+            style={{ width: '100%', minWidth: '88px' }}
           >
-            <option value="">All</option>
-            {getColumnOptions(column, data).map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <Select
+              classNamePrefix="react-select"
+              isSearchable={false}
+              aria-label={`Filter ${label}`}
+              styles={{
+                ...compactSelectStyles,
+                control: (base, state) => ({
+                  ...compactSelectStyles.control(base, state),
+                  minHeight: '30px',
+                  height: '30px',
+                  minWidth: '88px',
+                  borderRadius: '7px',
+                  fontSize: '0.76rem',
+                  fontWeight: '500'
+                }),
+                valueContainer: (base) => ({
+                  ...compactSelectStyles.valueContainer(base),
+                  height: '28px',
+                  padding: '0 8px'
+                }),
+                singleValue: (base) => ({
+                  ...compactSelectStyles.singleValue(base),
+                  fontSize: '0.76rem',
+                  fontWeight: '500'
+                }),
+                dropdownIndicator: (base, state) => ({
+                  ...compactSelectStyles.dropdownIndicator(base, state),
+                  padding: '0 6px'
+                })
+              }}
+              options={[
+                { value: '', label: 'All' },
+                ...getColumnOptions(column, data)
+              ]}
+              value={
+                [{ value: '', label: 'All' }, ...getColumnOptions(column, data)].find(
+                  (o) => o.value === value
+                ) || { value: '', label: 'All' }
+              }
+              onChange={(opt) => handleColumnFilter(columnId, opt ? opt.value : '')}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              menuPosition="fixed"
+            />
+          </div>
         ) : (
           <input
             type="text"

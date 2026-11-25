@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../../pages/login/Admin/reactSelectStyles';
 import { 
   X, 
   Building2, 
@@ -179,19 +181,41 @@ export default function DemoModal({ isOpen, onClose, onSubmitSuccess }) {
                     Industry / Vertical
                   </label>
                   <div className="demo-input-wrapper">
-                    <Briefcase size={15} className="demo-input-icon" />
-                    <select
-                      value={formData.businessType}
-                      onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                      className="demo-form-select"
-                    >
-                      <option value="IT & Software Enterprises">IT & Software</option>
-                      <option value="Banking & Financial Services (BFSI)">Banking & Financial (BFSI)</option>
-                      <option value="Manufacturing & Industrial">Manufacturing</option>
-                      <option value="Trading, Distribution & Retail">Trading & Retail</option>
-                      <option value="Healthcare & Life Sciences">Healthcare</option>
-                      <option value="Government & Public Sector">Government & PSU</option>
-                    </select>
+                    <Briefcase size={15} className="demo-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '36px'
+                        })
+                      }}
+                      options={[
+                        { value: 'IT & Software Enterprises', label: 'IT & Software' },
+                        { value: 'Banking & Financial Services (BFSI)', label: 'Banking & Financial (BFSI)' },
+                        { value: 'Manufacturing & Industrial', label: 'Manufacturing' },
+                        { value: 'Trading, Distribution & Retail', label: 'Trading & Retail' },
+                        { value: 'Healthcare & Life Sciences', label: 'Healthcare' },
+                        { value: 'Government & Public Sector', label: 'Government & PSU' }
+                      ]}
+                      value={
+                        [
+                          { value: 'IT & Software Enterprises', label: 'IT & Software' },
+                          { value: 'Banking & Financial Services (BFSI)', label: 'Banking & Financial (BFSI)' },
+                          { value: 'Manufacturing & Industrial', label: 'Manufacturing' },
+                          { value: 'Trading, Distribution & Retail', label: 'Trading & Retail' },
+                          { value: 'Healthcare & Life Sciences', label: 'Healthcare' },
+                          { value: 'Government & Public Sector', label: 'Government & PSU' }
+                        ].find((o) => o.value === formData.businessType) || null
+                      }
+                      onChange={(opt) =>
+                        setFormData({ ...formData, businessType: opt ? opt.value : 'IT & Software Enterprises' })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 
@@ -200,19 +224,44 @@ export default function DemoModal({ isOpen, onClose, onSubmitSuccess }) {
                     Primary Solution Focus
                   </label>
                   <div className="demo-input-wrapper">
-                    <Server size={15} className="demo-input-icon" />
-                    <select
-                      value={formData.moduleInterest}
-                      onChange={(e) => setFormData({ ...formData, moduleInterest: e.target.value })}
-                      className="demo-form-select"
-                    >
-                      <option value="Enterprise Cloud Infrastructure">Enterprise Cloud Infrastructure</option>
-                      <option value="Cloud Server & Hosting">Cloud Server & Hosting</option>
-                      <option value="Enterprise ERP & Tally on Cloud">Enterprise ERP / Tally Cloud</option>
-                      <option value="Cybersecurity & Zero-Trust">Cybersecurity & Zero-Trust</option>
-                      <option value="Disaster Recovery & BCP">Disaster Recovery (DR/BCP)</option>
-                      <option value="IT Infrastructure Audit">IT Infrastructure Audit</option>
-                    </select>
+                    <Server size={15} className="demo-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '36px'
+                        })
+                      }}
+                      options={[
+                        { value: 'Enterprise Cloud Infrastructure', label: 'Enterprise Cloud Infrastructure' },
+                        { value: 'Cloud Server & Hosting', label: 'Cloud Server & Hosting' },
+                        { value: 'Enterprise ERP & Tally on Cloud', label: 'Enterprise ERP / Tally Cloud' },
+                        { value: 'Cybersecurity & Zero-Trust', label: 'Cybersecurity & Zero-Trust' },
+                        { value: 'Disaster Recovery & BCP', label: 'Disaster Recovery (DR/BCP)' },
+                        { value: 'IT Infrastructure Audit', label: 'IT Infrastructure Audit' }
+                      ]}
+                      value={
+                        [
+                          { value: 'Enterprise Cloud Infrastructure', label: 'Enterprise Cloud Infrastructure' },
+                          { value: 'Cloud Server & Hosting', label: 'Cloud Server & Hosting' },
+                          { value: 'Enterprise ERP & Tally on Cloud', label: 'Enterprise ERP / Tally Cloud' },
+                          { value: 'Cybersecurity & Zero-Trust', label: 'Cybersecurity & Zero-Trust' },
+                          { value: 'Disaster Recovery & BCP', label: 'Disaster Recovery (DR/BCP)' },
+                          { value: 'IT Infrastructure Audit', label: 'IT Infrastructure Audit' }
+                        ].find((o) => o.value === formData.moduleInterest) || null
+                      }
+                      onChange={(opt) =>
+                        setFormData({
+                          ...formData,
+                          moduleInterest: opt ? opt.value : 'Enterprise Cloud Infrastructure'
+                        })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
               </div>

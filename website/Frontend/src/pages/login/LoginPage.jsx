@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import Select from 'react-select';
+import { customSelectStyles } from './Admin/reactSelectStyles';
 import onboardingVideo from '../../assets/Net Infotech System (NISPL) _ Tally 3-Star Partner, Cloud Hosting, IT Infrastructure & Cybersecurity.mp4';
 import { authApi } from '../../services/authApi';
 import {
@@ -950,19 +952,37 @@ export default function LoginPage({ lockedPortal }) {
                         <Cloud size={16} />
                       )}
                     </div>
-                    <select
-                      className={`ebolt-input ebolt-select ${isPortalLocked ? 'ebolt-select-locked' : ''}`}
-                      value={activePortal}
-                      onChange={(e) => handleSelectPortal(e.target.value)}
-                      disabled={isPortalLocked}
-                      title={isPortalLocked ? `${activePortal === 'admin' ? 'Admin' : 'Partner'} Login is locked based on navbar selection` : 'Select Login Portal'}
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      isDisabled={isPortalLocked}
                       aria-label="Select Login Portal"
-                    >
-                      <option value="admin">NISPL Admin Login</option>
-                      <option value="partner">Partners Login</option>
-                      <option value="customer">Customer Login</option>
-                    </select>
-                    {!isPortalLocked && <ChevronDown size={16} className="ebolt-select-chevron" />}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '40px'
+                        })
+                      }}
+                      options={[
+                        { value: 'admin', label: 'NISPL Admin Login' },
+                        { value: 'partner', label: 'Partners Login' },
+                        { value: 'customer', label: 'Customer Login' }
+                      ]}
+                      value={
+                        [
+                          { value: 'admin', label: 'NISPL Admin Login' },
+                          { value: 'partner', label: 'Partners Login' },
+                          { value: 'customer', label: 'Customer Login' }
+                        ].find((o) => o.value === activePortal) || {
+                          value: 'customer',
+                          label: 'Customer Login'
+                        }
+                      }
+                      onChange={(opt) => opt && handleSelectPortal(opt.value)}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
 
                   {/* Email Input */}

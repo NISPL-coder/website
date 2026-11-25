@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
+import { customSelectStyles } from './reactSelectStyles';
 import {
   X,
   Save,
@@ -836,20 +838,30 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   </label>
                   {!isCustomProduct ? (
                     <div className="ecm-input-wrapper">
-                      <Layers size={16} className="ecm-input-icon" />
-                      <select
-                        className="ecm-select"
-                        value={formData.service}
-                        onChange={handleProductSelect}
-                      >
-                        <option value="">-- Select Product / Service --</option>
-                        {productOptions.map((opt) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                        <option value="__custom__">+ Enter Custom Service / Plan...</option>
-                      </select>
+                      <Layers size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                      <Select
+                        classNamePrefix="react-select"
+                        styles={{
+                          ...customSelectStyles,
+                          valueContainer: (base) => ({
+                            ...customSelectStyles.valueContainer(base),
+                            paddingLeft: '38px'
+                          })
+                        }}
+                        options={[
+                          { value: '', label: '-- Select Product / Service --' },
+                          ...productOptions.map((opt) => ({ value: opt, label: opt })),
+                          { value: '__custom__', label: '+ Enter Custom Service / Plan...' }
+                        ]}
+                        value={
+                          formData.service
+                            ? { value: formData.service, label: formData.service }
+                            : { value: '', label: '-- Select Product / Service --' }
+                        }
+                        onChange={(opt) => handleProductSelect({ target: { value: opt ? opt.value : '' } })}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                        menuPosition="fixed"
+                      />
                     </div>
                   ) : (
                     <div className="ecm-input-wrapper">
@@ -891,20 +903,30 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   </label>
                   {!isCustomSalesPerson ? (
                     <div className="ecm-input-wrapper">
-                      <UserCheck size={16} className="ecm-input-icon" />
-                      <select
-                        className="ecm-select"
-                        value={formData.salesPerson}
-                        onChange={handleSalesPersonSelect}
-                      >
-                        <option value="">-- Unassigned / Direct --</option>
-                        {salesPersonOptions.map((sp) => (
-                          <option key={sp} value={sp}>
-                            {sp}
-                          </option>
-                        ))}
-                        <option value="__custom__">+ Enter Custom Sales Person...</option>
-                      </select>
+                      <UserCheck size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                      <Select
+                        classNamePrefix="react-select"
+                        styles={{
+                          ...customSelectStyles,
+                          valueContainer: (base) => ({
+                            ...customSelectStyles.valueContainer(base),
+                            paddingLeft: '38px'
+                          })
+                        }}
+                        options={[
+                          { value: '', label: '-- Unassigned / Direct --' },
+                          ...salesPersonOptions.map((sp) => ({ value: sp, label: sp })),
+                          { value: '__custom__', label: '+ Enter Custom Sales Person...' }
+                        ]}
+                        value={
+                          formData.salesPerson
+                            ? { value: formData.salesPerson, label: formData.salesPerson }
+                            : { value: '', label: '-- Unassigned / Direct --' }
+                        }
+                        onChange={(opt) => handleSalesPersonSelect({ target: { value: opt ? opt.value : '' } })}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                        menuPosition="fixed"
+                      />
                     </div>
                   ) : (
                     <div className="ecm-input-wrapper">
@@ -962,18 +984,23 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                     <span>Contract Type</span>
                   </label>
                   <div className="ecm-input-wrapper">
-                    <Tag size={16} className="ecm-input-icon" />
-                    <select
-                      className="ecm-select"
-                      value={formData.contractType}
-                      onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
-                    >
-                      {contractTypeOptions.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
+                    <Tag size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '38px'
+                        })
+                      }}
+                      options={contractTypeOptions.map((type) => ({ value: type, label: type }))}
+                      value={formData.contractType ? { value: formData.contractType, label: formData.contractType } : null}
+                      onChange={(opt) => setFormData({ ...formData, contractType: opt ? opt.value : '' })}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 
@@ -984,19 +1011,25 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                   </label>
                   {!isCustomSla ? (
                     <div className="ecm-input-wrapper">
-                      <ShieldCheck size={16} className="ecm-input-icon" />
-                      <select
-                        className="ecm-select"
-                        value={formData.slaTier}
-                        onChange={handleSlaSelect}
-                      >
-                        {slaOptions.map((tier) => (
-                          <option key={tier} value={tier}>
-                            {tier}
-                          </option>
-                        ))}
-                        <option value="__custom__">+ Enter Custom SLA Tier...</option>
-                      </select>
+                      <ShieldCheck size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                      <Select
+                        classNamePrefix="react-select"
+                        styles={{
+                          ...customSelectStyles,
+                          valueContainer: (base) => ({
+                            ...customSelectStyles.valueContainer(base),
+                            paddingLeft: '38px'
+                          })
+                        }}
+                        options={[
+                          ...slaOptions.map((tier) => ({ value: tier, label: tier })),
+                          { value: '__custom__', label: '+ Enter Custom SLA Tier...' }
+                        ]}
+                        value={formData.slaTier ? { value: formData.slaTier, label: formData.slaTier } : null}
+                        onChange={(opt) => handleSlaSelect({ target: { value: opt ? opt.value : '' } })}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                        menuPosition="fixed"
+                      />
                     </div>
                   ) : (
                     <div className="ecm-input-wrapper">
@@ -1132,15 +1165,26 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                     <span>Payment Status *</span>
                   </label>
                   <div className="ecm-input-wrapper">
-                    <CheckCircle2 size={16} className="ecm-input-icon" />
-                    <select
-                      className="ecm-select"
-                      value={formData.paymentStatus}
-                      onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                    >
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
+                    <CheckCircle2 size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '38px'
+                        })
+                      }}
+                      options={[
+                        { value: 'Yes', label: 'Yes' },
+                        { value: 'No', label: 'No' }
+                      ]}
+                      value={formData.paymentStatus ? { value: formData.paymentStatus, label: formData.paymentStatus } : null}
+                      onChange={(opt) => setFormData({ ...formData, paymentStatus: opt ? opt.value : 'Yes' })}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 
@@ -1150,18 +1194,23 @@ export default function EditContractModal({ contract, isOpen, onClose, onUpdated
                     <span>Contract Lifecycle Status *</span>
                   </label>
                   <div className="ecm-input-wrapper">
-                    <Activity size={16} className="ecm-input-icon" />
-                    <select
-                      className="ecm-select"
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
+                    <Activity size={16} className="ecm-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+                    <Select
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      styles={{
+                        ...customSelectStyles,
+                        valueContainer: (base) => ({
+                          ...customSelectStyles.valueContainer(base),
+                          paddingLeft: '38px'
+                        })
+                      }}
+                      options={statusOptions.map((status) => ({ value: status, label: status }))}
+                      value={formData.status ? { value: formData.status, label: formData.status } : null}
+                      onChange={(opt) => setFormData({ ...formData, status: opt ? opt.value : '' })}
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
               </div>

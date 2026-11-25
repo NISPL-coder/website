@@ -12,10 +12,12 @@ import {
   Wallet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { productApi } from '../../../services/productApi';
 import { customerApi } from '../../../services/customerApi';
 import { SkeletonBar } from './AdminSkeleton';
 import { GST_RATE_DEFAULT, formatINR } from '../../Dashboard/utils/pricingUtils';
+import { customSelectStyles } from './reactSelectStyles';
 
 const DURATION_OPTIONS = ['7 Days', '15 Days', '1 Month', '3 Months', '6 Months', '1 Year'];
 
@@ -416,29 +418,20 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                       Duration <span className="adm-required-star">*</span>
                     </label>
                     <div style={{ position: 'relative' }}>
-                      <Clock
-                        size={15}
-                        style={{
-                          position: 'absolute',
-                          left: '12px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          color: '#94a3b8'
-                        }}
+                      <Select
+                        styles={customSelectStyles}
+                        classNamePrefix="react-select"
+                        isSearchable={false}
+                        options={durationChoices.map((option) => ({ value: option, label: option }))}
+                        value={
+                          form.duration
+                            ? { value: form.duration, label: form.duration }
+                            : null
+                        }
+                        onChange={(opt) => setForm({ ...form, duration: opt ? opt.value : '' })}
+                        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                        menuPosition="fixed"
                       />
-                      <select
-                        className="adm-form-input"
-                        value={form.duration}
-                        onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                        style={{ paddingLeft: '34px', fontWeight: 400 }}
-                        required
-                      >
-                        {durationChoices.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
                     </div>
                   </div>
 
@@ -641,11 +634,45 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                         {isLoadingCustomers ? (
                           <SkeletonBar width="100%" height={40} radius={9} />
                         ) : (
-                          <select
-                            className="adm-form-input"
-                            value={form.targetCustomerEmail}
-                            onChange={(e) => {
-                              const selectedEmail = e.target.value;
+                          <Select
+                            styles={customSelectStyles}
+                            classNamePrefix="react-select"
+                            isClearable
+                            isSearchable
+                            placeholder="Select customer from registered accounts..."
+                            noOptionsMessage={() => 'No matching customer found'}
+                            options={customersList.map((c) => {
+                              const email = c.email || '';
+                              const name = c.company || c.name || c.clientName || 'Unnamed';
+                              const cid = c.customerId || c.id || '';
+                              return {
+                                value: email,
+                                label: `${name} — ${email}${cid ? ` (${cid})` : ''}`
+                              };
+                            })}
+                            value={(() => {
+                              if (!form.targetCustomerEmail) return null;
+                              const matched = customersList.find(
+                                (c) => (c.email || '').toLowerCase() === form.targetCustomerEmail.toLowerCase()
+                              );
+                              if (!matched) {
+                                return {
+                                  value: form.targetCustomerEmail,
+                                  label: form.targetCustomerName
+                                    ? `${form.targetCustomerName} — ${form.targetCustomerEmail}`
+                                    : form.targetCustomerEmail
+                                };
+                              }
+                              const email = matched.email || '';
+                              const name = matched.company || matched.name || matched.clientName || 'Unnamed';
+                              const cid = matched.customerId || matched.id || '';
+                              return {
+                                value: email,
+                                label: `${name} — ${email}${cid ? ` (${cid})` : ''}`
+                              };
+                            })()}
+                            onChange={(opt) => {
+                              const selectedEmail = opt ? opt.value : '';
                               const matched = customersList.find(
                                 (c) => (c.email || '').toLowerCase() === selectedEmail.toLowerCase()
                               );
@@ -656,21 +683,9 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                                 targetCustomerName: matched?.company || matched?.name || matched?.clientName || ''
                               }));
                             }}
-                            style={{ fontWeight: 400 }}
-                            required
-                          >
-                            <option value="">Select customer from registered accounts...</option>
-                            {customersList.map((c) => {
-                              const email = c.email || '';
-                              const name = c.company || c.name || c.clientName || 'Unnamed';
-                              const cid = c.customerId || c.id || '';
-                              return (
-                                <option key={email || cid} value={email}>
-                                  {name} — {email} {cid ? `(${cid})` : ''}
-                                </option>
-                              );
-                            })}
-                          </select>
+                            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                            menuPosition="fixed"
+                          />
                         )}
 
                         {form.targetCustomerEmail && (

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
+import { compactSelectStyles } from '../../pages/login/Admin/reactSelectStyles';
 import { 
   FileSpreadsheet, 
   Download, 
@@ -109,16 +111,19 @@ export default function ReportsTab() {
             {/* Date Range Selector */}
             <div className="date-selector-box">
               <Calendar size={15} color="var(--primary-light)" />
-              <select 
-                value={dateRange} 
-                onChange={(e) => setDateRange(e.target.value)}
-                className="date-select-dropdown"
-              >
-                <option value="Current FY 2026-27">Current FY 2026-27</option>
-                <option value="Q3 (Oct - Dec 2026)">Q3 (Oct - Dec 2026)</option>
-                <option value="September 2026">September 2026</option>
-                <option value="Previous FY 2025-26">Previous FY 2025-26</option>
-              </select>
+              <Select
+                styles={compactSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={[
+                  { value: 'Current FY 2026-27', label: 'Current FY 2026-27' },
+                  { value: 'Q3 (Oct - Dec 2026)', label: 'Q3 (Oct - Dec 2026)' },
+                  { value: 'September 2026', label: 'September 2026' },
+                  { value: 'Previous FY 2025-26', label: 'Previous FY 2025-26' }
+                ]}
+                value={{ value: dateRange, label: dateRange }}
+                onChange={(opt) => opt && setDateRange(opt.value)}
+              />
             </div>
 
             {/* Export & Print */}

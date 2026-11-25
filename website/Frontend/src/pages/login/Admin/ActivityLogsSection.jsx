@@ -19,10 +19,12 @@ import {
   Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import AdminDataTable from './AdminDataTable';
 import DateRangeFilter from './DateRangeFilter';
 import { usePermissions } from './PermissionsContext';
 import { activityLogApi } from '../../../services/activityLogApi';
+import { compactSelectStyles } from './reactSelectStyles';
 import './ActivityLogsSection.css';
 
 /* ------------------------------------------------------------------ *
@@ -493,17 +495,30 @@ export default function ActivityLogsSection() {
             }}
           />
 
-          <select
-            className="act-filter-select"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="all">All Categories</option>
-            <option value="staff">Staff & User Access</option>
-            <option value="customer">Customer Records</option>
-            <option value="auth">Authentication & Security</option>
-            <option value="general">System Events</option>
-          </select>
+          <div className="adm-filter-select-wrap">
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                { value: 'staff', label: 'Staff & User Access' },
+                { value: 'customer', label: 'Customer Records' },
+                { value: 'auth', label: 'Authentication & Security' },
+                { value: 'general', label: 'System Events' }
+              ]}
+              value={
+                [
+                  { value: 'all', label: 'All Categories' },
+                  { value: 'staff', label: 'Staff & User Access' },
+                  { value: 'customer', label: 'Customer Records' },
+                  { value: 'auth', label: 'Authentication & Security' },
+                  { value: 'general', label: 'System Events' }
+                ].find((o) => o.value === categoryFilter) || { value: 'all', label: 'All Categories' }
+              }
+              onChange={(opt) => setCategoryFilter(opt ? opt.value : 'all')}
+            />
+          </div>
         </div>
       </div>
 

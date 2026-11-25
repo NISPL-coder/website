@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../Admin/reactSelectStyles';
 import { 
   Users, 
   Lock, 
@@ -156,18 +158,39 @@ export default function PartnerLoginSection({ onLoginSuccess, onForgotPassword }
             <span>Authorized Territory / Zone</span>
           </label>
           <div className="portal-input-wrapper">
-            <Globe2 size={17} className="portal-input-icon" />
-            <select 
-              id="partner-region"
-              className="portal-input portal-select"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              <option value="odisha-eastern">Odisha &amp; Eastern India Hub</option>
-              <option value="kolkata-hq">Kolkata HQ &amp; West Bengal</option>
-              <option value="bihar-jharkhand">Bihar &amp; Jharkhand Circle</option>
-              <option value="pan-india">Pan-India Corporate Accounts</option>
-            </select>
+            <Globe2 size={17} className="portal-input-icon" style={{ zIndex: 2, pointerEvents: 'none' }} />
+            <Select
+              inputId="partner-region"
+              classNamePrefix="react-select"
+              isSearchable={false}
+              styles={{
+                ...customSelectStyles,
+                valueContainer: (base) => ({
+                  ...customSelectStyles.valueContainer(base),
+                  paddingLeft: '38px'
+                })
+              }}
+              options={[
+                { value: 'odisha-eastern', label: 'Odisha & Eastern India Hub' },
+                { value: 'kolkata-hq', label: 'Kolkata HQ & West Bengal' },
+                { value: 'bihar-jharkhand', label: 'Bihar & Jharkhand Circle' },
+                { value: 'pan-india', label: 'Pan-India Corporate Accounts' }
+              ]}
+              value={
+                [
+                  { value: 'odisha-eastern', label: 'Odisha & Eastern India Hub' },
+                  { value: 'kolkata-hq', label: 'Kolkata HQ & West Bengal' },
+                  { value: 'bihar-jharkhand', label: 'Bihar & Jharkhand Circle' },
+                  { value: 'pan-india', label: 'Pan-India Corporate Accounts' }
+                ].find((o) => o.value === region) || {
+                  value: 'odisha-eastern',
+                  label: 'Odisha & Eastern India Hub'
+                }
+              }
+              onChange={(opt) => setRegion(opt ? opt.value : 'odisha-eastern')}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              menuPosition="fixed"
+            />
           </div>
         </div>
 

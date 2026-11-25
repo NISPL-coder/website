@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../../pages/login/Admin/reactSelectStyles';
 import { X, Boxes, Plus, Check } from 'lucide-react';
 import { GST_SLABS } from '../../data/mockData';
 
@@ -71,17 +73,19 @@ export default function ProductModal({ isOpen, onClose, onAddProduct }) {
 
               <div className="form-group">
                 <label>Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="Hardware">Hardware</option>
-                  <option value="Software">Software</option>
-                  <option value="Software Add-on">Software Add-on</option>
-                  <option value="Consumables">Consumables</option>
-                  <option value="Services">Services</option>
-                </select>
+                <Select
+                  styles={customSelectStyles}
+                  classNamePrefix="react-select"
+                  isSearchable={false}
+                  options={['Hardware', 'Software', 'Software Add-on', 'Consumables', 'Services'].map((c) => ({
+                    value: c,
+                    label: c
+                  }))}
+                  value={formData.category ? { value: formData.category, label: formData.category } : null}
+                  onChange={(opt) => setFormData({ ...formData, category: opt ? opt.value : 'Hardware' })}
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                  menuPosition="fixed"
+                />
               </div>
             </div>
 
@@ -171,15 +175,19 @@ export default function ProductModal({ isOpen, onClose, onAddProduct }) {
 
             <div className="form-group">
               <label>Applicable GST Slab</label>
-              <select
-                value={formData.gst}
-                onChange={(e) => setFormData({ ...formData, gst: e.target.value })}
-                className="form-select"
-              >
-                {GST_SLABS.map(s => (
-                  <option key={s.rate} value={s.rate}>{s.label}</option>
-                ))}
-              </select>
+              <Select
+                styles={customSelectStyles}
+                classNamePrefix="react-select"
+                isSearchable={false}
+                options={GST_SLABS.map((s) => ({ value: s.rate, label: s.label }))}
+                value={(() => {
+                  const matched = GST_SLABS.find((s) => String(s.rate) === String(formData.gst));
+                  return matched ? { value: matched.rate, label: matched.label } : null;
+                })()}
+                onChange={(opt) => setFormData({ ...formData, gst: opt ? opt.value : 18 })}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                menuPosition="fixed"
+              />
             </div>
           </div>
 

@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import Select from 'react-select';
+import { compactSelectStyles } from '../../pages/login/Admin/reactSelectStyles';
 import { 
   Search, 
   Filter, 
@@ -122,32 +124,59 @@ export default function TransactionsTable({
           {/* Type Filter */}
           <div className="filter-select-wrapper">
             <label className="filter-label">Type:</label>
-            <select
-              value={typeFilter}
-              onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-              className="filter-select"
-            >
-              <option value="All">All Types</option>
-              <option value="Sales">Sales</option>
-              <option value="Purchase">Purchase</option>
-              <option value="Receipt">Receipt</option>
-              <option value="Payment">Payment</option>
-            </select>
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={[
+                { value: 'All', label: 'All Types' },
+                { value: 'Sales', label: 'Sales' },
+                { value: 'Purchase', label: 'Purchase' },
+                { value: 'Receipt', label: 'Receipt' },
+                { value: 'Payment', label: 'Payment' }
+              ]}
+              value={
+                [
+                  { value: 'All', label: 'All Types' },
+                  { value: 'Sales', label: 'Sales' },
+                  { value: 'Purchase', label: 'Purchase' },
+                  { value: 'Receipt', label: 'Receipt' },
+                  { value: 'Payment', label: 'Payment' }
+                ].find((o) => o.value === typeFilter) || { value: 'All', label: 'All Types' }
+              }
+              onChange={(opt) => {
+                setTypeFilter(opt ? opt.value : 'All');
+                setCurrentPage(1);
+              }}
+            />
           </div>
 
           {/* Status Filter */}
           <div className="filter-select-wrapper">
             <label className="filter-label">Status:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              className="filter-select"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-              <option value="Overdue">Overdue</option>
-            </select>
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={[
+                { value: 'All', label: 'All Statuses' },
+                { value: 'Paid', label: 'Paid' },
+                { value: 'Pending', label: 'Pending' },
+                { value: 'Overdue', label: 'Overdue' }
+              ]}
+              value={
+                [
+                  { value: 'All', label: 'All Statuses' },
+                  { value: 'Paid', label: 'Paid' },
+                  { value: 'Pending', label: 'Pending' },
+                  { value: 'Overdue', label: 'Overdue' }
+                ].find((o) => o.value === statusFilter) || { value: 'All', label: 'All Statuses' }
+              }
+              onChange={(opt) => {
+                setStatusFilter(opt ? opt.value : 'All');
+                setCurrentPage(1);
+              }}
+            />
           </div>
         </div>
       </div>

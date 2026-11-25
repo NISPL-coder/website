@@ -25,7 +25,9 @@ import {
   CheckCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import DateRangeFilter from './DateRangeFilter';
+import { compactSelectStyles } from './reactSelectStyles';
 import {
   getNotificationMeta,
   formatTimeAgo
@@ -367,33 +369,43 @@ export default function NotificationsSection({ focusId }) {
             }}
           />
 
-          <select
-            className="nts-filter-select"
-            value={readState}
-            onChange={(e) => {
-              setReadState(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="all">Read &amp; unread</option>
-            <option value="unread">Unread only</option>
-            <option value="read">Read only</option>
-          </select>
+          <div className="adm-filter-select-wrap">
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={[
+                { value: 'all', label: 'Read & unread' },
+                { value: 'unread', label: 'Unread only' },
+                { value: 'read', label: 'Read only' }
+              ]}
+              value={
+                [
+                  { value: 'all', label: 'Read & unread' },
+                  { value: 'unread', label: 'Unread only' },
+                  { value: 'read', label: 'Read only' }
+                ].find((o) => o.value === readState) || { value: 'all', label: 'Read & unread' }
+              }
+              onChange={(opt) => {
+                setReadState(opt ? opt.value : 'all');
+                setPage(1);
+              }}
+            />
+          </div>
 
-          <select
-            className="nts-filter-select"
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setPage(1);
-            }}
-          >
-            {PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size} per page
-              </option>
-            ))}
-          </select>
+          <div className="adm-filter-select-wrap">
+            <Select
+              styles={compactSelectStyles}
+              classNamePrefix="react-select"
+              isSearchable={false}
+              options={PAGE_SIZES.map((size) => ({ value: size, label: `${size} per page` }))}
+              value={{ value: limit, label: `${limit} per page` }}
+              onChange={(opt) => {
+                setLimit(opt ? Number(opt.value) : PAGE_SIZES[0]);
+                setPage(1);
+              }}
+            />
+          </div>
         </div>
       </div>
 

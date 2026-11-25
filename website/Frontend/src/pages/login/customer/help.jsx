@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Select from 'react-select';
+import { customSelectStyles } from '../Admin/reactSelectStyles';
 import {
   Headphones,
   Phone,
@@ -286,19 +288,35 @@ export default function HelpSection({ customer }) {
                   </div>
                   <div className="modal-field">
                     <label>Service / Category</label>
-                    <select
-                      name="serviceCategory"
-                      value={formData.serviceCategory}
-                      onChange={handleFormChange}
-                    >
-                      <option value="Tally Prime Support & Licensing">Tally Prime Support & Licensing</option>
-                      <option value="Tally on Cloud Hosting">Tally on Cloud Hosting</option>
-                      <option value="Enterprise / Azure / AWS Cloud Server">Enterprise / Azure / AWS Cloud Server</option>
-                      <option value="IT Hardware, Servers & AMC">IT Hardware, Servers & AMC</option>
-                      <option value="Cybersecurity & Network Support">Cybersecurity & Network Support</option>
-                      <option value="Billing & Invoicing Query">Billing & Invoicing Query</option>
-                      <option value="General Query">General Query</option>
-                    </select>
+                    <Select
+                      styles={customSelectStyles}
+                      classNamePrefix="react-select"
+                      isSearchable={false}
+                      options={[
+                        'Tally Prime Support & Licensing',
+                        'Tally on Cloud Hosting',
+                        'Enterprise / Azure / AWS Cloud Server',
+                        'IT Hardware, Servers & AMC',
+                        'Cybersecurity & Network Support',
+                        'Billing & Invoicing Query',
+                        'General Query'
+                      ].map((v) => ({ value: v, label: v }))}
+                      value={
+                        formData.serviceCategory
+                          ? { value: formData.serviceCategory, label: formData.serviceCategory }
+                          : null
+                      }
+                      onChange={(opt) =>
+                        handleFormChange({
+                          target: {
+                            name: 'serviceCategory',
+                            value: opt ? opt.value : 'Tally Prime Support & Licensing'
+                          }
+                        })
+                      }
+                      menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                      menuPosition="fixed"
+                    />
                   </div>
                 </div>
 
