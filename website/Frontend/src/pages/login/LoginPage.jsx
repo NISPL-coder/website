@@ -3,7 +3,7 @@ import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-do
 import Select from 'react-select';
 import { customSelectStyles } from './Admin/reactSelectStyles';
 import onboardingVideo from '../../assets/Net Infotech System (NISPL) _ Tally 3-Star Partner, Cloud Hosting, IT Infrastructure & Cybersecurity.mp4';
-import nisplWhiteLogo from '../../assets/new_logo/WHITE NEW.png';
+import nisplBlackLogo from '../../assets/new_logo/BLACK NEW.png';
 import { authApi } from '../../services/authApi';
 import {
   Mail,
@@ -544,7 +544,7 @@ export default function LoginPage({ lockedPortal }) {
         <header className="ebolt-top-nav admin-glass-top-nav">
           <Link to="/" className="ebolt-brand-link" title="Net Infotech System">
             <img
-              src={nisplWhiteLogo}
+              src={nisplBlackLogo}
               alt="Net Infotech System Pvt. Ltd."
               className="admin-glass-brand-logo"
             />
