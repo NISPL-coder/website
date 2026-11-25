@@ -2,6 +2,14 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Running on a server
+
+Do not expose the Vite development server to the network. `npm run dev` binds to
+`127.0.0.1` for local development. To preview a built site on the server, run
+`npm run build` followed by `npm run preview`; the preview serves the static
+build on port 5173. For production, serve `dist/` through a production web
+server instead of the Vite preview server.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
