@@ -810,6 +810,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
               </div>
             ) : (
               <div
+                className="adm-plan-preview-card"
                 style={{
                   border: '1px solid #e2e8f0',
                   borderRadius: '12px',
@@ -833,6 +834,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                 ].map((row) => (
                   <div
                     key={row.label}
+                    className={`adm-plan-preview-row${row.highlight ? ' is-highlight' : ''}`}
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -843,6 +845,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                     }}
                   >
                     <span
+                      className="adm-plan-preview-label"
                       style={{
                         fontSize: '0.82rem',
                         fontWeight: row.highlight ? 700 : 500,
@@ -852,6 +855,7 @@ export default function PlanFormModal({ plan = null, defaultType = 'custom', onC
                       {row.label}
                     </span>
                     <span
+                      className="adm-plan-preview-value"
                       style={{
                         fontSize: row.highlight ? '0.92rem' : '0.85rem',
                         fontWeight: row.highlight ? 800 : 600,

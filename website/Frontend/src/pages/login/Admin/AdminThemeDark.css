@@ -1012,19 +1012,9 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_paginationButton:hover:not(:di
   color: var(--adm-text-main);
 }
 
-html[data-adm-theme='dark'] .admin-datatable .rdt_Table,
-html[data-adm-theme='dark'] .admin-datatable .rdt_TableBody,
-html[data-adm-theme='dark'] .admin-datatable .rdt_noData,
-html[data-adm-theme='dark'] .admin-datatable-empty {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+html[data-adm-theme='dark'] .admin-datatable .rdt_noData {
+  background: var(--adm-card-bg);
   color: var(--adm-text-muted);
-}
-
-html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper,
-html[data-adm-theme='dark'] .admin-datatable .rdt_TableWrapper {
-  scrollbar-color: #33415c #0e1626;
 }
 
 html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar-track {
@@ -1036,9 +1026,7 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper::-webkit-scr
 }
 
 html[data-adm-theme='dark'] .admin-datatable-empty-icon {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: var(--adm-purple-soft);
 }
 
 /* ------------------------------------------------------------------ *
@@ -3187,4 +3175,47 @@ html[data-adm-theme='dark'] .adm-awaiting-confirm-header {
 html[data-adm-theme='dark'] .adm-create-product-matrix {
   background: linear-gradient(180deg, var(--adm-safe-muted) 0%, var(--adm-safe-white) 100%) !important;
   border-color: var(--adm-border-input) !important;
+}
+
+/* Live Pricing & Billing Calculation Grid */
+html[data-adm-theme='dark'] .adm-live-pricing-card,
+html[data-adm-theme='dark'] .adm-plan-preview-card {
+  border-color: var(--adm-border-input, #253352) !important;
+  background: var(--adm-card-bg, #10182b) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-grid {
+  background: var(--adm-border-light, rgba(148, 163, 184, 0.16)) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-cell,
+html[data-adm-theme='dark'] .adm-plan-preview-row {
+  background: var(--adm-card-bg, #10182b) !important;
+  border-color: var(--adm-border-light, rgba(148, 163, 184, 0.14)) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-cell.is-highlight,
+html[data-adm-theme='dark'] .adm-plan-preview-row.is-highlight {
+  background: rgba(37, 99, 235, 0.18) !important;
+  border-color: rgba(59, 130, 246, 0.32) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-label,
+html[data-adm-theme='dark'] .adm-plan-preview-label {
+  color: var(--adm-text-muted, #94a3b8) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-cell.is-highlight .adm-live-pricing-label,
+html[data-adm-theme='dark'] .adm-plan-preview-row.is-highlight .adm-plan-preview-label {
+  color: #93c5fd !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-value,
+html[data-adm-theme='dark'] .adm-plan-preview-value {
+  color: var(--adm-text-main, #f1f5f9) !important;
+}
+
+html[data-adm-theme='dark'] .adm-live-pricing-cell.is-highlight .adm-live-pricing-value,
+html[data-adm-theme='dark'] .adm-plan-preview-row.is-highlight .adm-plan-preview-value {
+  color: #ffffff !important;
 }

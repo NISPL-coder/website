@@ -760,23 +760,8 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                 </span>
               </div>
             ) : (
-              <div
-                style={{
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  background: '#ffffff',
-                  marginTop: '12px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-                    gap: '1px',
-                    background: '#e2e8f0'
-                  }}
-                >
+              <div className="adm-live-pricing-card">
+                <div className="adm-live-pricing-grid">
                   {[
                     { label: 'Users', value: String(breakdown.users || 0) },
                     { label: 'Price / User / Month', value: formatINR(breakdown.pricePerUser, true) },
@@ -793,36 +778,10 @@ export default function CreateCustomPlanPage({ products = [], setProducts }) {
                   ].map((row) => (
                     <div
                       key={row.label}
-                      style={{
-                        padding: '12px 16px',
-                        background: row.highlight ? '#eff6ff' : '#ffffff',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        gap: '3px'
-                      }}
+                      className={`adm-live-pricing-cell${row.highlight ? ' is-highlight' : ''}`}
                     >
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 500,
-                          color: row.highlight ? '#4338ca' : '#64748b',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.03em'
-                        }}
-                      >
-                        {row.label}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: row.highlight ? '1rem' : '0.9rem',
-                          fontWeight: 600,
-                          color: row.highlight ? '#312e81' : '#0f172a',
-                          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
-                        }}
-                      >
-                        {row.value}
-                      </span>
+                      <span className="adm-live-pricing-label">{row.label}</span>
+                      <span className="adm-live-pricing-value">{row.value}</span>
                     </div>
                   ))}
                 </div>
