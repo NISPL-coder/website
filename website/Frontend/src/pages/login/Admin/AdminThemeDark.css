@@ -1012,9 +1012,19 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_paginationButton:hover:not(:di
   color: var(--adm-text-main);
 }
 
-html[data-adm-theme='dark'] .admin-datatable .rdt_noData {
-  background: var(--adm-card-bg);
+html[data-adm-theme='dark'] .admin-datatable .rdt_Table,
+html[data-adm-theme='dark'] .admin-datatable .rdt_TableBody,
+html[data-adm-theme='dark'] .admin-datatable .rdt_noData,
+html[data-adm-theme='dark'] .admin-datatable-empty {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   color: var(--adm-text-muted);
+}
+
+html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper,
+html[data-adm-theme='dark'] .admin-datatable .rdt_TableWrapper {
+  scrollbar-color: #33415c #0e1626;
 }
 
 html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper::-webkit-scrollbar-track {
@@ -1026,7 +1036,9 @@ html[data-adm-theme='dark'] .admin-datatable .rdt_responsiveWrapper::-webkit-scr
 }
 
 html[data-adm-theme='dark'] .admin-datatable-empty-icon {
-  background: var(--adm-purple-soft);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* ------------------------------------------------------------------ *
