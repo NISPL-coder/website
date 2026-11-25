@@ -1366,10 +1366,13 @@
 
 .ebolt-login-card.is-admin-glass-card {
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   width: 100%;
-  max-width: 396px;
-  padding: 38px 38px 34px;
+  max-width: 400px;
+  max-height: calc(100dvh - 36px);
+  padding: 32px 34px 28px;
   border-radius: 28px;
   background: linear-gradient(
     142deg,
@@ -1579,12 +1582,120 @@
   text-decoration: underline;
 }
 
-/* Keep 2FA / Backup Recovery Codes crisp inside the frosted glass card */
+/* Crystal-clear Glassmorphism for 2FA & Backup Recovery Codes inside Admin Glass Card */
+.ebolt-login-card.is-admin-glass-card::-webkit-scrollbar {
+  display: none;
+}
+
 .ebolt-login-card.is-admin-glass-card .ebolt-2fa-container {
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 18px;
-  padding: 20px 18px;
-  color: #0f172a;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding: 0;
+  color: #ffffff;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-badge-icon-box {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  color: #ffffff !important;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-badge-icon-box svg {
+  stroke: #ffffff !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-card-title {
+  color: #ffffff;
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-card-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap {
+  margin: 8px 0 12px !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap img {
+  width: 140px !important;
+  height: 140px !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap span {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap code {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  padding: 3px 8px;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap button {
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-input-wrap {
+  margin-bottom: 8px;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-input-icon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-input {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.44) !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  height: 44px;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-input::placeholder {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-input:focus {
+  border-color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18) !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-submit-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 9999px;
+  background: #ffffff !important;
+  color: #334155 !important;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-submit-btn:hover:not(:disabled) {
+  color: #0f172a !important;
+  transform: translateY(-1px);
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-2fa-container form button[type='button'] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ebolt-login-card.is-admin-glass-card .ebolt-alert-error {
+  background: rgba(220, 38, 38, 0.24);
+  border-color: rgba(254, 202, 202, 0.55);
+  color: #ffffff;
 }
 
 @media (max-width: 640px) {
