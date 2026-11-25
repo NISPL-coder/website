@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '127.0.0.1',
     // Windows/external-tool edits can be missed by OS file events; polling makes
     // HMR push every code change to the open browser without a manual reload.
     watch: {
@@ -22,6 +23,11 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true
   },
   build: {
     target: ['chrome90', 'edge90', 'firefox90', 'safari15'],
