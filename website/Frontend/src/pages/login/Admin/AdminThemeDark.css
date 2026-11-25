@@ -245,6 +245,7 @@ html[data-adm-theme] .adm-theme-toggle {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   html[data-adm-theme] .adm-dashboard-viewport,
   html[data-adm-theme] .adm-header,
   html[data-adm-theme] .adm-header-left,
@@ -336,7 +337,7 @@ html[data-adm-theme='dark'] .adm-search-results {
   box-shadow: var(--adm-shadow-dropdown);
 }
 
-html[data-adm-theme='dark'] .adm-search-group + .adm-search-group {
+html[data-adm-theme='dark'] .adm-search-group+.adm-search-group {
   border-top-color: var(--adm-border-light);
 }
 
@@ -562,8 +563,7 @@ html[data-adm-theme='dark'] .adm-profile-dropdown-role {
 /* ------------------------------------------------------------------ *
  * Typography
  * ------------------------------------------------------------------ */
-html[data-adm-theme='dark'] :is(
-  .adm-section-title,
+html[data-adm-theme='dark'] :is(.adm-section-title,
   .adm-hero-title,
   .adm-overview-heading,
   .adm-card-header-info h1,
@@ -615,13 +615,11 @@ html[data-adm-theme='dark'] :is(
   .adm-notif-item-title,
   .adm-notif-empty-title,
   .adm-date-range-trigger,
-  .adm-btn-secondary
-) {
+  .adm-btn-secondary) {
   color: var(--adm-text-main);
 }
 
-html[data-adm-theme='dark'] :is(
-  .adm-section-sub,
+html[data-adm-theme='dark'] :is(.adm-section-sub,
   .adm-hero-sub,
   .adm-overview-subheading,
   .adm-kpi-label,
@@ -686,13 +684,11 @@ html[data-adm-theme='dark'] :is(
   .adm-notif-item-desc,
   .adm-notif-item-time,
   .adm-date-range-heading,
-  .adm-date-range-label
-) {
+  .adm-date-range-label) {
   color: var(--adm-text-muted);
 }
 
-html[data-adm-theme='dark'] :is(
-  .adm-form-hint,
+html[data-adm-theme='dark'] :is(.adm-form-hint,
   .adm-profile-info-label,
   .adm-profile-group-label,
   .adm-profile-edit-note,
@@ -704,16 +700,14 @@ html[data-adm-theme='dark'] :is(
   .vcm-item-label,
   .nts-item-time,
   .nts-detail-label,
-  .act-diff-arrow
-) {
+  .act-diff-arrow) {
   color: var(--adm-text-light);
 }
 
 /* ------------------------------------------------------------------ *
  * Cards & surfaces
  * ------------------------------------------------------------------ */
-html[data-adm-theme='dark'] :is(
-  .adm-table-card,
+html[data-adm-theme='dark'] :is(.adm-table-card,
   .adm-form-card,
   .adm-table-card.adm-form-card,
   .adm-kpi-card,
@@ -740,8 +734,7 @@ html[data-adm-theme='dark'] :is(
   .edit-cust-card,
   .vcm-card,
   .vcm-metric-card,
-  .admin-modal-card
-) {
+  .admin-modal-card) {
   background-color: var(--adm-card-bg);
   border-color: var(--adm-border);
 }
@@ -1032,8 +1025,7 @@ html[data-adm-theme='dark'] .admin-datatable-empty-icon {
 /* ------------------------------------------------------------------ *
  * Form controls
  * ------------------------------------------------------------------ */
-html[data-adm-theme='dark'] :is(
-  .adm-form-input,
+html[data-adm-theme='dark'] :is(.adm-form-input,
   .adm-select-filter,
   .adm-card-select,
   .adm-date-range-field input[type='date'],
@@ -1051,15 +1043,13 @@ html[data-adm-theme='dark'] :is(
   .edit-cust-select,
   .edit-cust-item-input,
   .admin-email-input,
-  .admin-otp-input
-) {
+  .admin-otp-input) {
   background-color: var(--adm-surface-raised);
   border-color: var(--adm-border-input);
   color: var(--adm-text-main);
 }
 
-html[data-adm-theme='dark'] :is(
-  .adm-form-input:focus,
+html[data-adm-theme='dark'] :is(.adm-form-input:focus,
   .adm-select-filter:focus,
   .adm-date-range-field input[type='date']:focus,
   .adm-creds-search-input:focus,
@@ -1074,23 +1064,20 @@ html[data-adm-theme='dark'] :is(
   .ecm-textarea:focus,
   .edit-cust-input:focus,
   .edit-cust-select:focus,
-  .edit-cust-item-input:focus
-) {
+  .edit-cust-item-input:focus) {
   background-color: #0f1929;
   border-color: var(--adm-purple);
   box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.16);
 }
 
-html[data-adm-theme='dark'] :is(
-  .adm-form-input::placeholder,
+html[data-adm-theme='dark'] :is(.adm-form-input::placeholder,
   .adm-creds-search-input::placeholder,
   .act-search-input::placeholder,
   .nts-search-input::placeholder,
   .usr-form-input::placeholder,
   .ecm-input::placeholder,
   .edit-cust-input::placeholder,
-  .edit-cust-item-input::placeholder
-) {
+  .edit-cust-item-input::placeholder) {
   color: var(--adm-text-light);
 }
 
@@ -1515,9 +1502,9 @@ html[data-adm-theme='dark'] .usr-btn-secondary:hover {
 }
 
 /* Delete-confirmation and other compact portal dialogs */
-html[data-adm-theme='dark'] .adm-modal-backdrop-portal > div,
-html[data-adm-theme='dark'] .act-modal-backdrop > div,
-html[data-adm-theme='dark'] .usr-modal-backdrop > div {
+html[data-adm-theme='dark'] .adm-modal-backdrop-portal>div,
+html[data-adm-theme='dark'] .act-modal-backdrop>div,
+html[data-adm-theme='dark'] .usr-modal-backdrop>div {
   color: var(--adm-text-main);
 }
 
@@ -2796,7 +2783,7 @@ html[data-adm-theme='dark'] .input-error {
 /* ------------------------------------------------------------------ *
  * Toasts (rendered in a body portal)
  * ------------------------------------------------------------------ */
-html[data-adm-theme='dark'] div[role='status'] > div {
+html[data-adm-theme='dark'] div[role='status']>div {
   background: #172033 !important;
   color: #e9eefb !important;
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -2819,18 +2806,15 @@ html[data-adm-theme='dark'] .adm-modal-body {
  * Secondary surfaces picked up by the colour audit
  * (labels and helper text that had explicit light-palette values)
  * ------------------------------------------------------------------ */
-html[data-adm-theme='dark'] :is(
-  .adm-import-dropzone-title,
+html[data-adm-theme='dark'] :is(.adm-import-dropzone-title,
   .act-admin-name,
   .admin-datatable-empty-title,
   .edit-cust-channel-title,
-  .vcm-item-val
-) {
+  .vcm-item-val) {
   color: var(--adm-text-main);
 }
 
-html[data-adm-theme='dark'] :is(
-  .adm-renewal-label,
+html[data-adm-theme='dark'] :is(.adm-renewal-label,
   .adm-legend-amount,
   .adm-btn-export-chevron,
   .adm-cust-stat-icon.slate,
@@ -2843,8 +2827,7 @@ html[data-adm-theme='dark'] :is(
   .admin-datatable-empty-hint,
   .act-diff-line.neutral,
   .nts-search-icon,
-  .admin-send-otp-btn:disabled
-) {
+  .admin-send-otp-btn:disabled) {
   color: var(--adm-text-muted);
 }
 
