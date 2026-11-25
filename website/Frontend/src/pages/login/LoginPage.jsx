@@ -471,13 +471,23 @@ export default function LoginPage({ lockedPortal }) {
   );
 
   return (
-    <div className="ebolt-login-viewport">
-      {/* Ethereal Sky Concentric Rings Background Decoration */}
-      <div className="ebolt-sky-rings" aria-hidden="true">
-        <div className="ebolt-ring ring-1" />
-        <div className="ebolt-ring ring-2" />
-        <div className="ebolt-ring ring-3" />
-      </div>
+    <div className={`ebolt-login-viewport${!isCustomerPortal && activePortal === 'admin' ? ' is-admin-glass' : ''}`}>
+      {!isCustomerPortal && activePortal === 'admin' ? (
+        <div className="admin-glass-spheres" aria-hidden="true">
+          <span className="admin-glass-sphere s1" />
+          <span className="admin-glass-sphere s2" />
+          <span className="admin-glass-sphere s3" />
+          <span className="admin-glass-sphere s4" />
+          <span className="admin-glass-sphere s5" />
+        </div>
+      ) : (
+        /* Ethereal Sky Concentric Rings Background Decoration */
+        <div className="ebolt-sky-rings" aria-hidden="true">
+          <div className="ebolt-ring ring-1" />
+          <div className="ebolt-ring ring-2" />
+          <div className="ebolt-ring ring-3" />
+        </div>
+      )}
 
       {/* Top Bar: Brand Logo & Back to Home Pill */}
       
@@ -688,7 +698,7 @@ export default function LoginPage({ lockedPortal }) {
           /* ====================================================================
               CONDITION 2: ADMIN & PARTNER PORTALS -> ORIGINAL CLEAN SINGLE CARD
              ==================================================================== */
-          <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}`}>
+          <div className={`ebolt-login-card animate-fade-in ${isShaking ? 'ebolt-shake' : ''}${activePortal === 'admin' ? ' is-admin-glass-card' : ''}`}>
 
             {backupRecoveryCodes ? (
               <div className="ebolt-2fa-container animate-fade-in">
@@ -893,6 +903,104 @@ export default function LoginPage({ lockedPortal }) {
                       <ArrowLeft size={14} />
                       <span>Back to password login</span>
                     </button>
+                  </div>
+                </form>
+              </div>
+            ) : activePortal === 'admin' ? (
+              <div className="admin-glass-form-wrap">
+                <h1 className="admin-glass-title">Login</h1>
+
+                {errorMessage && (
+                  <div className="ebolt-alert-error is-stacked admin-glass-error" role="alert">
+                    <div className="ebolt-alert-error-row">
+                      <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{errorMessage}</span>
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="admin-glass-form" noValidate>
+                  {/* Email Underline Input */}
+                  <div className="admin-glass-field">
+                    <input
+                      type="email"
+                      className="admin-glass-input"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="username"
+                      required
+                    />
+                    <span className="admin-glass-field-icon" aria-hidden="true">
+                      <Mail size={17} strokeWidth={2.2} />
+                    </span>
+                  </div>
+
+                  {/* Password Underline Input */}
+                  <div className="admin-glass-field">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="admin-glass-input"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="admin-glass-field-icon is-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={17} strokeWidth={2.2} /> : <Lock size={17} strokeWidth={2.2} />}
+                    </button>
+                  </div>
+
+                  {/* Remember Me & Forgot Password */}
+                  <div className="admin-glass-options">
+                    <label className="admin-glass-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Remember me</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      className="admin-glass-forgot"
+                      onClick={() => {
+                        setIsForgotOpen(true);
+                        setResetEmail(email);
+                        setResetError('');
+                        setResetSent(false);
+                      }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
+                  {/* White Pill Submit Button */}
+                  <button
+                    type="submit"
+                    className="admin-glass-submit-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <span className="ebolt-spinner" /> : 'Login'}
+                  </button>
+
+                  {/* Bottom Register Link */}
+                  <div className="admin-glass-register">
+                    <span>Don&apos;t have an account? </span>
+                    <Link
+                      to={adminConfigLoaded && !adminExists ? '/admin/create' : '/customer-login'}
+                      className="admin-glass-register-link"
+                    >
+                      Register
+                    </Link>
                   </div>
                 </form>
               </div>
