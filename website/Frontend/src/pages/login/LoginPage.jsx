@@ -859,7 +859,7 @@ export default function LoginPage({ lockedPortal }) {
                       autoFocus
                       autoComplete="one-time-code"
                       inputMode="numeric"
-                      style={{ letterSpacing: '0.12em', fontWeight: 600, fontSize: '1.05rem', textAlign: 'center' }}
+                      style={{ letterSpacing: '0.06em', fontWeight: 600, fontSize: '0.94rem', textAlign: 'center' }}
                       required
                     />
                   </div>
