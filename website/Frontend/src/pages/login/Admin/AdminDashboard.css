@@ -2295,7 +2295,7 @@ input:checked+.adm-slider:before {
 }
 
 .adm-finance-card {
-  background: #ffffff;
+  background: #f7f6f2;
   border: 1px solid var(--adm-border, #e2e8f0);
   border-radius: 14px;
   padding: 22px 26px;
@@ -2319,6 +2319,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 1: Total Amount Received — Emerald #059669 */
+.adm-finance-card.payment-received {
+  background: #edf9f0;
+}
+
 .adm-finance-card.payment-received::after {
   background: #059669;
 }
@@ -2330,6 +2334,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 2: Total Business / Renewals — Amber #D97706 */
+.adm-finance-card.payment-due {
+  background: #fef7e8;
+}
+
 .adm-finance-card.payment-due::after {
   background: #d97706;
 }
@@ -2341,6 +2349,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 3: Annual Net Revenue — Royal Blue #1D4ED8 */
+.adm-finance-card.mrr-arr {
+  background: #edf2ff;
+}
+
 .adm-finance-card.mrr-arr::after {
   background: #1d4ed8;
 }
@@ -2352,6 +2364,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 4: Total Customers — Cyan #0891B2 */
+.adm-finance-card.customer-ratio {
+  background: #e8f8fc;
+}
+
 .adm-finance-card.customer-ratio::after {
   background: #0891b2;
 }
@@ -2363,6 +2379,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 5: Cloud Users — Indigo #4F46E5 */
+.adm-finance-card.cloud-users {
+  background: #f3f0ff;
+}
+
 .adm-finance-card.cloud-users::after {
   background: #4f46e5;
 }
@@ -2374,6 +2394,10 @@ input:checked+.adm-slider:before {
 }
 
 /* Card 6: Upcoming Renewals — Teal #0F766E */
+.adm-finance-card.upcoming-renewals {
+  background: #e9f7f4;
+}
+
 .adm-finance-card.upcoming-renewals::after {
   background: #0f766e;
 }

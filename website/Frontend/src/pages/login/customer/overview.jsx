@@ -30,7 +30,7 @@ import ProfileCompletionCircle from '../../../components/common/ProfileCompletio
 import DemoProductDetailsModal from './components/DemoProductDetailsModal';
 import ActiveProductsModal from './components/ActiveProductsModal';
 import AdditionalProductModal from './components/AdditionalProductModal';
-import { checkClientAdditionalProductEligibility, findPrimaryContract } from '../../../utils/contractEligibility';
+import { checkClientAdditionalProductEligibility, findPrimaryContract, getCalendarDayDifference } from '../../../utils/contractEligibility';
 
 const LIFECYCLE_BADGE = {
   Active: { background: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: CheckCircle2 },
@@ -258,6 +258,61 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const isAdditionalRestricted = Boolean(additionalProductEligibility?.isRestricted || additionalProductEligibility?.eligible === false);
   const masterExpiryDate = data?.masterExpiryDate || additionalProductEligibility?.masterExpiryDate || primaryContract?.expiryDate || primaryContract?.endDate;
   const cutOffDate = additionalProductEligibility?.cutOffDate;
+
+  // Current pack days-remaining calculation for the circular countdown card
+  const currentPack = primaryContract || activePaidProducts[0] || demoProducts[0] || null;
+  const packName = currentPack?.name || kpi.renewalName || (activeCount > 0 ? 'Current Active Pack' : 'No Active Pack');
+  const packStartRaw = currentPack?.startDate || currentPack?.createdAt || null;
+  const packExpiryRaw = currentPack?.expiryDate || currentPack?.endDate || masterExpiryDate || kpi.renewalDate || null;
+  const computedDaysLeft = packExpiryRaw ? getCalendarDayDifference(packExpiryRaw) : null;
+  const packDaysRemaining =
+    computedDaysLeft !== null
+      ? computedDaysLeft
+      : currentPack?.daysLeft !== undefined && currentPack?.daysLeft !== null
+        ? Number(currentPack.daysLeft)
+        : kpi.renewalDaysLeft !== undefined && kpi.renewalDaysLeft !== null
+          ? Number(kpi.renewalDaysLeft)
+          : null;
+
+  const inferPackTotalDays = () => {
+    if (packStartRaw && packExpiryRaw) {
+      const span = getCalendarDayDifference(packExpiryRaw, packStartRaw);
+      if (span !== null && span > 0) return span;
+    }
+    const period = String(currentPack?.subscriptionPeriod || '').toLowerCase();
+    const dayMatch = period.match(/(\d+)\s*day/);
+    if (dayMatch) return Number(dayMatch[1]) || 30;
+    if (/month/.test(period)) return 30;
+    if (/quarter/.test(period)) return 90;
+    if (/half/.test(period)) return 180;
+    if (currentPack && isDemoProduct(currentPack)) return 14;
+    return Math.max(365, packDaysRemaining || 0);
+  };
+
+  const packTotalDays = inferPackTotalDays();
+  const packRemainingPct =
+    packDaysRemaining === null || packDaysRemaining <= 0
+      ? 0
+      : Math.min(100, Math.max(0, Math.round((packDaysRemaining / packTotalDays) * 100)));
+
+  const packRingSize = 116;
+  const packRingStroke = 10;
+  const packRingRadius = (packRingSize - packRingStroke) / 2;
+  const packRingCircumference = 2 * Math.PI * packRingRadius;
+  const packRingOffset = packRingCircumference - (packRemainingPct / 100) * packRingCircumference;
+
+  const packTone =
+    packDaysRemaining === null
+      ? { stroke: '#94a3b8', bg: '#f1f5f9', text: '#475569', label: 'No Expiry Recorded' }
+      : packDaysRemaining < 0
+        ? { stroke: '#ef4444', bg: '#fef2f2', text: '#dc2626', label: `Expired (${Math.abs(packDaysRemaining)}d ago)` }
+        : packDaysRemaining === 0
+          ? { stroke: '#ef4444', bg: '#fef2f2', text: '#dc2626', label: 'Expires Today' }
+          : packDaysRemaining <= 7
+            ? { stroke: '#ef4444', bg: '#fef2f2', text: '#dc2626', label: 'Critical · Expiring Soon' }
+            : packDaysRemaining <= 15
+              ? { stroke: '#f59e0b', bg: '#fffbeb', text: '#b45309', label: 'Renewal Window Open' }
+              : { stroke: '#10b981', bg: '#ecfdf5', text: '#047857', label: 'Active' };
 
   const rawReminders = Array.isArray(data?.reminders) && data.reminders.length > 0
     ? data.reminders
@@ -750,6 +805,131 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
               onClick={totalPendingAmount > 0 ? handlePayPending : undefined}
               isClickable={totalPendingAmount > 0}
             />
+          </section>
+
+          {/* ── 2b. Current Pack Days Remaining Circle ── */}
+          <section className="flowmail-card flowmail-pack-countdown-card" aria-label="Current pack days remaining">
+            <div className="flowmail-pack-countdown-left">
+              <div
+                className="flowmail-pack-circle-wrap"
+                role="progressbar"
+                aria-valuenow={packRemainingPct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                title={
+                  packDaysRemaining !== null
+                    ? `${Math.max(0, packDaysRemaining)} of ${packTotalDays} days remaining (${packRemainingPct}%)`
+                    : 'No pack expiry date recorded'
+                }
+              >
+                <svg
+                  width={packRingSize}
+                  height={packRingSize}
+                  style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+                >
+                  <circle
+                    cx={packRingSize / 2}
+                    cy={packRingSize / 2}
+                    r={packRingRadius}
+                    stroke="#e2e8f0"
+                    strokeWidth={packRingStroke}
+                    fill="none"
+                  />
+                  <circle
+                    cx={packRingSize / 2}
+                    cy={packRingSize / 2}
+                    r={packRingRadius}
+                    stroke={packTone.stroke}
+                    strokeWidth={packRingStroke}
+                    strokeDasharray={packRingCircumference}
+                    strokeDashoffset={packRingOffset}
+                    strokeLinecap="round"
+                    fill="none"
+                    style={{ transition: 'stroke-dashoffset 0.6s ease, stroke 0.3s ease' }}
+                  />
+                </svg>
+                <div className="flowmail-pack-circle-center">
+                  <span className="flowmail-pack-days-num" style={{ color: packTone.stroke }}>
+                    {packDaysRemaining !== null ? Math.max(0, packDaysRemaining) : '—'}
+                  </span>
+                  <span className="flowmail-pack-days-label">
+                    {packDaysRemaining === null
+                      ? 'No Limit'
+                      : packDaysRemaining < 0
+                        ? 'Expired'
+                        : packDaysRemaining === 0
+                          ? 'Due Today'
+                          : packDaysRemaining === 1
+                            ? 'Day Left'
+                            : 'Days Left'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flowmail-pack-info">
+                <div className="flowmail-pack-title-row">
+                  <span className="flowmail-pack-eyebrow">Current Pack Remaining</span>
+                  <span
+                    className="flowmail-pack-status-pill"
+                    style={{ background: packTone.bg, color: packTone.text }}
+                  >
+                    {packTone.label}
+                  </span>
+                </div>
+                <h3 className="flowmail-pack-name">{packName}</h3>
+                <div className="flowmail-pack-meta">
+                  {packStartRaw && (
+                    <span>
+                      Start: <strong>{formatDate(packStartRaw)}</strong>
+                    </span>
+                  )}
+                  {packExpiryRaw && (
+                    <span>
+                      Expires: <strong>{formatDate(packExpiryRaw)}</strong>
+                    </span>
+                  )}
+                  {packDaysRemaining !== null && packDaysRemaining >= 0 && (
+                    <span>
+                      <strong>{packDaysRemaining}</strong> of {packTotalDays} days left ({packRemainingPct}%)
+                    </span>
+                  )}
+                  {packDaysRemaining !== null && packDaysRemaining < 0 && (
+                    <span style={{ color: '#dc2626', fontWeight: 600 }}>
+                      Overdue by {Math.abs(packDaysRemaining)} day{Math.abs(packDaysRemaining) === 1 ? '' : 's'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flowmail-pack-actions">
+              <button
+                type="button"
+                className="flowmail-btn-secondary"
+                onClick={() => {
+                  setSelectedProductId(null);
+                  setIsProductsModalOpen(true);
+                }}
+              >
+                View Pack
+              </button>
+              {packDaysRemaining !== null && packDaysRemaining <= 35 && onPay && (
+                <button
+                  type="button"
+                  className="flowmail-btn-primary"
+                  onClick={() => {
+                    const cId = currentPack?.contractId || currentPack?.id;
+                    if (cId) {
+                      onPay({ mode: 'renewal', contractId: cId, amount: currentPack?.amount });
+                    } else {
+                      onPay();
+                    }
+                  }}
+                >
+                  Renew Pack
+                </button>
+              )}
+            </div>
           </section>
 
           {/* ── 3. Recent Payments + Payment Reminder ── */}
