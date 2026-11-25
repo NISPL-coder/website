@@ -1246,12 +1246,13 @@
 }
 
 /* ==========================================================================
-   ADMIN LOGIN — FROSTED GLASSMORPHISM & 3D METALLIC SPHERES
+   ADMIN LOGIN — EXTREME FROSTED GLASSMORPHISM & 3D METALLIC SPHERES
    ========================================================================== */
 .ebolt-login-viewport.is-admin-glass {
   background:
-    radial-gradient(ellipse 680px 520px at 50% 45%, rgba(168, 186, 198, 0.28) 0%, rgba(114, 134, 148, 0) 70%),
-    linear-gradient(135deg, #617380 0%, #8395a2 36%, #748693 68%, #586a77 100%);
+    radial-gradient(ellipse 720px 520px at 50% 46%, rgba(176, 194, 206, 0.34) 0%, rgba(114, 134, 148, 0) 68%),
+    radial-gradient(circle at 18% 22%, rgba(203, 213, 225, 0.16) 0%, transparent 45%),
+    linear-gradient(135deg, #5b6d7a 0%, #7d909d 34%, #6f828f 66%, #4e606d 100%);
 }
 
 .admin-glass-spheres {
@@ -1266,51 +1267,54 @@
   position: absolute;
   border-radius: 50%;
   background: radial-gradient(
-    circle at 33% 28%,
-    #f1f5f9 0%,
-    #cbd5e1 16%,
-    #889ba8 48%,
-    #4c5c68 82%,
-    #35424c 100%
+    circle at 32% 26%,
+    #f8fafc 0%,
+    #dbe4ec 14%,
+    #8fa2af 44%,
+    #4e5f6b 78%,
+    #2f3c46 100%
   );
   box-shadow:
-    0 22px 48px rgba(15, 23, 42, 0.28),
-    inset -6px -10px 22px rgba(15, 23, 42, 0.25);
+    0 24px 54px rgba(10, 18, 28, 0.34),
+    0 6px 16px rgba(15, 23, 42, 0.2),
+    inset -8px -12px 24px rgba(15, 23, 42, 0.32),
+    inset 4px 4px 12px rgba(255, 255, 255, 0.45);
 }
 
+/* Anchored relative to viewport center so s3 & s4 always refract behind the glass card edges */
 .admin-glass-sphere.s1 {
   width: 56px;
   height: 56px;
-  top: 19%;
-  left: 23%;
+  top: 17%;
+  left: calc(50% - 340px);
 }
 
 .admin-glass-sphere.s2 {
-  width: 148px;
-  height: 148px;
-  top: 36%;
-  left: 6%;
+  width: 152px;
+  height: 152px;
+  top: 35%;
+  left: calc(50% - 540px);
 }
 
 .admin-glass-sphere.s3 {
-  width: 112px;
-  height: 112px;
-  bottom: 10%;
-  left: 24%;
+  width: 122px;
+  height: 122px;
+  top: calc(50% + 76px);
+  left: calc(50% - 262px);
 }
 
 .admin-glass-sphere.s4 {
-  width: 224px;
-  height: 224px;
-  top: 18%;
-  right: 22%;
+  width: 232px;
+  height: 232px;
+  top: calc(50% - 178px);
+  left: calc(50% + 108px);
 }
 
 .admin-glass-sphere.s5 {
-  width: 116px;
-  height: 116px;
-  bottom: 6%;
-  right: 11%;
+  width: 120px;
+  height: 120px;
+  bottom: 7%;
+  right: calc(50% - 460px);
 }
 
 .ebolt-login-viewport.is-admin-glass .ebolt-login-wrapper {
@@ -1319,22 +1323,52 @@
 }
 
 .ebolt-login-card.is-admin-glass-card {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   max-width: 396px;
-  padding: 36px 38px 34px;
-  border-radius: 26px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.27) 0%, rgba(255, 255, 255, 0.11) 100%);
-  backdrop-filter: blur(22px) saturate(135%);
-  -webkit-backdrop-filter: blur(22px) saturate(135%);
-  border: 1.5px solid rgba(255, 255, 255, 0.56);
+  padding: 38px 38px 34px;
+  border-radius: 28px;
+  background: linear-gradient(
+    142deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.14) 42%,
+    rgba(255, 255, 255, 0.06) 72%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  backdrop-filter: blur(28px) saturate(165%) contrast(104%);
+  -webkit-backdrop-filter: blur(28px) saturate(165%) contrast(104%);
+  border: 1.5px solid rgba(255, 255, 255, 0.58);
   box-shadow:
-    0 28px 64px rgba(15, 23, 42, 0.28),
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.78),
-    inset 0 -1.5px 2px rgba(255, 255, 255, 0.36);
+    0 32px 72px rgba(10, 18, 28, 0.36),
+    0 10px 26px rgba(15, 23, 42, 0.2),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.85),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.42),
+    inset 1.5px 0 3px rgba(255, 255, 255, 0.32),
+    inset -1.5px 0 3px rgba(255, 255, 255, 0.22);
   color: #ffffff;
 }
 
+/* Subtle diagonal glass specular reflection */
+.ebolt-login-card.is-admin-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.05) 32%,
+    transparent 55%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
 .admin-glass-form-wrap {
+  position: relative;
+  z-index: 1;
   width: 100%;
 }
 
