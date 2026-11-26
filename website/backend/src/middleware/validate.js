@@ -14,12 +14,10 @@ export const loginSchema = body => {
   const identifier = String(body.email ?? body.identifier ?? body.username ?? '').trim();
   const password = String(body.password ?? '');
   const portal = String(body.portal ?? '').trim().toLowerCase();
-  const turnstileToken = String(body.turnstileToken ?? '').trim();
-  const rememberMe = Boolean(body.rememberMe ?? body.remember);
   if (!identifier) return { valid: false, message: 'Email or account ID is required.' };
   if (!password) return { valid: false, message: 'Password is required.' };
   if (portal && !['admin', 'partner', 'customer', 'auto'].includes(portal)) return { valid: false, message: 'A valid portal is required.' };
-  return { valid: true, value: { identifier, password, portal: portal || 'auto', turnstileToken, rememberMe } };
+  return { valid: true, value: { identifier, password, portal: portal || 'auto' } };
 };
 
 export const registerSchema = body => {

@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 
 import { authApi } from '../../../services/authApi';
-import TurnstileWidget from '../../../components/common/TurnstileWidget';
 
 export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [adminEmail, setAdminEmail] = useState('');
@@ -23,7 +22,6 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
   const [twoFactorPin, setTwoFactorPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberSession, setRememberSession] = useState(true);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -46,8 +44,7 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
       const response = await authApi.login({
         email: adminEmail.trim(),
         password,
-        portal: 'admin',
-        turnstileToken
+        portal: 'admin'
       });
 
       setIsLoading(false);
@@ -183,8 +180,6 @@ export default function AdminLoginSection({ onLoginSuccess, onForgotPassword }) 
             <span>Keep secure session active for 12 hours</span>
           </label>
         </div>
-
-        <TurnstileWidget onVerify={setTurnstileToken} />
 
         {/* Submit Action */}
         <button 

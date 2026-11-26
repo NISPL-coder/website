@@ -5,7 +5,6 @@ import { customSelectStyles } from './Admin/reactSelectStyles';
 import onboardingVideo from '../../assets/Net Infotech System (NISPL) _ Tally 3-Star Partner, Cloud Hosting, IT Infrastructure & Cybersecurity.mp4';
 import nisplBlackLogo from '../../assets/new_logo/BLACK NEW.png';
 import { authApi } from '../../services/authApi';
-import TurnstileWidget from '../../components/common/TurnstileWidget';
 import {
   Mail,
   Lock,
@@ -209,9 +208,6 @@ export default function LoginPage({ lockedPortal }) {
               // ignore
             }
           }
-          if (res?.turnstileSiteKey) {
-            setTurnstileSiteKey(res.turnstileSiteKey);
-          }
           setAdminConfigLoaded(true);
         }
       })
@@ -323,9 +319,6 @@ export default function LoginPage({ lockedPortal }) {
     setTimeout(() => setSocialNote(''), 4500);
   };
 
-  const [turnstileSiteKey, setTurnstileSiteKey] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
-
   // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -345,8 +338,7 @@ export default function LoginPage({ lockedPortal }) {
         email: email.trim(),
         password,
         portal: activePortal,
-        rememberMe: Boolean(rememberMe),
-        turnstileToken
+        rememberMe: Boolean(rememberMe)
       });
 
       // Intercept 2FA verification for Admin Portal
@@ -690,11 +682,6 @@ export default function LoginPage({ lockedPortal }) {
                       </button>
                     </div>
                   </div>
-
-                  <TurnstileWidget
-                    siteKey={turnstileSiteKey}
-                    onVerify={setTurnstileToken}
-                  />
 
                   {/* Vibrant High-Energy Gradient CTA */}
                   <button
@@ -1070,11 +1057,6 @@ export default function LoginPage({ lockedPortal }) {
                       Forgot Password?
                     </button>
                   </div>
-
-                  <TurnstileWidget
-                    siteKey={turnstileSiteKey}
-                    onVerify={setTurnstileToken}
-                  />
 
                   {/* White Pill Submit Button */}
                   <button

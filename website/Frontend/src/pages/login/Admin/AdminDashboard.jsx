@@ -15,8 +15,7 @@ import {
   Activity,
   Bell,
   Network,
-  ToggleRight,
-  Shield
+  ToggleRight
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -33,7 +32,6 @@ import ProductSection from './ProductSection';
 import ReceiptSection from './ReceiptSection';
 import UserAccessSection from './UserAccessSection';
 import ActivityLogsSection from './ActivityLogsSection';
-import SecurityDashboardSection from './SecurityDashboardSection';
 import NotificationsSection from './NotificationsSection';
 import IPMonitorSection from './IPMonitorSection';
 import SalesPersonSection from './SalesPersonSection';
@@ -96,7 +94,6 @@ const ADMIN_PAGES = [
   { path: '/admin/sangam-sync', title: 'Sangam CRM Sync', subtitle: 'Sync live records with Sangam CRM', keywords: 'sangam crm sync synchronization crm integration' },
   { path: '/admin/user-access', title: 'User Access & Permissions', subtitle: 'Manage admin, manager and support staff roles', keywords: 'user access permission permissions role roles team staff grant' },
   { path: '/admin/activity-logs', title: 'Activity Logs', subtitle: 'Audit trail and security event logs', keywords: 'activity logs audit security trail event history' },
-  { path: '/admin/security', title: 'Security & WAF', subtitle: 'Cloudflare WAF, Turnstile, bot & brute-force monitor', keywords: 'security waf cloudflare turnstile bot rate limit ip block' },
   { path: '/admin/customer/create', title: 'Create Customer', subtitle: 'Onboard a new customer account', keywords: 'create customer add new customer' },
   { path: '/admin/customer/contract/create', title: 'Create Contract', subtitle: 'Generate a new contract agreement', keywords: 'create contract new contract add agreement' },
   { path: '/admin/customer/payment/create', title: 'Create Payment', subtitle: 'Log a new payment receipt', keywords: 'create payment add payment new invoice' },
@@ -143,7 +140,6 @@ const NAV_MODULE = {
   'sangam-sync': 'sangam_sync',
   'user-access': 'user_access',
   'activity-logs': 'activity_logs',
-  security: 'activity_logs',
   'ip-monitor': null, // demo module — every admin portal sees it for now
   profile: null
 };
@@ -219,7 +215,6 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     if (path === '/admin/customer' || path.startsWith('/admin/customer')) return 'customer';
     if (path.includes('/admin/user-access') || path.includes('/admin/staff')) return 'user-access';
     if (path.includes('/admin/activity-logs') || path.includes('/admin/activity_logs')) return 'activity-logs';
-    if (path.includes('/admin/security')) return 'security';
     if (path.includes('/admin/notifications')) return 'notifications';
     if (path.includes('/admin/import-csv')) return 'import-csv';
     if (path.includes('/admin/sangam-sync')) return 'sangam-sync';
@@ -579,7 +574,6 @@ function AdminDashboardShell({ userSession, onSignOut }) {
     }
     if (canActivityLogs) {
       items.push({ id: 'activity-logs', group: canUserAccess ? undefined : 'Administration', label: 'Activity Logs', icon: Activity, path: '/admin/activity-logs', title: 'Admin Activity Logs & Audit Trail' });
-      items.push({ id: 'security', label: 'Security & WAF', icon: Shield, path: '/admin/security', title: 'Cloudflare WAF, Bot & Brute-Force Security Logs' });
     }
     if (isAdminPortal) {
       items.push({
@@ -834,10 +828,6 @@ function AdminDashboardShell({ userSession, onSignOut }) {
 
               {activeNav === 'activity-logs' && (
                 <ActivityLogsSection />
-              )}
-
-              {activeNav === 'security' && (
-                <SecurityDashboardSection />
               )}
 
               {activeNav === 'notifications' &&

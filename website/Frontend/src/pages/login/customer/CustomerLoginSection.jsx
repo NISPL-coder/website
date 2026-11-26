@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { authApi } from '../../../services/authApi';
-import TurnstileWidget from '../../../components/common/TurnstileWidget';
 
 export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword }) {
   const [clientEmail, setClientEmail] = useState('');
@@ -24,7 +23,6 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
   const [cloudTenant, setCloudTenant] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -47,8 +45,7 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
       const response = await authApi.login({
         email: clientEmail.trim(),
         password,
-        portal: 'customer',
-        turnstileToken
+        portal: 'customer'
       });
 
       setIsLoading(false);
@@ -189,8 +186,6 @@ export default function CustomerLoginSection({ onLoginSuccess, onForgotPassword 
             <span>Remember my workspace login on this browser</span>
           </label>
         </div>
-
-        <TurnstileWidget onVerify={setTurnstileToken} />
 
         {/* Submit Action */}
         <button 

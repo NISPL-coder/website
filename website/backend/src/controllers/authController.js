@@ -13,8 +13,6 @@ import { HttpError } from '../utils/httpError.js';
 import { createAccessToken, createRefreshToken, hashToken, verifyAccessToken, verifyRefreshToken, create2FATempToken, verify2FATempToken } from '../utils/tokens.js';
 import { sendPasswordResetEmail, sendAdminOtpEmail, sendCustomerVerificationOtpEmail } from '../utils/mailer.js';
 import { generateTwoFactorSetup, verifyTwoFactorToken, generateRecoveryCodes, verifyAndConsumeRecoveryCode } from '../services/twoFactorService.js';
-import { verifyTurnstileToken, isTurnstileEnabled, getTurnstileSiteKey } from '../utils/turnstile.js';
-import { logSecurityEvent } from '../middleware/cloudflareSecurity.js';
 
 function isMongoConnected() {
   return mongoose.connection.readyState === 1;
@@ -60,34 +58,16 @@ const sessionPolicy = (session, rememberMe = false) => ({
 
 export async function login(req, res) {
   const rawIdentifier = req.body.identifier || req.body.email || req.body.username;
-  const { password, portal, turnstileToken } = req.body;
+  const { password, portal } = req.body;
   const rememberMe = Boolean(req.body.rememberMe ?? req.body.remember);
-
-  const turnstileCheck = await verifyTurnstileToken(turnstileToken, req);
-  if (!turnstileCheck.success) {
-    throw new HttpError(403, turnstileCheck.error || 'Cloudflare Turnstile verification failed.');
-  }
-
   const user = await User.findByEmailOrCustomerId(rawIdentifier);
-  const requestedPortal = String(portal || '').trim().toLowerCase();
 
   if (!user || !(await user.comparePassword(password))) {
-    await logSecurityEvent({
-      ipAddress: req.clientIp || req.ip,
-      country: req.clientCountry || 'Unknown',
-      requestUrl: req.originalUrl,
-      userAgent: req.headers['user-agent'],
-      method: req.method,
-      eventType: requestedPortal === 'admin' ? 'admin_login_failure' : 'customer_login_brute_force',
-      cloudflareAction: 'log',
-      riskLevel: requestedPortal === 'admin' ? 'High' : 'Medium',
-      identifier: String(rawIdentifier || '').slice(0, 120),
-      details: `Failed ${requestedPortal || 'portal'} login attempt (invalid credentials)`,
-      cfRay: req.cfRay || ''
-    });
     throw new HttpError(401, 'Invalid email/account ID or password.');
   }
   if (user.accountStatus !== 'active') throw new HttpError(403, 'Your account is not active. Contact an administrator.');
+
+  const requestedPortal = String(portal || '').trim().toLowerCase();
 
   // Strict Portal & Role Access Control:
   // 1. Manager accounts can ONLY log in through the Admin Portal
@@ -503,9 +483,7 @@ export async function getAdminConfig(req, res) {
   res.json({
     success: true,
     adminEmail: env.ADMIN_EMAIL,
-    adminExists: Boolean(existingAdmin),
-    turnstileEnabled: isTurnstileEnabled(),
-    turnstileSiteKey: getTurnstileSiteKey()
+    adminExists: Boolean(existingAdmin)
   });
 }
 
