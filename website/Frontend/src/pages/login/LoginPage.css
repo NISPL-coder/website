@@ -1249,6 +1249,13 @@
    ADMIN LOGIN — LUMINOUS WHITISH GLASSMORPHISM & 3D PEARL-SAPPHIRE SPHERES
    ========================================================================== */
 .ebolt-login-viewport.is-admin-glass {
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  justify-content: flex-start;
   background:
     radial-gradient(ellipse 740px 560px at 50% 45%, rgba(219, 234, 254, 0.58) 0%, rgba(255, 255, 255, 0) 70%),
     radial-gradient(circle at 16% 20%, rgba(224, 231, 255, 0.65) 0%, transparent 46%),
@@ -1460,17 +1467,21 @@
 .ebolt-login-viewport.is-admin-glass .ebolt-login-wrapper {
   position: relative;
   z-index: 5;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 0 24px;
 }
 
 .ebolt-login-card.is-admin-glass-card {
   position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: visible;
   width: 100%;
-  max-width: 424px;
-  max-height: calc(100dvh - 28px);
-  padding: 36px 38px 34px;
+  max-width: 440px;
+  max-height: none;
+  padding: 30px 34px 28px;
   border-radius: 28px;
   background: linear-gradient(
     142deg,
@@ -1718,12 +1729,12 @@
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap {
-  margin: 6px 0 12px !important;
+  margin: 6px 0 10px !important;
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap img {
-  width: 126px !important;
-  height: 126px !important;
+  width: 118px !important;
+  height: 118px !important;
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-2fa-qr-wrap span {
@@ -1743,7 +1754,7 @@
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-input-wrap {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-input-icon {
@@ -1751,11 +1762,13 @@
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-input {
-  background: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
   border: 1.5px solid #cbd5e1 !important;
   border-radius: 9999px !important;
   color: #0f172a !important;
-  height: 44px;
+  height: 42px;
+  font-size: 0.88rem !important;
+  padding-right: 16px !important;
 }
 
 .ebolt-login-card.is-admin-glass-card .ebolt-input::placeholder {

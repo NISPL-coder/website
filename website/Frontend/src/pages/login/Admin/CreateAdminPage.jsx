@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImg from '../../../assets/new_logo/BLACK.png';
+import logoImg from '../../../assets/new_logo/BLACK NEW.png';
 import { authApi } from '../../../services/authApi';
 import { 
   User, 
@@ -188,14 +188,23 @@ export default function CreateAdminPage() {
   };
 
   return (
-    <div className="ebolt-login-viewport">
+    <div className="ebolt-login-viewport is-admin-glass">
+      {/* 3D Pearl-Sapphire Spheres matching Admin Login */}
+      <div className="admin-glass-spheres" aria-hidden="true">
+        <span className="admin-glass-sphere s1" />
+        <span className="admin-glass-sphere s2" />
+        <span className="admin-glass-sphere s3" />
+        <span className="admin-glass-sphere s4" />
+        <span className="admin-glass-sphere s5" />
+      </div>
+
       {/* Top Header with Brand Logo & Back to Login */}
-      <header className="ebolt-top-nav">
+      <header className="ebolt-top-nav admin-glass-top-nav" style={{ justifyContent: 'space-between' }}>
         <Link to="/" className="ebolt-brand-link" aria-label="NISPL Home">
           <img 
             src={logoImg} 
             alt="Net Infotech System Pvt. Ltd." 
-            className="ebolt-brand-logo-img" 
+            className="admin-glass-brand-logo" 
           />
         </Link>
 
@@ -207,11 +216,12 @@ export default function CreateAdminPage() {
 
       {/* Main Centered Frosted Glass Card */}
       <main className="ebolt-login-wrapper">
-        <div className="ebolt-login-card animate-fade-in" style={{ maxWidth: '440px' }}>
+        <div className="ebolt-login-card is-admin-glass-card animate-fade-in" style={{ maxWidth: '440px' }}>
+          <div className="admin-glass-form-wrap">
           
           {/* Top Floating Badge Icon */}
           <div className="ebolt-badge-icon-box" aria-hidden="true">
-            <ShieldCheck size={24} color="#0284c7" />
+            <ShieldCheck size={24} color="#2563eb" />
           </div>
 
           <h1 className="ebolt-card-title">Create Admin</h1>
@@ -363,6 +373,7 @@ export default function CreateAdminPage() {
             </div>
           </form>
           )}
+          </div>
         </div>
       </main>
 

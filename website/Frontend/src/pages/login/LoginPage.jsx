@@ -854,10 +854,10 @@ export default function LoginPage({ lockedPortal }) {
 
                 {/* QR Code and Manual Setup Key (Always Displayed) */}
                 {twoFactorState.qrCode && (
-                  <div className="ebolt-2fa-qr-wrap" style={{ textAlign: 'center', margin: '12px 0 16px' }}>
+                  <div className="ebolt-2fa-qr-wrap" style={{ textAlign: 'center', margin: '8px 0 12px' }}>
                     <div style={{
                       display: 'inline-block',
-                      padding: '10px',
+                      padding: '8px',
                       background: '#ffffff',
                       borderRadius: '14px',
                       border: '1.5px solid #e2e8f0',
@@ -866,27 +866,28 @@ export default function LoginPage({ lockedPortal }) {
                       <img
                         src={twoFactorState.qrCode}
                         alt="Google Authenticator QR Code"
-                        style={{ width: '170px', height: '170px', display: 'block' }}
+                        style={{ width: '132px', height: '132px', display: 'block' }}
                       />
                     </div>
-                    <div style={{ marginTop: '10px' }}>
-                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Or enter key manually: </span>
+                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 6px' }}>
+                      <span style={{ fontSize: '0.76rem', color: '#64748b' }}>Or enter key manually:</span>
                       <code style={{
-                        fontSize: '0.82rem',
+                        fontSize: '0.78rem',
                         background: '#f1f5f9',
                         padding: '3px 8px',
                         borderRadius: '6px',
                         fontFamily: 'monospace',
                         color: '#0f172a',
                         fontWeight: 700,
-                        letterSpacing: '0.05em'
+                        letterSpacing: '0.04em',
+                        wordBreak: 'break-all'
                       }}>
                         {twoFactorState.secret}
                       </code>
                       <button
                         type="button"
                         style={{
-                          marginLeft: '8px',
+                          marginLeft: '4px',
                           border: 'none',
                           background: 'transparent',
                           color: '#2563eb',
@@ -913,7 +914,7 @@ export default function LoginPage({ lockedPortal }) {
                     <input
                       type="text"
                       className="ebolt-input"
-                      placeholder={twoFactorState.is2FASetup ? "Enter 6-digit code or recovery code" : "Enter 6-digit code from app"}
+                      placeholder={twoFactorState.is2FASetup ? "6-digit code or recovery code" : "Enter 6-digit code from app"}
                       value={twoFactorCode}
                       onChange={(e) => setTwoFactorCode(e.target.value)}
                       maxLength={12}

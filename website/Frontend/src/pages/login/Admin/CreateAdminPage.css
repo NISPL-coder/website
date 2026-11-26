@@ -3,6 +3,22 @@
    Complements LoginPage.css so the layout and typography match 1:1
    ========================================================================== */
 
+/* Light Frosted Glass Pill Button matching Admin Login */
+.ebolt-login-viewport.is-admin-glass .ebolt-home-pill-btn {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  color: #0f172a;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.ebolt-login-viewport.is-admin-glass .ebolt-home-pill-btn:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
 /* Input Validation Error State */
 .input-error {
   border-color: #ef4444 !important;
