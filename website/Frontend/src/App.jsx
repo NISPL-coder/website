@@ -271,6 +271,7 @@ function MainApp() {
           <Route path="/admin/staff" element={<Navigate to="/admin/user-access" replace />} />
           <Route path="/admin/activity-logs" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/admin-login"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/activity_logs" element={<Navigate to="/admin/activity-logs" replace />} />
+          <Route path="/admin/security" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/admin-login"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'support']} redirectTo="/admin-login"><AdminDashboard onSignOut={() => handleSignOut('admin')} /></ProtectedRoute>} />
           <Route path="/admin" element={<Navigate to="/admin/overview" replace />} />
           <Route path="/admin-dashboard" element={<Navigate to="/admin/overview" replace />} />

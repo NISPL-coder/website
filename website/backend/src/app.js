@@ -23,6 +23,12 @@ import addonRoutes from './routes/addonRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
 import ipRoutes from './routes/ipRoutes.js';
 import salesPersonRoutes from './routes/salesPersonRoutes.js';
+import securityRoutes from './routes/securityRoutes.js';
+import {
+  cloudflareContextMiddleware,
+  cloudflareOriginGuard,
+  securityThreatDetector
+} from './middleware/cloudflareSecurity.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const allowedOrigins = [
@@ -112,6 +118,9 @@ app.use('/api/v1/users', userProfileParser);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
+app.use(cloudflareContextMiddleware);
+app.use(cloudflareOriginGuard);
+app.use(securityThreatDetector);
 if (env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 app.get('/', (req, res) => res.json({
@@ -165,6 +174,8 @@ app.use('/api/v1/ip-monitor', ipRoutes);
 app.use('/api/ip-monitor', ipRoutes);
 app.use('/api/v1/sales-persons', salesPersonRoutes);
 app.use('/api/sales-persons', salesPersonRoutes);
+app.use('/api/v1/security', securityRoutes);
+app.use('/api/security', securityRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

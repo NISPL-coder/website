@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { X, LogIn, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
 import { authApi } from '../../services/authApi';
+import TurnstileWidget from '../common/TurnstileWidget';
 
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   if (!isOpen) return null;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -24,7 +26,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     try {
       const response = await authApi.login({
         email: username.trim(),
-        password
+        password,
+        turnstileToken
       });
 
       setLoading(false);
@@ -129,6 +132,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               </a>
             </div>
           </div>
+
+          <TurnstileWidget onVerify={setTurnstileToken} />
 
           <div className="modal-footer-bar">
             <button type="button" className="btn-cancel" onClick={onClose}>

@@ -7,23 +7,28 @@ import {
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody, loginSchema, registerSchema, forgotSchema, resetSchema } from '../middleware/validate.js';
-import { authLimiter, resetLimiter } from '../utils/rateLimiters.js';
+import {
+  authLimiter,
+  loginPortalLimiter,
+  otpLimiter,
+  resetLimiter
+} from '../utils/rateLimiters.js';
 
 const router = Router();
 
 router.get('/admin-config', getAdminConfig);
-router.post('/admin/send-otp', authLimiter, sendAdminOtp);
-router.post('/admin/verify-and-create', authLimiter, verifyAndCreateAdmin);
+router.post('/admin/send-otp', otpLimiter, sendAdminOtp);
+router.post('/admin/verify-and-create', otpLimiter, verifyAndCreateAdmin);
 
-router.post('/login', authLimiter, validateBody(loginSchema), login);
-router.post('/2fa/verify', authLimiter, verify2FALogin);
+router.post('/login', loginPortalLimiter, validateBody(loginSchema), login);
+router.post('/2fa/verify', otpLimiter, verify2FALogin);
 router.get('/2fa/status', authenticate, get2FAStatus);
 router.post('/2fa/setup', authenticate, setup2FA);
 router.post('/2fa/confirm', authenticate, confirm2FA);
 router.post('/2fa/disable', authenticate, disable2FA);
 router.post('/register', authLimiter, validateBody(registerSchema), registerCustomer);
-router.post('/customer/send-verification-otp', authenticate, sendCustomerVerificationOtp);
-router.post('/customer/verify-email-otp', authenticate, verifyCustomerEmailOtp);
+router.post('/customer/send-verification-otp', otpLimiter, authenticate, sendCustomerVerificationOtp);
+router.post('/customer/verify-email-otp', otpLimiter, authenticate, verifyCustomerEmailOtp);
 router.get('/me', authenticate, getMe);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
