@@ -1,9 +1,48 @@
-import React, { useState } from 'react';
-import { Plus, X, ArrowUpRight } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ArrowUpRight, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { SERVICES_ACCORDION } from './servicesData';
 
+const AUTOPLAY_MS = 6000;
+
 export default function StrategicServicesAccordion({ onOpenConsultation }) {
-  const [activeServiceIndex, setActiveServiceIndex] = useState(null); // All sections closed by default
+  const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState('next');
+  const [animating, setAnimating] = useState(false);
+  const timerRef = useRef(null);
+  const total = SERVICES_ACCORDION.length;
+
+  const goTo = useCallback(
+    (idx, dir) => {
+      if (animating) return;
+      setDirection(dir || (idx > active ? 'next' : 'prev'));
+      setAnimating(true);
+      setActive(idx);
+      setTimeout(() => setAnimating(false), 520);
+    },
+    [active, animating],
+  );
+
+  const next = useCallback(() => goTo((active + 1) % total, 'next'), [active, total, goTo]);
+  const prev = useCallback(() => goTo((active - 1 + total) % total, 'prev'), [active, total, goTo]);
+
+  // Autoplay
+  useEffect(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(next, AUTOPLAY_MS);
+    return () => clearInterval(timerRef.current);
+  }, [next]);
+
+  // Pause on hover
+  const pause = () => clearInterval(timerRef.current);
+  const resume = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(next, AUTOPLAY_MS);
+  };
+
+  const service = SERVICES_ACCORDION[active];
+  const ActiveIcon = service.icon;
+  const focusItems = service.focus?.split(',').map((s) => s.trim()).filter(Boolean) || [];
+  const badgeItems = service.badge?.split('•').map((s) => s.trim()).filter(Boolean) || [];
 
   return (
     <section className="demo-services-section" id="strategic-services">
@@ -16,118 +55,111 @@ export default function StrategicServicesAccordion({ onOpenConsultation }) {
         </p>
       </div>
 
-      {/* Horizontal Slit / Accordion Card Slider */}
-      <div className="demo-accordion-wrapper">
-        <div className="demo-accordion-container">
-          {SERVICES_ACCORDION.map((service, index) => {
-            const isActive = activeServiceIndex === index;
-            const hasActiveCard = activeServiceIndex !== null;
-            const cardClass = isActive 
-              ? 'active' 
-              : hasActiveCard 
-                ? 'collapsed' 
-                : 'default-closed';
+      {/* Cinematic Stage */}
+      <div
+        className="ind-stage"
+        onMouseEnter={pause}
+        onMouseLeave={resume}
+      >
+        {/* Animated Gradient Border Frame */}
+        <div className="ind-stage-border" aria-hidden="true" />
 
-            return (
-              <div 
-                key={service.id}
-                className={`demo-accordion-card ${cardClass}`}
-                onClick={() => setActiveServiceIndex(isActive ? null : index)}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isActive}
+        <div className="ind-stage-inner">
+          {/* Hero Visual + Content */}
+          <div
+            key={service.id}
+            className={`ind-hero ind-slide-${direction}`}
+          >
+            {/* Left — Full Visual with Ambient Glow */}
+            <div className="ind-hero-visual">
+              <div className="ind-hero-visual-glow" aria-hidden="true" />
+              <div
+                className="ind-hero-visual-bg"
+                style={{ background: service.showcaseBg || '#050a14' }}
               >
-                {/* Service Digital Information Background Image */}
-                <div className="demo-card-bg-wrap">
-                  <img 
-                    src={service.bgImage || service.image} 
-                    alt={service.mainHeading} 
-                    className="demo-card-bg-img" 
-                    loading="lazy"
-                  />
-                  <div className="demo-card-bg-overlay" />
-                </div>
-
-                {/* Vertical Spine: Visible when collapsed or all closed */}
-                <div className="demo-card-vertical-spine">
-                  <span className="demo-card-vertical-title">{service.tabTitle}</span>
-                  <div className="demo-spine-bottom-indicator">
-                    <Plus size={16} />
-                  </div>
-                </div>
-
-                {/* Expanded View: Two-Column Split (Left: Content Panel, Right: Dedicated Service Image Showcase) */}
-                <div className="demo-card-expanded-content">
-                  {/* Left Column: Concise, Clean, Professional Content Panel */}
-                  <div 
-                    className="demo-card-content-panel"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Top Meta Bar with Category Tag & Close Button */}
-                    <div className="demo-card-top-meta">
-                      <button 
-                        type="button" 
-                        className="demo-card-close-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveServiceIndex(null);
-                        }}
-                        aria-label="Close section"
-                        title="Close section"
-                      >
-                        <X size={15} />
-                      </button>
-                    </div>
-
-                    {/* Clean Professional Editorial Headings */}
-                    <div className="demo-card-heading-group">
-                      <h3 className="demo-card-main-heading">{service.mainHeading}</h3>
-                      <h4 className="demo-card-headline">{service.headline}</h4>
-                    </div>
-
-                    {/* Professional Description */}
-                    <div className="demo-card-brief-overview">
-                      <p className="demo-card-overview-text">
-                        {service.description}
-                      </p>
-                    </div>
-
-                    {/* Action Consultation Button */}
-                    <div className="demo-card-panel-footer">
-                      <button 
-                        type="button" 
-                        className="demo-card-cta-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onOpenConsultation) onOpenConsultation();
-                        }}
-                      >
-                        <span>{service.ctaText || 'Consult Solution Specialist'}</span>
-                        <ArrowUpRight size={15} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Dedicated Service Image Showcase */}
-                  <div 
-                    className="demo-card-image-showcase"
-                    style={{ background: service.showcaseBg || '#050a14' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div 
-                      className="demo-showcase-frame"
-                      style={{ background: service.showcaseBg || '#050a14' }}
-                    >
-                      <img 
-                        src={service.image} 
-                        alt={service.mainHeading} 
-                        className={`demo-showcase-img ${service.imgFit === 'contain' ? 'fit-contain' : 'fit-cover'}`}
-                        loading="lazy"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src={service.image}
+                  alt={service.mainHeading}
+                  className="ind-hero-img"
+                />
               </div>
+            </div>
+
+            {/* Right — Content Panel */}
+            <div className="ind-hero-content">
+              {/* Top Meta Row */}
+              <div className="ind-hero-meta">
+              </div>
+
+              {/* Headings */}
+              <div className="ind-hero-headings">
+                <h3 className="ind-hero-title">{service.mainHeading}</h3>
+                <p className="ind-hero-headline">{service.headline}</p>
+              </div>
+
+              {/* Description */}
+              <p className="ind-hero-desc">{service.description}</p>
+
+              {/* Capability Chips */}
+              {focusItems.length > 0 && (
+                <div className="ind-hero-caps">
+                  <span className="ind-hero-caps-label">Core Capabilities</span>
+                  <div className="ind-hero-caps-row">
+                    {focusItems.map((item) => (
+                      <span key={item} className="ind-hero-cap">{item}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <button
+                type="button"
+                className="ind-hero-cta"
+                onClick={() => { if (onOpenConsultation) onOpenConsultation(); }}
+              >
+                <span>{service.ctaText || 'Consult Solution Specialist'}</span>
+                <ArrowUpRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="ind-progress-track" aria-hidden="true">
+            <div
+              className="ind-progress-fill"
+              key={`progress-${active}`}
+              style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
+            />
+          </div>
+        </div>
+
+        {/* Thumbnail Navigation Strip */}
+        <div className="ind-thumbs" role="tablist" aria-label="Solutions">
+          {SERVICES_ACCORDION.map((svc, i) => {
+            const Icon = svc.icon;
+            const isActive = i === active;
+            return (
+              <button
+                key={svc.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`ind-thumb ${isActive ? 'is-active' : ''}`}
+                onClick={() => goTo(i)}
+              >
+                <div
+                  className="ind-thumb-preview"
+                  style={{ background: svc.showcaseBg || '#050a14' }}
+                >
+                  <img src={svc.image} alt="" className="ind-thumb-img" loading="lazy" />
+                  {isActive && <div className="ind-thumb-glow" aria-hidden="true" />}
+                </div>
+                <div className="ind-thumb-info">
+                  <span className="ind-thumb-icon"><Icon size={14} /></span>
+                  <span className="ind-thumb-label">{svc.tabTitle}</span>
+                </div>
+              </button>
             );
           })}
         </div>

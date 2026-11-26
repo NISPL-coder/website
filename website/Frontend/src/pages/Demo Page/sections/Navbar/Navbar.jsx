@@ -278,7 +278,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
 
                       {menuData.isComingSoon ? (
                         <div className="demo-aerokit-cs-content">
-                          <span className="demo-aerokit-cs-badge">{menuData.categoryBadge || 'NISPL Enterprise'}</span>
                           <h4 className="demo-aerokit-cs-title">{menuData.title}</h4>
                           <p className="demo-aerokit-cs-sub">{menuData.subtitle}</p>
                           <p className="demo-aerokit-cs-desc">{menuData.message}</p>
@@ -295,7 +294,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                         <>
                           {menuData.categoryBadge && (
                             <div className="demo-aerokit-header">
-                              <span className="demo-aerokit-chip-tag">{menuData.categoryBadge}</span>
                               <span className="demo-aerokit-header-title">{menuData.title}</span>
                             </div>
                           )}
@@ -462,7 +460,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                     <div className="demo-mobile-aerokit-dropdown">
                       {menuData.isComingSoon ? (
                         <div className="demo-aerokit-cs-content">
-                          <span className="demo-aerokit-cs-badge">{menuData.categoryBadge || 'NISPL Enterprise'}</span>
                           <h4 className="demo-aerokit-cs-title">{menuData.title}</h4>
                           {menuData.subtitle && <p className="demo-aerokit-cs-sub">{menuData.subtitle}</p>}
                           <p className="demo-aerokit-cs-desc">{menuData.message}</p>
@@ -479,7 +476,6 @@ export default function Navbar({ onOpenContact, onOpenConsultation }) {
                         <>
                           {menuData.categoryBadge && (
                             <div className="demo-aerokit-header">
-                              <span className="demo-aerokit-chip-tag">{menuData.categoryBadge}</span>
                               <span className="demo-aerokit-header-title">{menuData.title}</span>
                             </div>
                           )}
