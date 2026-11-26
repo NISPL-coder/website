@@ -15,6 +15,7 @@ import {
   Clock,
   ArrowUpRight,
   Copy,
+  Check,
   Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -97,8 +98,49 @@ export default function ContractSection({ contracts, setContracts, customers = [
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [copiedIpId, setCopiedIpId] = useState(null);
+  const [editingIpId, setEditingIpId] = useState(null);
+  const [editingIpValue, setEditingIpValue] = useState('');
+  const [savingIpId, setSavingIpId] = useState(null);
   const [syncingIds, setSyncingIds] = useState({});
   const [updatingStatusIds, setUpdatingStatusIds] = useState({});
+
+  const handleStartEditIp = (contract, currentIp) => {
+    const cId = getContractId(contract);
+    setEditingIpId(cId);
+    setEditingIpValue(currentIp || '');
+  };
+
+  const handleCancelEditIp = () => {
+    setEditingIpId(null);
+    setEditingIpValue('');
+  };
+
+  const handleSaveDedicatedIp = async (contract) => {
+    const cId = getContractId(contract);
+    const trimmedIp = editingIpValue.trim();
+    const prevIp = contract.ipAddress || contract.dedicatedIp || contract.wanIp || '';
+
+    if (trimmedIp === prevIp) {
+      handleCancelEditIp();
+      return;
+    }
+
+    setSavingIpId(cId);
+    const toastId = toast.loading(`Updating Dedicated IP for "${contract.name || cId}"...`);
+    try {
+      const res = await contractApi.updateContract(cId, { ipAddress: trimmedIp });
+      const updated = res.contract || { ...contract, ipAddress: trimmedIp, dedicatedIp: trimmedIp };
+      setContracts((prev) =>
+        prev.map((item) => (getContractId(item) === cId ? { ...item, ...updated } : item))
+      );
+      toast.success(trimmedIp ? `Dedicated IP updated to ${trimmedIp}` : 'Dedicated IP cleared', { id: toastId });
+      handleCancelEditIp();
+    } catch (err) {
+      toast.error(`Failed to update IP: ${err.message}`, { id: toastId });
+    } finally {
+      setSavingIpId(null);
+    }
+  };
 
   const handleQuickStatusChange = async (contract, nextStatus) => {
     const cId = getContractId(contract);
@@ -541,13 +583,106 @@ export default function ContractSection({ contracts, setContracts, customers = [
       selector: (row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id),
       sortable: true,
       sortFunction: compareText((row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id)),
-      minWidth: '190px',
+      minWidth: '220px',
       cell: (c) => {
+        const cId = getContractId(c);
         const ip = c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id);
-        const isCopied = copiedIpId === (c.id || c.contractId);
+        const isCopied = copiedIpId === cId;
+        const isEditing = editingIpId === cId;
+        const isSaving = savingIpId === cId;
+        const canEdit = can('contract', 'edit');
+
+        if (isEditing) {
+          return (
+            <div
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="text"
+                value={editingIpValue}
+                onChange={(e) => setEditingIpValue(e.target.value)}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveDedicatedIp(c);
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    handleCancelEditIp();
+                  }
+                }}
+                placeholder="e.g. 103.115.220.44"
+                autoFocus
+                disabled={isSaving}
+                style={{
+                  fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  padding: '4px 7px',
+                  borderRadius: '6px',
+                  border: '1px solid #3b82f6',
+                  outline: 'none',
+                  width: '138px',
+                  color: '#0f172a',
+                  background: '#ffffff'
+                }}
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSaveDedicatedIp(c);
+                }}
+                disabled={isSaving}
+                title="Save Dedicated IP"
+                style={{
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '5px',
+                  padding: '4px',
+                  cursor: isSaving ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Check size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancelEditIp();
+                }}
+                disabled={isSaving}
+                title="Cancel"
+                style={{
+                  background: '#f1f5f9',
+                  color: '#64748b',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '5px',
+                  padding: '4px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          );
+        }
+
         return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
             <span
+              onDoubleClick={(e) => {
+                if (!canEdit) return;
+                e.stopPropagation();
+                handleStartEditIp(c, c.ipAddress || c.dedicatedIp || c.wanIp || ip);
+              }}
+              title={canEdit ? 'Double-click or click edit to change Dedicated IP' : undefined}
               style={{
                 fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
                 fontWeight: 600,
@@ -559,7 +694,8 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 border: ip ? '1px solid #bfdbfe' : 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px'
+                gap: '5px',
+                cursor: canEdit ? 'pointer' : 'default'
               }}
             >
               {ip && <Globe size={12} style={{ color: '#2563eb' }} />}
@@ -571,7 +707,7 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(ip);
-                  setCopiedIpId(c.id || c.contractId);
+                  setCopiedIpId(cId);
                   toast.success(`Copied IP: ${ip}`);
                   setTimeout(() => setCopiedIpId(null), 1800);
                 }}
@@ -587,6 +723,27 @@ export default function ContractSection({ contracts, setContracts, customers = [
                 }}
               >
                 <Copy size={13} />
+              </button>
+            )}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStartEditIp(c, c.ipAddress || c.dedicatedIp || c.wanIp || ip);
+                }}
+                title="Edit Dedicated IP Address"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  padding: '3px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Edit3 size={13} />
               </button>
             )}
           </div>

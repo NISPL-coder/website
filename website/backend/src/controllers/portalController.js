@@ -14,6 +14,8 @@ import {
   RESTRICTION_MESSAGE
 } from '../services/contractEligibilityService.js';
 import { hasPermission } from '../middleware/permission.js';
+import { getOverduePolicy } from '../models/BillingSettings.js';
+import { calculateOverdueCharge } from '../utils/overdueCalculator.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -374,7 +376,7 @@ const getPendingRenewals = (products, payments) => {
     .sort((a, b) => a.daysLeft - b.daysLeft);
 };
 
-const collectAllReminders = (payments, products) => {
+const collectAllReminders = (payments, products, overduePolicy) => {
   const list = [];
   const dues = payments
     .filter((payment) => payment.pending > 0)
@@ -385,12 +387,19 @@ const collectAllReminders = (payments, products) => {
     });
 
   for (const due of dues) {
+    const overdueDays = due.daysLeft !== null && due.daysLeft < 0 ? Math.abs(due.daysLeft) : 0;
+    const calc = calculateOverdueCharge(due.pending, overdueDays, overduePolicy);
     list.push({
       id: due.id || due.invoiceNumber,
       kind: 'payment',
       title: due.service,
       invoiceNumber: due.invoiceNumber,
-      amount: due.pending,
+      baseAmount: calc.baseAmount,
+      overdueCharge: calc.overdueCharge,
+      overdueDays: calc.overdueDays,
+      overdueMethod: calc.method,
+      overdueLabel: calc.breakdownLabel,
+      amount: calc.totalAmount,
       dueDate: due.dueDate,
       daysLeft: due.daysLeft,
       overdue: due.daysLeft !== null && due.daysLeft < 0,
@@ -400,13 +409,20 @@ const collectAllReminders = (payments, products) => {
 
   const pendingRenewals = getPendingRenewals(products, payments);
   for (const renewal of pendingRenewals) {
+    const overdueDays = renewal.daysLeft < 0 ? Math.abs(renewal.daysLeft) : 0;
+    const calc = calculateOverdueCharge(renewal.amount, overdueDays, overduePolicy);
     list.push({
       id: `renewal-${renewal.id}`,
       kind: 'renewal',
       contractId: renewal.id,
       title: renewal.name,
       invoiceNumber: null,
-      amount: renewal.amount,
+      baseAmount: calc.baseAmount,
+      overdueCharge: calc.overdueCharge,
+      overdueDays: calc.overdueDays,
+      overdueMethod: calc.method,
+      overdueLabel: calc.breakdownLabel,
+      amount: calc.totalAmount,
       dueDate: renewal.expiryDate,
       daysLeft: renewal.daysLeft,
       overdue: renewal.daysLeft < 0,
@@ -424,8 +440,8 @@ const collectAllReminders = (payments, products) => {
   });
 };
 
-const pickReminder = (payments, products) => {
-  const all = collectAllReminders(payments, products);
+const pickReminder = (payments, products, overduePolicy) => {
+  const all = collectAllReminders(payments, products, overduePolicy);
   return all.length > 0 ? all[0] : null;
 };
 
@@ -1083,11 +1099,20 @@ export const getCustomerOverview = async (req, res) => {
     const renewal = pickRenewal(regularProducts.length > 0 ? regularProducts : products);
     const entitlements = await buildEntitlements(products, payments);
 
+    const overduePolicy = await getOverduePolicy();
     const pendingRenewals = getPendingRenewals(regularProducts.length > 0 ? regularProducts : products, payments);
-    const totalRenewalPending = pendingRenewals.reduce((sum, p) => sum + (p.amount || 0), 0);
-    const totalPending = totalInvoicePending + totalRenewalPending;
-    const reminders = collectAllReminders(payments, regularProducts.length > 0 ? regularProducts : products);
-    const reminder = pickReminder(payments, regularProducts.length > 0 ? regularProducts : products);
+    const reminders = collectAllReminders(payments, regularProducts.length > 0 ? regularProducts : products, overduePolicy);
+    const reminder = reminders.length > 0 ? reminders[0] : null;
+    const totalOverdueCharges = Math.round(
+      reminders.reduce((sum, r) => sum + (Number(r.overdueCharge) || 0), 0) * 100
+    ) / 100;
+    const totalRenewalPending = reminders
+      .filter((r) => r.kind === 'renewal')
+      .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    const totalInvoiceWithOverdue = reminders
+      .filter((r) => r.kind === 'payment')
+      .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    const totalPending = Math.round((totalInvoiceWithOverdue + totalRenewalPending) * 100) / 100;
 
     res.json({
       success: true,
@@ -1131,8 +1156,10 @@ export const getCustomerOverview = async (req, res) => {
           orderBreakdown,
           totalPaid,
           totalPending,
-          totalInvoicePending,
+          totalInvoicePending: totalInvoiceWithOverdue,
           totalRenewalPending,
+          totalOverdueCharges,
+          overduePolicy,
           pendingInvoices: payments.filter((payment) => payment.pending > 0).length,
           pendingRenewalsCount: pendingRenewals.length,
           hasPendingRenewal: pendingRenewals.length > 0,
@@ -1321,13 +1348,15 @@ const findScopedPayment = (scope, reference) =>
     ]
   });
 
-const settleRow = async ({ payment, user, customer, method }) => {
-  if (!isOpenRow(payment)) return { settled: false, outstanding: 0 };
+const settleRow = async ({ payment, user, customer, method, overdueCharge = 0 }) => {
+  if (!isOpenRow(payment)) return { settled: false, outstanding: 0, totalSettled: 0 };
 
   const outstanding = outstandingOf(payment);
+  const fee = Math.max(0, Number(overdueCharge) || 0);
+  const totalSettled = Math.round((outstanding + fee) * 100) / 100;
 
   payment.status = 'Received';
-  payment.receivedAmount = inr(parseAmount(payment.receivedAmount) + outstanding);
+  payment.receivedAmount = inr(parseAmount(payment.receivedAmount) + totalSettled);
   payment.pendingPayment = '₹0';
   payment.paymentReceivedDate = todayIso();
   if (!payment.paymentMethod) payment.paymentMethod = method;
@@ -1347,7 +1376,7 @@ const settleRow = async ({ payment, user, customer, method }) => {
   }
 
   await notifyPaymentReceived(user, customer, payment);
-  return { settled: true, outstanding };
+  return { settled: true, outstanding, totalSettled };
 };
 
 const checkoutError = (statusCode, message) => Object.assign(new Error(message), { statusCode });
@@ -1382,6 +1411,7 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
   const invoiceNumber = String(body.invoiceNumber || '').trim();
   const contractId = String(body.contractId || '').trim();
   const settleAll = Boolean(body.settleAll);
+  const overduePolicy = await getOverduePolicy();
 
   // 1. A single open invoice already on this account.
   if (invoiceNumber) {
@@ -1389,12 +1419,23 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
     if (!payment) throw checkoutError(404, 'That invoice is not on your account.');
 
     const settled = isOpenRow(payment);
+    const baseAmount = settled ? outstandingOf(payment) : 0;
+    const dLeft = daysUntil(toDate(payment.dueDate));
+    const overdueDays = settled && dLeft !== null && dLeft < 0 ? Math.abs(dLeft) : 0;
+    const calc = calculateOverdueCharge(baseAmount, overdueDays, overduePolicy);
+
     return {
       mode: 'invoice',
       label: `Invoice ${payment.invoiceNumber}`,
-      amount: settled ? outstandingOf(payment) : 0,
+      amount: settled ? calc.totalAmount : 0,
       alreadySettled: !settled,
-      snapshot: { invoiceNumber: payment.invoiceNumber }
+      snapshot: {
+        invoiceNumber: payment.invoiceNumber,
+        baseAmount: calc.baseAmount,
+        overdueCharge: calc.overdueCharge,
+        overdueDays: calc.overdueDays,
+        overdueLabel: calc.breakdownLabel
+      }
     };
   }
 
@@ -1407,12 +1448,30 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
 
     if (!open.length) throw checkoutError(400, 'No invoice on your account is open right now.');
 
+    let totalAmount = 0;
+    let totalOverdueCharge = 0;
+    const invoiceOverdues = {};
+
+    for (const row of open) {
+      const base = outstandingOf(row);
+      const dLeft = daysUntil(toDate(row.dueDate));
+      const overdueDays = dLeft !== null && dLeft < 0 ? Math.abs(dLeft) : 0;
+      const calc = calculateOverdueCharge(base, overdueDays, overduePolicy);
+      totalAmount += calc.totalAmount;
+      totalOverdueCharge += calc.overdueCharge;
+      invoiceOverdues[row.invoiceNumber] = calc.overdueCharge;
+    }
+
     return {
       mode: 'dues',
       label: `${open.length} open invoice${open.length === 1 ? '' : 's'}`,
-      amount: open.reduce((sum, row) => sum + outstandingOf(row), 0),
+      amount: Math.round(totalAmount * 100) / 100,
       alreadySettled: false,
-      snapshot: { invoiceNumbers: open.map((row) => row.invoiceNumber) }
+      snapshot: {
+        invoiceNumbers: open.map((row) => row.invoiceNumber),
+        overdueCharge: Math.round(totalOverdueCharge * 100) / 100,
+        invoiceOverdues
+      }
     };
   }
 
@@ -1424,10 +1483,15 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
 
     if (!contract) throw checkoutError(404, 'That subscription is not on your account.');
 
-    const total = parseAmount(contract.value || contract.totalContractValue);
-    if (!total) {
+    const baseTotal = parseAmount(contract.value || contract.totalContractValue);
+    if (!baseTotal) {
       throw checkoutError(400, 'The renewal value is not recorded, so it cannot be paid online yet.');
     }
+
+    const dLeft = daysUntil(toDate(contract.expiryDate || contract.endDate));
+    const overdueDays = dLeft !== null && dLeft < 0 ? Math.abs(dLeft) : 0;
+    const calc = calculateOverdueCharge(baseTotal, overdueDays, overduePolicy);
+    const total = calc.totalAmount;
 
     const label = await resolveDisplayName(contract.name || contract.service, 'Subscription renewal');
     const product = await findCatalogueRow(
@@ -1437,8 +1501,8 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
     // A renewal is billed as one lump sum, so the taxable head is derived from
     // it at the same 18% the cart uses. gstBasis records that the split was
     // calculated here rather than quoted line by line.
-    const taxable = roundMoney(total / (1 + GST_RATE));
-    const gstAmount = total - taxable;
+    const taxable = roundMoney(baseTotal / (1 + GST_RATE));
+    const gstAmount = roundMoney(baseTotal - taxable);
     const line = buildReceiptLine(
       {
         productId: contract.productId,
@@ -1452,6 +1516,18 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
       product
     );
 
+    const lines = [line];
+    if (calc.overdueCharge > 0) {
+      lines.push({
+        name: `Overdue Late Charge (${calc.breakdownLabel})`,
+        sku: 'OVERDUE-FEE',
+        category: 'Overdue Charge',
+        basePrice: calc.overdueCharge,
+        quantity: 1,
+        billingCycle: 'One-time'
+      });
+    }
+
     return {
       mode: 'renewal',
       label,
@@ -1459,10 +1535,14 @@ export const quotePortalCharge = async ({ user, req, body = {}, scope }) => {
       alreadySettled: false,
       snapshot: {
         contractId: contract.contractId || contract.id || contractId,
+        baseAmount: baseTotal,
+        overdueCharge: calc.overdueCharge,
+        overdueDays: calc.overdueDays,
+        overdueLabel: calc.breakdownLabel,
         total,
-        subtotal: taxable,
+        subtotal: roundMoney(taxable + calc.overdueCharge),
         gst: gstAmount,
-        lines: [line],
+        lines,
         gstBasis: `Renewal value taken as GST-inclusive and split at ${GST_RATE * 100}%`,
         salesPerson: contract.salesPerson || ''
       }
@@ -1547,14 +1627,20 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
     const payment = await findScopedPayment(scope, snapshot.invoiceNumber);
     if (!payment) throw checkoutError(404, 'That invoice is not on your account.');
 
-    const { settled, outstanding } = await settleRow({ payment, user, customer, method });
+    const { settled, totalSettled } = await settleRow({
+      payment,
+      user,
+      customer,
+      method,
+      overdueCharge: snapshot.overdueCharge || 0
+    });
 
     return {
       statusCode: 200,
       data: {
         alreadySettled: !settled,
         payment: await mapPayment(payment.toObject()),
-        totals: { total: settled ? outstanding : 0 }
+        totals: { total: settled ? totalSettled : 0 }
       }
     };
   }
@@ -1567,10 +1653,17 @@ export const settlePortalCharge = async ({ user, customer, scope, quote, method 
       const payment = await findScopedPayment(scope, reference);
       if (!payment) continue;
 
-      const { settled, outstanding } = await settleRow({ payment, user, customer, method });
+      const fee = snapshot.invoiceOverdues?.[reference] || 0;
+      const { settled, totalSettled } = await settleRow({
+        payment,
+        user,
+        customer,
+        method,
+        overdueCharge: fee
+      });
       if (!settled) continue;
 
-      total += outstanding;
+      total += totalSettled;
       settledPayments.push(await mapPayment(payment.toObject()));
     }
 

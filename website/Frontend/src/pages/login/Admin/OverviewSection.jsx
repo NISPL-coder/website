@@ -17,6 +17,7 @@ import {
   TrendingDown,
   Clock,
   Sparkles,
+  X,
   XCircle,
   Search,
   Activity,
@@ -35,7 +36,8 @@ import {
   Copy,
   Check,
   BarChart3,
-  PieChart
+  PieChart,
+  Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
@@ -73,7 +75,8 @@ import {
   formatContractStamp,
   matchesStatusFilter,
   isDemoContract,
-  customerHasPurchasedPlans
+  customerHasPurchasedPlans,
+  generateDedicatedIp
 } from './contractVocabulary';
 import {
   normalizeCustomerLifecycle,
@@ -242,7 +245,49 @@ export default function OverviewSection({
   const [isDeletingContract, setIsDeletingContract] = useState(false);
   const [updatingContractStatusIds, setUpdatingContractStatusIds] = useState({});
   const [syncingContractIds, setSyncingContractIds] = useState({});
+  const [editingIpId, setEditingIpId] = useState(null);
+  const [editingIpValue, setEditingIpValue] = useState('');
+  const [savingIpId, setSavingIpId] = useState(null);
   const [isAwaitingModalOpen, setIsAwaitingModalOpen] = useState(false);
+
+  const handleStartEditIp = (contract, currentIp) => {
+    const cId = getContractId(contract);
+    setEditingIpId(cId);
+    setEditingIpValue(currentIp || '');
+  };
+
+  const handleCancelEditIp = () => {
+    setEditingIpId(null);
+    setEditingIpValue('');
+  };
+
+  const handleSaveDedicatedIp = async (contract) => {
+    const cId = getContractId(contract);
+    const trimmedIp = editingIpValue.trim();
+    const prevIp = contract.ipAddress || contract.dedicatedIp || contract.wanIp || '';
+
+    if (trimmedIp === prevIp) {
+      handleCancelEditIp();
+      return;
+    }
+
+    setSavingIpId(cId);
+    const toastId = toast.loading(`Updating Dedicated IP for "${contract.name || cId}"...`);
+    try {
+      const { contractApi } = await import('../../../services/contractApi');
+      const res = await contractApi.updateContract(cId, { ipAddress: trimmedIp });
+      const updated = res.contract || { ...contract, ipAddress: trimmedIp, dedicatedIp: trimmedIp };
+      setContracts((prev) =>
+        prev.map((item) => (getContractId(item) === cId ? { ...item, ...updated } : item))
+      );
+      toast.success(trimmedIp ? `Dedicated IP updated to ${trimmedIp}` : 'Dedicated IP cleared', { id: toastId });
+      handleCancelEditIp();
+    } catch (err) {
+      toast.error(`Failed to update IP: ${err.message}`, { id: toastId });
+    } finally {
+      setSavingIpId(null);
+    }
+  };
 
   // Contracts awaiting payment confirmation (only online customer purchases awaiting admin review)
   const awaitingConfirmationContracts = useMemo(() => {
@@ -355,6 +400,27 @@ export default function OverviewSection({
     }
   };
 
+  const resolveCustomerId = (c) => {
+    if (!c) return '';
+    if (c.customerId) return c.customerId;
+    if (c.accountId && String(c.accountId).startsWith('CUST-')) return c.accountId;
+    const comp = String(c.company || '').trim().toLowerCase();
+    const pers = String(c.customer || c.person || '').trim().toLowerCase();
+    const mail = String(c.personEmail || c.email || '').trim().toLowerCase();
+
+    const matched = (customers || []).find((cust) => {
+      const custComp = String(cust.company || '').trim().toLowerCase();
+      const custName = String(cust.name || '').trim().toLowerCase();
+      const custMail = String(cust.email || '').trim().toLowerCase();
+      return (
+        (comp && custComp === comp) ||
+        (mail && custMail === mail) ||
+        (pers && custName === pers)
+      );
+    });
+    return matched?.customerId || matched?.id || '';
+  };
+
   // Filtered customer list for the Overview Customer Table
   const filteredOverviewCustomers = useMemo(() => {
     const list = activeOverviewData.filteredCustomers || [];
@@ -370,6 +436,7 @@ export default function OverviewSection({
         (c.designation || '').toLowerCase().includes(q) ||
         (c.phone || '').toLowerCase().includes(q) ||
         (c.plan || '').toLowerCase().includes(q) ||
+        (c.status || '').toLowerCase().includes(q) ||
         (String(getCustomerUserCount(c, contracts, products) || '') + ' user').includes(q) ||
         (String(getCustomerUserCount(c, contracts, products) || '') + ' users').includes(q) ||
         (getCustomerOrderBreakdown(c, contracts).text || '').toLowerCase().includes(q) ||
@@ -384,7 +451,7 @@ export default function OverviewSection({
       else if (custStatusFilter === 'inactive') matchesStatus = stage === 'Inactive';
 
       const matchesDateRange = isWithinDateRange(
-        c.registered || c.createdAt || c.lastSyncedAt,
+        c.createdAt || c.registered,
         custDateFrom,
         custDateTo
       );
@@ -396,7 +463,7 @@ export default function OverviewSection({
       if (dateB !== dateA) return dateB - dateA;
       return String(b.id || '').localeCompare(String(a.id || ''));
     });
-  }, [activeOverviewData, custSearch, custStatusFilter, custDateFrom, custDateTo]);
+  }, [activeOverviewData, custSearch, custStatusFilter, custDateFrom, custDateTo, contracts, products]);
 
   // Filtered contract list for the Overview Contract Table
   const filteredOverviewContracts = useMemo(() => {
@@ -404,6 +471,9 @@ export default function OverviewSection({
     return list.filter((c) => {
       const q = contSearch.toLowerCase();
       const code = (c.id || c.contractId || '').toLowerCase();
+      const custId = String(c.customerId || resolveCustomerId(c) || '').toLowerCase();
+      const custName = contractPersonName(c, customers).toLowerCase();
+      const dedicatedIp = String(c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id)).toLowerCase();
       const name = (c.name || '').toLowerCase();
       const company = (c.company || '').toLowerCase();
       const email = contractPersonEmail(c, customers).toLowerCase();
@@ -414,6 +484,9 @@ export default function OverviewSection({
       const matchesSearch =
         !q ||
         code.includes(q) ||
+        custId.includes(q) ||
+        custName.includes(q) ||
+        dedicatedIp.includes(q) ||
         name.includes(q) ||
         company.includes(q) ||
         email.includes(q) ||
@@ -423,11 +496,10 @@ export default function OverviewSection({
 
       const matchesStatus = matchesStatusFilter(c, contStatusFilter);
 
-      const matchesDateRange = isWithinDateRange(
-        c.startDate || c.createdAt || c.expiryDate,
-        contDateFrom,
-        contDateTo
-      );
+      const matchesDateRange =
+        isWithinDateRange(c.endDate || c.expiryDate, contDateFrom, contDateTo) ||
+        isWithinDateRange(c.startDate, contDateFrom, contDateTo) ||
+        isWithinDateRange(c.createdAt, contDateFrom, contDateTo);
 
       return matchesSearch && matchesStatus && matchesDateRange;
     }).sort((a, b) => {
@@ -1725,13 +1797,13 @@ export default function OverviewSection({
     {
       id: 'customerId',
       name: 'Customer ID',
-      selector: (row) => row.customerId || row.accountId || '',
+      selector: (row) => row.customerId || resolveCustomerId(row) || '',
       sortable: true,
-      sortFunction: compareText((row) => row.customerId || row.accountId || ''),
+      sortFunction: compareText((row) => row.customerId || resolveCustomerId(row) || ''),
       minWidth: '140px',
       width: '150px',
       cell: (c) => {
-        const custId = c.customerId || c.accountId;
+        const custId = c.customerId || resolveCustomerId(c);
         if (!custId) return <span style={{ color: '#94a3b8' }}>—</span>;
         return (
           <button
@@ -1850,6 +1922,177 @@ export default function OverviewSection({
       cell: (c) => <div className="adm-primary-text">{c.company || '—'}</div>
     },
     {
+      id: 'dedicatedIp',
+      name: 'Dedicated IP Address',
+      selector: (row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id),
+      sortable: true,
+      sortFunction: compareText((row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id)),
+      minWidth: '220px',
+      cell: (c) => {
+        const cId = getContractId(c);
+        const ip = c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id);
+        const isCopied = copiedKey === `ip-${cId}`;
+        const isEditing = editingIpId === cId;
+        const isSaving = savingIpId === cId;
+        const canEdit = can('contract', 'edit');
+
+        if (isEditing) {
+          return (
+            <div
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="text"
+                value={editingIpValue}
+                onChange={(e) => setEditingIpValue(e.target.value)}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveDedicatedIp(c);
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    handleCancelEditIp();
+                  }
+                }}
+                placeholder="e.g. 103.115.220.44"
+                autoFocus
+                disabled={isSaving}
+                style={{
+                  fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  padding: '4px 7px',
+                  borderRadius: '6px',
+                  border: '1px solid #3b82f6',
+                  outline: 'none',
+                  width: '138px',
+                  color: '#0f172a',
+                  background: '#ffffff'
+                }}
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSaveDedicatedIp(c);
+                }}
+                disabled={isSaving}
+                title="Save Dedicated IP"
+                style={{
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '5px',
+                  padding: '4px',
+                  cursor: isSaving ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Check size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancelEditIp();
+                }}
+                disabled={isSaving}
+                title="Cancel"
+                style={{
+                  background: '#f1f5f9',
+                  color: '#64748b',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '5px',
+                  padding: '4px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <span
+              onDoubleClick={(e) => {
+                if (!canEdit) return;
+                e.stopPropagation();
+                handleStartEditIp(c, c.ipAddress || c.dedicatedIp || c.wanIp || ip);
+              }}
+              title={canEdit ? 'Double-click or click edit to change Dedicated IP' : undefined}
+              style={{
+                fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
+                fontWeight: 600,
+                fontSize: '0.84rem',
+                color: ip ? '#1d4ed8' : '#94a3b8',
+                background: ip ? '#eff6ff' : 'transparent',
+                padding: ip ? '3px 8px' : 0,
+                borderRadius: '6px',
+                border: ip ? '1px solid #bfdbfe' : 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: canEdit ? 'pointer' : 'default'
+              }}
+            >
+              {ip && <Globe size={12} style={{ color: '#2563eb' }} />}
+              {ip || '—'}
+            </span>
+            {ip && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(ip, `ip-${cId}`, 'Dedicated IP Address');
+                }}
+                title="Copy Dedicated IP Address"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: isCopied ? '#10b981' : '#94a3b8',
+                  padding: '3px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Copy size={13} />
+              </button>
+            )}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStartEditIp(c, c.ipAddress || c.dedicatedIp || c.wanIp || ip);
+                }}
+                title="Edit Dedicated IP Address"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  padding: '3px',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Edit3 size={13} />
+              </button>
+            )}
+          </div>
+        );
+      },
+      searchType: 'text'
+    },
+    {
       id: 'status',
       name: 'Status',
       selector: (row) => (row.confirmationStatus === 'Pending' ? 'Confirmation Pending' : normalizeContractStatus(row.status, row)),
@@ -1953,6 +2196,23 @@ export default function OverviewSection({
               </button>
             )}
           </div>
+        );
+      },
+      searchType: 'select'
+    },
+    {
+      id: 'paymentStatus',
+      name: 'Payment Status',
+      selector: (row) => (['yes', 'true', '1', 'paid'].includes(String(row.paymentStatus || '').toLowerCase()) ? 'Yes' : 'No'),
+      sortable: true,
+      sortFunction: compareText((row) => (['yes', 'true', '1', 'paid'].includes(String(row.paymentStatus || '').toLowerCase()) ? 'Yes' : 'No')),
+      width: '135px',
+      cell: (c) => {
+        const isPaid = ['yes', 'true', '1', 'paid'].includes(String(c.paymentStatus || '').toLowerCase());
+        return (
+          <span className={`adm-status-pill ${isPaid ? 'active' : 'inactive'}`}>
+            {isPaid ? 'Yes' : 'No'}
+          </span>
         );
       },
       searchType: 'select'

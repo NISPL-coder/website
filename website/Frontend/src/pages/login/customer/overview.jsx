@@ -39,6 +39,59 @@ const LIFECYCLE_BADGE = {
   Inactive: { background: '#fef2f2', color: '#dc2626', border: '#fecaca', icon: AlertCircle }
 };
 
+function computeClientOverdue(baseAmount, daysLeft, policy) {
+  const base = Math.max(0, Number(baseAmount) || 0);
+  const days = daysLeft !== null && daysLeft !== undefined && daysLeft < 0 ? Math.abs(daysLeft) : 0;
+  const activePolicy = policy || {
+    enabled: true,
+    method: 'interest',
+    annualInterestRate: 18,
+    fixedTiers: [
+      { minDays: 1, maxDays: 15, fee: 250 },
+      { minDays: 16, maxDays: 30, fee: 500 },
+      { minDays: 31, maxDays: null, fee: 1000 }
+    ],
+    monthlyRate: 2
+  };
+  if (activePolicy.enabled === false || base <= 0 || days <= 0) {
+    return { baseAmount: base, overdueCharge: 0, overdueDays: days, totalAmount: base, overdueLabel: null };
+  }
+  let overdueCharge = 0;
+  let overdueLabel = null;
+  if (activePolicy.method === 'fixed') {
+    const tiers = activePolicy.fixedTiers || [];
+    const match = tiers.find((t) => days >= t.minDays && (t.maxDays == null || days <= t.maxDays)) || tiers[tiers.length - 1];
+    overdueCharge = Math.round((Number(match?.fee) || 0) * 100) / 100;
+    overdueLabel = `Fixed late fee (${days} day${days === 1 ? '' : 's'} overdue)`;
+  } else if (activePolicy.method === 'monthly') {
+    const rate = Number(activePolicy.monthlyRate ?? 2);
+    const months = Math.max(1, Math.ceil(days / 30));
+    overdueCharge = Math.round(base * (rate / 100) * months * 100) / 100;
+    overdueLabel = `${rate}%/mo × ${months} month${months === 1 ? '' : 's'}`;
+  } else {
+    const rate = Number(activePolicy.annualInterestRate ?? 18);
+    overdueCharge = Math.round(((base * rate * days) / 36500) * 100) / 100;
+    overdueLabel = `${rate}% p.a. × ${days} day${days === 1 ? '' : 's'}`;
+  }
+  return {
+    baseAmount: base,
+    overdueCharge,
+    overdueDays: days,
+    totalAmount: Math.round((base + overdueCharge) * 100) / 100,
+    overdueLabel
+  };
+}
+
+function formatINRPrecise(val) {
+  const num = Number(val);
+  if (val === undefined || val === null || Number.isNaN(num)) return '₹0';
+  const hasDecimals = Math.abs(num % 1) >= 0.005;
+  return `₹${num.toLocaleString('en-IN', {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: 2
+  })}`;
+}
+
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
@@ -313,7 +366,19 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
   const pendingInvoicesFromPayments = payments.filter((p) => (p.pending || 0) > 0);
 
   // Merge any pending renewals and invoices into reminders if not already present
-  const reminders = [...rawReminders];
+  const overduePolicy = kpi.overduePolicy || null;
+  const reminders = rawReminders.map((r) => {
+    if (r.overdueCharge !== undefined) return r;
+    const calc = computeClientOverdue(r.baseAmount ?? r.amount, r.daysLeft, overduePolicy);
+    return {
+      ...r,
+      baseAmount: calc.baseAmount,
+      overdueCharge: calc.overdueCharge,
+      overdueDays: calc.overdueDays,
+      overdueLabel: calc.overdueLabel,
+      amount: calc.totalAmount
+    };
+  });
 
   for (const inv of pendingInvoicesFromPayments) {
     const invId = inv.id || inv.invoiceNumber;
@@ -321,12 +386,17 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
       (r) => (r.invoiceNumber && r.invoiceNumber === inv.invoiceNumber) || (r.id && r.id === invId)
     );
     if (!existing) {
+      const calc = computeClientOverdue(inv.pending, inv.daysLeft, overduePolicy);
       reminders.push({
         id: invId,
         kind: 'payment',
         title: inv.service || `Invoice ${inv.invoiceNumber}`,
         invoiceNumber: inv.invoiceNumber,
-        amount: inv.pending,
+        baseAmount: calc.baseAmount,
+        overdueCharge: calc.overdueCharge,
+        overdueDays: calc.overdueDays,
+        overdueLabel: calc.overdueLabel,
+        amount: calc.totalAmount,
         dueDate: inv.dueDate,
         daysLeft: inv.daysLeft,
         overdue: Boolean(inv.overdue || (inv.daysLeft !== null && inv.daysLeft < 0)),
@@ -342,13 +412,18 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
         (r.title && r.title === pr.name)
     );
     if (!existing) {
+      const calc = computeClientOverdue(pr.amount, pr.daysLeft, overduePolicy);
       reminders.push({
         id: `renewal-${pr.contractId || pr.id}`,
         kind: 'renewal',
         contractId: pr.contractId || pr.id,
         title: pr.name,
         invoiceNumber: null,
-        amount: pr.amount,
+        baseAmount: calc.baseAmount,
+        overdueCharge: calc.overdueCharge,
+        overdueDays: calc.overdueDays,
+        overdueLabel: calc.overdueLabel,
+        amount: calc.totalAmount,
         dueDate: pr.expiryDate,
         daysLeft: pr.daysLeft,
         overdue: pr.daysLeft < 0,
@@ -908,7 +983,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                             className="flowmail-reminder-item-amount"
                             style={{ color: isOverdue ? '#dc2626' : isRenewal ? '#b45309' : '#0f172a' }}
                           >
-                            {formatINR(rem.amount)}
+                            {rem.overdueCharge > 0 ? formatINRPrecise(rem.amount) : formatINR(rem.amount)}
                           </span>
                         </div>
                         <h4 className="flowmail-reminder-item-title">{rem.title}</h4>
@@ -922,6 +997,7 @@ export default function CloudPortalOverview({ customer, portalData = null, onNav
                             `${rem.invoiceNumber ? `Invoice ${rem.invoiceNumber}` : 'Service due'}${rem.dueDate ? ` · Due ${formatDate(rem.dueDate)}` : ''}`
                           )}
                         </p>
+                        
                         <div className="flowmail-reminder-item-actions">
                           <button
                             type="button"

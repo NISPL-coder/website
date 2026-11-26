@@ -120,6 +120,33 @@ export const paymentApi = {
     }
     notifyDataChanged('payments');
     return true;
+  },
+
+  async getOverduePolicy() {
+    try {
+      const res = await fetch(`${BASE_URL}/overdue-policy`, { headers: getHeaders() });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && data.policy) {
+        return data.policy;
+      }
+    } catch (err) {
+      console.warn('[paymentApi] Error fetching overdue policy:', err);
+    }
+    return null;
+  },
+
+  async updateOverduePolicy(policy) {
+    const res = await fetch(`${BASE_URL}/overdue-policy`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(policy)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to update overdue policy');
+    }
+    notifyDataChanged('payments');
+    return data.policy;
   }
 };
 

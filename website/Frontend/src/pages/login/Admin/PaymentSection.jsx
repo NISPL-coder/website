@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Landmark, Paperclip, X, Search, Clock, Edit3 } from 'lucide-react';
+import { CheckCircle2, Landmark, Paperclip, X, Search, Clock, Edit3, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 import { compactSelectStyles } from './reactSelectStyles';
@@ -12,6 +12,7 @@ import { usePermissions } from './PermissionsContext';
 import { paymentApi } from '../../../services/paymentApi';
 import { compareDate, compareNumber, compareText, isWithinDateRange } from './adminTableUtils';
 import EditPaymentModal from './EditPaymentModal';
+import OverduePolicyModal from './OverduePolicyModal';
 
 const getName = (row) => row.name || row.customer || '—';
 const getAccount = (row) => row.accountName || row.company || '—';
@@ -42,6 +43,7 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
   const { visibleColumns, can } = usePermissions();
   const [searchQuery, setSearchQuery] = useState(externalSearch || '');
   const [editingPayment, setEditingPayment] = useState(null);
+  const [isOverdueModalOpen, setIsOverdueModalOpen] = useState(false);
 
   useEffect(() => {
     if (externalSearch !== undefined && externalSearch !== null) {
@@ -478,6 +480,17 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
         </div>
 
         <div className="adm-card-header-action">
+          {can('payment', 'edit') && (
+            <button
+              type="button"
+              className="adm-btn-secondary"
+              onClick={() => setIsOverdueModalOpen(true)}
+              title="Configure overdue late payment charges"
+            >
+              <AlertTriangle size={15} />
+              <span>Overdue Charges</span>
+            </button>
+          )}
           {can('manual_payment') && (
             <button
               type="button"
@@ -594,6 +607,11 @@ export default function PaymentSection({ payments, setPayments, contracts, onGoT
           }}
         />
       )}
+
+      <OverduePolicyModal
+        isOpen={isOverdueModalOpen}
+        onClose={() => setIsOverdueModalOpen(false)}
+      />
     </div>
   );
 }

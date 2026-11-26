@@ -13,6 +13,7 @@ import { logNotification } from '../services/notificationService.js';
 import { redactRecords } from '../utils/columnPermissions.js';
 import { parseAmount, findCatalogueRow, resolveDisplayName } from './portalController.js';
 import { activateAccountAfterPayment } from '../services/contractProvisioning.js';
+import { getOverduePolicy, saveOverduePolicy } from '../models/BillingSettings.js';
 
 const isMongoConnected = () => mongoose.connection.readyState === 1;
 
@@ -1216,13 +1217,42 @@ export const getManualPaymentProof = async (req, res) => {
   }
 };
 
+export const getOverdueChargePolicy = async (req, res) => {
+  try {
+    const policy = await getOverduePolicy();
+    res.json({ success: true, policy });
+  } catch (err) {
+    console.error('Error fetching overdue policy:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+export const updateOverdueChargePolicy = async (req, res) => {
+  try {
+    const actor = req.user?.email || req.user?.name || 'Admin';
+    const policy = await saveOverduePolicy(req.body || {}, actor);
+    await logActivity({
+      action: 'Updated Overdue Charge Policy',
+      module: 'payment',
+      actor,
+      details: `Method: ${policy.method}, Enabled: ${policy.enabled}`
+    });
+    res.json({ success: true, policy });
+  } catch (err) {
+    console.error('Error updating overdue policy:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 export default {
   getPayments,
   createPayment,
   recordManualPayment,
   getManualPaymentProof,
   updatePayment,
-  deletePayment
+  deletePayment,
+  getOverdueChargePolicy,
+  updateOverdueChargePolicy
 };
 
 
