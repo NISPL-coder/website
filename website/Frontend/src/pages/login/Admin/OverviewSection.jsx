@@ -1927,7 +1927,7 @@ export default function OverviewSection({
       selector: (row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id),
       sortable: true,
       sortFunction: compareText((row) => row.ipAddress || row.dedicatedIp || row.wanIp || generateDedicatedIp(row.contractId || row.id)),
-      minWidth: '220px',
+      minWidth: '250px',
       cell: (c) => {
         const cId = getContractId(c);
         const ip = c.ipAddress || c.dedicatedIp || c.wanIp || generateDedicatedIp(c.contractId || c.id);
@@ -2019,7 +2019,7 @@ export default function OverviewSection({
         }
 
         return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', maxWidth: '100%', minWidth: 0 }}>
             <span
               onDoubleClick={(e) => {
                 if (!canEdit) return;
@@ -2030,7 +2030,7 @@ export default function OverviewSection({
               style={{
                 fontFamily: "'SFMono-Regular', Consolas, Menlo, monospace",
                 fontWeight: 600,
-                fontSize: '0.84rem',
+                fontSize: '0.82rem',
                 color: ip ? '#1d4ed8' : '#94a3b8',
                 background: ip ? '#eff6ff' : 'transparent',
                 padding: ip ? '3px 8px' : 0,
@@ -2039,11 +2039,15 @@ export default function OverviewSection({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
+                whiteSpace: 'nowrap',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
                 cursor: canEdit ? 'pointer' : 'default'
               }}
             >
-              {ip && <Globe size={12} style={{ color: '#2563eb' }} />}
-              {ip || '—'}
+              {ip && <Globe size={12} style={{ color: '#2563eb', flexShrink: 0 }} />}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{ip || '—'}</span>
             </span>
             {ip && (
               <button
@@ -2058,9 +2062,10 @@ export default function OverviewSection({
                   border: 'none',
                   cursor: 'pointer',
                   color: isCopied ? '#10b981' : '#94a3b8',
-                  padding: '3px',
+                  padding: '4px',
                   display: 'inline-flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  flexShrink: 0
                 }}
               >
                 <Copy size={13} />
@@ -2079,9 +2084,10 @@ export default function OverviewSection({
                   border: 'none',
                   cursor: 'pointer',
                   color: '#64748b',
-                  padding: '3px',
+                  padding: '4px',
                   display: 'inline-flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  flexShrink: 0
                 }}
               >
                 <Edit3 size={13} />
